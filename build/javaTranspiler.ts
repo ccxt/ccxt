@@ -1,6 +1,8 @@
 import Transpiler from "ast-transpiler";
-// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
-import ts from "typescript6";
+import { SyntaxKind } from "typescript/unstable/ast";
+import { isArrayLiteralExpression, isAsExpression, isBinaryExpression, isCallExpression, isConditionalExpression, isElementAccessExpression, isIdentifier, isMethodDeclaration, isParenthesizedExpression, isPostfixUnaryExpression, isPrefixUnaryExpression, isPropertyAccessExpression, isSpreadElement, isTypeAssertion, isTypeOfExpression, isTypeReferenceNode, isVariableDeclaration } from "typescript/unstable/ast/is";
+import { TypeFlags } from "typescript/unstable/sync";
+import { canHaveModifiers, getModifiers } from "ast-transpiler/tsUtils";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
@@ -547,7 +549,7 @@ function predictionSourceFiles () {
 // (build/java-worker.ts, which imports it from this module) — same precedent as
 // patchJavaPropertyTypes(), and it keeps the ast-transpiler pin untouched.
 //
-// Uses `typescript6` — the same 6.x line that ast-transpiler bundles — so SyntaxKind
+// Uses the TS7 native API (typescript/unstable/*) like ast-transpiler, so SyntaxKind
 // values agree with the AST nodes the printer hands us.
 // ============================================================================
 
@@ -589,16 +591,16 @@ const PRECISE_STRING_STATICS = new Set([
 const ACCESSOR_DECLARATION_FILE = /[\\/]base[\\/]functions[\\/]type\.ts$/;
 
 function isThisCall (node: any): boolean {
-    return node !== undefined && ts.isCallExpression (node)
-        && ts.isPropertyAccessExpression (node.expression)
-        && node.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
+    return node !== undefined && isCallExpression (node)
+        && isPropertyAccessExpression (node.expression)
+        && node.expression.expression.kind === SyntaxKind.ThisKeyword;
 }
 
 // `this.x(...)` or `super.x(...)`: both resolve against the class hierarchy
 function isThisOrSuperCall (node: any): boolean {
-    return node !== undefined && ts.isCallExpression (node)
-        && ts.isPropertyAccessExpression (node.expression)
-        && (node.expression.expression.kind === ts.SyntaxKind.ThisKeyword || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
+    return node !== undefined && isCallExpression (node)
+        && isPropertyAccessExpression (node.expression)
+        && (node.expression.expression.kind === SyntaxKind.ThisKeyword || node.expression.expression.kind === SyntaxKind.SuperKeyword);
 }
 
 // `this.safeString(...)` / `this.safeStringUpper(...)` … resolving to the base accessor
@@ -608,11 +610,11 @@ function isBaseStringAccessorCall (printer: any, node: any): boolean {
     if (!isThisCall (node)) {
         return false;
     }
-    const name = node.expression.name.escapedText;
+    const name = node.expression.name.text;
     if (!STRING_ACCESSORS.has (name)) {
         return false;
     }
-    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
     return declaration !== undefined && ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName);
 }
 
@@ -641,7 +643,7 @@ function isBaseStringAccessorCall (printer: any, node: any): boolean {
 
 // unwrap `( ... )` layers
 function unwrapParensAll (node: any): any {
-    while (node !== undefined && ts.isParenthesizedExpression (node)) {
+    while (node !== undefined && isParenthesizedExpression (node)) {
         node = node.expression;
     }
     return node;
@@ -661,29 +663,29 @@ function isStaticallyStringExpression (printer: any, node: any, selfName: string
         return false;
     }
     switch (node.kind) {
-        case ts.SyntaxKind.StringLiteral:
-        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case SyntaxKind.StringLiteral:
+        case SyntaxKind.NoSubstitutionTemplateLiteral:
             return true;
-        case ts.SyntaxKind.ConditionalExpression:
+        case SyntaxKind.ConditionalExpression:
             return isStaticallyStringExpression (printer, node.whenTrue, selfName)
                 && isStaticallyStringExpression (printer, node.whenFalse, selfName);
-        case ts.SyntaxKind.BinaryExpression:
-            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+        case SyntaxKind.BinaryExpression:
+            return node.operatorToken.kind === SyntaxKind.PlusToken
                 && isStaticallyStringExpression (printer, node.left, selfName);
-        case ts.SyntaxKind.CallExpression: {
+        case SyntaxKind.CallExpression: {
             if (isBaseStringAccessorCall (printer, node)) {
                 return true; // BaseExchange.safeString* are declared String
             }
             const callee = node.expression;
-            if (!ts.isPropertyAccessExpression (callee)) {
+            if (!isPropertyAccessExpression (callee)) {
                 return false;
             }
-            const method = String (callee.name.escapedText);
-            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
+            const method = String (callee.name.text);
+            if (callee.expression.kind === SyntaxKind.ThisKeyword) {
                 return STRING_RETURNING_BASE_METHODS.has (method);
             }
-            return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).escapedText === 'Precise'
+            return callee.expression.kind === SyntaxKind.Identifier
+                && (callee.expression as any).text === 'Precise'
                 && PRECISE_STRING_STATICS.has (method);
         }
         default:
@@ -707,17 +709,17 @@ function typeIsPossiblyNumeric (type: any): boolean {
         return true;
     }
     const flags = type.flags;
-    if (flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
+    if (flags & (TypeFlags.Any | TypeFlags.Unknown)) {
         return true;
     }
-    if (flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike)) {
+    if (flags & (TypeFlags.NumberLike | TypeFlags.BigIntLike)) {
         return true;
     }
-    if (flags & ts.TypeFlags.Union) {
-        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+    if (flags & TypeFlags.Union) {
+        return type.getTypes ().some ((member: any) => typeIsPossiblyNumeric (member));
     }
-    if (flags & ts.TypeFlags.Intersection) {
-        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+    if (flags & TypeFlags.Intersection) {
+        return type.getTypes ().some ((member: any) => typeIsPossiblyNumeric (member));
     }
     return false;
 }
@@ -730,7 +732,7 @@ function isPossiblyNumericDeep (printer: any, node: any): boolean {
     if (node === undefined) {
         return true;
     }
-    if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    if (isBinaryExpression (node) && node.operatorToken.kind === SyntaxKind.PlusToken) {
         return isPossiblyNumericDeep (printer, node.left) || isPossiblyNumericDeep (printer, node.right);
     }
     return isPossiblyNumericExpression (printer, node);
@@ -747,14 +749,14 @@ function isProvablyNonNullStringExpression (printer: any, node: any, selfName: s
         return false;
     }
     switch (node.kind) {
-        case ts.SyntaxKind.StringLiteral:
-        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case SyntaxKind.StringLiteral:
+        case SyntaxKind.NoSubstitutionTemplateLiteral:
             return true;
-        case ts.SyntaxKind.ConditionalExpression:
+        case SyntaxKind.ConditionalExpression:
             return isProvablyNonNullStringExpression (printer, node.whenTrue, selfName)
                 && isProvablyNonNullStringExpression (printer, node.whenFalse, selfName);
-        case ts.SyntaxKind.BinaryExpression: {
-            if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        case SyntaxKind.BinaryExpression: {
+            if (node.operatorToken.kind !== SyntaxKind.PlusToken) {
                 return false;
             }
             return isStaticallyStringExpression (printer, node.left, selfName)
@@ -772,17 +774,17 @@ function isProvablyNonNullStringExpression (printer: any, node: any, selfName: s
 // level-0 `+`, then UP for the enclosing levels.
 function plusWriteRightIsSafe (printer: any, right: any, sourceName: string): boolean {
     let node = unwrapParensAll (right);
-    if (node === undefined || !ts.isBinaryExpression (node) || node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+    if (node === undefined || !isBinaryExpression (node) || node.operatorToken.kind !== SyntaxKind.PlusToken) {
         return false;
     }
     let level0;
-    while (node !== undefined && ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    while (node !== undefined && isBinaryExpression (node) && node.operatorToken.kind === SyntaxKind.PlusToken) {
         const left = unwrapParensAll (node.left);
-        if (left !== undefined && ts.isIdentifier (left) && left.escapedText === sourceName) {
+        if (left !== undefined && isIdentifier (left) && left.text === sourceName) {
             level0 = node;
             break;
         }
-        if (left !== undefined && ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        if (left !== undefined && isBinaryExpression (left) && left.operatorToken.kind === SyntaxKind.PlusToken) {
             node = left;
             continue;
         }
@@ -796,18 +798,18 @@ function plusWriteRightIsSafe (printer: any, right: any, sourceName: string): bo
     }
     let child = level0;
     let parent = level0.parent;
-    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+    while (parent !== undefined && isParenthesizedExpression (parent)) {
         child = parent;
         parent = parent.parent;
     }
-    while (parent !== undefined && ts.isBinaryExpression (parent)
-        && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && parent.left === child) {
+    while (parent !== undefined && isBinaryExpression (parent)
+        && parent.operatorToken.kind === SyntaxKind.PlusToken && parent.left === child) {
         if (isPossiblyNumericDeep (printer, parent.right)) {
             return false;
         }
         child = parent;
         parent = parent.parent;
-        while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        while (parent !== undefined && isParenthesizedExpression (parent)) {
             child = parent;
             parent = parent.parent;
         }
@@ -829,35 +831,35 @@ function isProvablyStringExpression (printer: any, node: any, selfName: string |
         return false;
     }
     switch (node.kind) {
-        case ts.SyntaxKind.StringLiteral:
-        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-        case ts.SyntaxKind.NullKeyword:
+        case SyntaxKind.StringLiteral:
+        case SyntaxKind.NoSubstitutionTemplateLiteral:
+        case SyntaxKind.NullKeyword:
             return true;
-        case ts.SyntaxKind.Identifier:
-            return node.escapedText === 'undefined' || node.escapedText === selfName;
-        case ts.SyntaxKind.ParenthesizedExpression:
+        case SyntaxKind.Identifier:
+            return node.text === 'undefined' || node.text === selfName;
+        case SyntaxKind.ParenthesizedExpression:
             return isProvablyStringExpression (printer, node.expression, selfName, nested);
-        case ts.SyntaxKind.ConditionalExpression:
+        case SyntaxKind.ConditionalExpression:
             return isProvablyStringExpression (printer, node.whenTrue, selfName, true) && isProvablyStringExpression (printer, node.whenFalse, selfName, true);
-        case ts.SyntaxKind.BinaryExpression:
+        case SyntaxKind.BinaryExpression:
             // `'lit' + x` prints Helpers.add(String, Object) → String
-            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
-                && (node.left.kind === ts.SyntaxKind.StringLiteral || node.left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
-        case ts.SyntaxKind.CallExpression: {
+            return node.operatorToken.kind === SyntaxKind.PlusToken
+                && (node.left.kind === SyntaxKind.StringLiteral || node.left.kind === SyntaxKind.NoSubstitutionTemplateLiteral);
+        case SyntaxKind.CallExpression: {
             if (isBaseStringAccessorCall (printer, node)) {
                 return !nested;
             }
             const callee = node.expression;
-            if (!ts.isPropertyAccessExpression (callee)) {
+            if (!isPropertyAccessExpression (callee)) {
                 return false;
             }
             // escapedText is a branded `__String` on the typed node; it is a plain string at runtime
-            const method = String (callee.name.escapedText);
-            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
+            const method = String (callee.name.text);
+            if (callee.expression.kind === SyntaxKind.ThisKeyword) {
                 return STRING_RETURNING_BASE_METHODS.has (method);
             }
-            return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).escapedText === 'Precise'
+            return callee.expression.kind === SyntaxKind.Identifier
+                && (callee.expression as any).text === 'Precise'
                 && PRECISE_STRING_STATICS.has (method);
         }
         default:
@@ -869,12 +871,12 @@ function enclosingFunction (node: any): any {
     let current = node?.parent;
     while (current) {
         switch (current.kind) {
-            case ts.SyntaxKind.MethodDeclaration:
-            case ts.SyntaxKind.FunctionDeclaration:
-            case ts.SyntaxKind.FunctionExpression:
-            case ts.SyntaxKind.ArrowFunction:
-            case ts.SyntaxKind.Constructor:
-            case ts.SyntaxKind.SourceFile:
+            case SyntaxKind.MethodDeclaration:
+            case SyntaxKind.FunctionDeclaration:
+            case SyntaxKind.FunctionExpression:
+            case SyntaxKind.ArrowFunction:
+            case SyntaxKind.Constructor:
+            case SyntaxKind.SourceFile:
                 return current;
         }
         current = current.parent;
@@ -951,8 +953,8 @@ function jsAddFirstOperand (content: string, addStart: number): { text: string; 
 function identifierIndex (scope: any): Map<string, any[]> {
     const index = new Map<string, any[]> ();
     const visit = (n: any) => {
-        if (n.kind === ts.SyntaxKind.Identifier) {
-            const name = n.escapedText;
+        if (n.kind === SyntaxKind.Identifier) {
+            const name = n.text;
             let list = index.get (name);
             if (list === undefined) {
                 list = [];
@@ -960,25 +962,25 @@ function identifierIndex (scope: any): Map<string, any[]> {
             }
             list.push (n);
         }
-        ts.forEachChild (n, visit);
+        n.forEachChild(visit);
     };
-    ts.forEachChild (scope, visit);
+    scope.forEachChild(visit);
     return index;
 }
 
 // resolves to an `async` method (or one declared to return a Promise — an overload
 // signature carries the return type but not the modifier)
 function isAsyncMethodCall (printer: any, callNode: any): boolean {
-    const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
+    const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration?.resolve ();
     if (declaration === undefined) {
         return false;
     }
-    if (ts.canHaveModifiers (declaration) && (ts.getModifiers (declaration) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+    if (canHaveModifiers (declaration) && (getModifiers (declaration) ?? []).some ((m: any) => m.kind === SyntaxKind.AsyncKeyword)) {
         return true;
     }
     const returnType = declaration.type;
-    return returnType !== undefined && ts.isTypeReferenceNode (returnType)
-        && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
+    return returnType !== undefined && isTypeReferenceNode (returnType)
+        && isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
 }
 
 // env-gated calibration trace (same convention as the module's
@@ -1006,17 +1008,17 @@ function wsPostProcessReverts (declaration: any): boolean {
         return false;
     }
     let initializer = declaration.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
+    while (initializer !== undefined && isParenthesizedExpression (initializer)) {
         initializer = initializer.expression;
     }
-    if (initializer === undefined || initializer.kind !== ts.SyntaxKind.CallExpression) {
+    if (initializer === undefined || initializer.kind !== SyntaxKind.CallExpression) {
         return false;
     }
     const callee = initializer.expression;
-    if (ts.isPropertyAccessExpression (callee)) {
-        return callee.expression.kind === ts.SyntaxKind.ThisKeyword;
+    if (isPropertyAccessExpression (callee)) {
+        return callee.expression.kind === SyntaxKind.ThisKeyword;
     }
-    return ts.isIdentifier (callee) && callee.escapedText === 'Helpers';
+    return isIdentifier (callee) && callee.text === 'Helpers';
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
@@ -1037,31 +1039,31 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         if (parent === undefined) {
             continue;
         }
-        if (ts.isVariableDeclaration (parent) && parent.name === n) {
+        if (isVariableDeclaration (parent) && parent.name === n) {
             continue; // a sibling block-scoped declaration gets its own type
         }
-        if (ts.isPropertyAccessExpression (parent) && parent.name === n) {
+        if (isPropertyAccessExpression (parent) && parent.name === n) {
             continue; // `obj.<name>` is a member, not this local
         }
-        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
+        if (isPostfixUnaryExpression (parent) || isPrefixUnaryExpression (parent)) {
             const op = parent.operator;
-            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
+            if (op === SyntaxKind.PlusPlusToken || op === SyntaxKind.MinusMinusToken) {
                 return SAFESTRING_DEBUG ? safeStringReject ('inc-dec') : false;
             }
         }
-        if (ts.isSpreadElement (parent)) {
+        if (isSpreadElement (parent)) {
             return SAFESTRING_DEBUG ? safeStringReject ('spread') : false;
         }
-        if (ts.isTypeOfExpression (parent)) {
+        if (isTypeOfExpression (parent)) {
             return SAFESTRING_DEBUG ? safeStringReject ('typeof') : false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
         }
-        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+        if (isArrayLiteralExpression (parent) && isBinaryExpression (parent.parent)
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === SyntaxKind.EqualsToken) {
             return SAFESTRING_DEBUG ? safeStringReject ('destructure') : false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
-        if (ts.isBinaryExpression (parent) && parent.left === n) {
+        if (isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
-            if (op === ts.SyntaxKind.EqualsToken) {
+            if (op === SyntaxKind.EqualsToken) {
                 // SS-02: a reassignment whose RHS is provably a String read/chain (non-ws tiers).
                 // SS-03: a write whose printed Java is `Helpers.add(<local>, ..)` — admitted when
                 // the measured add-overload identity holds, so the emitted call binds
@@ -1072,13 +1074,13 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                 if (!provable) {
                     if (SAFESTRING_DEBUG) {
                         const right = unwrapParensAll (parent.right);
-                        const isPlus = right !== undefined && ts.isBinaryExpression (right)
-                            && right.operatorToken.kind === ts.SyntaxKind.PlusToken;
+                        const isPlus = right !== undefined && isBinaryExpression (right)
+                            && right.operatorToken.kind === SyntaxKind.PlusToken;
                         safeStringReject (isPlus ? 'write-plus-unsafe' : 'write-rhs');
                     }
                     return false;
                 }
-            } else if (op === ts.SyntaxKind.PlusEqualsToken) {
+            } else if (op === SyntaxKind.PlusEqualsToken) {
                 // `x += r` prints `x = Helpers.add (x, r)`: with x a String the call binds
                 // add(String, ..) -> String, value-identical to add(Object, Object) whenever
                 // r is a provably non-null String. Other compound operators print numeric
@@ -1088,7 +1090,7 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                 if (!plusOk) {
                     return SAFESTRING_DEBUG ? safeStringReject (plusRelaxationAllowed ? 'compound-plus-unsafe' : 'compound-plus-ws') : false;
                 }
-            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+            } else if (op >= SyntaxKind.FirstCompoundAssignment && op <= SyntaxKind.LastCompoundAssignment) {
                 return SAFESTRING_DEBUG ? safeStringReject ('compound-assign') : false;
             }
         }
@@ -1113,12 +1115,12 @@ function feedsInheritedAsyncCall (printer: any, n: any, scope: any): boolean {
     let child = n;
     let current = n.parent;
     while (current !== undefined && current !== scope) {
-        if (ts.isCallExpression (current)) {
+        if (isCallExpression (current)) {
             return current.arguments.indexOf (child) !== -1 && isThisOrSuperCall (current) && isAsyncMethodCall (printer, current);
         }
-        const propagates = ts.isParenthesizedExpression (current)
-            || (ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken)
-            || (ts.isConditionalExpression (current) && current.condition !== child);
+        const propagates = isParenthesizedExpression (current)
+            || (isBinaryExpression (current) && current.operatorToken.kind === SyntaxKind.PlusToken)
+            || (isConditionalExpression (current) && current.condition !== child);
         if (!propagates) {
             return false;
         }
@@ -1174,23 +1176,23 @@ const stringWriteInProgress = new Set<any> ();
 function resolvesToMethodNamed (printer: any, node: any, name: string): boolean {
     let declaration;
     try {
-        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
     } catch (e) {
         declaration = undefined;
     }
-    return declaration !== undefined && ts.isMethodDeclaration (declaration)
-        && declaration.name !== undefined && declaration.name.escapedText === name;
+    return declaration !== undefined && isMethodDeclaration (declaration)
+        && declaration.name !== undefined && declaration.name.text === name;
 }
 
 // the single local binding an identifier reads, or undefined
 function referencedLocalDeclaration (printer: any, identifier: any): any {
     let declaration;
     try {
-        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
     } catch (e) {
         declaration = undefined;
     }
-    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
+    if (declaration === undefined || !isVariableDeclaration (declaration) || !isIdentifier (declaration.name)) {
         return undefined;
     }
     return declaration;
@@ -1227,18 +1229,18 @@ function referencedLocalEmitsString (printer: any, identifier: any): boolean {
 function receiverIsProvablyString (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let value = node;
-    while (ts.isParenthesizedExpression (value)) value = value.expression;
-    if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+    while (isParenthesizedExpression (value)) value = value.expression;
+    if (value.kind === SyntaxKind.StringLiteral || value.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
         return true;
     }
-    if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
+    if (isIdentifier (value)) {
+        return value.text === sourceName || referencedLocalEmitsString (printer, value);
     }
-    if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
-        return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
+    if (isAsExpression (value) || isTypeAssertion (value)) {
+        return value.type !== undefined && value.type.kind === SyntaxKind.StringKeyword;
     }
-    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        const method = String (value.expression.name.escapedText);
+    if (isCallExpression (value) && isPropertyAccessExpression (value.expression)) {
+        const method = String (value.expression.name.text);
         // never-null String results of any receiver (a null receiver throws, exactly
         // like the TS expression they print)
         return method === 'toString' || method === 'toLowerCase' || method === 'toUpperCase';
@@ -1248,7 +1250,7 @@ function receiverIsProvablyString (printer: any, node: any, sourceName: string, 
 
 // `this.<name>(…)` whose printed Java is `public String <name>(…)` on every declaration
 function isStringDeclaredThisCall (printer: any, node: any): boolean {
-    const method = String (node.expression.name.escapedText);
+    const method = String (node.expression.name.text);
     if (STRING_DECLARED_BASE_CALLS.has (method)) {
         return true;
     }
@@ -1260,15 +1262,15 @@ function isStringDeclaredThisCall (printer: any, node: any): boolean {
 function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let value = node;
-    while (ts.isParenthesizedExpression (value)) value = value.expression;
-    if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+    while (isParenthesizedExpression (value)) value = value.expression;
+    if (value.kind === SyntaxKind.StringLiteral || value.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
         return true;
     }
-    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    if (isBinaryExpression (value) && value.operatorToken.kind === SyntaxKind.PlusToken) {
         return plusChainIsValuePreserving (printer, value, sourceName, depth + 1);
     }
-    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        const method = String (value.expression.name.escapedText);
+    if (isCallExpression (value) && isPropertyAccessExpression (value.expression)) {
+        const method = String (value.expression.name.text);
         return method === 'toLowerCase' || method === 'toUpperCase' || method === 'toString';
     }
     return false;
@@ -1282,15 +1284,15 @@ function plusChainIsValuePreserving (printer: any, node: any, sourceName: string
     let spine = node;
     for (;;) {
         let left = spine.left;
-        while (ts.isParenthesizedExpression (left)) left = left.expression;
-        if (ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        while (isParenthesizedExpression (left)) left = left.expression;
+        if (isBinaryExpression (left) && left.operatorToken.kind === SyntaxKind.PlusToken) {
             spine = left;
             continue;
         }
-        if (left.kind === ts.SyntaxKind.StringLiteral || left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        if (left.kind === SyntaxKind.StringLiteral || left.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
             return true;
         }
-        if (ts.isIdentifier (left) && (left.escapedText === sourceName || referencedLocalEmitsString (printer, left))) {
+        if (isIdentifier (left) && (left.text === sourceName || referencedLocalEmitsString (printer, left))) {
             return isProvablyNonNullStringOperand (printer, spine.right, sourceName, depth + 1);
         }
         return false;
@@ -1307,26 +1309,26 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
         return true;
     }
     let value = node;
-    while (ts.isParenthesizedExpression (value)) {
+    while (isParenthesizedExpression (value)) {
         value = value.expression;
     }
-    if (ts.isElementAccessExpression (value)) {
+    if (isElementAccessExpression (value)) {
         return elementAccessHasStringElements (value);
     }
-    if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
+    if (isIdentifier (value)) {
+        return value.text === sourceName || referencedLocalEmitsString (printer, value);
     }
-    if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
-        return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
+    if (isAsExpression (value) || isTypeAssertion (value)) {
+        return value.type !== undefined && value.type.kind === SyntaxKind.StringKeyword;
     }
-    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    if (isBinaryExpression (value) && value.operatorToken.kind === SyntaxKind.PlusToken) {
         return plusChainIsValuePreserving (printer, value, sourceName, depth);
     }
-    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        if (value.expression.expression.kind === ts.SyntaxKind.ThisKeyword) {
+    if (isCallExpression (value) && isPropertyAccessExpression (value.expression)) {
+        if (value.expression.expression.kind === SyntaxKind.ThisKeyword) {
             return isStringDeclaredThisCall (printer, value);
         }
-        const method = String (value.expression.name.escapedText);
+        const method = String (value.expression.name.text);
         if (!STRING_RESULT_METHOD_CALLS.has (method)) {
             return false;
         }
@@ -1340,17 +1342,17 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
 
 function javaLocalType (printer: any, declaration: any): string | undefined {
     let initializer = declaration.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
+    while (initializer !== undefined && isParenthesizedExpression (initializer)) {
         initializer = initializer.expression;
     }
     if (!isBaseStringAccessorCall (printer, initializer)) {
         return undefined;
     }
-    if (!ts.isIdentifier (declaration.name)) {
+    if (!isIdentifier (declaration.name)) {
         return undefined;
     }
     // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
-    const sourceName = declaration.name.escapedText;
+    const sourceName = declaration.name.text;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
@@ -1415,19 +1417,19 @@ export function patchJavaLocalTypes (transpiler: any): void {
     const originalBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node: any, identation: number) {
         const printed = originalBinary (node, identation);
-        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+        if (node.operatorToken.kind !== SyntaxKind.EqualsToken || !isIdentifier (node.left)) {
             return printed;
         }
         let right = node.right;
-        while (ts.isParenthesizedExpression (right)) {
+        while (isParenthesizedExpression (right)) {
             right = right.expression;
         }
-        if (ts.isElementAccessExpression (right)) {
+        if (isElementAccessExpression (right)) {
             if (!elementAccessHasStringElements (right)) {
                 return printed;
             }
             const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
-            const declaration = symbol?.valueDeclaration;
+            const declaration = symbol?.valueDeclaration?.resolve ();
             const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
             if (javaType !== 'String') {
                 return printed;
@@ -1491,16 +1493,16 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         return undefined;
     }
     let current = node;
-    while (current.kind === ts.SyntaxKind.ParenthesizedExpression) {
+    while (current.kind === SyntaxKind.ParenthesizedExpression) {
         current = current.expression;
     }
-    if (current.kind === ts.SyntaxKind.StringLiteral || current.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+    if (current.kind === SyntaxKind.StringLiteral || current.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
         return 'String';
     }
-    if (current.kind === ts.SyntaxKind.Identifier) {
+    if (current.kind === SyntaxKind.Identifier) {
         let declaration;
         try {
-            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration;
+            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve ();
         } catch (e) {
             return undefined;
         }
@@ -1510,21 +1512,21 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         // the Java printer renames the identifiers captured by an object literal in place
         // (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a
         // renamed use site is NOT the type the local's own declaration was emitted with
-        if (String (current.escapedText) !== String (declaration.name?.escapedText)) {
+        if (String (current.text) !== String (declaration.name?.text)) {
             return undefined;
         }
         return 'String';
     }
-    if (current.kind === ts.SyntaxKind.CallExpression) {
+    if (current.kind === SyntaxKind.CallExpression) {
         const callee = current.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) {
+        if (callee?.kind === SyntaxKind.PropertyAccessExpression) {
             const receiver = callee.expression;
-            const name = String (callee.name?.escapedText);
-            const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
+            const name = String (callee.name?.text);
+            const onThis = receiver?.kind === SyntaxKind.ThisKeyword || receiver?.kind === SyntaxKind.SuperKeyword;
             if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
                 return 'String';
             }
-            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.escapedText === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
+            if (receiver?.kind === SyntaxKind.Identifier && receiver.text === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
                 return 'String';
             }
         }
@@ -1548,7 +1550,7 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
             const declarations = node?.declarations;
             if (declarations !== undefined && declarations.length === 1) {
                 const declaration = declarations[0];
-                if (declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.initializer !== undefined) {
+                if (declaration.name?.kind === SyntaxKind.Identifier && declaration.initializer !== undefined) {
                     // a pro/prediction declaration the ws post-process rewrites back to
                     // `Object` is not a String at the use sites either (same guard the
                     // SS-03 `+` acceptance uses: wsPostProcessReverts)
@@ -1596,7 +1598,7 @@ function ss02Brief (node: any, limit = 110): string {
 }
 
 function ss02Kind (node: any): string {
-    try { return String ((ts.SyntaxKind as any)[node?.kind] ?? node?.kind); } catch (e) { return '<kind>'; }
+    try { return String ((SyntaxKind as any)[node?.kind] ?? node?.kind); } catch (e) { return '<kind>'; }
 }
 
 function ss02Append (record: any): void {
@@ -1606,13 +1608,13 @@ function ss02Append (record: any): void {
 // the `this.safeString*` initializer call of a candidate declaration, or undefined
 function ss02FamilyInitializer (declaration: any): any {
     let initializer = declaration?.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
+    while (initializer !== undefined && isParenthesizedExpression (initializer)) {
         initializer = (initializer as any).expression;
     }
     if (!isThisCall (initializer)) {
         return undefined;
     }
-    const name = String ((initializer as any).expression.name.escapedText);
+    const name = String ((initializer as any).expression.name.text);
     return name.startsWith ('safeString') ? { name, node: initializer } : undefined;
 }
 
@@ -1629,33 +1631,33 @@ function ss02ScanUses (printer: any, declaration: any, sourceName: string, isPro
         if (n === declaration.name) continue;
         const parent = n.parent;
         if (parent === undefined) continue;
-        if (ts.isVariableDeclaration (parent) && parent.name === n) continue;
-        if (ts.isPropertyAccessExpression (parent) && parent.name === n) continue;
-        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
+        if (isVariableDeclaration (parent) && parent.name === n) continue;
+        if (isPropertyAccessExpression (parent) && parent.name === n) continue;
+        if (isPostfixUnaryExpression (parent) || isPrefixUnaryExpression (parent)) {
             const op = parent.operator;
-            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
+            if (op === SyntaxKind.PlusPlusToken || op === SyntaxKind.MinusMinusToken) {
                 blockers.push ({ reason: 'increment', text: ss02Brief (n) });
             }
         }
-        if (ts.isSpreadElement (parent)) blockers.push ({ reason: 'spread', text: ss02Brief (n) });
-        if (ts.isTypeOfExpression (parent)) blockers.push ({ reason: 'typeof', text: ss02Brief (n) });
-        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+        if (isSpreadElement (parent)) blockers.push ({ reason: 'spread', text: ss02Brief (n) });
+        if (isTypeOfExpression (parent)) blockers.push ({ reason: 'typeof', text: ss02Brief (n) });
+        if (isArrayLiteralExpression (parent) && isBinaryExpression (parent.parent)
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === SyntaxKind.EqualsToken) {
             blockers.push ({ reason: 'array-destructuring', text: ss02Brief (n) });
         }
-        if (ts.isBinaryExpression (parent) && parent.left === n) {
+        if (isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
-            if (op === ts.SyntaxKind.EqualsToken) {
+            if (op === SyntaxKind.EqualsToken) {
                 const provable = isProvablyStringExpression (printer, parent.right, sourceName)
                     || isProvablyStringReassignment (printer, parent.right, sourceName);
                 if (!provable) {
                     blockers.push ({ reason: 'write', kind: ss02Kind (parent.right), text: ss02Brief (parent.right) });
                 }
-            } else if (op === ts.SyntaxKind.PlusEqualsToken) {
+            } else if (op === SyntaxKind.PlusEqualsToken) {
                 if (!isProvablyNonNullStringOperand (printer, parent.right, sourceName)) {
                     blockers.push ({ reason: 'compound-write', kind: ss02Kind (op), text: ss02Brief (parent) });
                 }
-            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+            } else if (op >= SyntaxKind.FirstCompoundAssignment && op <= SyntaxKind.LastCompoundAssignment) {
                 blockers.push ({ reason: 'compound-write', kind: ss02Kind (op), text: ss02Brief (parent) });
             }
         }
@@ -1671,8 +1673,8 @@ function ss02ScanUses (printer: any, declaration: any, sourceName: string, isPro
 function ss02LocalDecision (printer: any, identifier: any): any {
     try {
         const symbol = printer.getChecker ().getSymbolAtLocation (identifier);
-        const declaration = symbol?.valueDeclaration;
-        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
+        const declaration = symbol?.valueDeclaration?.resolve ();
+        if (declaration === undefined || !isVariableDeclaration (declaration) || !isIdentifier (declaration.name)) {
             return undefined;
         }
         return javaLocalType (printer, declaration) ?? 'Object';
@@ -1689,39 +1691,39 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
         kind: ss02Kind (parent.right),
         text: ss02Brief (parent.right, 100),
     };
-    if (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+    if (parent.operatorToken.kind === SyntaxKind.EqualsToken) {
         info.provable = isProvablyStringExpression (printer, parent.right, sourceName);
         info.extended = isProvablyStringReassignment (printer, parent.right, sourceName);
         let right = parent.right;
-        while (ts.isParenthesizedExpression (right)) right = right.expression;
-        if (ts.isCallExpression (right)) {
+        while (isParenthesizedExpression (right)) right = right.expression;
+        if (isCallExpression (right)) {
             if (isBaseStringAccessorCall (printer, right)) {
                 info.shape = 'base-accessor';
-            } else if (ts.isPropertyAccessExpression (right.expression)) {
-                const method = String (right.expression.name.escapedText);
-                const isThis = right.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
-                const isPrecise = ts.isIdentifier (right.expression.expression) && (right.expression.expression as any).escapedText === 'Precise';
+            } else if (isPropertyAccessExpression (right.expression)) {
+                const method = String (right.expression.name.text);
+                const isThis = right.expression.expression.kind === SyntaxKind.ThisKeyword;
+                const isPrecise = isIdentifier (right.expression.expression) && (right.expression.expression as any).text === 'Precise';
                 info.shape = (isThis ? 'this-call:' : (isPrecise ? 'precise:' : 'call:')) + method;
                 info.resolvesToMethod = isThis ? resolvesToMethodNamed (printer, right, method) : false;
                 info.stringDeclared = isThis ? isStringDeclaredThisCall (printer, right) : false;
             } else {
                 info.shape = 'call';
             }
-        } else if (ts.isBinaryExpression (right) && right.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        } else if (isBinaryExpression (right) && right.operatorToken.kind === SyntaxKind.PlusToken) {
             info.shape = 'plus';
             info.leftKind = ss02Kind (right.left);
             info.leftText = ss02Brief (right.left, 50);
             info.leftProvable = plusChainIsValuePreserving (printer, right, sourceName);
-        } else if (ts.isElementAccessExpression (right)) {
+        } else if (isElementAccessExpression (right)) {
             info.shape = 'element-access';
             info.receiver = ss02Brief (right.expression, 40);
             info.stringElements = elementAccessHasStringElements (right);
-        } else if (ts.isIdentifier (right)) {
+        } else if (isIdentifier (right)) {
             info.shape = 'identifier';
-            info.target = String (right.escapedText);
-            info.targetSelf = right.escapedText === sourceName;
+            info.target = String (right.text);
+            info.targetSelf = right.text === sourceName;
             info.targetDecision = ss02LocalDecision (printer, right);
-        } else if (ts.isConditionalExpression (right)) {
+        } else if (isConditionalExpression (right)) {
             info.shape = 'ternary';
             info.armKinds = [ ss02Kind (right.whenTrue), ss02Kind (right.whenFalse) ];
             info.armsProvable = isProvablyStringExpression (printer, right.whenTrue, sourceName)
@@ -1729,7 +1731,7 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
         } else {
             info.shape = 'other:' + info.kind;
         }
-    } else if (parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken) {
+    } else if (parent.operatorToken.kind === SyntaxKind.PlusEqualsToken) {
         info.provable = false;
         info.extended = isProvablyNonNullStringOperand (printer, parent.right, sourceName);
     }
@@ -1743,9 +1745,9 @@ function ss02Writes (printer: any, declaration: any, sourceName: string): any[] 
     for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
         if (n === declaration.name) continue;
         const parent = n.parent;
-        if (parent === undefined || !ts.isBinaryExpression (parent) || parent.left !== n) continue;
+        if (parent === undefined || !isBinaryExpression (parent) || parent.left !== n) continue;
         const op = parent.operatorToken.kind;
-        if (op < ts.SyntaxKind.FirstAssignment || op > ts.SyntaxKind.LastAssignment) continue;
+        if (op < SyntaxKind.FirstAssignment || op > SyntaxKind.LastAssignment) continue;
         writes.push (ss02WriteInfo (printer, parent, sourceName));
     }
     return writes;
@@ -1755,7 +1757,7 @@ function ss02Record (printer: any, declaration: any, javaType: string | undefine
     try {
         const candidate = ss02FamilyInitializer (declaration);
         if (candidate === undefined) return;
-        const sourceName = String (declaration.name.escapedText);
+        const sourceName = String (declaration.name.text);
         const fileName = declaration.getSourceFile ().fileName;
         const isProFile = /[\\/]pro[\\/]/.test (fileName);
         const isPredictionFile = /[\\/]prediction[\\/]/.test (fileName);
