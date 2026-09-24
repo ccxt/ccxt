@@ -419,6 +419,198 @@
                     }
                 ]
             }
+        ],
+        "watchTicker": [
+            {
+                "description": "the 24 hour ticker of a linear perpetual",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP",
+                                "stream": "ticker24hr",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790255753573
+                    },
+                    {
+                        "businessType": "linear_perpetual",
+                        "symbol": "ETH-USDT-PERP",
+                        "stream": "ticker24hr",
+                        "data": [
+                            {
+                                "count": "28541",
+                                "fillAmount": "16158083.61612",
+                                "fillQty": "6054.774",
+                                "highPrice": "2722.8",
+                                "lastPrice": "2655.55",
+                                "lowPrice": "2627.22",
+                                "priceChange": "-56.12",
+                                "priceChangePercent": "-0.0206",
+                                "symbol": "ETH-USDT-PERP"
+                            }
+                        ],
+                        "ts": 1790255754699
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "ticker24hr",
+                                "businessType": "linear_perpetual",
+                                "symbol": "ETH-USDT-PERP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1790255754699,
+                        "datetime": "2026-09-24T13:15:54.699Z",
+                        "high": 2722.8,
+                        "low": 2627.22,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 2668.6518136135223,
+                        "open": 2711.67,
+                        "close": 2655.55,
+                        "last": 2655.55,
+                        "previousClose": null,
+                        "change": -56.12,
+                        "percentage": -2.06,
+                        "average": 2683.61,
+                        "baseVolume": 6054.774,
+                        "quoteVolume": 16158083.61612,
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "info": {
+                            "count": "28541",
+                            "fillAmount": "16158083.61612",
+                            "fillQty": "6054.774",
+                            "highPrice": "2722.8",
+                            "lastPrice": "2655.55",
+                            "lowPrice": "2627.22",
+                            "priceChange": "-56.12",
+                            "priceChangePercent": "-0.0206",
+                            "symbol": "ETH-USDT-PERP",
+                            "ts": 1790255754699
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "the all pairs mode, one subscription per instrument type without a symbol",
+                "input": [
+                    null
+                ],
+                "url": "wss://stream.umx.com/ws/public/v1/market",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "businessType": "spot",
+                                "stream": "ticker24hr",
+                                "message": "成功",
+                                "code": 0
+                            }
+                        ],
+                        "ts": 1790255753573
+                    },
+                    {
+                        "businessType": "spot",
+                        "symbol": "ETH-USDT",
+                        "stream": "ticker24hr",
+                        "data": [
+                            {
+                                "count": "19383",
+                                "fillAmount": "4610747.392943",
+                                "fillQty": "1728.1146",
+                                "highPrice": "2723.69",
+                                "lastPrice": "2657",
+                                "lowPrice": "2603.28",
+                                "priceChange": "-56.1",
+                                "priceChangePercent": "-0.0206",
+                                "symbol": "ETH-USDT"
+                            }
+                        ],
+                        "ts": 1790255756278
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "data": [
+                            {
+                                "stream": "ticker24hr",
+                                "businessType": "spot"
+                            },
+                            {
+                                "stream": "ticker24hr",
+                                "businessType": "linear_perpetual"
+                            },
+                            {
+                                "stream": "ticker24hr",
+                                "businessType": "linear_futures"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "ETH/USDT": {
+                            "symbol": "ETH/USDT",
+                            "timestamp": 1790255756278,
+                            "datetime": "2026-09-24T13:15:56.278Z",
+                            "high": 2723.69,
+                            "low": 2603.28,
+                            "bid": null,
+                            "bidVolume": null,
+                            "ask": null,
+                            "askVolume": null,
+                            "vwap": 2668.079647578349,
+                            "open": 2713.1,
+                            "close": 2657,
+                            "last": 2657,
+                            "previousClose": null,
+                            "change": -56.1,
+                            "percentage": -2.06,
+                            "average": 2685.05,
+                            "baseVolume": 1728.1146,
+                            "quoteVolume": 4610747.392943,
+                            "indexPrice": null,
+                            "markPrice": null,
+                            "info": {
+                                "count": "19383",
+                                "fillAmount": "4610747.392943",
+                                "fillQty": "1728.1146",
+                                "highPrice": "2723.69",
+                                "lastPrice": "2657",
+                                "lowPrice": "2603.28",
+                                "priceChange": "-56.1",
+                                "priceChangePercent": "-0.0206",
+                                "symbol": "ETH-USDT",
+                                "ts": 1790255756278
+                            }
+                        }
+                    }
+                ]
+            }
         ]
     }
 }

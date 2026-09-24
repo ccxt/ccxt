@@ -4,7 +4,7 @@
 import umxRest from '../umx.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Dict, Int, OrderBook, Str, Trade } from '../base/types.js';
+import type { Dict, Int, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -24,8 +24,10 @@ export default class umx extends umxRest {
                 'unWatchOrderBookForSymbols': true,
                 'watchOrders': false,
                 'watchPositions': false,
-                'watchTicker': false,
-                'watchTickers': false,
+                'watchTicker': true,
+                'watchTickers': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'unWatchTrades': true,
@@ -471,6 +473,176 @@ export default class umx extends umxRest {
     }
 
     /**
+     * @method
+     * @name umx#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a market
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/24h-ticker-channel
+     * @param {string} symbol unified symbol of the market to watch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const url = this.urls['api']['ws']['public'];
+        const messageHash = 'ticker::' + symbol;
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': [ this.subscriptionTopic ('ticker24hr', symbol) ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+    }
+
+    /**
+     * @method
+     * @name umx#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/24h-ticker-channel
+     * @param {string[]} [symbols] unified symbols of the markets to watch the tickers for, every market of every instrument type is streamed when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const messageHashes = [];
+        const topics = [];
+        if (symbols === undefined) {
+            // without a symbol the venue streams every pair of an instrument type
+            messageHashes.push ('tickers');
+            const businessTypes = [ 'spot', 'linear_perpetual', 'linear_futures' ];
+            for (let i = 0; i < businessTypes.length; i++) {
+                topics.push ({
+                    'stream': 'ticker24hr',
+                    'businessType': businessTypes[i],
+                });
+            }
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const messageHash = 'ticker::' + symbol;
+                if (!this.inArray (messageHash, messageHashes)) {
+                    messageHashes.push (messageHash);
+                    topics.push (this.subscriptionTopic ('ticker24hr', symbol));
+                }
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message: Dict = {
+            'event': 'subscribe',
+            'data': topics,
+        };
+        const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchTicker
+     * @description unsubscribes from the ticker channel of a market
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/24h-ticker-channel
+     * @param {string} symbol unified symbol of the market to stop watching the ticker of
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name umx#unWatchTickers
+     * @description unsubscribes from the ticker channel of multiple markets
+     * @see https://www.umx.com/docs/coin-apis/websocket-stream/public-channel/24h-ticker-channel
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the tickers of, the all pairs subscriptions are dropped when left out
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the result of the unwatch operation
+     */
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const topics = [];
+        if (symbols === undefined) {
+            subMessageHashes.push ('tickers');
+            messageHashes.push ('unsubscribe::tickers');
+            const businessTypes = [ 'spot', 'linear_perpetual', 'linear_futures' ];
+            for (let i = 0; i < businessTypes.length; i++) {
+                topics.push ({
+                    'stream': 'ticker24hr',
+                    'businessType': businessTypes[i],
+                });
+            }
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const subMessageHash = 'ticker::' + symbol;
+                if (!this.inArray (subMessageHash, subMessageHashes)) {
+                    subMessageHashes.push (subMessageHash);
+                    messageHashes.push ('unsubscribe::ticker::' + symbol);
+                    topics.push (this.subscriptionTopic ('ticker24hr', symbol));
+                }
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message: Dict = {
+            'event': 'unsubscribe',
+            'data': topics,
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'symbols': symbols,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'topic': 'ticker',
+        };
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
+    }
+
+    handleTicker (client: Client, message: Dict) {
+        //
+        //     {
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "stream": "ticker24hr",
+        //         "data": [
+        //             {
+        //                 "count": "28518",
+        //                 "fillAmount": "16162801.0027",
+        //                 "fillQty": "6056.488",
+        //                 "highPrice": "2722.8",
+        //                 "lastPrice": "2654.44",
+        //                 "lowPrice": "2627.22",
+        //                 "priceChange": "-56.15",
+        //                 "priceChangePercent": "-0.0207",
+        //                 "symbol": "ETH-USDT-PERP"
+        //             }
+        //         ],
+        //         "ts": 1790255461823
+        //     }
+        //
+        const ts = this.safeInteger (message, 'ts');
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const row = this.safeDict (data, i, {});
+            // the row carries no timestamp of its own, the envelope does
+            const extended = this.extend (row, { 'ts': ts });
+            const ticker = this.parseTicker (extended);
+            const symbol = ticker['symbol'] as string;
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, 'ticker::' + symbol);
+            client.resolve (ticker, 'tickers');
+        }
+    }
+
+    /**
      * @ignore
      * @method
      * @name umx#subscriptionTopic
@@ -558,8 +730,14 @@ export default class umx extends umxRest {
             let channel = stream;
             if (stream.startsWith ('depth')) {
                 channel = 'orderbook';
+            } else if (stream === 'ticker24hr') {
+                channel = 'ticker';
             }
-            const messageHash = channel + '::' + symbol;
+            // the ticker channel accepts a subscription without a symbol
+            let messageHash = channel + 's';
+            if (marketId !== undefined) {
+                messageHash = channel + '::' + symbol;
+            }
             const code = this.safeString (entry, 'code');
             if ((code !== undefined) && (code !== '0')) {
                 const feedback = this.id + ' ' + this.json (entry);
@@ -617,6 +795,8 @@ export default class umx extends umxRest {
             this.handleTrades (client, message);
         } else if (stream.startsWith ('depth')) {
             this.handleOrderBook (client, message);
+        } else if (stream === 'ticker24hr') {
+            this.handleTicker (client, message);
         }
     }
 }
