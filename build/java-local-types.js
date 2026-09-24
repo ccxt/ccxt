@@ -3966,6 +3966,16 @@ function handleElement1Type (printer, callNode) {
     if (declaration === undefined || !HANDLE_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
         return undefined;
     }
+    // a box declared `object` / `any` may be a list body (batch order requests reach fetch2 as lists)
+    const loose = ts.TypeFlags.NonPrimitive | ts.TypeFlags.Any;
+    const params = callNode.arguments.find ((a) => ts.isIdentifier (a) && a.escapedText === 'params');
+    try {
+        if (params !== undefined && (printer.getChecker ().getTypeAtLocation (params).flags & loose) !== 0) {
+            return undefined;
+        }
+    } catch (e) {
+        return undefined;
+    }
     return HANDLE_ELEMENT_1_TYPE;
 }
 
@@ -12192,8 +12202,10 @@ function stringListJoinLocal (printer, declaration, seen) {
         }
         const host = unwrapParensUp (n);
         const parent = host.parent;
-        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host) {
-            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !stringListWriteOk (printer, parent.right, seen)) {
+        const op = parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host ? parent.operatorToken.kind : undefined;
+        if (op !== undefined && op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment) {
+            // a write; left-hand comparisons (`x === undefined`) fall through to the use audit
+            if (op !== ts.SyntaxKind.EqualsToken || !stringListWriteOk (printer, parent.right, seen)) {
                 return false;
             }
             continue;
