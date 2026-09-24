@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses, Liquidation, MarketType } from './base/types.js';
 
 /**
  * @class gate
@@ -1575,7 +1575,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    parseContractMarket (market: Dict, settleId: Str): NullableDict {
+    parseContractMarket (market: Dict, settleId: Str): Market {
         //
         //  Perpetual swap
         //
@@ -1692,7 +1692,7 @@ export default class gate extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         const expiry = this.safeTimestamp (market, 'expire_time');
         let symbol = '';
-        let marketType = 'swap';
+        let marketType: MarketType = 'swap';
         if (date !== undefined) {
             symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             marketType = 'future';
@@ -1726,7 +1726,7 @@ export default class gate extends Exchange {
             'margin': false,
             'swap': marketType === 'swap',
             'future': marketType === 'future',
-            'option': marketType === 'option',
+            'option': false,
             'active': status === 'trading',
             'contract': true,
             'linear': isLinear,
