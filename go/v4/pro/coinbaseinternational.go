@@ -128,7 +128,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		productIds = []any{ccxt.GetValue(market, "id")}
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	if ccxt.IsEqual(url, nil) {
+	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
 	var timestamp string = ccxt.ToString(this.Nonce())
@@ -196,7 +196,7 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	if ccxt.IsEqual(url, nil) {
+	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
 	var timestamp *string = this.NumberToString(this.Seconds())
@@ -317,10 +317,10 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan any, symbol any, opti
 	return nil
 }
 func (this *Coinbaseinternational) GetActiveSymbols() any {
-	var symbols any = this.Symbols
+	var symbols []string = this.Symbols
 	var output []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = ccxt.GetValue(symbols, i).(string)
 		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		if ccxt.GetValue(market, "active") == true {
 			output = append(output, symbol)

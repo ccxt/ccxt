@@ -910,7 +910,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBook(this.Extend(request, params))).Raw))
-	var orderbook any = this.SafeDict(response, "payload")
+	var orderbook map[string]any = SafeMapTyped(response, "payload")
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "updated_at"))
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount")
@@ -2270,7 +2270,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
 			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(GetValue(withdrawalResponse, currencyId)))
-			var resultValue any = this.SafeDict(result, code)
+			var resultValue map[string]any = SafeMapTyped(result, code)
 			if IsEqual(resultValue, nil) {
 				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))
 			}
@@ -2525,7 +2525,7 @@ func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, h
 		}
 		if !IsEqual(success, true) {
 			var feedback any = Add(this.Id+" ", this.Json(response))
-			var error any = this.SafeDict(response, "error")
+			var error map[string]any = SafeMapTyped(response, "error")
 			if IsEqual(error, nil) {
 				panic(ExchangeError(feedback))
 			}

@@ -1039,12 +1039,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets()).join();
             }
-            Object channel = "books";
+            String channel = "books";
             Long limit = this.safeInteger(parameters, "limit");
             if (((limit != null && limit == 1)) || ((limit != null && limit == 5)) || ((limit != null && limit == 15)) || ((limit != null && limit == 50)))
             {
                 parameters = this.omit(parameters, "limit");
-                channel = Helpers.add(channel, String.valueOf(limit));
+                channel = (channel + String.valueOf(limit));
             }
             return (this.unWatchChannel(symbol, channel, "orderbook", "watchOrderBook", parameters)).join();
         });
@@ -1539,7 +1539,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
             Object values = this.handleOptionAndParams(parameters, "watchTrades", "uta", false);
             Object uta = ((List<Object>)values).get(0);
-            Object channelTopic = ((Helpers.isTrue(uta))) ? "publicTrade" : "trade";
+            String channelTopic = ((Helpers.isTrue(uta))) ? "publicTrade" : "trade";
             return (this.unWatchChannel(symbol, channelTopic, "trade", "watchTrades", parameters)).join();
         });
 
@@ -1803,7 +1803,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             Map<String, Object> market = null;
             Object messageHash = "";
-            Object subscriptionHash = "positions";
+            String subscriptionHash = "positions";
             String instType = "USDT-FUTURES";
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "uta", false);

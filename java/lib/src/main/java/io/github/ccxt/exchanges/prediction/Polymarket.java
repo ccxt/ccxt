@@ -1442,7 +1442,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
@@ -1610,7 +1610,7 @@ final Object finalClobTokenId = clobTokenId;
                         put( "book", book );
                         put( "lastTrade", Polymarket.this.safeDict(lastTradesByTokenId, finalTokenId, new HashMap<String, Object>() {{}}) );
                     }};
-                    Object ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), outcomeObj);
+                    Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), outcomeObj);
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
                     ((Map<String, Object>)result).put((String)symbolKey, ticker);
                 }
@@ -1645,7 +1645,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1710,7 +1710,7 @@ final Object finalClobTokenId = clobTokenId;
         final Map<String, Object> finalMarket = market;
         final Double finalLast = last;
         final Double finalQuoteVolume = quoteVolume;
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", outcome );
             put( "outcomeId", Polymarket.this.safeString(finalMarket, "outcomeId") );
             put( "label", Polymarket.this.safeString(finalMarket, "label") );
@@ -1734,7 +1734,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "baseVolume", null );
             put( "quoteVolume", finalQuoteVolume );
             put( "info", ticker );
-        }}), market);
+        }}), market));
     }
     /**
      * @ignore
@@ -1745,7 +1745,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1765,7 +1765,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1839,7 +1839,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframe) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             Long fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
             Long nowS = this.seconds();
@@ -2199,7 +2199,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             Object tokenId = ((Map<String, Object>)outcomeObj).get("outcomeId");
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
@@ -2269,11 +2269,11 @@ final Object finalClobTokenId = clobTokenId;
             String outcome = outcome3;
             (this.loadApiCredentials()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
-                ((Map<String, Object>)request).put("asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
+                ((Map<String, Object>)request).put("asset_id", outcomeObj.get("outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2698,11 +2698,11 @@ final Object finalClobTokenId = clobTokenId;
             String outcome = outcome3;
             (this.loadApiCredentials()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
-                ((Map<String, Object>)request).put("asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
+                ((Map<String, Object>)request).put("asset_id", outcomeObj.get("outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
@@ -3550,7 +3550,7 @@ final Object finalClobTokenId = clobTokenId;
             if (!java.util.Objects.equals(outcome, null))
             {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
-                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "asset_id", ((Map<String, Object>)outcomeObj).get("outcomeId") );
                 }};
@@ -3619,7 +3619,7 @@ final Object finalClobTokenId = clobTokenId;
             this.requireEventQuery(parameters);
             String requestedEventId = this.safeString(parameters, "eventId");
             String requestedSlug = this.safeString(parameters, "slug");
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "eventId", "slug")));
             if (java.util.Objects.equals(queries, null))
             {
@@ -4552,7 +4552,7 @@ final String finalOutcome = outcome;
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             String messageHash = ("orderbook::" + outcome);
@@ -4596,7 +4596,7 @@ final String finalOutcome = outcome;
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             String messageHash = ("trades::" + outcome);
@@ -4639,7 +4639,7 @@ final String finalOutcome = outcome;
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
             String messageHash = ("ticker::" + outcome);
@@ -4770,7 +4770,7 @@ final String finalOutcome = outcome;
             String messageHash = "orders";
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcome = this.safeString(outcomeObj, "outcome");
                 messageHash = ("orders::" + outcome);
             }
@@ -4821,7 +4821,7 @@ final String finalOutcome = outcome;
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcome = this.safeString(outcomeObj, "outcome");
                 messageHash = ("myTrades::" + outcome);
             }

@@ -402,7 +402,7 @@ func (c *ArrayCache) Remove(symbol string) {
 	delete(c.clearUpdatesBySymbol, symbol)
 
 	// Filter out items with this symbol from Data
-	var filteredData []any
+	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {
@@ -558,7 +558,7 @@ func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 	defer c.Mu.Unlock()
 
 	// Filter out items with this symbol from Data
-	var filteredData []any
+	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {

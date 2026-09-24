@@ -1005,12 +1005,12 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		return "spot"
 	}()
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
-	var candles any = nil
+	var candles []any = nil
 	if isSwap {
 		if market["inverse"] == true {
 			candles = []any{this.SafeDict(message, "data", map[string]any{})}
 		} else {
-			candles = this.SafeList(message, "data", []any{})
+			candles = ccxt.ListTyped(this.SafeList(message, "data", []any{}))
 		}
 	} else {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")

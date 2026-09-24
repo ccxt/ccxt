@@ -75,7 +75,7 @@ func (this *Hashkey) wathPublicBody(ch chan any, market any, topic any, messageH
 		"topic":  topic,
 		"event":  "sub",
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil
@@ -364,7 +364,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	if !ccxt.IsEqual(data, nil) {
 		data = this.SortBy(data, "t")
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			var trade any = this.SafeDict(data, i)
+			var trade map[string]any = ccxt.SafeMapTyped(data, i)
 			var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(trade, market))
 			stored.(ccxt.Appender).Append(parsed)
 		}
@@ -447,7 +447,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-	var dataEntry any = this.SafeDict(data, 0)
+	var dataEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
 	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)

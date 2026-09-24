@@ -2900,7 +2900,7 @@ public class Deribit extends DeribitApi
             Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || Boolean.TRUE.equals(isStopLimit) || Boolean.TRUE.equals(isTakeLimit);
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || Boolean.TRUE.equals(isStopMarket) || Boolean.TRUE.equals(isTakeMarket);
             Object exchangeSpecificPostOnly = this.safeValue(parameters, "post_only");
-            Object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters));
             if (Boolean.TRUE.equals(isLimitOrder))
             {
                 ((Map<String, Object>)request).put("type", "limit");
@@ -2947,7 +2947,7 @@ public class Deribit extends DeribitApi
             {
                 ((Map<String, Object>)request).put("reduce_only", true);
             }
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 ((Map<String, Object>)request).put("post_only", true);
                 ((Map<String, Object>)request).put("reject_post_only", true);

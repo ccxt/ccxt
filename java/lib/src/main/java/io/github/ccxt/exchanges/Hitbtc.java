@@ -2442,7 +2442,7 @@ public class Hitbtc extends HitbtcApi
             {
                 ((Map<String, Object>)request).put("from", this.iso8601(since));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -3398,7 +3398,7 @@ public class Hitbtc extends HitbtcApi
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
         String timeInForce = this.safeString(parameters, "timeInForce");
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
-        Object isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), null, parameters);
+        boolean isPostOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(type, "market"), null, parameters));
         final String finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "type", finalType );
@@ -3417,7 +3417,7 @@ public class Hitbtc extends HitbtcApi
         {
             ((Map<String, Object>)request).put("reduce_only", reduceOnly);
         }
-        if (Boolean.TRUE.equals(isPostOnly))
+        if (isPostOnly)
         {
             ((Map<String, Object>)request).put("post_only", true);
         }
@@ -4047,7 +4047,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))

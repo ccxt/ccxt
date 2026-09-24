@@ -819,9 +819,9 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	var firstSpotTier any = this.SafeDict(spotTiers, 0, map[string]any{})
 	var firstFuturesTier any = this.SafeDict(futuresTiers, 0, map[string]any{})
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var tierObject any = func() any {
 			if GetValue(market, "spot") == true {
@@ -829,7 +829,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 			}
 			return firstFuturesTier
 		}()
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       spotFees,
 			"symbol":     symbol,
 			"maker":      this.SafeNumber(tierObject, "maker_fee"),
@@ -837,7 +837,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 			"percentage": true,
 			"tierBased":  true,
 			"tiers":      spotTiers,
-		})
+		}
 	}
 
 	ch <- result
@@ -905,9 +905,9 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	futuresTakerFee = Precise.StringDiv(futuresTakerFee, "100")
 	var result map[string]any = map[string]any{}
 	// const tiers = this.parseFeeTiers (feeTiers);
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var makerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
@@ -921,7 +921,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 			}
 			return futuresTakerFee
 		}()
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(makerFee),
@@ -929,7 +929,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 			"percentage": true,
 			"tierBased":  true,
 			"tiers":      nil,
-		})
+		}
 	}
 
 	ch <- result
@@ -1340,7 +1340,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
 	//     ]
 	//
-	var ohlcv any = this.SafeList(response, "candlesticks")
+	var ohlcv []any = SafeListTyped(response, "candlesticks")
 
 	ch <- this.ParseOHLCVs(ohlcv, market, timeframe, since, limit)
 	return nil
@@ -1756,15 +1756,13 @@ func (this *Onetrading) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	} else {
 		request["order_id"] = id
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if method == "privateDeleteAccountOrdersOrderId" {
 
-		response = (<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params))).Raw))
 	}
 
 	//

@@ -150,7 +150,7 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 	_ = chSent
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var response any = nil
+	var response map[string]any = nil
 
 	{
 		func(this *Kucoin) (ret_ any) {
@@ -171,20 +171,16 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 			// try block:
 			if ccxt.IsEqual(connectId, "private") {
 
-				response = (<-this.PrivatePostBulletPrivate(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostBulletPrivate(params)).Raw))
 			} else if ccxt.IsEqual(connectId, "public") {
 
-				response = (<-this.PublicPostBulletPublic(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PublicPostBulletPublic(params)).Raw))
 			} else if ccxt.IsEqual(connectId, "privateFutures") {
 
-				response = (<-this.FuturesPrivatePostBulletPrivate(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPrivatePostBulletPrivate(params)).Raw))
 			} else {
 
-				response = (<-this.FuturesPublicPostBulletPublic(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPublicPostBulletPublic(params)).Raw))
 			}
 			var data map[string]any = ccxt.SafeMapTyped(response, "data")
 			var instanceServers any = this.SafeList(data, "instanceServers", []any{})
@@ -374,7 +370,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	var now int64 = this.Milliseconds()
 	var expired bool = ccxt.IsGreaterThanOrEqual((ccxt.Subtract(now, lastUpdate)), refreshInterval)
 	var messageHash string = "utaToken"
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var client ccxt.ClientInterface = this.Client(url)
 	if (utaToken == nil) || expired {
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
@@ -2161,7 +2157,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 	//         "subject": "level2"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var topic *string = this.SafeString(message, "topic")
 	var topicParts []string = ccxt.Split(topic, ":")
 	var topicSymbol *string = this.SafeString(topicParts, 1)
@@ -2346,13 +2342,18 @@ func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
 }
 func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	var symbols any = this.SafeList(subscription, "symbols")
+	var symbols []any = ccxt.SafeListTyped(subscription, "symbols")
 	if ccxt.IsEqual(symbols, nil) {
 		var symbol *string = this.SafeString(subscription, "symbol")
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	} else {
-		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
+		for i := 0; i < len(symbols); i++ {
+			var symbol any = func() any {
+				if i >= 0 && i < len(symbols) {
+					return ccxt.DerefScalar(symbols[i])
+				}
+				return nil
+			}()
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
 	}
@@ -2788,7 +2789,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	//        "type": "open"
 	//    }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var tradeId *string = this.SafeString(data, "tradeId")
 	if tradeId != nil {
 		this.HandleMyTrade(client, message)
@@ -2943,7 +2944,7 @@ func (this *Kucoin) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2959,7 +2960,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
 	}
 	var marketType *string = nil
@@ -3060,7 +3061,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 	var myTrades any = this.MyTrades
 	myTrades.(ccxt.Appender).Append(parsed)

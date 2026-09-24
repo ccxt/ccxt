@@ -1072,18 +1072,12 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 			AddElementToObject(result, GetValue(parsed, "symbol"), parsed)
 		}
 	}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		if !(func() bool {
-			if symbol == nil {
-				return false
-			}
-			_, ok := result[*symbol]
-			return ok
-		}()) {
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		if !(func() bool { _, ok := result[symbol]; return ok }()) {
 			var market any = this.Market(symbol)
-			AddElementToObject(result, symbol, this.ParseTradingFee(response, market))
+			result[symbol] = this.ParseTradingFee(response, market)
 		}
 	}
 	return result
@@ -2115,15 +2109,13 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 		"accountId":  targetAccount,
 		"clientTxId": guid,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if fromMain {
 
-		response = (<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params))).Raw))
 	}
 	// both endpoints return the same structure, the only difference is that
 	// the "accountId" is filled with the "subAccount"

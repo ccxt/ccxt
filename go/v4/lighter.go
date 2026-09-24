@@ -692,11 +692,11 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 		//
 		var subAccounts any = this.SafeList(res, "sub_accounts")
 		if IsArray(subAccounts) {
-			var account any = this.SafeDict(subAccounts, 0)
+			var account map[string]any = SafeMapTyped(subAccounts, 0)
 			if IsEqual(account, nil) {
 				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
 			}
-			accountIndex = GetValue(account, "index")
+			accountIndex = account["index"]
 			this.Options.Store("accountIndex", accountIndex)
 		}
 	}
@@ -1045,8 +1045,8 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeValue(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	var isConditional bool = ((!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)))
@@ -1082,8 +1082,8 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		}
 	}
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
-	var amountStr any = nil
-	var priceStr any = this.PriceToPrecision(symbol, price)
+	var amountStr *string = nil
+	var priceStr *string = this.PriceToPrecision(symbol, price)
 	var amountScale any = this.Pow("10", marketInfo["size_decimals"])
 	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPriceStr any = "0"                       // default is 0
@@ -1091,21 +1091,21 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var clientOrderId *int64 = this.SafeInteger2(params, "client_order_index", "clientOrderId", defaultClientOrderId)
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"})
 	if isConditional {
-		amountStr = DerefScalar(this.NumberToString(amount))
+		amountStr = this.NumberToString(amount)
 		if !IsEqual(stopLossPrice, nil) {
 			if isMarketOrder {
 				orderTypeNum = 2
 			} else {
 				orderTypeNum = 3
 			}
-			triggerPriceStr = this.PriceToPrecision(symbol, stopLossPrice)
+			triggerPriceStr = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
 		} else if !IsEqual(takeProfitPrice, nil) {
 			if isMarketOrder {
 				orderTypeNum = 4
 			} else {
 				orderTypeNum = 5
 			}
-			triggerPriceStr = this.PriceToPrecision(symbol, takeProfitPrice)
+			triggerPriceStr = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
 		}
 	} else {
 		amountStr = this.AmountToPrecision(symbol, amount)
@@ -1388,12 +1388,12 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPrice *string = this.SafeStringN(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
-	var amountStr any = nil
-	var priceStr any = this.PriceToPrecision(symbol, price)
+	var amountStr *string = nil
+	var priceStr *string = this.PriceToPrecision(symbol, price)
 	var triggerPriceStr any = "0" // default is 0
 	if triggerPrice != nil {
-		amountStr = DerefScalar(this.NumberToString(amount))
-		triggerPriceStr = this.PriceToPrecision(symbol, triggerPrice)
+		amountStr = this.NumberToString(amount)
+		triggerPriceStr = DerefScalar(this.PriceToPrecision(symbol, triggerPrice))
 	} else {
 		amountStr = this.AmountToPrecision(symbol, amount)
 	}

@@ -131,7 +131,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 return (this.watchSpotPublic(channel, messageHash, parameters)).join();
             } else
             {
-                Object channel = "sub.ticker";
+                String channel = "sub.ticker";
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                 }};
@@ -731,7 +731,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 ohlcv = (this.watchSpotPublic(channel, messageHash, parameters)).join();
             } else
             {
-                Object channel = "sub.kline";
+                String channel = "sub.kline";
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                     put( "interval", timeframeId );
@@ -966,7 +966,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 orderbook = (this.watchSpotPublic(channel, messageHash, parameters)).join();
             } else
             {
-                Object channel = "sub.depth";
+                String channel = "sub.depth";
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                 }};
@@ -1223,7 +1223,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 trades = (this.watchSpotPublic(channel, messageHash, parameters)).join();
             } else
             {
-                Object channel = "sub.deal";
+                String channel = "sub.deal";
                 Map<String, Object> requestParams = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                 }};
@@ -1379,7 +1379,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object trades = null;
             if (java.util.Objects.equals(type, "spot"))
             {
-                Object channel = "spot@private.deals.v3.api.pb";
+                String channel = "spot@private.deals.v3.api.pb";
                 trades = (this.watchSpotPrivate(channel, messageHash, parameters)).join();
             } else
             {
@@ -1618,7 +1618,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object orders = null;
             if (java.util.Objects.equals(type, "spot"))
             {
-                Object channel = "spot@private.orders.v3.api.pb";
+                String channel = "spot@private.orders.v3.api.pb";
                 orders = (this.watchSpotPrivate(channel, messageHash, parameters)).join();
             } else
             {
@@ -1954,7 +1954,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String messageHash = ("balance:" + type);
             if (java.util.Objects.equals(type, "spot"))
             {
-                Object channel = "spot@private.account.v3.api.pb";
+                String channel = "spot@private.account.v3.api.pb";
                 return (this.watchSpotPrivate(channel, messageHash, parameters)).join();
             } else
             {
@@ -2059,7 +2059,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("fundingRate:" + ((Map<String, Object>)market).get("symbol"));
-            Object channel = "sub.funding.rate";
+            String channel = "sub.funding.rate";
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};

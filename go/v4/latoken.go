@@ -561,8 +561,8 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
 		var baseCurrency map[string]any = SafeMapTyped(currenciesById, baseId)
 		var quoteCurrency map[string]any = SafeMapTyped(currenciesById, quoteId)
-		var baseCurrencyInfo any = this.SafeDict(baseCurrency, "info")
-		var quoteCurrencyInfo any = this.SafeDict(quoteCurrency, "info")
+		var baseCurrencyInfo map[string]any = SafeMapTyped(baseCurrency, "info")
+		var quoteCurrencyInfo map[string]any = SafeMapTyped(quoteCurrency, "info")
 		if !IsEqual(baseCurrencyInfo, nil) && !IsEqual(quoteCurrencyInfo, nil) {
 			var base *string = this.SafeCurrencyCode(this.SafeString(baseCurrencyInfo, "tag"))
 			var quote *string = this.SafeCurrencyCode(this.SafeString(quoteCurrencyInfo, "tag"))
@@ -1582,7 +1582,7 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var response any = nil
+	var response []any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, "stop"))
 	// privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1593,12 +1593,10 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -1669,29 +1667,25 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	var response any = nil
+	var response []any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["currency"] = GetValue(market, "baseId")
 		request["quote"] = GetValue(market, "quoteId")
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, params))).Raw))
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivateGetAuthStopOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetAuthStopOrder(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateGetAuthOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.PrivateGetAuthOrder(this.Extend(request, params))).Raw))
 		}
 	}
 
@@ -1754,15 +1748,13 @@ func (this *Latoken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var response any = nil
+	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -1844,16 +1836,14 @@ func (this *Latoken) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
-	var response any = nil
+	var response map[string]any = nil
 	if triggerPrice != nil {
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 
-		response = (<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostAuthOrderPlace(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderPlace(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -1905,15 +1895,13 @@ func (this *Latoken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var response any = nil
+	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostAuthOrderCancel(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderCancel(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -1960,29 +1948,25 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
-	var response any = nil
+	var response map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["currency"] = GetValue(market, "baseId")
 		request["quote"] = GetValue(market, "quoteId")
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, params))).Raw))
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, params))).Raw))
 		}
 	}
 
@@ -2257,19 +2241,16 @@ func (this *Latoken) transferBody(ch chan any, code any, amount any, fromAccount
 		"recipient": toAccount,
 		"value":     this.CurrencyToPrecision(code, amount),
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetIndexOf(toAccount, "@") >= 0 {
 
-		response = (<-this.PrivatePostAuthTransferEmail(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferEmail(this.Extend(request, params))).Raw))
 	} else if GetLength(toAccount) == 36 {
 
-		response = (<-this.PrivatePostAuthTransferId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferId(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostAuthTransferPhone(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferPhone(this.Extend(request, params))).Raw))
 	}
 
 	//

@@ -300,7 +300,7 @@ func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey any) any {
 func (this *Binance) GetStockWsUrl(optionalArgs ...any) any {
 	var streamType string = ccxt.GetArgString(optionalArgs, 0, "market")
 	_ = streamType
-	var baseUrl any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "stock")
+	var baseUrl *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "stock"))
 	if streamType == "combined" {
 		return ccxt.Replace(baseUrl, "/ws", "/stream")
 	}
@@ -1144,7 +1144,7 @@ func (this *Binance) HandleFetchOrderBook(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var result any = this.SafeDict(message, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var timestamp *int64 = this.SafeInteger(result, "T")
 	var orderbook map[string]any = this.ParseOrderBook(result, nil, timestamp)
 	orderbook["nonce"] = this.SafeInteger2(result, "lastUpdateId", "u")
@@ -1180,7 +1180,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan any, client any, message
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 			var typeVar *string = this.SafeString(subscription, "type")
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-			var params any = this.SafeDict(subscription, "params")
+			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
 			// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
 			// todo: this is a synch blocking call - make it async
 			// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -2564,7 +2564,7 @@ func (this *Binance) HandleFetchOHLCV(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var result any = this.SafeList(message, "result")
+	var result []any = ccxt.SafeListTyped(message, "result")
 	var parsed any = this.ParseOHLCVs(result)
 	// use a reverse lookup in a static map instead
 	var messageHash *string = this.SafeString(message, "id")
@@ -3661,7 +3661,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any,
 	_ = marketType
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot"))
 	var options any = this.SafeDict(this.Options, marketType, map[string]any{})
 	var lastAuthenticatedTime *int64 = this.SafeInteger(options, "lastAuthenticatedTime", 0)
 	var listenTokenRefreshRate *int64 = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
@@ -4610,12 +4610,17 @@ func (this *Binance) HandleBalance(client any, message any) {
 		}
 	} else {
 		message = this.SafeDict(message, "a", message)
-		var B any = this.SafeList(message, "B")
+		var B []any = ccxt.SafeListTyped(message, "B")
 		if ccxt.IsEqual(B, nil) {
 			return
 		}
-		for i := 0; i < ccxt.GetArrayLength(B); i++ {
-			var entry any = ccxt.GetValue(B, i)
+		for i := 0; i < len(B); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(B) {
+					return ccxt.DerefScalar(B[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(entry, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -5050,7 +5055,7 @@ func (this *Binance) HandleEditOrderWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var result map[string]any = ccxt.MapTyped(this.SafeDict(message, "result", map[string]any{}))
-	var newSpotOrder any = this.SafeDict(result, "newOrderResponse")
+	var newSpotOrder map[string]any = ccxt.SafeMapTyped(result, "newOrderResponse")
 	var order any = nil
 	if !ccxt.IsEqual(newSpotOrder, nil) {
 		order = this.ParseOrder(newSpotOrder)

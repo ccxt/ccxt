@@ -442,7 +442,7 @@ func (this *Hibachi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     "underlyingDecimals": 9,
 	//     "underlyingSymbol": "ETH"
 	// },
-	var rows any = this.SafeList(response, "futureContracts")
+	var rows []any = SafeListTyped(response, "futureContracts")
 
 	ch <- this.ParseMarkets(rows)
 	return nil
@@ -949,16 +949,16 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var makerFeeRate *float64 = this.SafeNumber(response, "tradeMakerFeeRate")
 	var takerFeeRate *float64 = this.SafeNumber(response, "tradeTakerFeeRate")
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      makerFeeRate,
 			"taker":      takerFeeRate,
 			"percentage": true,
-		})
+		}
 	}
 
 	ch <- result
@@ -983,7 +983,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	// - Quantity: Internal = External * (10^underlyingDecimals)
 	// - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
 	// - FeeRate: Internal = External * (10^8)
-	var amountStr any = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
+	var amountStr *string = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
 	var feeRateStr *string = this.NumberToString(feeRate)
 	var info map[string]any = SafeMapTyped(market, "info")
 	var underlying any = Add("1e", this.SafeString(info, "underlyingDecimals"))
@@ -1011,7 +1011,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	var encodedFeeRate []byte = this.Base16ToBinary(feeRatePadded)
 	var encodedPrice []byte = this.BinaryConcat()
 	if IsEqual(typeVar, "limit") {
-		var priceStr any = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
+		var priceStr *string = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
 		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
 		var pricePadded string = PadStart(price16, 16, "0")
@@ -1056,7 +1056,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	}
 	var priceInternal any = ""
 	if (price != nil) && (price == nil || *price != 0) {
-		priceInternal = this.PriceToPrecision(symbol, price)
+		priceInternal = DerefScalar(this.PriceToPrecision(symbol, price))
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature any = this.SignMessage(message, this.PrivateKey)
@@ -2791,7 +2791,7 @@ func (this *Hibachi) FetchMySettlementHistoryAsync(optionalArgs ...any) <-chan a
 func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2808,7 +2808,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = GetValue(market, "numericId")
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))

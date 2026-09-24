@@ -1184,7 +1184,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1261,7 +1261,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1279,11 +1279,10 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var response any = nil
+	var response []any = nil
 	if clientOrderId != nil {
 
-		response = (<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetV1TradesClientOrderIdClientOrderId(this.Extend(request, params))).Raw))
 	} else {
 		var paginate bool = false
 		var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -1321,8 +1320,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		//     ]
 		//
 
-		response = (<-this.PrivateGetV1HistoryTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PrivateGetV1HistoryTrades(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -1738,13 +1736,13 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- BoxAbsent(retRes136819)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
 		"timeBucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"_pageSize":  maxLimit,
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
 	var duration int64 = this.ParseTimeframe(timeframe)
@@ -1759,8 +1757,8 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else if IsEqual(until, nil) {
 		until = this.Sum(startTime, maxDelta)
 	}
-	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTime))
-	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+	request["createdAtDatetime[gte]"] = this.Iso8601(startTime)
+	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1MarketsSymbolCandle(this.Extend(request, params))).Raw))
 	//
@@ -1811,7 +1809,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1913,7 +1911,7 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2687,16 +2685,16 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = params
 
 	PanicOnError((<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()})))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var until *int64 = this.SafeInteger(request, "createdAtDatetime[lte]")
 	if until != nil {
-		AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+		request["createdAtDatetime[lte]"] = this.Iso8601(until)
 	}
 	if since != nil {
-		AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(since))
+		request["createdAtDatetime[gte]"] = this.Iso8601(since)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1WalletsTransactions(this.Extend(request, params))).Raw))
@@ -3382,7 +3380,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3575,7 +3573,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	defer ReturnPanicError(ch)
 	since := GetArg(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -3585,14 +3583,14 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	tradingAccountId := (<-this.LoadAccountAsync(params))
 	PanicOnError(tradingAccountId)
 	var currency map[string]any = MapTyped(this.Currency(code))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"assetSymbol":      currency["id"],
 		"tradingAccountId": tradingAccountId,
 	}
 	var now int64 = this.Milliseconds()
 	var startTimestamp any = since
 	var requestparamsVariable []any = this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
 	// current endpoint requires both since and until parameters
@@ -3602,8 +3600,8 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	if IsEqual(until, nil) {
 		until = now
 	}
-	AddElementToObject(request, "createdAtDatetime[gte]", this.Iso8601(startTimestamp))
-	AddElementToObject(request, "createdAtDatetime[lte]", this.Iso8601(until))
+	request["createdAtDatetime[gte]"] = this.Iso8601(startTimestamp)
+	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, params))).Raw))
 

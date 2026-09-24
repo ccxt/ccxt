@@ -4006,7 +4006,7 @@ public class Coinbase extends CoinbaseApi
                     }
                 } else if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
                 {
-                    Object tpslPrice = null;
+                    String tpslPrice = null;
                     if (Boolean.TRUE.equals(isStopLoss))
                     {
                         if (java.util.Objects.equals(stopDirection, null))
@@ -4023,7 +4023,7 @@ public class Coinbase extends CoinbaseApi
                         tpslPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     final Object finalPrice_3 = price;
-                    final Object finalTpslPrice = tpslPrice;
+                    final String finalTpslPrice = tpslPrice;
                     final String finalStopDirection_3 = stopDirection;
                     ((Map<String, Object>)request).put("order_configuration", new HashMap<String, Object>() {{
         put( "stop_limit_stop_limit_gtc", new HashMap<String, Object>() {{

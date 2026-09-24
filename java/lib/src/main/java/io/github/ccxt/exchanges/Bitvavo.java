@@ -1052,7 +1052,7 @@ final String finalBase = base;
             {
                 ((Map<String, Object>)request).put("start", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
@@ -1444,7 +1444,7 @@ final String finalBase = base;
             }
             ((Map<String, Object>)request).put("end", this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000)));
         }
-        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
         request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
         if (!java.util.Objects.equals(limit, null))
@@ -1798,7 +1798,7 @@ final String finalBase = base;
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetSubaccountsTransfers(this.extend(request, parameters))).join();
@@ -2033,7 +2033,7 @@ final String finalBase = base;
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLossLimit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
         String timeInForce = this.safeString(parameters, "timeInForce");
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
-        Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, false, parameters));
         String stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"))));
@@ -2091,7 +2091,7 @@ final String finalBase = base;
         {
             ((Map<String, Object>)request).put("timeInForce", timeInForce);
         }
-        if (Boolean.TRUE.equals(postOnly))
+        if (postOnly)
         {
             ((Map<String, Object>)request).put("postOnly", true);
         }
@@ -2642,7 +2642,7 @@ final String finalBase = base;
         {
             ((Map<String, Object>)request).put("limit", limit); // default 500, max 1000
         }
-        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
         request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
         return this.extend(request, parameters);
@@ -2980,7 +2980,7 @@ final String finalBase = base;
         {
             ((Map<String, Object>)request).put("limit", limit); // default 500, max 1000
         }
-        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+        List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
         request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
         return this.extend(request, parameters);
@@ -3110,7 +3110,7 @@ final String finalBase = base;
             {
                 ((Map<String, Object>)request).put("maxItems", Helpers.mathMin(limit, 100));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("toDate", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("toDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAccountHistory(this.extend(request, parameters))).join();

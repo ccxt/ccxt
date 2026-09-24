@@ -860,10 +860,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)messageHashes).add(("ticker." + marketId));
             }
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
@@ -921,10 +921,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 ((List<Object>)subMessageHashes).add(("ticker." + marketId));
                 ((List<Object>)messageHashes).add(("unsubscribe:ticker:" + symbol));
@@ -1070,10 +1070,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false));
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)messageHashes).add(("bidask." + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
                 ((List<Object>)topics).add(("ticker." + marketId));
             }

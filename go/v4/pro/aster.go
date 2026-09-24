@@ -1614,7 +1614,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var kline any = this.SafeDict(data, "k")
+	var kline map[string]any = ccxt.SafeMapTyped(data, "k")
 	var timeframeId *string = this.SafeString(kline, "i")
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	if timeframe == nil {

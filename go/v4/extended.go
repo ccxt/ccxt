@@ -1602,7 +1602,7 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1697,7 +1697,7 @@ func (this *Extended) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan a
 func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -1721,7 +1721,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	symbol = market["symbol"]
+	symbol = SafeStringPtr(market["symbol"])
 	if limit == nil {
 		limit = Int64PtrTyped(100)
 	}
@@ -2690,7 +2690,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 		return this.SafeString(currency, "code")
 	}
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
-	var currencyByNumericId any = this.SafeDict(currenciesByNumericId, assetId)
+	var currencyByNumericId map[string]any = SafeMapTyped(currenciesByNumericId, assetId)
 	if !IsEqual(currencyByNumericId, nil) {
 		return this.SafeString(currencyByNumericId, "code")
 	}
@@ -3448,8 +3448,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
-	var amountString any = this.AmountToPrecision(symbol, amount)
-	var priceString any = this.PriceToPrecision(symbol, price)
+	var amountString *string = this.AmountToPrecision(symbol, amount)
+	var priceString *string = this.PriceToPrecision(symbol, price)
 	var postOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), nil, params)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
@@ -3549,8 +3549,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var isStopLossOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitOrder bool = (takeProfitTriggerPrice != nil)
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	if hasStopLoss || hasTakeProfit {
@@ -3857,7 +3857,7 @@ func (this *Extended) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
 	if clientOrderId != nil {
@@ -3865,8 +3865,7 @@ func (this *Extended) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			"externalId": clientOrderId,
 		}
 
-		response = (<-this.V1PrivateDeleteUserOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateDeleteUserOrder(this.Extend(request, params))).Raw))
 	} else {
 		if IsEqual(id, nil) {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument"))
@@ -3875,8 +3874,7 @@ func (this *Extended) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 			"id": id,
 		}
 
-		response = (<-this.V1PrivateDeleteUserOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateDeleteUserOrderId(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -4087,7 +4085,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var order any = nil
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
@@ -4096,8 +4094,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 			"externalId": clientOrderId,
 		}
 
-		response = (<-this.V1PrivateGetUserOrdersExternalExternalId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateGetUserOrdersExternalExternalId(this.Extend(request, params))).Raw))
 		var data []any = SafeListTypedDefault(response, "data", []any{})
 		order = this.SafeDict(data, 0, map[string]any{})
 	} else {
@@ -4108,8 +4105,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 			"id": id,
 		}
 
-		response = (<-this.V1PrivateGetUserOrdersId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1PrivateGetUserOrdersId(this.Extend(request, params))).Raw))
 		order = this.SafeDict(response, "data", map[string]any{})
 	}
 

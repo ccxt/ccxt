@@ -2367,7 +2367,7 @@ public class Kraken extends KrakenApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object parsedAmount = this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount);
+                String parsedAmount = this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount);
                 Map<String, Object> req = new HashMap<String, Object>() {{
                     put( "type", side );
                     put( "ordertype", type );
@@ -3867,7 +3867,7 @@ final String finalId = id;
                 ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
                 parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privatePostClosedOrders(this.extend(request, parameters))).join();

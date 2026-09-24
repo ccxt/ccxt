@@ -1326,7 +1326,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Boolean isFullHistoryEndpoint = (java.util.Objects.equals(method, "historyGetMarketSymbolExecutions"));
             if (Boolean.TRUE.equals(isFullHistoryEndpoint))
             {
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 if (!java.util.Objects.equals(since, null))
@@ -1403,7 +1403,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
             } else
             {
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("lastTime", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("lastTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> response = (this.publicGetHistory(this.extend(request, parameters))).join();
@@ -3976,7 +3976,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());

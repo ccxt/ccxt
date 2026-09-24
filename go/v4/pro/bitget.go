@@ -1613,7 +1613,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"uTime", "cTime", "ts", "T", "execTime"})
 	var feeDetail []any = ccxt.SafeListTypedDefault(trade, "feeDetail", []any{})
-	var first any = this.SafeDict(feeDetail, 0)
+	var first map[string]any = ccxt.SafeMapTyped(feeDetail, 0)
 	var fee map[string]any = nil
 	if !ccxt.IsEqual(first, nil) {
 		var feeCurrencyId *string = this.SafeString(first, "feeCoin")

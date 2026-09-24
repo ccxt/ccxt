@@ -1542,21 +1542,18 @@ func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
 	if (GetValue(market, "linear") == true) && isStableSettled {
 
-		response = (<-this.V2GetMdV2Orderbook(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2GetMdV2Orderbook(this.Extend(request, params))).Raw))
 	} else {
 		if (limit != nil) && (*limit <= 30) {
 
-			response = (<-this.V1GetMdOrderbook(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1GetMdOrderbook(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.V1GetMdFullbook(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1GetMdFullbook(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -1730,7 +1727,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		limit = maxLimit
 	}
 	request["limit"] = mathMin(limit, maxLimit)
-	var response any = nil
+	var response map[string]any = nil
 	if (GetValue(market, "linear") == true) || isStableSettled {
 		if (until != nil) || (since != nil) {
 			var candleDuration int64 = this.ParseTimeframe(timeframe)
@@ -1754,12 +1751,10 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 				request["to"] = to
 			}
 
-			response = (<-this.PublicGetMdV2KlineList(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicGetMdV2KlineList(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PublicGetMdV2KlineLast(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PublicGetMdV2KlineLast(this.Extend(request, params))).Raw))
 		}
 	} else {
 		if since != nil {
@@ -1770,8 +1765,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			limit = this.ParseToInt(Divide(timeDelta, duration)) // setting limit to the number of candles after since
 		}
 
-		response = (<-this.PublicGetMdV2Kline(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetMdV2Kline(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -1911,21 +1905,18 @@ func (this *Phemex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "swap") == true {
 		if (GetValue(market, "inverse") == true) || IsEqual(GetValue(market, "settle"), "USD") {
 
-			response = (<-this.V1GetMdTicker24hr(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V1GetMdTicker24hr(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.V2GetMdV2Ticker24hr(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V2GetMdV2Ticker24hr(this.Extend(request, params))).Raw))
 		}
 	} else {
 
-		response = (<-this.V1GetMdSpotTicker24hr(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1GetMdSpotTicker24hr(this.Extend(request, params))).Raw))
 	}
 	//
 	// spot
@@ -2018,19 +2009,16 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
 	var query map[string]any = MapTyped(this.Omit(params, "type"))
-	var response any = nil
+	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		response = (<-this.V1GetMdSpotTicker24hrAll(query)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1GetMdSpotTicker24hrAll(query)).Raw))
 	} else if (subType != nil && *subType == "inverse") || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USD") {
 
-		response = (<-this.V1GetMdTicker24hrAll(query)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1GetMdTicker24hrAll(query)).Raw))
 	} else {
 
-		response = (<-this.V2GetMdV2Ticker24hrAll(query)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2GetMdV2Ticker24hrAll(query)).Raw))
 	}
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -2071,16 +2059,14 @@ func (this *Phemex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
 	if (GetValue(market, "linear") == true) && isStableSettled {
 
-		response = (<-this.V2GetMdV2Trade(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2GetMdV2Trade(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V1GetMdTrade(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1GetMdTrade(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2374,7 +2360,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 				if GetValue(market, "spot") == true {
 					feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")))
 				} else {
-					var info any = this.SafeDict(market, "info")
+					var info map[string]any = SafeMapTyped(market, "info")
 					if !IsEqual(info, nil) {
 						var settlementCurrencyId *string = this.SafeString(info, "settlementCurrency")
 						feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(settlementCurrencyId))
@@ -2565,7 +2551,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var code *string = this.SafeString(params, "code")
 	params = MapTyped(this.Omit(params, []any{"code"}))
-	var response any = nil
+	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "swap") {
 		panic(BadRequest(this.Id + " does not support " + *typeVar + " markets, only spot and swap"))
@@ -2586,12 +2572,10 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			request["currency"] = currency["id"]
 			if currency["id"] == "USDT" {
 
-				response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params))).Raw))
 			}
 		} else {
 			var currency *string = this.SafeString(params, "currency")
@@ -2599,13 +2583,11 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 				panic(ArgumentsRequired(this.Id + " fetchBalance() requires a code parameter or a currency or settle parameter for " + *typeVar + " type"))
 			}
 
-			response = (<-this.PrivateGetSpotWallets(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetSpotWallets(this.Extend(request, params))).Raw))
 		}
 	} else {
 
-		response = (<-this.PrivateGetSpotWallets(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetSpotWallets(this.Extend(request, params))).Raw))
 	}
 	//
 	// usdt
@@ -3140,8 +3122,8 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"ordType": typeVar,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clOrdID", "clientOrderId")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit bool = (!IsEqual(takeProfit, nil))
 	var isStableSettled bool = (IsEqual(GetValue(market, "settle"), "USDT")) || (IsEqual(GetValue(market, "settle"), "USDC"))
@@ -3201,7 +3183,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			var costString any = this.CostToPrecision(symbol, cost)
 			request["quoteQtyEv"] = this.ToEv(costString, market)
 		} else {
-			var amountString any = this.AmountToPrecision(symbol, amount)
+			var amountString *string = this.AmountToPrecision(symbol, amount)
 			request["baseQtyEv"] = this.ToEv(amountString, market)
 		}
 	} else if GetValue(market, "swap") == true {
@@ -3350,19 +3332,16 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}
 		params = this.Omit(params, "stopLossPrice")
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if isStableSettled {
 
-		response = (<-this.PrivatePostGOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostGOrders(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "contract") == true {
 
-		response = (<-this.PrivatePostOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostSpotOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostSpotOrders(this.Extend(request, params))).Raw))
 	}
 	//
 	// spot
@@ -3519,23 +3498,20 @@ func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		}
 	}
 	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPx", "stopPrice"}))
-	var response any = nil
+	var response map[string]any = nil
 	if isStableSettled {
 		var posSide *string = this.SafeString(params, "posSide")
 		if posSide == nil {
 			request["posSide"] = "Merged"
 		}
 
-		response = (<-this.PrivatePutGOrdersReplace(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePutGOrdersReplace(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivatePutOrdersReplace(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePutOrdersReplace(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePutSpotOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePutSpotOrders(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -3584,23 +3560,20 @@ func (this *Phemex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	} else {
 		request["orderID"] = id
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 		var posSide *string = this.SafeString(params, "posSide")
 		if posSide == nil {
 			request["posSide"] = "Merged"
 		}
 
-		response = (<-this.PrivateDeleteGOrdersCancel(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteGOrdersCancel(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivateDeleteOrdersCancel(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersCancel(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateDeleteSpotOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteSpotOrders(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -3645,19 +3618,16 @@ func (this *Phemex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if trigger != nil && *trigger == true {
 		request["untriggerred"] = trigger
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 
-		response = (<-this.PrivateDeleteGOrdersAll(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteGOrdersAll(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersAll(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateDeleteSpotOrdersAll(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteSpotOrdersAll(this.Extend(request, params))).Raw))
 	}
 
 	ch <- []any{this.SafeOrder(map[string]any{
@@ -3706,19 +3676,16 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	} else {
 		request["orderID"] = id
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 
-		response = (<-this.PrivateGetApiDataGFuturesOrdersByOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetApiDataGFuturesOrdersByOrderId(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "spot") == true {
 
-		response = (<-this.PrivateGetApiDataSpotsOrdersByOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetApiDataSpotsOrdersByOrderId(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetExchangeOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrder(this.Extend(request, params))).Raw))
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var order any = data
@@ -3793,20 +3760,17 @@ func (this *Phemex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 		request["currency"] = market["settle"]
 
-		response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params))).Raw))
 	} else if GetValue(market, "swap") == true {
 
-		response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderList(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetApiDataSpotsOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetApiDataSpotsOrders(this.Extend(request, params))).Raw))
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var rows any = this.SafeList(data, "rows", data)
@@ -3861,7 +3825,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 
 	{
 		func(this *Phemex) (ret_ any) {
@@ -3886,16 +3850,13 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			// try block:
 			if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 
-				response = (<-this.PrivateGetGOrdersActiveList(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateGetGOrdersActiveList(this.Extend(request, params))).Raw))
 			} else if GetValue(market, "swap") == true {
 
-				response = (<-this.PrivateGetOrdersActiveList(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateGetOrdersActiveList(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.PrivateGetSpotOrders(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.PrivateGetSpotOrders(this.Extend(request, params))).Raw))
 			}
 			return nil
 		}(this)
@@ -3966,20 +3927,17 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if (symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT") {
 		request["currency"] = this.SafeString(params, "settle", "USDT")
 
-		response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params))).Raw))
 	} else if !IsEqual(market, nil) && (GetValue(market, "swap") == true) {
 
-		response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderList(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetExchangeSpotOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeSpotOrder(this.Extend(request, params))).Raw))
 	}
 	//
 	// spot
@@ -4089,20 +4047,17 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if since != nil {
 		request["start"] = since
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if isUSDTSettled {
 
-		response = (<-this.PrivateGetExchangeOrderV2TradingList(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderV2TradingList(this.Extend(request, params))).Raw))
 	} else if typeVar != nil && *typeVar == "swap" {
 		request["tradeType"] = "Trade"
 
-		response = (<-this.PrivateGetExchangeOrderTrade(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrderTrade(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetExchangeSpotOrderTrades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetExchangeSpotOrderTrades(this.Extend(request, params))).Raw))
 	}
 	//
 	// spot
@@ -4620,7 +4575,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if isUSDTSettled {
 		var method any = nil
 		var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method", "privateGetGAccountsAccountPositions")
@@ -4628,17 +4583,14 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		params = MapTyped(GetValue(methodparamsVariable, 1))
 		if IsEqual(method, "privateGetGAccountsAccountPositions") {
 
-			response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateGetGAccountsPositions(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGAccountsPositions(this.Extend(request, params))).Raw))
 		}
 	} else {
 
-		response = (<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5038,16 +4990,14 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		}
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var isStableSettled bool = IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC")
 	if isStableSettled {
 
-		response = (<-this.PrivateGetApiDataGFuturesFundingFees(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetApiDataGFuturesFundingFees(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetApiDataFuturesFundingFees(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetApiDataFuturesFundingFees(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5422,7 +5372,7 @@ func (this *Phemex) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan
 func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -5560,7 +5510,7 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 	//
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var riskLimits any = this.SafeList(data, "riskLimits")
+	var riskLimits []any = SafeListTyped(data, "riskLimits")
 
 	ch <- this.ParseLeverageTiers(riskLimits, symbols, "symbol")
 	return nil
@@ -5706,7 +5656,7 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC") {
 		if (isHedged == nil || *isHedged != true) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
 			request["leverageRr"] = leverage
@@ -5727,13 +5677,11 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 			request["shortLeverageRr"] = shortVar
 		}
 
-		response = (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePutGPositionsLeverage(this.Extend(request, params))).Raw))
 	} else {
 		request["leverage"] = leverage
 
-		response = (<-this.PrivatePutPositionsLeverage(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePutPositionsLeverage(this.Extend(request, params))).Raw))
 	}
 
 	ch <- response
@@ -6042,27 +5990,25 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	} else {
 		customSymbol = Add(Add(".", market["baseId"]), "FR8H")
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": customSymbol,
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if isUsdtSettled {
 
-		response = (<-this.V2GetApiDataPublicDataFundingRateHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2GetApiDataPublicDataFundingRateHistory(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V1GetApiDataPublicDataFundingRateHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V1GetApiDataPublicDataFundingRateHistory(this.Extend(request, params))).Raw))
 	}
 	//
 	//    {
@@ -6247,7 +6193,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.ParseOpenInterest(result, market)
 	return nil
@@ -6447,18 +6393,18 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if code != nil {
-		AddElementToObject(request, "fromCurrency", code)
+		request["fromCurrency"] = code
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetsConvert(this.Extend(request, params))).Raw))
@@ -6633,7 +6579,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if isUSDTSettled {
 		var method any = nil
 		var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions")
@@ -6641,17 +6587,14 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		params = MapTyped(GetValue(methodparamsVariable, 1))
 		if IsEqual(method, "privateGetGAccountsAccountPositions") {
 
-			response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivateGetGAccountsPositions(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGAccountsPositions(this.Extend(request, params))).Raw))
 		}
 	} else {
 
-		response = (<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var ranks []any = SafeListTyped(data, "positions")

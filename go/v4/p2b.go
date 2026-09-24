@@ -1073,7 +1073,7 @@ func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.ParseOrder(result, market)
 	return nil
@@ -1137,7 +1137,7 @@ func (this *P2b) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.ParseOrder(result)
 	return nil

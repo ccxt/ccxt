@@ -294,9 +294,9 @@ func (this *Myriad) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = this.ParseSearchQueries(params)
 	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queriesLength int = len(queries)
 	var rawMarkets any = []any{}
 	if queriesLength > 0 {
 
@@ -930,7 +930,7 @@ func (this *Myriad) fetchTradeQuoteBody(ch chan any, outcome any, side any, amou
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId *string = this.SafeString(info, "networkId")
 	var marketId *string = this.SafeString(info, "marketId")
@@ -1229,7 +1229,7 @@ func (this *Myriad) createOrderbookOrderBody(ch chan any, outcome any, typeVar a
 		"networkId":   networkId,
 		"timeInForce": timeInForce,
 	})
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var parsed any = this.ParsePredictionOrder(wrapper, outcomeObj)
 	// the POST /orders response is minimal (hash + status), so backfill the known request values
 	// side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
@@ -1283,7 +1283,7 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 	if ccxt.IsEqual(this.PrivateKey, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a privateKey to sign the order"))
 	}
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId *string = this.SafeString(info, "networkId", this.SafeString(this.Options, "defaultNetworkId", "56"))
 	var marketId *string = this.SafeString(info, "marketId")
@@ -1497,7 +1497,7 @@ func (this *Myriad) createAmmOrderBody(ch chan any, outcome any, typeVar any, si
 	}
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId *string = this.SafeString(info, "networkId")
 	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
@@ -1712,11 +1712,11 @@ func (this *Myriad) ClobOrderMessage(rawOrder any) any {
 func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var orderResponse any = this.SafeDict(params, "orderResponse")
+	var orderResponse map[string]any = ccxt.SafeMapTyped(params, "orderResponse")
 	if !ccxt.IsEqual(orderResponse, nil) {
 		return orderResponse
 	}
-	var rawOrder any = this.SafeDict(params, "rawOrder")
+	var rawOrder map[string]any = ccxt.SafeMapTyped(params, "rawOrder")
 	if !ccxt.IsEqual(rawOrder, nil) {
 		return map[string]any{
 			"orderHash": id,
@@ -1724,16 +1724,16 @@ func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any 
 			"networkId": this.SafeString2(params, "networkId", "network_id"),
 		}
 	}
-	var orderResponsesById any = this.SafeDict(params, "orderResponses")
+	var orderResponsesById map[string]any = ccxt.SafeMapTyped(params, "orderResponses")
 	if !ccxt.IsEqual(orderResponsesById, nil) {
-		var keyedResponse any = this.SafeDict(orderResponsesById, id)
+		var keyedResponse map[string]any = ccxt.SafeMapTyped(orderResponsesById, id)
 		if !ccxt.IsEqual(keyedResponse, nil) {
 			return keyedResponse
 		}
 	}
-	var orderResponses any = this.SafeList(params, "orderResponses")
+	var orderResponses []any = ccxt.SafeListTyped(params, "orderResponses")
 	if !ccxt.IsEqual(orderResponses, nil) {
-		var responsesLength int = ccxt.GetArrayLength(orderResponses)
+		var responsesLength int = len(orderResponses)
 		for i := 0; i < responsesLength; i++ {
 			var current map[string]any = ccxt.MapTyped(this.SafeDict(orderResponses, i, map[string]any{}))
 			var currentId *string = this.SafeStringN(current, []any{"orderHash", "hash", "id"})
@@ -1896,7 +1896,7 @@ func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
 	if (networkId != nil) && (marketId != nil) && (rawOutcomeId != nil) {
 		composite = *networkId + ":" + *marketId + "/" + *rawOutcomeId
 	}
-	var outcomeObj any = this.SafeOutcome(composite, market)
+	var outcomeObj map[string]any = this.SafeOutcome(composite, market)
 	var marketSlug *string = this.SafeString(trade, "marketSlug", marketId)
 	var outcomeTitle *string = this.SafeString(trade, "outcomeTitle", rawOutcomeId)
 	var outcome any = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
@@ -3760,7 +3760,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var outcomesByMarket map[string]any = map[string]any{}
 	var marketKeys []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var networkId *string = this.SafeString(info, "networkId")
 		var marketId *string = this.SafeString(info, "marketId")
@@ -3977,12 +3977,12 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	if allowUnscopedFetchEvents == nil || *allowUnscopedFetchEvents != true {
 		this.RequireEventQuery(params)
 	}
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = this.ParseSearchQueries(params)
 	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"}))
 	if ccxt.IsEqual(queries, nil) {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queriesLength int = len(queries)
 	var eventId *string = this.SafeString(params, "eventId")
 	// always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
 	// an eventId does a direct lookup, and tags map to server-side keyword searches (the
@@ -4300,14 +4300,14 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 		this.Spawn(this.PongAsync, client, msg)
 		return
 	}
-	var connectReply any = this.SafeDict(msg, "connect")
+	var connectReply map[string]any = ccxt.SafeMapTyped(msg, "connect")
 	if !ccxt.IsEqual(connectReply, nil) {
 		// connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
 		this.Options.Store("wsConnected", true)
 		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
 		return
 	}
-	var push any = this.SafeDict(msg, "push")
+	var push map[string]any = ccxt.SafeMapTyped(msg, "push")
 	if ccxt.IsEqual(push, nil) {
 		return
 	}
@@ -4567,7 +4567,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 		return
 	}
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(sym))
-	var outcomeObj any = this.SafeOutcome(sym)
+	var outcomeObj map[string]any = this.SafeOutcome(sym)
 	// the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
 	// unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
 	var fees map[string]any = ccxt.SafeMapTyped(taker, "totalFees")
@@ -4623,7 +4623,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 			if ccxt.IsEqual(makerTrader, myWallet) {
 				var makerSym any = this.MarketOutcomeToSymbol(networkId, marketId, this.SafeString(maker, "outcome"))
 				var makerMarket map[string]any = ccxt.MapTyped(this.SafeMarket(makerSym))
-				var makerOutcomeObj any = this.SafeOutcome(makerSym)
+				var makerOutcomeObj map[string]any = this.SafeOutcome(makerSym)
 				var makerFees map[string]any = ccxt.SafeMapTyped(maker, "fees")
 				var makerTrade any = this.SafePredictionTrade(map[string]any{
 					"id":           txHash,
@@ -4736,7 +4736,7 @@ func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var seenChannels map[string]any = map[string]any{}
 	var resolvedSymbols []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var networkId *string = this.SafeString(info, "networkId")
 		var marketId *string = this.SafeString(info, "marketId")
@@ -4862,7 +4862,7 @@ func (this *Myriad) HandleTicker(client any, data any) {
 			continue
 		}
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(sym))
-		var outcomeObj any = this.SafeOutcome(sym)
+		var outcomeObj map[string]any = this.SafeOutcome(sym)
 		var last any = this.FromWei(this.SafeString(oc, "last"))
 		var ticker any = this.SafePredictionTicker(map[string]any{
 			"outcome":       sym,
@@ -4949,7 +4949,7 @@ func (this *Myriad) HandleOrder(client any, data any) {
 	var marketId *string = this.SafeString(data, "marketId")
 	var outcomeId *string = this.SafeString(data, "outcome")
 	var sym any = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
-	var outcomeObj any = this.SafeOutcome(sym)
+	var outcomeObj map[string]any = this.SafeOutcome(sym)
 	var price any = this.FromWei(this.SafeString(data, "price"))
 	var amount any = this.FromWei(this.SafeString(data, "amount"))
 	var filled any = this.FromWei(this.SafeString(data, "filledAmount"))
@@ -5091,7 +5091,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 	var marketId *string = this.SafeString(data, "marketId")
 	var outcomeId *string = this.SafeString(data, "outcome")
 	var sym any = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
-	var outcomeObj any = this.SafeOutcome(sym)
+	var outcomeObj map[string]any = this.SafeOutcome(sym)
 	var ts *int64 = this.SafeInteger(data, "ts")
 	// the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance)
 	// apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure

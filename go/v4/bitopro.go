@@ -924,7 +924,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProvisioningLimitationsAndFees(params)).Raw))
 	var tradingFeeRate map[string]any = SafeMapTyped(response, "tradingFeeRate")
-	var first any = this.SafeDict(tradingFeeRate, 0)
+	var first map[string]any = SafeMapTyped(tradingFeeRate, 0)
 	//
 	//     {
 	//         "tradingFeeRate":[
@@ -989,17 +989,17 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var result map[string]any = map[string]any{}
 	var maker *float64 = this.SafeNumber(first, "makerFee")
 	var taker *float64 = this.SafeNumber(first, "takerFee")
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       first,
 			"symbol":     symbol,
 			"maker":      maker,
 			"taker":      taker,
 			"percentage": true,
 			"tierBased":  true,
-		})
+		}
 	}
 
 	ch <- result
@@ -1524,7 +1524,7 @@ func (this *Bitopro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseCancelOrders(data)
 	return nil
@@ -1556,17 +1556,15 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if symbol != nil {
 		var market map[string]any = MapTyped(this.Market(symbol))
 		request["pair"] = market["id"]
 
-		response = (<-this.PrivateDeleteOrdersPair(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersPair(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersAll(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 

@@ -266,7 +266,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
             Object market = this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object topic = "realtimes";
+            String topic = "realtimes";
             String messageHash = ("ticker:" + symbol);
             return (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
         }).thenApply(Ticker::new);
@@ -354,7 +354,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
             Object market = this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object topic = "trade";
+            String topic = "trade";
             String messageHash = ("trades:" + symbol);
             Object trades = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             if (this.newUpdates)
@@ -457,7 +457,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
             Object market = this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object topic = "depth";
+            String topic = "depth";
             String messageHash = ("orderbook:" + symbol);
             Object orderbook = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});

@@ -58,7 +58,8 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 		desc = desc2[0].(bool)
 	}
 	// ts parity: sortBy must not mutate the caller's slice (array.slice().sort(...))
-	input := array.([]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	input := derefScalar(array).([]any)
 	list := make([]any, len(input))
 	copy(list, input)
 
@@ -111,7 +112,8 @@ func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) [
 		desc = desc2[0].(bool)
 	}
 	// ts parity: sortBy2 must not mutate the caller's slice (array.slice().sort(...))
-	input := array.([]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	input := derefScalar(array).([]any)
 	list := make([]any, len(input))
 	copy(list, input)
 
@@ -180,7 +182,7 @@ func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 		return nil
 	}
 
-	var outList []any
+	outList := []any{}
 	for _, elem := range targetA {
 		if m, ok := elem.(map[string]any); ok {
 			if derefScalar(m[key.(string)]) == value {
@@ -527,7 +529,8 @@ func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
 func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 	key := derefScalar(key2).(string)
 	outDict := make(map[string]any)
-	list := trades.([]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	list := derefScalar(trades).([]any)
 	for _, elem := range list {
 		elemDict := elem.(map[string]any)
 		if val, ok := elemDict[key]; ok {

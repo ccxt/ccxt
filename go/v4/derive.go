@@ -1606,7 +1606,7 @@ func (this *Derive) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	// ]
 	//
-	var data any = this.SafeDict(response, 0)
+	var data map[string]any = SafeMapTyped(response, 0)
 
 	ch <- this.ParseFundingRate(data)
 	return nil
@@ -1673,7 +1673,7 @@ func (this *Derive) SignHash(hash any, privateKey any) any {
 func (this *Derive) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
-func (this *Derive) ParseUnits(num any, optionalArgs ...any) *string {
+func (this *Derive) ParseUnits(num *string, optionalArgs ...any) *string {
 	var dec string = GetArgString(optionalArgs, 0, "1000000000000000000")
 	_ = dec
 	return Precise.StringMul(num, dec)
@@ -1801,15 +1801,13 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	request["signature"] = signature
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"})
-	var response any = nil
+	var response map[string]any = nil
 	if test != nil && *test == true {
 
-		response = (<-this.PrivatePostOrderDebug(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrderDebug(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, params))).Raw))
 	}
 	//
 	// {
@@ -2113,23 +2111,20 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var clientOrderIdUnified *string = this.SafeString(params, "clientOrderId")
 	var clientOrderIdExchangeSpecific *string = this.SafeString(params, "label", clientOrderIdUnified)
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
-	var response any = nil
+	var response map[string]any = nil
 	if isByClientOrder {
 		request["label"] = clientOrderIdExchangeSpecific
 		params = MapTyped(this.Omit(params, []any{"clientOrderId", "label"}))
 
-		response = (<-this.PrivatePostCancelByLabel(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByLabel(this.Extend(request, params))).Raw))
 	} else {
 		request["order_id"] = id
 		if isTrigger != nil && *isTrigger == true {
 
-			response = (<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params))).Raw))
 		} else {
 
-			response = (<-this.PrivatePostCancel(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostCancel(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -2225,16 +2220,14 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if !IsEqual(market, nil) {
 		request["instrument_name"] = GetValue(market, "id")
 
-		response = (<-this.PrivatePostCancelByInstrument(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByInstrument(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivatePostCancelAll(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAll(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -3245,7 +3238,7 @@ func (this *Derive) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
 	// }
 	//
-	var result any = this.SafeList(response, "result")
+	var result []any = SafeListTyped(response, "result")
 
 	ch <- this.ParseBalance(result)
 	return nil
@@ -3504,7 +3497,7 @@ func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, 
 	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
-	var error any = this.SafeDict(response, "error")
+	var error map[string]any = SafeMapTyped(response, "error")
 	if !IsEqual(error, nil) {
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback any = Add(this.Id+" ", this.Json(response))

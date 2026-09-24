@@ -777,11 +777,10 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var method any = this.HandleOption("fetchMarkets", "method", "publicGetCommonSymbols")
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(method, "publicGetCommonSymbols") {
 
-		response = (<-this.PublicGetCommonSymbols(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetCommonSymbols(params)).Raw))
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchMarkets() does not support the ", method), " method")))
 	}
@@ -1054,7 +1053,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		if (IsEqual(GetValue(response, "tick"), nil)) || (IsEqual(GetValue(response, "tick"), nil)) {
 			panic(BadSymbol(Add(this.Id+" fetchOrderBook() returned empty response: ", this.Json(response))))
 		}
-		var tick any = this.SafeDict(response, "tick")
+		var tick map[string]any = SafeMapTyped(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
 		var result map[string]any = this.ParseOrderBook(tick, symbol, timestamp)
 		result["nonce"] = this.SafeInteger(tick, "version")
@@ -2228,7 +2227,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = MapTyped(this.Omit(params, "cost"))
 		if cost != nil {
-			quoteAmount = this.AmountToPrecision(symbol, cost)
+			quoteAmount = DerefScalar(this.AmountToPrecision(symbol, cost))
 		} else if createMarketBuyOrderRequiresPrice {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -2241,10 +2240,10 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 				// we use amountToPrecision here because the exchange requires cost in base precision
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
-				quoteAmount = this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString))
+				quoteAmount = DerefScalar(this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString)))
 			}
 		} else {
-			quoteAmount = this.AmountToPrecision(symbol, amount)
+			quoteAmount = DerefScalar(this.AmountToPrecision(symbol, amount))
 		}
 		request["amount"] = quoteAmount
 	} else {

@@ -1791,7 +1791,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "return")
+	var data map[string]any = SafeMapTyped(response, "return")
 	var addresses map[string]any = SafeMapTyped(data, "address")
 	var networks map[string]any = SafeMapTyped(data, "network")
 	var addressKeys []string = ObjectKeys(addresses)

@@ -393,7 +393,7 @@ public class Kalshi extends KalshiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             Integer queriesLength = ((List<?>)queries).size();
             // kalshi's public markets endpoint has no free-text search, so a query would otherwise
             // force a client-side scan of every open market (thousands, paged 1000 at a time, which
@@ -1190,7 +1190,7 @@ final Object finalOi = oi;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
     {
         //
         //     {
@@ -1298,7 +1298,7 @@ final Object finalOi = oi;
         final Double finalAskVolume = askVolume;
         final Double finalClose = close;
         final Double finalAverage = average;
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", outcome );
             put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Kalshi.this.safeString(outcomeObj, "label") );
@@ -1322,7 +1322,7 @@ final Object finalOi = oi;
             put( "baseVolume", Kalshi.this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume"))) );
             put( "quoteVolume", null );
             put( "info", raw );
-        }}), market);
+        }}), market));
     }
     /**
      * @ignore
@@ -1333,7 +1333,7 @@ final Object finalOi = oi;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
     {
         return this.parsePredictionTicker(raw, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1417,7 +1417,7 @@ final Object finalOi = oi;
                     Object grouped = (outcomesByTicker == null || marketTicker == null ? null : outcomesByTicker.get(marketTicker));
                     for (var j = 0; j < Helpers.getArrayLength(grouped); j++)
                     {
-                        Object ticker = this.parsePredictionTicker((Map<String, Object>) (raw), Helpers.GetValue(grouped, j));
+                        Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (raw), Helpers.GetValue(grouped, j));
                         String symbolKey = this.safeString(ticker, "outcome");
                         if (!java.util.Objects.equals(symbolKey, null))
                         {
@@ -3000,7 +3000,7 @@ final Object finalOi = oi;
         final String outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             String outcome = outcome3;
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome))).join();
@@ -3127,7 +3127,7 @@ final Object finalOi = oi;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object parameters = parameters3;
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             if (java.util.Objects.equals(queries, null))
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;

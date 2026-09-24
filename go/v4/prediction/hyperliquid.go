@@ -718,7 +718,7 @@ func (this *Hyperliquid) fetchTickerBody(ch chan any, outcome any, optionalArgs 
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var coin *string = this.SafeString(info, "coinName")
 	var request map[string]any = map[string]any{
@@ -776,7 +776,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
-			var requestedOutcomeObj any = this.SafeOutcome(requested)
+			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			ccxt.AddElementToObject(requestedOutcomeSymbols, requestedOutcome, true)
 		}
@@ -854,13 +854,13 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	_ = market
 	var timestamp *int64 = this.SafeInteger(raw, "time")
 	// the 2nd arg carries the outcome object (callers pass the resolved outcome)
-	var mkt any = this.SafeOutcome(nil, market)
+	var mkt map[string]any = this.SafeOutcome(nil, market)
 	var outcome *string = this.SafeString(mkt, "outcome")
 	var levels []any = ccxt.SafeListTypedDefault(raw, "levels", []any{})
 	var rawBids []any = ccxt.SafeListTypedDefault(levels, 0, []any{})
 	var rawAsks []any = ccxt.SafeListTypedDefault(levels, 1, []any{})
-	var topBid any = this.SafeDict(rawBids, 0)
-	var topAsk any = this.SafeDict(rawAsks, 0)
+	var topBid map[string]any = ccxt.SafeMapTyped(rawBids, 0)
+	var topAsk map[string]any = ccxt.SafeMapTyped(rawAsks, 0)
 	var bid *float64 = func() *float64 {
 		if !ccxt.IsEqual(topBid, nil) {
 			return this.SafeNumber(topBid, "px")
@@ -956,7 +956,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, outcome any, optionalAr
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
 		"type": "l2Book",
@@ -1039,7 +1039,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	// markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
 	var market map[string]any = ccxt.MapTyped(this.Market(this.SafeString(outcomeObj, "market")))
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
@@ -1224,7 +1224,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
-			var requestedOutcomeObj any = this.SafeOutcome(requested)
+			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			ccxt.AddElementToObject(requestedOutcomeSymbols, requestedOutcome, true)
 		}
@@ -1282,7 +1282,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 			str := *coin
 			return str[1:]
 		}()
-		var outcomeObj any = this.SafeOutcome(tradeCoin)
+		var outcomeObj map[string]any = this.SafeOutcome(tradeCoin)
 		if outcomes != nil {
 			var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
 			if (outcomeHandle == nil) || !(func() bool {
@@ -1320,7 +1320,7 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	// value / entry price / pnl for outcome tokens, so they are computed here
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var outcomeObj any = this.SafeOutcome(nil, market)
+	var outcomeObj map[string]any = this.SafeOutcome(nil, market)
 	var totalStr *string = this.SafeString(position, "total")
 	var total *float64 = ccxt.Float64PtrTyped(this.ParseNumber(totalStr))
 	var entryNtlStr *string = this.SafeString(position, "entryNtl")
@@ -1512,7 +1512,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	ccxt.PanicOnError((<-this.InitializeClientAsync()))
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
@@ -1552,14 +1552,14 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 			}
 			return ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringSub("1", slippage))
 		}()
-		px = this.PriceToPrecision(marketSymbol, px)
+		px = ccxt.DerefScalar(this.PriceToPrecision(marketSymbol, px))
 	} else {
-		px = this.PriceToPrecision(marketSymbol, price)
+		px = ccxt.DerefScalar(this.PriceToPrecision(marketSymbol, price))
 	}
 	if px == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() could not determine price"))
 	}
-	var sz any = this.AmountToPrecision(marketSymbol, amount)
+	var sz *string = this.AmountToPrecision(marketSymbol, amount)
 	var orderType map[string]any = map[string]any{
 		"limit": map[string]any{
 			"tif": tif,
@@ -1718,7 +1718,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	ccxt.PanicOnError((<-this.InitializeClientAsync()))
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
 	var nonce int64 = this.Milliseconds()
@@ -1882,7 +1882,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	if outcome != nil {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-		var outcomeObj any = this.Outcome(outcome)
+		var outcomeObj map[string]any = this.Outcome(outcome)
 		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	}
 
@@ -1971,7 +1971,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if outcome != nil {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-		var outcomeObj any = this.Outcome(outcome)
+		var outcomeObj map[string]any = this.Outcome(outcome)
 		outcomeHandle = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
 	}
 
@@ -2036,7 +2036,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	if outcome != nil {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-		var outcomeObj any = this.Outcome(outcome)
+		var outcomeObj map[string]any = this.Outcome(outcome)
 		var expected *string = this.SafeString(outcomeObj, "outcome")
 		if this.SafeString(parsed, "outcome") != expected && (this.SafeString(parsed, "outcome") == nil || expected == nil || *this.SafeString(parsed, "outcome") != *expected) {
 			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOrder() order ", id), " is not in outcome "), expected)))
@@ -2081,7 +2081,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 	var entry any = this.SafeDict(order, "order", order) // eslint-disable-line
 	var status any = this.ParseOrderStatus(this.SafeString2(order, "ccxtStatus", "status"))
 	var coin *string = this.SafeString(entry, "coin")
-	var outcomeObj any = this.SafeOutcome(coin, market)
+	var outcomeObj map[string]any = this.SafeOutcome(coin, market)
 	var marketSymbol *string = this.SafeString(outcomeObj, "outcome")
 	var resolvedMarket any = func() any {
 		if (marketSymbol != nil) && (marketSymbol == nil || *marketSymbol != "") {
@@ -2217,7 +2217,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan any, outcome any, optionalArgs 
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
 		"type": "recentTrades",
@@ -2348,7 +2348,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	var price *string = this.SafeString(trade, "px")
 	var amount *string = this.SafeString(trade, "sz")
 	var coin *string = this.SafeString(trade, "coin")
-	var outcomeObj any = this.SafeOutcome(coin, market)
+	var outcomeObj map[string]any = this.SafeOutcome(coin, market)
 	var marketSymbol *string = this.SafeString(outcomeObj, "outcome")
 	var resolvedMarket any = func() any {
 		if (marketSymbol != nil) && (marketSymbol == nil || *marketSymbol != "") {
@@ -2424,7 +2424,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.RequireEventQuery(params)
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = this.ParseSearchQueries(params)
 	// hyperliquid has no dedicated events endpoint - events are grouped from the outcome
 	// markets. use the cached load so the handles advertised here always match the
 	// outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
@@ -2438,8 +2438,13 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var lowerQueries []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
-		var queryString *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, i))
+	for i := 0; i < len(queries); i++ {
+		var queryString *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(queries) {
+				return ccxt.DerefScalar(queries[i])
+			}
+			return nil
+		}())
 		lowerQueries = append(lowerQueries, ccxt.ToLower(queryString))
 	}
 	var lowerQueriesLength int = len(lowerQueries)
@@ -2642,7 +2647,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 		"info":             raw,
 	})
 }
-func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) any {
+func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	var market map[string]any = ccxt.MapTyped(this.Market(outcome))
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.0001)
 	// Convert precision to decimal places
@@ -2653,9 +2658,9 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) any {
 	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	return this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
+	return ccxt.SafeStringPtr(this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode))
 }
-func (this *Hyperliquid) PriceToPrecision(outcome any, price any) any {
+func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	var market map[string]any = ccxt.MapTyped(this.Market(outcome))
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
@@ -2665,7 +2670,7 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) any {
 	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	return this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode)
+	return ccxt.SafeStringPtr(this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode))
 }
 func (this *Hyperliquid) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))

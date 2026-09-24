@@ -1670,8 +1670,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 messageHash = (messageHash + ("::" + symbol));
             }
-            Object channel = "fill";
-            Object trades = (this.subscribePrivate(messageHash, subscriptionHash, (String) (channel), isContract, parameters)).join();
+            String channel = "fill";
+            Object trades = (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1727,7 +1727,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = ((Boolean.TRUE.equals(isContract))) ? "myContractTrades" : "myTrades";
             Object unSubHash = ("unsubscribe::" + subHash);
-            Object channel = "fill";
+            String channel = "fill";
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(unSubHash)) );
@@ -1735,7 +1735,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", "myTrades" );
                 put( "subHashIsPrefix", true );
             }};
-            return (this.subscribePrivate(unSubHash, unSubHash, (String) (channel), isContract, parameters, subscription)).join();
+            return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, parameters, subscription)).join();
         });
 
     }
@@ -1961,8 +1961,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 messageHash = (messageHash + ("::" + symbol));
             }
-            Object channel = "orders";
-            Object orders = (this.subscribePrivate(messageHash, subscriptionHash, (String) (channel), isContract, parameters)).join();
+            String channel = "orders";
+            Object orders = (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -2017,7 +2017,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = ((Boolean.TRUE.equals(isContract))) ? "contractOrders" : "orders";
             Object unSubHash = ("unsubscribe::" + subHash);
-            Object channel = "orders";
+            String channel = "orders";
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(unSubHash)) );
@@ -2025,7 +2025,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", "orders" );
                 put( "subHashIsPrefix", true );
             }};
-            return (this.subscribePrivate(unSubHash, unSubHash, (String) (channel), isContract, parameters, subscription)).join();
+            return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, parameters, subscription)).join();
         });
 
     }
@@ -2530,7 +2530,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbols)));
             }
-            Object channel = "positions";
+            String channel = "positions";
             this.setPositionsCache(client, parameters);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
@@ -2539,7 +2539,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
-            Object newPositions = (this.subscribePrivate(messageHash, subscriptionHash, (String) (channel), true, parameters)).join();
+            Object newPositions = (this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2628,7 +2628,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             String subHash = "positions";
             String unSubHash = ("unsubscribe::" + subHash);
-            Object channel = "positions";
+            String channel = "positions";
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(unSubHash)) );
@@ -2636,7 +2636,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "topic", "positions" );
                 put( "subHashIsPrefix", true );
             }};
-            return (this.subscribePrivate(unSubHash, unSubHash, (String) (channel), true, parameters, subscription)).join();
+            return (this.subscribePrivate(unSubHash, unSubHash, channel, true, parameters, subscription)).join();
         });
 
     }

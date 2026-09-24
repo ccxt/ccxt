@@ -5856,7 +5856,7 @@ final String finalPointFee = pointFee;
                 ((Map<String, Object>)request).put("from", start);
                 ((Map<String, Object>)request).put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateWalletGetDeposits(this.extend(request, parameters))).join();
@@ -5935,7 +5935,7 @@ final String finalPointFee = pointFee;
                 ((Map<String, Object>)request).put("from", start);
                 ((Map<String, Object>)request).put("to", this.sum(start, (((30L * 24L) * 60L) * 60L)));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateWalletGetWithdrawals(this.extend(request, parameters))).join();
@@ -6555,9 +6555,9 @@ final String finalPointFee = pointFee;
                 amount = 0;
             } else
             {
-                Object amountToPrecision = this.amountToPrecision(symbol, amount);
-                Object signedAmount = (((java.util.Objects.equals(side, "sell")))) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
-                amount = Helpers.parseInt(((String)signedAmount));
+                String amountToPrecision = this.amountToPrecision(symbol, amount);
+                String signedAmount = (((java.util.Objects.equals(side, "sell")))) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
+                amount = Helpers.parseInt(signedAmount);
             }
         }
         Map<String, Object> request = null;
@@ -9809,7 +9809,7 @@ final Object finalI = i;
             isUnifiedAccount = Boolean.TRUE.equals(((List<Object>) isUnifiedAccountparametersVariable).get(0));
             parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> currency = null;
@@ -10705,7 +10705,7 @@ final Object finalI = i;
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
@@ -11096,7 +11096,7 @@ final Object finalI = i;
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.publicFuturesGetSettleLiqOrders(this.extend(request, parameters))).join();

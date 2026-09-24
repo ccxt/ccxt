@@ -1518,16 +1518,14 @@ func (this *Backpack) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
-	var response any = nil
+	var response []any = nil
 	var offset *int64 = this.SafeInteger(params, "offset")
 	if offset != nil {
 
-		response = (<-this.PublicGetApiV1TradesHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetApiV1TradesHistory(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetApiV1Trades(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetApiV1Trades(this.Extend(request, params))).Raw))
 	}
 	var responseList []any = this.ToArray(response)
 
@@ -2324,7 +2322,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if postOnly {
 		AddElementToObject(params, "postOnly", true)
 	}
-	var takeProfit any = this.SafeDict(params, "takeProfit")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	if !IsEqual(takeProfit, nil) {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
@@ -2336,7 +2334,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		}
 		params = MapTyped(this.Omit(params, "takeProfit"))
 	}
-	var stopLoss any = this.SafeDict(params, "stopLoss")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	if !IsEqual(stopLoss, nil) {
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if stopLossTriggerPrice != nil {

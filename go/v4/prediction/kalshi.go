@@ -733,7 +733,7 @@ func (this *Kalshi) HandleErrors(code any, reason any, url any, method any, head
 	if (ccxt.IsEqual(response, nil)) || (ccxt.IsEqual(response, nil)) {
 		return nil
 	}
-	var error any = this.SafeDict(response, "error")
+	var error map[string]any = ccxt.SafeMapTyped(response, "error")
 	if !ccxt.IsEqual(error, nil) {
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback any = ccxt.Add(this.Id+" ", body)
@@ -1024,8 +1024,8 @@ func (this *Kalshi) fetchTickerBody(ch chan any, outcome any, optionalArgs ...an
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
-	var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
+	var outcomeObj map[string]any = this.Outcome(outcome)
+	var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
 	var request map[string]any = map[string]any{
 		"ticker": ticker,
 	}
@@ -1155,8 +1155,8 @@ func (this *Kalshi) fetchOpenInterestBody(ch chan any, outcome any, optionalArgs
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
-	var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
+	var outcomeObj map[string]any = this.Outcome(outcome)
+	var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
 	var request map[string]any = map[string]any{
 		"ticker": ticker,
 	}
@@ -1259,7 +1259,7 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketAny any = market
-	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
+	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
 	var outcomeLabel *string = func() *string {
 		if market != nil {
 			return this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "YES"))
@@ -1380,13 +1380,13 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var outcomesByTicker map[string]any = map[string]any{}
 	var tickers []any = []any{}
 	for i := 0; i < len(targets); i++ {
-		var outcomeObj any = this.Outcome(func() any {
+		var outcomeObj map[string]any = this.Outcome(func() any {
 			if i >= 0 && i < len(targets) {
 				return ccxt.DerefScalar(targets[i])
 			}
 			return nil
 		}())
-		var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
+		var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
 		if ticker == nil {
 			continue
 		}
@@ -1492,9 +1492,9 @@ func (this *Kalshi) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
-	var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
-	var isNo bool = ccxt.IsEqual(ccxt.GetValue(outcomeObj, "label"), "NO")
+	var outcomeObj map[string]any = this.Outcome(outcome)
+	var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
+	var isNo bool = ccxt.IsEqual(outcomeObj["label"], "NO")
 	var request map[string]any = map[string]any{
 		"ticker": ticker,
 	}
@@ -1653,9 +1653,9 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
-	var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
-	var seriesTicker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "seriesTicker", ticker)
+	var outcomeObj map[string]any = this.Outcome(outcome)
+	var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
+	var seriesTicker *string = this.SafeString(outcomeObj["info"], "seriesTicker", ticker)
 	var periodMin *int64 = this.SafeInteger(this.Timeframes, timeframe)
 	if periodMin == nil {
 		// reject an unsupported timeframe locally instead of silently returning 1-minute candles.
@@ -1839,8 +1839,8 @@ func (this *Kalshi) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
-	var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
+	var outcomeObj map[string]any = this.Outcome(outcome)
+	var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
 	var request map[string]any = map[string]any{
 		"ticker": ticker,
 	}
@@ -1894,7 +1894,7 @@ func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var amount *float64 = this.SafeNumber(trade, "count", amountFp)
 	var rawSide *string = this.SafeStringLower(trade, "taker_side")
 	var marketAny any = market
-	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
+	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
 	var marketInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var requestedOutcomeLabel *string = this.SafeStringLower(outcomeObj, "label", this.SafeStringLower(marketInfo, "outcomeLabel"))
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")
@@ -1973,7 +1973,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	}
 	var request map[string]any = map[string]any{}
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if outcome != nil {
 		// the ticker filter narrows to the market; a market has both legs, so the
 		// wanted-leg filter below still drops the opposite-leg fills
@@ -2041,7 +2041,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
 		outcomeKey = ccxt.SafeStringPtr(*ticker + "-NO")
 	}
-	var mkt any = this.SafeOutcome(outcomeKey, market)
+	var mkt map[string]any = this.SafeOutcome(outcomeKey, market)
 	var ts *int64 = this.Parse8601(this.SafeString(fill, "created_time"))
 	// action is the order side (buy/sell) of the held leg
 	var action *string = this.SafeStringLower(fill, "action")
@@ -2208,7 +2208,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
 	}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var marketTicker *string = this.SafeString(outcomeInfo, "ticker")
 		if marketTicker != nil {
@@ -2335,7 +2335,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
 		}
 		return (*ticker + "-NO")
 	}()
-	var mkt any = this.SafeOutcome(heldTicker, market)
+	var mkt map[string]any = this.SafeOutcome(heldTicker, market)
 	// which leg won; market_result is yes or no
 	var marketResult *string = this.SafeStringUpper(settlement, "market_result")
 	var won bool = (marketResult != nil && *marketResult == heldLabel)
@@ -2413,7 +2413,7 @@ func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) a
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ticker *string = this.SafeString(position, "ticker")
-	var outcomeObj any = this.SafeOutcome(ticker, market)
+	var outcomeObj map[string]any = this.SafeOutcome(ticker, market)
 	var yesContracts *float64 = this.SafeNumber(position, "position") // positive = long YES
 	var positionSide any = nil
 	var contractsValue any = nil
@@ -2492,7 +2492,7 @@ func (this *Kalshi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"status": "resting",
 	}
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if outcome != nil {
 		outcomeObj = this.Outcome(outcome)
 		if ccxt.IsEqual(outcomeObj, nil) {
@@ -2541,7 +2541,7 @@ func (this *Kalshi) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	// no status filter — the endpoint returns every order; pass params.status to narrow
 	var request map[string]any = map[string]any{}
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if outcome != nil {
 		outcomeObj = this.Outcome(outcome)
 		if ccxt.IsEqual(outcomeObj, nil) {
@@ -2660,7 +2660,7 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
 		outcomeKey = ccxt.SafeStringPtr(*ticker + "-NO")
 	}
-	var mkt any = this.SafeOutcome(outcomeKey, market)
+	var mkt map[string]any = this.SafeOutcome(outcomeKey, market)
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	// never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
 	// and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
@@ -2779,9 +2779,9 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	}
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
-	var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
-	var isNo bool = (ccxt.IsEqual(ccxt.GetValue(outcomeObj, "label"), "NO"))
+	var outcomeObj map[string]any = this.Outcome(outcome)
+	var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
+	var isNo bool = (ccxt.IsEqual(outcomeObj["label"], "NO"))
 	var isBuy bool = (ccxt.IsEqual(side, "buy"))
 	// kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
 	// 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -3004,8 +3004,8 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "resting",
 	}
 	if outcome != nil {
-		var outcomeObj any = this.Outcome(outcome)
-		request["ticker"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
+		var outcomeObj map[string]any = this.Outcome(outcome)
+		request["ticker"] = this.SafeString(outcomeObj["info"], "ticker")
 	}
 
 	var restingResponse map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioOrders(request)).Raw))
@@ -3062,11 +3062,11 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries any = this.ParseSearchQueries(params)
+	var queries []any = this.ParseSearchQueries(params)
 	if ccxt.IsEqual(queries, nil) {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queriesLength int = len(queries)
 	params = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 	// bound how many events are actually FETCHED (not just returned) so a broad scope like

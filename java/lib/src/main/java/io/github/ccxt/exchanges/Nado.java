@@ -510,10 +510,10 @@ public class Nado extends NadoApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
             }
             Long productId = this.parseToInt(((Map<String, Object>)market).get("id"));
-            Object priceString = this.priceToPrecision(symbol, price);
-            Object amountString = this.amountToPrecision(symbol, amount);
-            String priceX18 = this.convertToX18((String) (priceString));
-            String amountX18 = this.convertToX18((String) (amountString));
+            String priceString = this.priceToPrecision(symbol, price);
+            String amountString = this.amountToPrecision(symbol, amount);
+            String priceX18 = this.convertToX18(priceString);
+            String amountX18 = this.convertToX18(amountString);
             if (java.util.Objects.equals(side, "sell"))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -763,10 +763,10 @@ public class Nado extends NadoApi
                 throw new ArgumentsRequired((this.id + " editOrder() requires a price argument")) ;
             }
             Long productId = this.parseToInt(((Map<String, Object>)market).get("id"));
-            Object priceString = this.priceToPrecision(symbol, price);
-            Object amountString = this.amountToPrecision(symbol, amount);
-            String priceX18 = this.convertToX18((String) (priceString));
-            String amountX18 = this.convertToX18((String) (amountString));
+            String priceString = this.priceToPrecision(symbol, price);
+            String amountString = this.amountToPrecision(symbol, amount);
+            String priceX18 = this.convertToX18(priceString);
+            String amountX18 = this.convertToX18(amountString);
             if (java.util.Objects.equals(side, "sell"))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -1549,7 +1549,7 @@ public class Nado extends NadoApi
             {
                 ((Map<String, Object>)ordersRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
             }
-            List<Object> ordersRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", ordersRequest, parameters, 0.001);
+            List<Object> ordersRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (ordersRequest), (Map<String, Object>) (parameters), 0.001);
             ordersRequest = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) ordersRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -1738,7 +1738,7 @@ public class Nado extends NadoApi
             {
                 ((Map<String, Object>)matchesRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)market).get("id")))));
             }
-            List<Object> matchesRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", matchesRequest, parameters, 0.001);
+            List<Object> matchesRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (matchesRequest), (Map<String, Object>) (parameters), 0.001);
             matchesRequest = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) matchesRequestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -1992,7 +1992,7 @@ public class Nado extends NadoApi
             {
                 ((Map<String, Object>)eventsRequest).put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(((Map<String, Object>)currency).get("id")))));
             }
-            List<Object> eventsRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", eventsRequest, parameters, 0.001);
+            List<Object> eventsRequestparametersVariable = (List<Object>) this.handleUntilOption("max_time", (Map<String, Object>) (eventsRequest), (Map<String, Object>) (parameters), 0.001);
             eventsRequest = (Map<String, Object>) ((List<Object>) eventsRequestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) eventsRequestparametersVariable).get(1);
             final Map<String, Object> finalEventsRequest = eventsRequest;
@@ -4020,7 +4020,7 @@ public class Nado extends NadoApi
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-        Object postOnly = this.isPostOnly(false, null, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(false, null, parameters));
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
         if (java.util.Objects.equals(timeInForce, "IOC"))
@@ -4029,7 +4029,7 @@ public class Nado extends NadoApi
         } else if (java.util.Objects.equals(timeInForce, "FOK"))
         {
             orderType = 2;
-        } else if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
+        } else if (postOnly || (java.util.Objects.equals(timeInForce, "PO")))
         {
             orderType = 3;
         } else if ((!java.util.Objects.equals(timeInForce, null)) && (!java.util.Objects.equals(timeInForce, "GTC")))

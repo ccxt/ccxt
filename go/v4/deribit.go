@@ -1518,15 +1518,13 @@ func (this *Deribit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		request["currency"] = this.CurrencyId(code)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if code == nil {
 
-		response = (<-this.PrivateGetGetAccountSummaries(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummaries(params)).Raw))
 	} else {
 
-		response = (<-this.PrivateGetGetAccountSummary(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummary(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2190,15 +2188,13 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		params = MapTyped(this.Omit(params, []any{"until"}))
 		request["end_timestamp"] = until
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if (since == nil) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
 
-		response = (<-this.PublicGetGetLastTradesByInstrument(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrument(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetGetLastTradesByInstrumentAndTime(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrumentAndTime(this.Extend(request, params))).Raw))
 	}
 	//
 	//      {
@@ -2345,9 +2341,9 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 	var parsedFees map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       market,
@@ -2364,7 +2360,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		} else if market["option"] == true {
 			fee = this.Extend(fee, optionFee)
 		}
-		AddElementToObject(parsedFees, symbol, fee)
+		parsedFees[symbol] = fee
 	}
 
 	ch <- parsedFees
@@ -2552,7 +2548,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var rawType *string = this.SafeString(order, "order_type")
 	var typeVar *string = this.ParseOrderType(rawType)
 	// injected in createOrder
-	var trades any = this.SafeList(order, "trades")
+	var trades []any = SafeListTyped(order, "trades")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "time_in_force"))
 	var postOnly *bool = this.SafeBool(order, "post_only")
 	return this.SafeOrder(map[string]any{
@@ -2766,15 +2762,13 @@ func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		}
 	}
 	params = MapTyped(this.Omit(params, []any{"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"}))
-	var response any = nil
+	var response map[string]any = nil
 	if this.Capitalize(side) == "Buy" {
 
-		response = (<-this.PrivateGetBuy(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetBuy(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetSell(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetSell(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2961,17 +2955,15 @@ func (this *Deribit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if symbol == nil {
 
-		response = (<-this.PrivateGetCancelAll(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetCancelAll(this.Extend(request, params))).Raw))
 	} else {
 		var market map[string]any = MapTyped(this.Market(symbol))
 		request["instrument_name"] = market["id"]
 
-		response = (<-this.PrivateGetCancelAllByInstrument(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetCancelAllByInstrument(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -3024,20 +3016,18 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	var response any = nil
+	var response map[string]any = nil
 	if symbol == nil {
 		var code any = this.CodeFromOptions("fetchOpenOrders", params)
 		var currency map[string]any = MapTyped(this.Currency(code))
 		request["currency"] = currency["id"]
 
-		response = (<-this.PrivateGetGetOpenOrdersByCurrency(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetOpenOrdersByCurrency(this.Extend(request, params))).Raw))
 	} else {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 
-		response = (<-this.PrivateGetGetOpenOrdersByInstrument(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetOpenOrdersByInstrument(this.Extend(request, params))).Raw))
 	}
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -3079,7 +3069,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	var response any = nil
+	var response map[string]any = nil
 	if limit != nil {
 		request["count"] = limit
 	} else {
@@ -3090,14 +3080,12 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		var currency map[string]any = MapTyped(this.Currency(code))
 		request["currency"] = currency["id"]
 
-		response = (<-this.PrivateGetGetOrderHistoryByCurrency(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetOrderHistoryByCurrency(this.Extend(request, params))).Raw))
 	} else {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 
-		response = (<-this.PrivateGetGetOrderHistoryByInstrument(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetGetOrderHistoryByInstrument(this.Extend(request, params))).Raw))
 	}
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -3222,33 +3210,29 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["count"] = limit // default 10
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if symbol == nil {
 		var code any = this.CodeFromOptions("fetchMyTrades", params)
 		var currency map[string]any = MapTyped(this.Currency(code))
 		request["currency"] = currency["id"]
 		if since == nil {
 
-			response = (<-this.PrivateGetGetUserTradesByCurrency(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByCurrency(this.Extend(request, params))).Raw))
 		} else {
 			request["start_timestamp"] = since
 
-			response = (<-this.PrivateGetGetUserTradesByCurrencyAndTime(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByCurrencyAndTime(this.Extend(request, params))).Raw))
 		}
 	} else {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
 		if since == nil {
 
-			response = (<-this.PrivateGetGetUserTradesByInstrument(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByInstrument(this.Extend(request, params))).Raw))
 		} else {
 			request["start_timestamp"] = since
 
-			response = (<-this.PrivateGetGetUserTradesByInstrumentAndTime(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByInstrumentAndTime(this.Extend(request, params))).Raw))
 		}
 	}
 	//
@@ -3714,7 +3698,7 @@ func (this *Deribit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "result")
+	var result []any = SafeListTyped(response, "result")
 
 	ch <- this.ParsePositions(result, symbols)
 	return nil
@@ -3929,15 +3913,13 @@ func (this *Deribit) transferBody(ch chan any, code any, amount any, fromAccount
 		var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 		method = this.SafeString(transferOptions, "method", "privateGetSubmitTransferToSubaccount")
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if method != nil && *method == "privateGetSubmitTransferToUser" {
 
-		response = (<-this.PrivateGetSubmitTransferToUser(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToUser(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetSubmitTransferToSubaccount(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToSubaccount(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -5077,7 +5059,7 @@ func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any,
 	//         "usDiff": 36
 	//     }
 	//
-	var error any = this.SafeDict(response, "error")
+	var error map[string]any = SafeMapTyped(response, "error")
 	if !IsEqual(error, nil) {
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback any = Add(this.Id+" ", body)

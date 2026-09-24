@@ -967,14 +967,14 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promisesRaw []any = []any{}
-	var types any = nil
+	var types []any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	if !IsEqual(fetchMarketsOptions, nil) {
-		types = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
+		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultTypes))
 	} else {
 		// for backward-compatibility
-		types = this.SafeList(this.Options, "fetchMarkets", defaultTypes)
+		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultTypes))
 	}
 	for i := 0; i < GetArrayLength(types); i++ {
 		var marketType *string = SafeStringPtr(GetValue(types, i))
@@ -1281,24 +1281,21 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchBalance", nil, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	var result any = nil
 	if typeVar != nil && *typeVar == "swap" {
 		if subType != nil && *subType == "inverse" {
 
-			response = (<-this.DapiV2PrivateGetAccount(params)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetAccount(params)).Raw))
 			result = this.SafeDict(response, "data", map[string]any{})
 		} else {
 
-			response = (<-this.FapiV2PrivateGetAccount(params)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetAccount(params)).Raw))
 			result = this.SafeDict(response, "data", map[string]any{})
 		}
 	} else {
 
-		response = (<-this.SpotV1PrivateGetAccount(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetAccount(params)).Raw))
 		result = response
 	}
 
@@ -2300,7 +2297,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	var data any = map[string]any{}
 	var uppercaseType string = ToUpper(typeVar)
 	var request map[string]any = map[string]any{
@@ -2364,12 +2361,10 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		params = MapTyped(this.Omit(params, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"}))
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivatePostOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostOrder(this.Extend(request, params))).Raw))
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivatePostOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostOrder(this.Extend(request, params))).Raw))
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if GetValue(market, "spot") == true {
@@ -2390,8 +2385,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
 
-		response = (<-this.SpotV1PrivatePostOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotV1PrivatePostOrder(this.Extend(request, params))).Raw))
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " createOrder only support spot & swap markets"))
@@ -2455,7 +2449,7 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var origClientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 	params = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
-	var response any = nil
+	var response map[string]any = nil
 	var data any = map[string]any{}
 	var request map[string]any = map[string]any{}
 	if origClientOrderId == nil {
@@ -2471,20 +2465,17 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		request["contractName"] = market["id"]
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivateGetOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetOrder(this.Extend(request, params))).Raw))
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivateGetOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetOrder(this.Extend(request, params))).Raw))
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if GetValue(market, "spot") == true {
 		request["orderId"] = id // spot market id is mandatory
 		request["symbol"] = market["id"]
 
-		response = (<-this.SpotV1PrivateGetOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetOrder(this.Extend(request, params))).Raw))
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " fetchOrder only support spot & swap markets"))
@@ -2649,26 +2640,23 @@ func (this *Bitrue) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	var data any = []any{}
 	var request map[string]any = map[string]any{}
 	if GetValue(market, "swap") == true {
 		request["contractName"] = market["id"]
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw))
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw))
 		}
 		data = this.SafeList(response, "data", []any{})
 	} else if GetValue(market, "spot") == true {
 		request["symbol"] = market["id"]
 
-		response = (<-this.SpotV1PrivateGetOpenOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetOpenOrders(this.Extend(request, params))).Raw))
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " fetchOpenOrders only support spot & swap markets"))
@@ -2758,7 +2746,7 @@ func (this *Bitrue) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var origClientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 	params = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
-	var response any = nil
+	var response map[string]any = nil
 	var data any = map[string]any{}
 	var request map[string]any = map[string]any{}
 	if origClientOrderId == nil {
@@ -2774,19 +2762,16 @@ func (this *Bitrue) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["contractName"] = market["id"]
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivatePostCancel(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostCancel(this.Extend(request, params))).Raw))
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivatePostCancel(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostCancel(this.Extend(request, params))).Raw))
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if GetValue(market, "spot") == true {
 		request["symbol"] = market["id"]
 
-		response = (<-this.SpotV1PrivateDeleteOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotV1PrivateDeleteOrder(this.Extend(request, params))).Raw))
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " cancelOrder only support spot & swap markets"))
@@ -2844,7 +2829,7 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	var data any = []any{}
 	if GetValue(market, "swap") == true {
 		var request map[string]any = map[string]any{
@@ -2852,12 +2837,10 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		if GetValue(market, "linear") == true {
 
-			response = (<-this.FapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw))
 		} else if GetValue(market, "inverse") == true {
 
-			response = (<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw))
 		}
 		data = this.SafeList(response, "data", []any{})
 	} else {
@@ -3469,7 +3452,7 @@ func (this *Bitrue) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 
 	response := (<-this.SpotV1PublicGetExchangeInfo(params))
 	PanicOnError(response)
-	var coins any = this.SafeList(response, "coins")
+	var coins []any = SafeListTyped(response, "coins")
 
 	ch <- this.ParseDepositWithdrawFees(coins, codes, "coin")
 	return nil

@@ -1995,12 +1995,12 @@ func (this *Delta) ParseBalance(response any) any {
 			return nil
 		}())
 		var currencyId *string = this.SafeString(balance, "asset_id")
-		var currency any = this.SafeDict(currenciesByNumericId, currencyId)
+		var currency map[string]any = SafeMapTyped(currenciesByNumericId, currencyId)
 		var code any = func() any {
 			if IsEqual(currency, nil) {
 				return currencyId
 			}
-			return GetValue(currency, "code")
+			return currency["code"]
 		}()
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "balance")
@@ -2492,9 +2492,9 @@ func (this *Delta) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		"product_id": market["numericId"],
 	}
 	if amount != nil {
-		var sizeString any = this.AmountToPrecision(symbol, amount)
+		var sizeString *string = this.AmountToPrecision(symbol, amount)
 		if sizeString == nil {
-			sizeString = "0"
+			sizeString = SafeStringPtr("0")
 		}
 		request["size"] = ParseInt(sizeString)
 	}
@@ -2679,17 +2679,15 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientOrderId", "client_oid", "clientOid"})
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid", "clientOid"}))
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["client_oid"] = clientOrderId
 
-		response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, params))).Raw))
 	} else {
 		request["order_id"] = id
 
-		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2816,15 +2814,13 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalAr
 	if limit != nil {
 		request["page_size"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(method, "privateGetOrders") {
 
-		response = (<-this.PrivateGetOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
 	} else if IsEqual(method, "privateGetOrdersHistory") {
 
-		response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {

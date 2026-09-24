@@ -2890,9 +2890,9 @@ public class Whitebit extends WhitebitApi
             {
                 throw new NotSupported((((this.id + " createOrder() does not support timeInForce ") + timeInForce) + ", only GTC, IOC and PO are allowed")) ;
             }
-            Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, false, parameters));
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
-            if (Boolean.TRUE.equals(isStopOrder) && (Boolean.TRUE.equals(postOnly) || Boolean.TRUE.equals(ioc)))
+            if (Boolean.TRUE.equals(isStopOrder) && (postOnly || Boolean.TRUE.equals(ioc)))
             {
                 throw new NotSupported((this.id + " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
             }
@@ -2903,7 +2903,7 @@ public class Whitebit extends WhitebitApi
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((List<Object>) marginModequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 ((Map<String, Object>)request).put("postOnly", true);
             }
@@ -5165,7 +5165,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
@@ -5526,7 +5526,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v4PrivatePostConvertHistory(this.extend(request, parameters))).join();
@@ -5681,7 +5681,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("limit", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters))).join();
@@ -5991,7 +5991,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("startDate", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))

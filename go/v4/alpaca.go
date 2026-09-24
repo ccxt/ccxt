@@ -1323,7 +1323,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
-		var entry any = this.SafeDict(snapshots, marketId)
+		var entry map[string]any = SafeMapTyped(snapshots, marketId)
 		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
 		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
 		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")
@@ -2109,7 +2109,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"activity_type": "FILL",
 	}
 	if symbol != nil {
@@ -2118,16 +2118,16 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
 		params = MapTyped(this.Omit(params, "until"))
-		AddElementToObject(request, "until", this.Iso8601(until))
+		request["until"] = this.Iso8601(until)
 	}
 	if since != nil {
-		AddElementToObject(request, "after", this.Iso8601(since))
+		request["after"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		AddElementToObject(request, "page_size", limit)
+		request["page_size"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params))).Raw))

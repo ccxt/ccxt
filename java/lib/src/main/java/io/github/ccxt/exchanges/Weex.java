@@ -2641,7 +2641,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.contractGetCapiV3MarketFundingRate(this.extend(request, parameters))).join();
@@ -2871,7 +2871,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateGetApiV3AccountTransferRecords(this.extend(request, parameters))).join();
@@ -3908,7 +3908,7 @@ public class Weex extends WeexApi
                 {
                     ((Map<String, Object>)request).put("limit", limit);
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
@@ -4202,7 +4202,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = (this.privateGetApiV3AllOrders(this.extend(request, parameters))).join();
@@ -4313,7 +4313,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -4717,7 +4717,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             List<Object> response = null;
@@ -4858,7 +4858,7 @@ public class Weex extends WeexApi
                 {
                     ((Map<String, Object>)request).put("limit", limit);
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
@@ -4873,7 +4873,7 @@ public class Weex extends WeexApi
                 {
                     ((Map<String, Object>)request).put("pageSize", limit);
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(request, parameters))).join();
@@ -4888,7 +4888,7 @@ public class Weex extends WeexApi
                 {
                     ((Map<String, Object>)request).put("limit", limit);
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 List<Object> billsResponse = (this.privatePostApiV3AccountBills(this.extend(request, parameters))).join();
@@ -5092,7 +5092,7 @@ public class Weex extends WeexApi
             {
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair

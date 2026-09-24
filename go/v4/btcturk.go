@@ -647,7 +647,7 @@ func (this *Btcturk) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetTicker(params))
 	PanicOnError(response)
-	var tickers any = this.SafeList(response, "data")
+	var tickers []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
@@ -1166,7 +1166,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//   ]
 	// }
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil

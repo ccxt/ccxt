@@ -8685,7 +8685,7 @@ export class BaseExchange {
         return newDict;
     }
 
-    handleUntilOption (key: string, request: any, params: any, multiplier = 1): any[] {
+    handleUntilOption (key: string, request: Dict, params: Dict, multiplier = 1): [Dict, Dict] {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.parseToInt (until * multiplier);

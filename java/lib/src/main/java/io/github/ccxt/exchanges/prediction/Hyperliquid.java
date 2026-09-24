@@ -871,7 +871,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 // Build minimal ticker from mid price
                 final Double finalMid = mid;
-                Object ticker = this.parsePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
                     put( "levels", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList()))) );
                     put( "mid", finalMid );
                 }}), ((Object)outcomeObj));
@@ -904,7 +904,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
     {
         //
         //     {
@@ -943,7 +943,7 @@ public class Hyperliquid extends HyperliquidApi
         final Double finalBid = bid;
         final Double finalAsk = ask;
         final Object finalMid = mid;
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", outcome );
             put( "outcomeId", Hyperliquid.this.safeString2(mkt, "outcomeId", "id") );
             put( "label", Hyperliquid.this.safeString(mkt, "label") );
@@ -967,7 +967,7 @@ public class Hyperliquid extends HyperliquidApi
             put( "baseVolume", null );
             put( "quoteVolume", dayVolume );
             put( "info", raw );
-        }}), market);
+        }}), market));
     }
     /**
      * @ignore
@@ -978,7 +978,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
     {
         return this.parsePredictionTicker(raw, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1637,7 +1637,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 throw new ArgumentsRequired((this.id + " createOrder() requires a limit price for outcome markets in between 0 and 1.")) ;
             }
-            Object px = null;
+            String px = null;
             if (Boolean.TRUE.equals(isMarket))
             {
                 String priceStr = this.numberToString(price);
@@ -1651,13 +1651,13 @@ public class Hyperliquid extends HyperliquidApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() could not determine price")) ;
             }
-            Object sz = this.amountToPrecision(marketSymbol, amount);
+            String sz = this.amountToPrecision(marketSymbol, amount);
             Map<String, Object> orderType = new HashMap<String, Object>() {{
                 put( "limit", new HashMap<String, Object>() {{
                     put( "tif", tif );
                 }} );
             }};
-            final Object finalPx = px;
+            final String finalPx = px;
             Map<String, Object> orderObj = new HashMap<String, Object>() {{
                 put( "a", assetId );
                 put( "b", isBuy );
@@ -2428,7 +2428,7 @@ public class Hyperliquid extends HyperliquidApi
             String outcomeHandle = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcomeHandle = this.safeString(outcomeObj, "outcome");
             } else
             {
@@ -2602,7 +2602,7 @@ public class Hyperliquid extends HyperliquidApi
         return BaseExchange.supplyAsync(() -> {
 
             this.requireEventQuery(parameters);
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
             // markets. use the cached load so the handles advertised here always match the
             // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
@@ -2618,7 +2618,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> lowerQueries = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)queries).size(); i++)
             {
-                Object queryString = ((String)(queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i)));
+                Object queryString = ((String)(queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
                 ((List<Object>)lowerQueries).add(((String)queryString).toLowerCase());
             }
             Integer lowerQueriesLength = ((List<?>)lowerQueries).size();
@@ -2799,7 +2799,7 @@ public class Hyperliquid extends HyperliquidApi
         }});
     }
 
-    public Object amountToPrecision(Object outcome, Object amount)
+    public String amountToPrecision(Object outcome, Object amount)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "amount", 0.0001);
@@ -2816,7 +2816,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.decimalToPrecision(amount, 1, decimals, 2, this.paddingMode);
     }
 
-    public Object priceToPrecision(Object outcome, Object price)
+    public String priceToPrecision(Object outcome, Object price)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);

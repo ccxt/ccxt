@@ -499,7 +499,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}
 		messageHashes = append(messageHashes, ccxt.Add("bidask:", ccxt.GetValue(symbols, i)))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIPTION",
 		"params": topics,
@@ -572,7 +572,7 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 	_ = params
 	var unsubscribed *bool = this.SafeBool(params, "unsubscribed", false)
 	params = ccxt.MapTyped(this.Omit(params, []any{"unsubscribed"}))
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 	var method string = func() string {
 		if unsubscribed != nil && *unsubscribed == true {
 			return "UNSUBSCRIPTION"
@@ -620,7 +620,7 @@ func (this *Mexc) watchSwapPublicBody(ch chan any, channel any, messageHash any,
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"))
 	var request map[string]any = map[string]any{
 		"method": channel,
 		"param":  requestParams,
@@ -642,7 +642,7 @@ func (this *Mexc) watchSwapPrivateBody(ch chan any, messageHash any, optionalArg
 	_ = params
 	this.CheckRequiredCredentials()
 	var channel string = "login"
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap"))
 	var timestamp string = ccxt.ToString(this.Milliseconds())
 	var payload any = ccxt.Add(this.ApiKey, timestamp)
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
@@ -2137,7 +2137,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(symbols, i)))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIPTION",
 		"params": topics,
@@ -2408,7 +2408,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 	}
 	this.Options.Store("listenKeyFetching", true)
 	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
-	var response any = nil
+	var response map[string]any = nil
 
 	{
 		func(this *Mexc) (ret_ any) {
@@ -2428,8 +2428,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 			}()
 			// try block:
 
-			response = (<-this.SpotPrivatePostUserDataStream(params)).Raw
-			ccxt.PanicOnError(response)
+			response = ccxt.MapTyped(ccxt.PanicOnError((<-this.SpotPrivatePostUserDataStream(params)).Raw))
 			return nil
 		}(this)
 

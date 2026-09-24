@@ -109,7 +109,7 @@ func (this *Coinbase) subscribeBody(ch chan any, name any, isPrivate any, option
 		messageHash = ccxt.Add(ccxt.Add(name, "::"), symbol)
 		productIds = []any{ccxt.GetValue(market, "id")}
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -172,7 +172,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 		unWatchMessageHash = ccxt.Add(ccxt.Add(unWatchMessageHash, "::"), symbol)
 		productIds = []any{ccxt.GetValue(market, "id")}
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	// '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
@@ -237,7 +237,7 @@ func (this *Coinbase) subscribeMultipleBody(ch chan any, name any, isPrivate any
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -295,7 +295,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 		watchMessageHashes = append(watchMessageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 		unWatchMessageHashes = append(unWatchMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", name), "::"), symbol))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
 		"product_ids": productIds,
@@ -997,7 +997,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var events any = this.SafeList(message, "events")
+	var events []any = ccxt.SafeListTyped(message, "events")
 	if ccxt.IsEqual(events, nil) {
 		return
 	}
@@ -1013,16 +1013,26 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 		tradesArray = ccxt.NewArrayCacheBySymbolById(tradesLimit)
 		ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 	}
-	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var currentEvent map[string]any = ccxt.MapTyped(ccxt.GetValue(events, i))
-		var currentTrades any = this.SafeList(currentEvent, "trades")
+	for i := 0; i < len(events); i++ {
+		var currentEvent map[string]any = ccxt.MapTyped(func() any {
+			if i >= 0 && i < len(events) {
+				return ccxt.DerefScalar(events[i])
+			}
+			return nil
+		}())
+		var currentTrades []any = ccxt.SafeListTyped(currentEvent, "trades")
 		if ccxt.IsEqual(currentTrades, nil) {
 			continue
 		}
 		// coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
-		var tradesLength int = ccxt.GetArrayLength(currentTrades)
+		var tradesLength int = len(currentTrades)
 		for j := 0; j < tradesLength; j++ {
-			var item any = ccxt.GetValue(currentTrades, (tradesLength-j)-1)
+			var item any = func() any {
+				if (tradesLength-j)-1 >= 0 && (tradesLength-j)-1 < len(currentTrades) {
+					return ccxt.DerefScalar(currentTrades[(tradesLength-j)-1])
+				}
+				return nil
+			}()
 			tradesArray.(ccxt.Appender).Append(this.ParseTrade(item))
 		}
 	}
@@ -1058,7 +1068,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var events any = this.SafeList(message, "events")
+	var events []any = ccxt.SafeListTyped(message, "events")
 	if ccxt.IsEqual(events, nil) {
 		return
 	}
@@ -1067,14 +1077,24 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var event map[string]any = ccxt.MapTyped(ccxt.GetValue(events, i))
-		var responseOrders any = this.SafeList(event, "orders")
+	for i := 0; i < len(events); i++ {
+		var event map[string]any = ccxt.MapTyped(func() any {
+			if i >= 0 && i < len(events) {
+				return ccxt.DerefScalar(events[i])
+			}
+			return nil
+		}())
+		var responseOrders []any = ccxt.SafeListTyped(event, "orders")
 		if ccxt.IsEqual(responseOrders, nil) {
 			continue
 		}
-		for j := 0; j < ccxt.GetArrayLength(responseOrders); j++ {
-			var responseOrder any = ccxt.GetValue(responseOrders, j)
+		for j := 0; j < len(responseOrders); j++ {
+			var responseOrder any = func() any {
+				if j >= 0 && j < len(responseOrders) {
+					return ccxt.DerefScalar(responseOrders[j])
+				}
+				return nil
+			}()
 			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(responseOrder))
 			var cachedOrders any = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")
@@ -1192,13 +1212,18 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var events any = this.SafeList(message, "events")
+	var events []any = ccxt.SafeListTyped(message, "events")
 	if ccxt.IsEqual(events, nil) {
 		return
 	}
 	var datetime *string = this.SafeString(message, "timestamp")
-	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var event map[string]any = ccxt.MapTyped(ccxt.GetValue(events, i))
+	for i := 0; i < len(events); i++ {
+		var event map[string]any = ccxt.MapTyped(func() any {
+			if i >= 0 && i < len(events) {
+				return ccxt.DerefScalar(events[i])
+			}
+			return nil
+		}())
 		var updates []any = ccxt.SafeListTypedDefault(event, "updates", []any{})
 		var marketId *string = this.SafeString(event, "product_id")
 		// sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases

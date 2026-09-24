@@ -944,24 +944,24 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	//
 	var fees map[string]any = SafeMapTyped(response, "exchange_fees")
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
+	var symbols []string = this.Symbols
 	if IsEqual(symbols, nil) {
 
 		ch <- result
 		return nil
 	}
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = MapTyped(this.SafeDict(fees, market["id"], map[string]any{}))
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       fee,
 			"symbol":     symbol,
 			"maker":      this.SafeNumber(fee, "maker_fee"),
 			"taker":      this.SafeNumber(fee, "taker_fee"),
 			"percentage": true,
 			"tierBased":  false,
-		})
+		}
 	}
 
 	ch <- result

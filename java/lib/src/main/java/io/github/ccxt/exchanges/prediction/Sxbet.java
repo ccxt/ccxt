@@ -551,7 +551,7 @@ final Object finalOi = oi;
             String eventId = this.safeString2(parameters, "eventId", "slug");
             String leagueId = this.safeString(parameters, "leagueId");
             String sportId = this.safeString(parameters, "sportId");
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer tagsLength = ((List<?>)tags).size();
             for (var i = 0; Helpers.isLessThan(i, tagsLength); i++)
@@ -1051,8 +1051,8 @@ final Object finalOi = oi;
             {
                 throw new ArgumentsRequired((((this.id + " approve() has no RPC endpoint configured for chainId ") + this.numberToString(chainId)) + " - pass params.rpcUrl")) ;
             }
-            Object owner = this.walletAddress;
-            String nonceCallData = ("0x7ecebe00" + this.padHexAddress((String) (owner))); // nonces(address)
+            String owner = this.walletAddress;
+            String nonceCallData = ("0x7ecebe00" + this.padHexAddress(owner)); // nonces(address)
             final String finalTokenAddress = tokenAddress;
             Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "to", finalTokenAddress );
@@ -1229,7 +1229,7 @@ final Object finalOi = oi;
             {
                 throw new InvalidOrder((this.id + " createOrder() market orders cannot be GTC - use type 'limit' for a resting order")) ;
             }
-            Object maker = this.walletAddress;
+            String maker = this.walletAddress;
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Order", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "marketHash" );
@@ -2721,7 +2721,7 @@ final Object finalI = i;
             {
                 continue;
             }
-            Object ticker = this.parsePredictionTicker((Map<String, Object>) (raw), ((Object)outcomeObj));
+            Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (raw), ((Object)outcomeObj));
             String sym = this.safeString(ticker, "outcome");
             if (!java.util.Objects.equals(sym, null))
             {
@@ -2740,7 +2740,7 @@ final Object finalI = i;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Map<String, Object> market)
     {
         //
         //     {
@@ -2778,7 +2778,7 @@ final Object finalI = i;
         final Double finalBid = bid;
         final Double finalAsk = ask;
         final Double finalAverage = average;
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", Sxbet.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", finalOutcomeId );
             put( "label", Sxbet.this.safeString(outcomeObj, "label") );
@@ -2800,7 +2800,7 @@ final Object finalI = i;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", raw );
-        }}), market);
+        }}), market));
     }
     /**
      * @ignore
@@ -2811,7 +2811,7 @@ final Object finalI = i;
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> raw, Object... optionalArgs)
     {
         return this.parsePredictionTicker(raw, Helpers.getArgMap(optionalArgs, 0, null));
     }

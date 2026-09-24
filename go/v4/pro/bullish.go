@@ -127,7 +127,7 @@ func (this *Bullish) watchPrivateBody(ch chan any, messageHash any, subscribeHas
 	_ = request
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 
 	token := (<-this.HandleTokenAsync())
 	ccxt.PanicOnError(token)
@@ -946,7 +946,7 @@ func (this *Bullish) HandleErrorMessage(client any, message any) {
 }
 func (this *Bullish) HandleMessage(client any, message any) {
 	var dataType *string = this.SafeString(message, "dataType")
-	var result any = this.SafeDict(message, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	if !ccxt.IsEqual(result, nil) {
 		var response *string = this.SafeString(result, "message")
 		if response != nil && *response == "Keep alive pong" {

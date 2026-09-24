@@ -196,8 +196,8 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries any = this.ParseSearchQueries(params)
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queries []any = this.ParseSearchQueries(params)
+	var queriesLength int = len(queries)
 	if queriesLength > 0 {
 		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
 
@@ -955,7 +955,7 @@ func (this *Binance) fetchTickerBody(ch chan any, outcome any, optionalArgs ...a
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
 		"marketId": this.SafeString(info, "marketId"),
@@ -986,7 +986,7 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketAny any = market
-	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
+	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
 	// the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
 	// any other outcome of a binary market mirrors as 1 - price
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
@@ -1064,7 +1064,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var outcomesLength int = ccxt.GetArrayLength(outcomes)
 	for i := 0; i < outcomesLength; i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
+		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var marketId *string = this.SafeString(info, "marketId")
 		if marketId == nil {
@@ -1113,7 +1113,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
 		"vendor":   this.SafeString(info, "vendor", this.SafeString(this.Options, "defaultVendor")),
@@ -1236,7 +1236,7 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	//     "networkFee": "0.000001"
 	// }
 	//
-	outcomeObj := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
 	if outcomeObj == nil {
@@ -1348,7 +1348,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if offSet != nil && *offSet > 0 {
 		request["offset"] = offSet
 	}
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if outcome != nil {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
@@ -1459,7 +1459,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if offSet != nil && *offSet > 0 {
 		request["offset"] = offSet
 	}
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if outcome != nil {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
@@ -1552,7 +1552,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if outcomes != nil {
 		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 			var requested *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomes, i))
-			var requestedOutcomeObj any = this.SafeOutcome(requested)
+			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			ccxt.AddElementToObject(requestedOutcomeSymbols, requestedOutcome, true)
 		}
@@ -1661,7 +1661,7 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if !ccxt.IsEqual(outcome, nil) {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
@@ -1695,7 +1695,7 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
 func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) any {
-	outcomeObj := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	if outcomeObj == nil {
 		var marketId *string = this.SafeString(position, "marketId")
@@ -1796,7 +1796,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if offSet != nil && *offSet > 0 {
 		request["offset"] = offSet
 	}
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if outcome != nil {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
@@ -1898,7 +1898,7 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	//     "networkFee": "0.000001"
 	// }
 	//
-	outcomeObj := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	if outcomeObj == nil {
 		var marketId *string = this.SafeString(trade, "marketId")
@@ -2074,16 +2074,16 @@ func (this *Binance) fetchQuoteBody(ch chan any, request any, optionalArgs ...an
 	ch <- response
 	return nil
 }
-func (this *Binance) PriceToPrecision(outcome any, price any) any {
+func (this *Binance) PriceToPrecision(outcome any, price any) *string {
 	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
 	if (prec != nil) && (*prec > 0) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	return this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
+	return ccxt.SafeStringPtr(this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode))
 }
-func (this *Binance) AmountToPrecision(outcome any, amount any) any {
+func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
 	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01)
 	var decimals int = 2
@@ -2091,7 +2091,7 @@ func (this *Binance) AmountToPrecision(outcome any, amount any) any {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	// amounts truncate so a rounded-up value can never exceed the caller's balance
-	return this.DecimalToPrecision(amount, ccxt.TRUNCATE, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
+	return ccxt.SafeStringPtr(this.DecimalToPrecision(amount, ccxt.TRUNCATE, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode))
 }
 
 /**
@@ -2128,7 +2128,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
-	var outcomeObj any = this.Outcome(outcome)
+	var outcomeObj map[string]any = this.Outcome(outcome)
 	// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
@@ -2183,7 +2183,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	}
 	params = ccxt.MapTyped(this.Omit(params, []any{"timeInForce", "accountType", "cost"}))
 	var quoteRequest map[string]any = this.Extend(commonRequest, map[string]any{
-		"tokenId":  ccxt.GetValue(outcomeObj, "id"),
+		"tokenId":  outcomeObj["id"],
 		"side":     sideUpper,
 		"amountIn": ccxt.Precise.StringMul(this.AmountToPrecision(marketSymbol, amountStr), "1000000000000000000"),
 	})
@@ -2306,7 +2306,7 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var outcomeObj any = nil
+	var outcomeObj map[string]any = nil
 	if outcome != nil {
 
 		ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))

@@ -1443,11 +1443,10 @@ func (this *Mexc) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	var marketType *string = SafeStringPtr(GetValue(marketTypequeryVariable, 0))
 	query := GetValue(marketTypequeryVariable, 1)
-	var response any = nil
+	var response map[string]any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		response = (<-this.SpotPublicGetTime(query)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotPublicGetTime(query)).Raw))
 
 		//
 		//     {"serverTime": "1647519277579"}
@@ -1456,8 +1455,7 @@ func (this *Mexc) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.ContractPublicGetPing(query)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.ContractPublicGetPing(query)).Raw))
 
 		//
 		//     {"success":true,"code":"0","data":"1648124374985"}
@@ -1992,7 +1990,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data")
+		var data map[string]any = SafeMapTyped(response, "data")
 		var timestamp *int64 = this.SafeInteger(data, "timestamp")
 		orderbook = this.ParseOrderBook(data, symbol, timestamp)
 		AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "version"))
@@ -3014,15 +3012,13 @@ func (this *Mexc) createSpotOrderBody(ch chan any, market any, typeVar any, side
 	var test *bool = this.SafeBool(params, "test", false)
 	params = MapTyped(this.Omit(params, "test"))
 	var request any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, params)
-	var response any = nil
+	var response map[string]any = nil
 	if test != nil && *test == true {
 
-		response = (<-this.SpotPrivatePostOrderTest(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotPrivatePostOrderTest(request)).Raw))
 	} else {
 
-		response = (<-this.SpotPrivatePostOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.SpotPrivatePostOrder(request)).Raw))
 	}
 	//
 	// spot
@@ -3128,9 +3124,9 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	} else if IsEqual(typeVar, "market") {
 		typeVar = 6
 	}
-	var volString any = this.AmountToPrecision(symbol, amount)
+	var volString *string = this.AmountToPrecision(symbol, amount)
 	if volString == nil {
-		volString = "0"
+		volString = SafeStringPtr("0")
 	}
 	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
@@ -3139,9 +3135,9 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 		"openType": openType,
 	}
 	if (!IsEqual(typeVar, 5)) && (!IsEqual(typeVar, 6)) && (!IsEqual(typeVar, "market")) {
-		var priceString any = this.PriceToPrecision(symbol, price)
+		var priceString *string = this.PriceToPrecision(symbol, price)
 		if priceString == nil {
-			priceString = "0"
+			priceString = SafeStringPtr("0")
 		}
 		request["price"] = ParseFloat(priceString)
 	}
@@ -3197,7 +3193,7 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	}
 	var triggerPrice *float64 = this.SafeNumber2(params, "triggerPrice", "stopPrice")
 	params = MapTyped(this.Omit(params, []any{"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"}))
-	var response any = nil
+	var response map[string]any = nil
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["triggerType"] = this.SafeInteger(params, "triggerType", 1)
@@ -3205,12 +3201,10 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 		request["trend"] = this.SafeInteger(params, "trend", 1)
 		request["orderType"] = this.SafeInteger(params, "orderType", 1)
 
-		response = (<-this.ContractPrivatePostPlanorderPlace(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.ContractPrivatePostPlanorderPlace(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.ContractPrivatePostOrderCreate(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.ContractPrivatePostOrderCreate(this.Extend(request, params))).Raw))
 	}
 	//
 	// Swap
@@ -3763,18 +3757,16 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		var marginModequeryVariable []any = this.HandleMarginModeAndParams("fetchOpenOrders", params)
 		marginMode := GetValue(marginModequeryVariable, 0)
 		query := GetValue(marginModequeryVariable, 1)
-		var response any = nil
+		var response []any = nil
 		if !IsEqual(marginMode, nil) {
 			if !IsEqual(marginMode, "isolated") {
 				panic(BadRequest(Add(Add(this.Id+" fetchOpenOrders() does not support marginMode ", marginMode), " for spot-margin trading")))
 			}
 
-			response = (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))).Raw))
 		} else {
 
-			response = (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query))).Raw
-			PanicOnError(response)
+			response = ListTyped(PanicOnError((<-this.SpotPrivateGetOpenOrders(this.Extend(request, query))).Raw))
 		}
 
 		//
@@ -4020,15 +4012,13 @@ func (this *Mexc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		// TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
 		var method *string = this.SafeString(this.Options, "cancelOrder", "contractPrivatePostOrderCancel") // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
 		method = this.SafeString(query, "method", method)
-		var response any = nil
+		var response map[string]any = nil
 		if method != nil && *method == "contractPrivatePostOrderCancel" {
 
-			response = (<-this.ContractPrivatePostOrderCancel([]any{id})).Raw
-			PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
+			response = MapTyped(PanicOnError((<-this.ContractPrivatePostOrderCancel([]any{id})).Raw)) // the request cannot be changed or extended. This is the only way to send.
 		} else if method != nil && *method == "contractPrivatePostPlanorderCancel" {
 
-			response = (<-this.ContractPrivatePostPlanorderCancel([]any{id})).Raw
-			PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
+			response = MapTyped(PanicOnError((<-this.ContractPrivatePostPlanorderCancel([]any{id})).Raw)) // the request cannot be changed or extended. This is the only way to send.
 		} else {
 			panic(NotSupported(this.Id + " cancelOrder() not support this method"))
 		}
@@ -4715,13 +4705,13 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 	//         "tradeEnabled": true
 	//     }
 	//
-	var wallet any = nil
+	var wallet []any = nil
 	if IsEqual(marketType, "margin") {
-		wallet = this.SafeList(response, "assets", []any{})
+		wallet = ListTyped(this.SafeList(response, "assets", []any{}))
 	} else if IsEqual(marketType, "swap") {
-		wallet = this.SafeList(response, "data", []any{})
+		wallet = ListTyped(this.SafeList(response, "data", []any{}))
 	} else {
-		wallet = this.SafeList(response, "balances", []any{})
+		wallet = ListTyped(this.SafeList(response, "balances", []any{}))
 	}
 	var result any = map[string]any{
 		"info": response,
@@ -4818,7 +4808,7 @@ func (this *Mexc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var parsedSymbols any = nil
 		var symbol *string = this.SafeString(params, "symbol")
 		if symbol == nil {
-			var symbols any = this.SafeList(params, "symbols")
+			var symbols []any = SafeListTyped(params, "symbols")
 			if !IsEqual(symbols, nil) {
 				var symbolIds any = this.MarketIds(symbols)
 				if !IsEqual(symbolIds, nil) {
@@ -5660,7 +5650,7 @@ func (this *Mexc) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 
 	ch <- this.ParseLeverageTiers(data, symbols, "symbol")
 	return nil

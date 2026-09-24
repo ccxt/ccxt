@@ -337,7 +337,7 @@ public class Limitless extends LimitlessApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             // scope the listing: without a search query loadMarkets would otherwise page through
             // every active limitless market. Cap the total number of markets collected.
@@ -354,7 +354,7 @@ public class Limitless extends LimitlessApi
                 Map<String, Object> seen = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
                 {
-                    Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
+                    Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
                     Map<String, Object> response = (this.limitlessPublicGetMarketsSearch(this.extend(new HashMap<String, Object>() {{
                         put( "query", q );
                         put( "limit", limit );
@@ -1228,7 +1228,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1384,7 +1384,7 @@ public class Limitless extends LimitlessApi
         final String finalLastStr = lastStr;
         final String finalMidStr = midStr;
         final String finalVolumeStr = volumeStr;
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", outcomeSymbol );
             put( "outcomeId", Limitless.this.safeString(finalMarket, "outcomeId") );
             put( "label", Limitless.this.safeString(finalMarket, "label") );
@@ -1408,7 +1408,7 @@ public class Limitless extends LimitlessApi
             put( "baseVolume", null );
             put( "quoteVolume", Limitless.this.parseNumber(finalVolumeStr) );
             put( "info", ticker );
-        }}));
+        }})));
     }
     /**
      * @ignore
@@ -1419,7 +1419,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
@@ -1499,7 +1499,7 @@ public class Limitless extends LimitlessApi
                 Object grouped = (outcomesBySlug == null || !(slug instanceof String) ? null : outcomesBySlug.get(slug));
                 for (var j = 0; j < Helpers.getArrayLength(grouped); j++)
                 {
-                    Object ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), Helpers.GetValue(grouped, j));
+                    Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), Helpers.GetValue(grouped, j));
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
@@ -3205,7 +3205,7 @@ public class Limitless extends LimitlessApi
             String slug = this.safeString(parameters, "slug");
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 ((Map<String, Object>)request).put("slug", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "slug"));
             } else if (java.util.Objects.equals(slug, null))
             {
@@ -3262,7 +3262,7 @@ public class Limitless extends LimitlessApi
             String outcomeSymbol = outcome;
             if (!java.util.Objects.equals(outcome, null))
             {
-                Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
                 outcomeSymbol = this.safeString(outcomeObj, "outcome");
             }
             Object paginate = false;
@@ -3824,7 +3824,7 @@ public class Limitless extends LimitlessApi
         return BaseExchange.supplyAsync(() -> {
 
             this.requireEventQuery(parameters);
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             if (java.util.Objects.equals(queries, null))
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
@@ -3847,7 +3847,7 @@ public class Limitless extends LimitlessApi
                     {
                         throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
                     }
-                    Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
+                    Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
                     Map<String, Object> response = (this.limitlessPublicGetMarketsSearch(this.extend(new HashMap<String, Object>() {{
                         put( "query", q );
                         put( "limit", limit );

@@ -3287,7 +3287,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    handleUntilOptionString (key: string, request: Dict, params: NullableDict = undefined, multiplier: number = 1): any[] {
+    handleUntilOptionString (key: string, request: Dict, params: Dict = {}, multiplier: number = 1): [Dict, Dict] {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.numberToString (this.parseToInt (until * multiplier));

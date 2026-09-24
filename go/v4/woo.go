@@ -1435,22 +1435,22 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var maker *string = this.SafeString(data, "makerFeeRate")
 	var taker *string = this.SafeString(data, "takerFeeRate")
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
+	var symbols []string = this.Symbols
 	if IsEqual(symbols, nil) {
 
 		ch <- result
 		return nil
 	}
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
+		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
 			"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
 			"percentage": true,
 			"tierBased":  true,
-		})
+		}
 	}
 
 	ch <- result
@@ -1978,15 +1978,13 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		request["childOrders"] = []any{outterOrder}
 	}
 	params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"}))
-	var response any = nil
+	var response map[string]any = nil
 	if isConditional {
 
-		response = (<-this.V3PrivatePostTradeAlgoOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePostTradeAlgoOrder(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PrivatePostTradeOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePostTradeOrder(this.Extend(request, params))).Raw))
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	data = this.SafeDict(this.SafeList(data, "rows"), 0, data)
@@ -2079,7 +2077,7 @@ func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"}))
 	var isConditional bool = (isTrigger != nil && *isTrigger == true) || isTrailing || (triggerPrice != nil) || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
-	var response any = nil
+	var response map[string]any = nil
 	if isConditional {
 		if isByClientOrder {
 			request["clientAlgoOrderId"] = clientOrderIdExchangeSpecific
@@ -2087,8 +2085,7 @@ func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 			request["algoOrderId"] = id
 		}
 
-		response = (<-this.V3PrivatePutTradeAlgoOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePutTradeAlgoOrder(this.Extend(request, params))).Raw))
 	} else {
 		if isByClientOrder {
 			request["clientOrderId"] = clientOrderIdExchangeSpecific
@@ -2096,8 +2093,7 @@ func (this *Woo) editOrderBody(ch chan any, id any, symbol any, typeVar any, sid
 			request["orderId"] = id
 		}
 
-		response = (<-this.V3PrivatePutTradeOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivatePutTradeOrder(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2162,7 +2158,7 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var clientOrderIdExchangeSpecific *string = this.SafeString(params, "client_order_id", clientOrderIdUnified)
 	params = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
-	var response any = nil
+	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 		if isByClientOrder {
 			request["clientAlgoOrderId"] = clientOrderIdExchangeSpecific
@@ -2170,8 +2166,7 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["algoOrderId"] = id
 		}
 
-		response = (<-this.V3PrivateDeleteTradeAlgoOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateDeleteTradeAlgoOrder(this.Extend(request, params))).Raw))
 	} else {
 		request["symbol"] = this.SafeString(market, "id")
 		if isByClientOrder {
@@ -2180,8 +2175,7 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["orderId"] = id
 		}
 
-		response = (<-this.V3PrivateDeleteTradeOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateDeleteTradeOrder(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2238,16 +2232,14 @@ func (this *Woo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		var market map[string]any = MapTyped(this.Market(symbol))
 		request["symbol"] = market["id"]
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.V3PrivateDeleteTradeAlgoOrders(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateDeleteTradeAlgoOrders(params)).Raw))
 	} else {
 		// cancels both regular and algo orders
 
-		response = (<-this.V3PrivateDeleteTradeAllOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateDeleteTradeAllOrders(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -2350,7 +2342,7 @@ func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString2(params, "clOrdID", "clientOrderId")
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		if clientOrderId != nil {
 			request["clientAlgoOrderId"] = id
@@ -2358,8 +2350,7 @@ func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["algoOrderId"] = id
 		}
 
-		response = (<-this.V3PrivateGetTradeAlgoOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetTradeAlgoOrder(this.Extend(request, params))).Raw))
 	} else {
 		if clientOrderId != nil {
 			request["clientOrderId"] = clientOrderId
@@ -2367,8 +2358,7 @@ func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["orderId"] = id
 		}
 
-		response = (<-this.V3PrivateGetTradeOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetTradeOrder(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -2441,15 +2431,13 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if limit != nil {
 		request["size"] = mathMin(limit, 500)
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 
-		response = (<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V3PrivateGetTradeOrders(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetTradeOrders(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "rows", []any{})
@@ -2913,7 +2901,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var rows []any = SafeListTypedDefault(data, "rows", []any{})
-	var first any = this.SafeDict(rows, 0)
+	var first map[string]any = SafeMapTyped(rows, 0)
 	if IsEqual(first, nil) {
 		panic(BadSymbol(Add(this.Id+" fetchTicker() could not find ticker data for ", symbol)))
 	}
@@ -3419,7 +3407,7 @@ func (this *Woo) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1673323746259
 	//     }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseBalance(data)
 	return nil
@@ -3649,7 +3637,7 @@ func (this *Woo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 	var currencyRows []any = ListTyped(PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))))
 	var currency any = this.SafeValue(currencyRows, 0)
-	var rows any = this.SafeList(currencyRows, 1)
+	var rows []any = SafeListTyped(currencyRows, 1)
 
 	ch <- this.ParseLedger(rows, currency, since, limit, params)
 	return nil
@@ -4216,7 +4204,7 @@ func (this *Woo) RepayMarginAsync(code any, amount any, optionalArgs ...any) <-c
 func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4227,7 +4215,7 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -4722,7 +4710,7 @@ func (this *Woo) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -4748,15 +4736,15 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	symbol = market["symbol"]
-	var request any = map[string]any{
+	symbol = SafeStringPtr(market["symbol"])
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetFundingRateHistory(this.Extend(request, params))).Raw))
@@ -4880,11 +4868,10 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var response any = nil
+	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
 
-		response = (<-this.V3PrivateGetAccountInfo(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetAccountInfo(params)).Raw))
 	} else if GetValue(market, "swap") == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
@@ -4895,8 +4882,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		params = MapTyped(GetValue(marginModeparamsVariable, 1))
 		request["marginMode"] = this.EncodeMarginMode(marginMode)
 
-		response = (<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params))).Raw))
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", market["type"]), " markets")))
 	}
@@ -5532,15 +5518,15 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var requestparamsVariable []any = this.HandleUntilOption("endTime", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "size", limit)
+		request["size"] = limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetConvertTrades(this.Extend(request, params))).Raw))

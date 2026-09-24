@@ -1195,7 +1195,7 @@ func NewOrderRequest(requestData map[string]any) OrderRequest {
 }
 
 func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []any {
-	var result []any
+	result := make([]any, 0, len(orderRequests))
 	for _, orderRequest := range orderRequests {
 		symbol := *orderRequest.Symbol
 		orderType := *orderRequest.Type
@@ -1228,7 +1228,7 @@ type PredictionOrderRequest struct {
 }
 
 func ConvertPredictionOrderRequestListToArray(orderRequests []PredictionOrderRequest) []any {
-	var result []any
+	result := make([]any, 0, len(orderRequests))
 	for _, orderRequest := range orderRequests {
 		outcome := *orderRequest.Outcome
 		orderType := *orderRequest.Type

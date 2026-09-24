@@ -261,25 +261,22 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			var listenKeyExpiryTimestamp *int64 = this.SafeInteger(this.Options, "listenKeyExpiryTimestamp", time)
 			var expired bool = ccxt.IsGreaterThan((ccxt.Subtract(time, listenKeyExpiryTimestamp)), 60000) // 1 minute before expiry
 			listenKey = ccxt.DerefScalar(this.SafeString(this.Options, "listenKey"))
-			var response any = nil
+			var response map[string]any = nil
 			if ccxt.IsEqual(listenKey, nil) {
 
-				response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Raw
-				ccxt.PanicOnError(response)
+				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Raw))
 			} else if expired {
 				var method *string = this.SafeString(this.Options, "method", "privateGetDeepcoinListenkeyExtend")
 				var getNewKey bool = (method != nil && *method == "privateGetDeepcoinListenkeyAcquire")
 				if getNewKey {
 
-					response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Raw
-					ccxt.PanicOnError(response)
+					response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Raw))
 				} else {
 					var request map[string]any = map[string]any{
 						"listenkey": listenKey,
 					}
 
-					response = (<-this.PrivateGetDeepcoinListenkeyExtend(this.Extend(request, params))).Raw
-					ccxt.PanicOnError(response)
+					response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivateGetDeepcoinListenkeyExtend(this.Extend(request, params))).Raw))
 				}
 			}
 			if response != nil {

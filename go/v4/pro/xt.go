@@ -1594,8 +1594,8 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		}
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, tradeType))
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var obAsks any = this.SafeList(data, "a")
-		var obBids any = this.SafeList(data, "b")
+		var obAsks []any = ccxt.SafeListTyped(data, "a")
+		var obBids []any = ccxt.SafeListTyped(data, "b")
 		var messageHash string = *event + "::" + tradeType
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1615,8 +1615,13 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		}
 		if !ccxt.IsEqual(obAsks, nil) {
 			var asks any = ccxt.GetValue(orderbook, "asks")
-			for i := 0; i < ccxt.GetArrayLength(obAsks); i++ {
-				var ask any = ccxt.GetValue(obAsks, i)
+			for i := 0; i < len(obAsks); i++ {
+				var ask any = func() any {
+					if i >= 0 && i < len(obAsks) {
+						return ccxt.DerefScalar(obAsks[i])
+					}
+					return nil
+				}()
 				var price *float64 = this.SafeNumber(ask, 0)
 				var quantity *float64 = this.SafeNumber(ask, 1)
 				asks.(ccxt.IOrderBookSide).Store(price, quantity)
@@ -1624,8 +1629,13 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		}
 		if !ccxt.IsEqual(obBids, nil) {
 			var bids any = ccxt.GetValue(orderbook, "bids")
-			for i := 0; i < ccxt.GetArrayLength(obBids); i++ {
-				var bid any = ccxt.GetValue(obBids, i)
+			for i := 0; i < len(obBids); i++ {
+				var bid any = func() any {
+					if i >= 0 && i < len(obBids) {
+						return ccxt.DerefScalar(obBids[i])
+					}
+					return nil
+				}()
 				var price *float64 = this.SafeNumber(bid, 0)
 				var quantity *float64 = this.SafeNumber(bid, 1)
 				bids.(ccxt.IOrderBookSide).Store(price, quantity)

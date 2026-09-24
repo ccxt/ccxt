@@ -9897,7 +9897,7 @@ function stringPadCallType (csharp, initializer) {
 }
 
 // does this initialiser's runtime box provably hold a string or null? (see the family comment)
-function urlsDescribeStringProducer (initializer) {
+export function urlsDescribeStringProducer (initializer) {
     const keys = urlsLiteralChain (initializer);
     if (keys === undefined) {
         return false;

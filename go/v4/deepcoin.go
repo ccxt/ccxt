@@ -930,19 +930,16 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			request["after"] = mathMin(endTime, now)
 		}
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if price != nil && *price == "mark" {
 
-		response = (<-this.PublicGetDeepcoinMarketMarkPriceCandles(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketMarkPriceCandles(this.Extend(request, params))).Raw))
 	} else if price != nil && *price == "index" {
 
-		response = (<-this.PublicGetDeepcoinMarketIndexCandles(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketIndexCandles(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetDeepcoinMarketCandles(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketCandles(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {
@@ -1942,12 +1939,11 @@ func (this *Deepcoin) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-	var response any = nil
+	var response map[string]any = nil
 	if triggerPrice != nil {
 		// trigger orders
 
-		response = (<-this.PrivatePostDeepcoinTradeTriggerOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeTriggerOrder(request)).Raw))
 	} else {
 		// regular orders
 		//
@@ -1964,8 +1960,7 @@ func (this *Deepcoin) createOrderBody(ch chan any, symbol any, typeVar any, side
 		//     }
 		//
 
-		response = (<-this.PrivatePostDeepcoinTradeOrder(request)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeOrder(request)).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -2507,7 +2502,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		if !IsEqual(methodName, "fetchCanceledAndClosedOrders") {
 			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() does not support trigger orders")))
@@ -2544,8 +2539,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		//     }
 		//
 
-		response = (<-this.PrivateGetDeepcoinTradeTriggerOrdersHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeTriggerOrdersHistory(this.Extend(request, params))).Raw))
 	} else {
 		//
 		//     {
@@ -2594,8 +2588,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		//     }
 		//
 
-		response = (<-this.PrivateGetDeepcoinTradeOrdersHistory(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeOrdersHistory(this.Extend(request, params))).Raw))
 	}
 	// todo handle with since, until and pagination
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2733,7 +2726,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
-	var response any = nil
+	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		params = MapTyped(this.Omit(params, "trigger"))
 		request["instType"] = this.ConvertToInstrumentType(market["type"])
@@ -2769,8 +2762,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		//     }
 		//
 
-		response = (<-this.PrivateGetDeepcoinTradeTriggerOrdersPending(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeTriggerOrdersPending(this.Extend(request, params))).Raw))
 	} else {
 		request["index"] = index
 		//
@@ -2820,8 +2812,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		//     }
 		//
 
-		response = (<-this.PrivateGetDeepcoinTradeV2OrdersPending(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeV2OrdersPending(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -3000,7 +2991,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var stopLossPrice *float64 = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
 	var isTPSL bool = (stopLossPrice != nil) || (takeProfitPrice != nil)
-	var response any = nil
+	var response map[string]any = nil
 	if isTPSL {
 		if (price != nil) || (amount != nil) {
 			panic(BadRequest(this.Id + " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order."))
@@ -3023,8 +3014,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		}
 		params = MapTyped(this.Omit(params, []any{"stopLossPrice", "takeProfitPrice"}))
 
-		response = (<-this.PrivatePostDeepcoinTradeReplaceOrderSltp(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeReplaceOrderSltp(this.Extend(request, params))).Raw))
 	} else {
 		if price != nil {
 			if !IsEqual(symbol, nil) {
@@ -3041,8 +3031,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 			}
 		}
 
-		response = (<-this.PrivatePostDeepcoinTradeReplaceOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeReplaceOrder(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -3922,24 +3911,22 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol any, optionalArgs ..
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var productGroup any = this.GetProductGroupFromMarket(market)
 	var positionId *string = this.SafeString(params, "positionId")
-	var positionIds any = this.SafeList(params, "positionIds")
+	var positionIds []any = SafeListTyped(params, "positionIds")
 	var request map[string]any = map[string]any{
 		"instId":       market["id"],
 		"productGroup": productGroup,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if (positionId == nil) && IsEqual(positionIds, nil) {
 
-		response = (<-this.PrivatePostDeepcoinTradeBatchClosePosition(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeBatchClosePosition(this.Extend(request, params))).Raw))
 	} else {
 		if positionId != nil {
 			params = MapTyped(this.Omit(params, "positionId"))
 			request["positionIds"] = []any{positionId}
 		}
 
-		response = (<-this.PrivatePostDeepcoinTradeClosePositionByIds(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeClosePositionByIds(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -4001,9 +3988,9 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 	if (msg != nil && *msg == "") && (sMsg != nil) {
 		msg = sMsg
 	}
-	var errorList any = this.SafeList(data, "errorList")
+	var errorList []any = SafeListTyped(data, "errorList")
 	if !IsEqual(errorList, nil) {
-		for i := 0; i < GetArrayLength(errorList); i++ {
+		for i := 0; i < len(errorList); i++ {
 			var entry map[string]any = SafeMapTyped(errorList, i)
 			errorCode = this.SafeString(entry, "errorCode")
 		}

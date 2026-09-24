@@ -1049,8 +1049,8 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		// ticker/all returns every market of the requested quote currencies with a single request
 		var quoteIds []any = []any{}
-		var marketSymbols any = this.Symbols
-		for i := 0; i < GetArrayLength(marketSymbols); i++ {
+		var marketSymbols []string = this.Symbols
+		for i := 0; i < len(marketSymbols); i++ {
 			var market map[string]any = MapTyped(this.Market(GetValue(marketSymbols, i)))
 			var quoteId *string = SafeStringPtr(market["quoteId"])
 			if !this.InArray(quoteId, quoteIds) {
@@ -1501,7 +1501,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		"timeframe": timeframeValue,
 		"count":     limit,
 	}
-	var response any = nil
+	var response []any = nil
 	if since != nil {
 		// convert `since` to `to` value
 		request["to"] = this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limit), 1000)))
@@ -1510,12 +1510,10 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		var numMinutes float64 = MathRound(timeframePeriod / 60)
 		request["unit"] = numMinutes
 
-		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetCandlesTimeframe(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = ListTyped(PanicOnError((<-this.PublicGetCandlesTimeframe(this.Extend(request, params))).Raw))
 	}
 	//
 	//     [
@@ -2538,22 +2536,22 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"state": "done",
 	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "market", GetValue(market, "id"))
+		request["market"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PrivateGetOrdersClosed(this.Extend(request, params)))
@@ -2619,22 +2617,22 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"state": "cancel",
 	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AddElementToObject(request, "market", GetValue(market, "id"))
+		request["market"] = GetValue(market, "id")
 	}
 	if since != nil {
-		AddElementToObject(request, "start_time", since)
+		request["start_time"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end_time", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PrivateGetOrdersClosed(this.Extend(request, params)))
@@ -3083,7 +3081,7 @@ func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, h
 	//   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
 	//   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
 	//
-	var error any = this.SafeDict(response, "error")
+	var error map[string]any = SafeMapTyped(response, "error")
 	if !IsEqual(error, nil) {
 		var message *string = this.SafeString(error, "message")
 		var name *string = this.SafeString(error, "name")

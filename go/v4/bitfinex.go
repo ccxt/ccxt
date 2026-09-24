@@ -815,15 +815,15 @@ func (this *Bitfinex) GetCurrencyName(code any) any {
 	}
 	panic(NotSupported(Add(Add(this.Id+" ", code), " not supported for withdrawal")))
 }
-func (this *Bitfinex) AmountToPrecision(symbol any, amount any) any {
+func (this *Bitfinex) AmountToPrecision(symbol any, amount any) *string {
 	// https://docs.bitfinex.com/docs/introduction#amount-precision
 	// The amount field allows up to 8 decimals.
 	// Anything exceeding this will be rounded to the 8th decimal.
 	symbol = DerefScalar(this.SafeSymbol(symbol))
 	var market map[string]any = MapTyped(this.Market(symbol))
-	return this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), DECIMAL_PLACES)
+	return SafeStringPtr(this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), DECIMAL_PLACES))
 }
-func (this *Bitfinex) PriceToPrecision(symbol any, price any) any {
+func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
 	symbol = DerefScalar(this.SafeSymbol(symbol))
 	var market map[string]any = MapTyped(this.Market(symbol))
 	price = this.DecimalToPrecision(price, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode)
@@ -831,7 +831,7 @@ func (this *Bitfinex) PriceToPrecision(symbol any, price any) any {
 	// The precision level of all trading prices is based on significant figures.
 	// All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
 	// Prices submit with a precision larger than 5 will be cut by the API.
-	return this.DecimalToPrecision(price, TRUNCATE, 8, DECIMAL_PLACES)
+	return SafeStringPtr(this.DecimalToPrecision(price, TRUNCATE, 8, DECIMAL_PLACES))
 }
 
 /**
@@ -1465,7 +1465,7 @@ func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var result any = this.SafeList(transfer, "result")
+	var result []any = SafeListTyped(transfer, "result")
 	var timestamp *int64 = this.SafeInteger(result, 0)
 	var info []any = SafeListTyped(result, 4)
 	var fromAccount *string = this.SafeString(info, 1)
@@ -1986,19 +1986,19 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var sort string = "-1"
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 		sort = "1"
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 10000)) // default 120, max 10000
+		request["limit"] = mathMin(limit, 10000) // default 120, max 10000
 	}
-	AddElementToObject(request, "sort", sort)
+	request["sort"] = sort
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetTradesSymbolHist(this.Extend(request, params)))
@@ -2081,17 +2081,17 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	} else {
 		limit = mathMin(limit, 10000)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"timeframe": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":     limit,
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
-		AddElementToObject(request, "sort", 1)
+		request["start"] = since
+		request["sort"] = 1
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetCandlesTradeTimeframeSymbolHist(this.Extend(request, params)))
@@ -2163,7 +2163,7 @@ func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
 func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var orderList any = this.SafeList(order, "result")
+	var orderList []any = SafeListTyped(order, "result")
 	var id *string = this.SafeString(orderList, 0)
 	var marketId *string = this.SafeString(orderList, 3)
 	var symbol *string = this.SafeSymbol(marketId)
@@ -2267,7 +2267,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	 * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
 	 */
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var amountString any = this.AmountToPrecision(symbol, amount)
+	var amountString any = DerefScalar(this.AmountToPrecision(symbol, amount))
 	amountString = func() any {
 		if IsEqual(side, "buy") {
 			return amountString
@@ -2439,7 +2439,7 @@ func (this *Bitfinex) createOrderBody(ch chan any, symbol any, typeVar any, side
 		panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id+" ", status), ": "), errorText), " (#"), errorCode), ")")))
 	}
 	var orders []any = SafeListTypedDefault(response, 4, []any{})
-	var order any = this.SafeList(orders, 0)
+	var order []any = SafeListTyped(orders, 0)
 	var newOrder map[string]any = map[string]any{
 		"result": order,
 	}
@@ -2962,15 +2962,15 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		ch <- BoxAbsent(retRes228919)
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 25, max 2500
+		request["limit"] = limit // default 25, max 2500
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var market map[string]any = nil
 	var response any = nil
@@ -2980,7 +2980,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(response)
 	} else {
 		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 
 		response = (<-this.PrivatePostAuthROrdersSymbolHist(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3874,7 +3874,7 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var positionList any = this.SafeList(position, "result")
+	var positionList []any = SafeListTyped(position, "result")
 	var marketId *string = this.SafeString(positionList, 0)
 	var amount *string = this.SafeString(positionList, 2)
 	var timestamp *int64 = this.SafeInteger(positionList, 12)
@@ -4151,20 +4151,20 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var currency map[string]any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	var response any = nil
 	if code != nil {
 		currency = MapTyped(this.Currency(code))
-		AddElementToObject(request, "currency", GetValue(currency, "id"))
+		request["currency"] = GetValue(currency, "id")
 
 		response = (<-this.PrivatePostAuthRLedgersCurrencyHist(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4317,14 +4317,14 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(request, params)))
@@ -4622,7 +4622,7 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	//         ]
 	//     ]
 	//
-	var oi any = this.SafeList(response, 0)
+	var oi []any = SafeListTyped(response, 0)
 
 	ch <- this.ParseOpenInterest(oi, market)
 	return nil
@@ -4673,17 +4673,17 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(request, params)))
@@ -4843,15 +4843,15 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", since)
+		request["start"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidationsHist(this.Extend(request, params))).Raw))
@@ -5089,7 +5089,7 @@ func (this *Bitfinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//         ]
 	//     ]
 	//
-	var order any = this.SafeList(response, 0)
+	var order []any = SafeListTyped(response, 0)
 	var newOrder map[string]any = map[string]any{
 		"result": order,
 	}
@@ -5142,7 +5142,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		"id": this.ParseToNumeric(id),
 	}
 	if amount != nil {
-		var amountString any = this.AmountToPrecision(symbol, amount)
+		var amountString any = DerefScalar(this.AmountToPrecision(symbol, amount))
 		amountString = func() any {
 			if IsEqual(side, "buy") {
 				return amountString

@@ -927,7 +927,7 @@ public class Poloniex extends PoloniexApi
                 // limit should in between 100 and 500
                 ((Map<String, Object>)request).put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(keyEnd, request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(keyEnd, (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
@@ -2039,7 +2039,7 @@ public class Poloniex extends PoloniexApi
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(endKey, request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption(endKey, (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (isContract)
@@ -2547,7 +2547,7 @@ public class Poloniex extends PoloniexApi
             {
                 ((Map<String, Object>)request).put("sTime", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("eTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("eTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.swapPrivateGetV3TradeOrderHistory(this.extend(request, parameters))).join();
@@ -2725,7 +2725,7 @@ public class Poloniex extends PoloniexApi
         }
         String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = java.util.Objects.equals(upperCaseType, "MARKET");
-        Object isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), parameters);
+        boolean isPostOnly = Helpers.isTrue(this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), parameters));
         parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice"))));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
@@ -2735,7 +2735,7 @@ public class Poloniex extends PoloniexApi
             }
             upperCaseType = (((java.util.Objects.equals(price, null)))) ? "STOP" : "STOP_LIMIT";
             ((Map<String, Object>)request).put("stopPrice", triggerPrice);
-        } else if (Boolean.TRUE.equals(isPostOnly))
+        } else if (isPostOnly)
         {
             upperCaseType = "LIMIT_MAKER";
         }

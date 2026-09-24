@@ -4018,7 +4018,7 @@ public class Htx extends HtxApi
                 {
                     ((Map<String, Object>)request).put("start-time", since); // a date within 120 days from today
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end-time", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 response = (this.spotPrivateGetV1OrderMatchresults(this.extend(request, parameters))).join();
@@ -4032,7 +4032,7 @@ public class Htx extends HtxApi
                 {
                     ((Map<String, Object>)request).put("start_time", since);
                 }
-                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+                List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
                 request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
                 parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
                 if (java.util.Objects.equals(this.safeBool(market, "linear"), true))
@@ -5571,7 +5571,7 @@ public class Htx extends HtxApi
                 ((Map<String, Object>)request).put("start-time", since); // a window of 48 hours within 180 days
                 ((Map<String, Object>)request).put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end-time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end-time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
@@ -5683,7 +5683,7 @@ public class Htx extends HtxApi
             {
                 ((Map<String, Object>)request).put("start_time", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -7110,7 +7110,7 @@ public class Htx extends HtxApi
             }
             if ((java.util.Objects.equals(orderType, "market")) && (java.util.Objects.equals(side, "buy")))
             {
-                Object quoteAmount = null;
+                String quoteAmount = null;
                 Boolean createMarketBuyOrderRequiresPrice = true;
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = Boolean.TRUE.equals(((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0));
@@ -10554,7 +10554,7 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "30,31" );
             }};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             if (!java.util.Objects.equals(since, null))
@@ -11268,7 +11268,7 @@ public class Htx extends HtxApi
             {
                 ((Map<String, Object>)request).put("limit", limit); // max 500
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.spotPrivateGetV2AccountLedger(this.extend(request, parameters))).join();
@@ -12196,7 +12196,7 @@ public class Htx extends HtxApi
             {
                 ((Map<String, Object>)request).put("start_time", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -12637,7 +12637,7 @@ public class Htx extends HtxApi
             {
                 ((Map<String, Object>)request).put("start_time", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;

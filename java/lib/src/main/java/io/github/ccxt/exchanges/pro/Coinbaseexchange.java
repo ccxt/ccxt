@@ -176,7 +176,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object name = "ticker";
+            String name = "ticker";
             return (this.subscribe(name, symbol, name, parameters)).join();
         }).thenApply(Ticker::new);
 
@@ -221,7 +221,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 throw new BadSymbol((this.id + " watchTickers requires a non-empty symbols array")) ;
             }
-            Object channel = "ticker";
+            String channel = "ticker";
             String messageHash = "ticker";
             Object ticker = (this.subscribeMultiple(channel, symbols, messageHash, parameters)).join();
             if (this.newUpdates)
@@ -270,7 +270,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "matches";
+            String name = "matches";
             Object trades = (this.subscribe(name, symbol, name, parameters)).join();
             if (this.newUpdates)
             {
@@ -322,7 +322,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object name = "matches";
+            String name = "matches";
             Object trades = (this.subscribeMultiple(name, symbols, name, parameters)).join();
             if (this.newUpdates)
             {
@@ -375,7 +375,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "user";
+            String name = "user";
             String messageHash = "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
@@ -424,7 +424,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "user";
+            String name = "user";
             String messageHash = "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
@@ -475,7 +475,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object name = "user";
+            String name = "user";
             String messageHash = "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
@@ -530,7 +530,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "user";
+            String name = "user";
             String messageHash = "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
@@ -582,11 +582,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)messageHashes).add(((name + ":") + marketId));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");

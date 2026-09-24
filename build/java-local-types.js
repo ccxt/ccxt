@@ -187,6 +187,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
+import { urlsDescribeStringProducer } from './csharp-local-types.js';
 
 // ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -283,7 +284,7 @@ function patchJavaSs15CensusWrapper (printer) {
 // every name proved string-returning by the tree census (see the header)
 export const JAVA_STRING_RETURN_METHODS = new Set ([
     'applyScale', 'calcOrderPrice', 'convertToInstrumentType', 'convertToX18',
-    'costToPrecision', 'costToPredictionPrecision', 'createAuthToken',
+    'amountToPrecision', 'costToPrecision', 'costToPredictionPrecision', 'createAuthToken',
     'createOrderAppendix', 'createOrderIdFromParts', 'createOrderNonce',
     'currencyFromPrecision', 'encodeMarginMode', 'encodeOrderSide', 'encodeOrderType',
     'encodeTriggerPriceType', 'encodeValuesWithJson', 'encodeWorkingType',
@@ -307,7 +308,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseTransferType', 'parseType',
     'parseUnits', 'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide',
     'parseWsOrderStatus', 'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'pow',
-    'prepareMessage', 'scaleNumber', 'shortenSlug', 'signCancelAll', 'signClobOrder',
+    'prepareMessage', 'priceToPrecision', 'scaleNumber', 'shortenSlug', 'signCancelAll', 'signClobOrder',
     'signL1AndPrepareTxInfo', 'signOrderbookTypedData', 'symbol', 'toOrderbookWei',
     'tokenIdToSymbol', 'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
 ]);
@@ -353,7 +354,7 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'filterByLimit', 'filterBySinceLimit', 'filterByValueSinceLimit',
     'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
     'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs',
-    'parseTransactions', 'parseLedger',
+    'parseTransactions', 'parseLedger', 'marketIds',
 ]);
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
@@ -1856,6 +1857,7 @@ const VENUE_RETURN_KINDS = {
     'getMarginMode': [ 'java.util.List<Object>' ], 'resolveAuthType': [ 'java.util.List<Object>' ],
     'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
     'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
+    'parseSearchQueries': [ 'java.util.List<Object>' ], 'parsePredictionTicker': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -5166,7 +5168,7 @@ export function patchJavaCollectionLocalTypes (transpiler) {
 // primitive, so the wrapper disappears from the reads. A site without any condition read
 // keeps its box: a wrapper-family declaration would otherwise ADD a helper for no drop.
 const JAVA_BOOLEAN_CALL_LOCAL_CALLEES = new Set ([
-    'isLinear', 'isInverse', 'inArray', 'checkRequiredCredentials',
+    'isLinear', 'isInverse', 'inArray', 'checkRequiredCredentials', 'isPostOnly',
 ]);
 const JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES = new Set ([ 'inArray' ]);
 
@@ -5647,6 +5649,10 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaWsReceiveTypes (transpiler);
     // (13) `Object.keys (m)` native key copies of String-keyed maps print List<String> (section 19)
     patchJavaObjectKeysStringLists (transpiler);
+    // (14) describe()-literal url reads are String (section 20)
+    patchJavaUrlsDescribeStringLocals (transpiler);
+    // (15) copies of base fields the hand-written BaseExchange declares concretely (section 21)
+    patchJavaBaseFieldLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -7149,7 +7155,7 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
         }
         // a use that would move a `this.<async>()` argument onto a typed wrapper overload
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)
-            && !((isMap || isList) && literalFeedsVenueOwnAsyncCall (printer, n, scope))) {
+            && !((isMap || isList || isString) && literalFeedsVenueOwnAsyncCall (printer, n, scope))) {
             return false;
         }
         switch (parent.kind) {
@@ -11025,4 +11031,121 @@ export function patchJavaWsReceiveTypes (transpiler) {
         }
         return printed.slice (0, at) + `${iden}${type} ${printedName} = (this.<${type}>${method}(` + printed.slice (at + marker.length);
     };
+}
+
+// ===== 20. describe()-literal url reads (r15-urls) =====
+// The C# proof (csharp-local-types.js urlsDescribeStringProducer) makes the box a String or null; the
+// `(String)` checkcast names it and survives postProcessWsJava's `String x = Helpers.` revert.
+export function patchJavaUrlsDescribeStringLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaUrlsDescribePatched) {
+        return;
+    }
+    printer._javaUrlsDescribePatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !printed.startsWith ('Helpers.GetValue(', at + marker.length)) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            const scope = enclosingFunction (declaration);
+            const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+            ok = scope !== undefined && !literalTypeTokenShadowed (scope, LITERAL_STRING_TYPE)
+                && urlsDescribeStringProducer (declaration.initializer)
+                && isSafeToNarrow (printer, declaration, String (declaration.name.escapedText), LITERAL_STRING_TYPE, isProFile, { nonNull: false });
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'String ') + '(String)' + printed.slice (at + marker.length);
+    };
+}
+
+// ===== 21. base-field copies (R-FIELD) =====
+// `const x = this.<field>` where BaseExchange.java declares the field concretely (the value is
+// that box, null included); writes and uses go through the shared isSafeToNarrow scan.
+const JAVA_BASE_FIELD_TYPES = {
+    'isSandboxModeEnabled': 'Boolean', // public boolean isSandboxModeEnabled
+    'secret': 'String', 'apiKey': 'String', 'walletAddress': 'String', // public String
+    'symbols': JAVA_ARRAY_TYPE, // public volatile List<Object> symbols
+    'markets_by_id': JAVA_STRUCTURE_TYPE, // public volatile Map<String, Object> markets_by_id
+};
+
+function baseFieldLocalType (printer, declaration) {
+    const value = unwrapParens (declaration.initializer);
+    if (value === undefined || !ts.isPropertyAccessExpression (value) || value.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const field = String (value.name.escapedText);
+    const javaType = JAVA_BASE_FIELD_TYPES[field];
+    if (javaType === undefined) {
+        return undefined;
+    }
+    const symbol = printer.getChecker ().getSymbolAtLocation (value.name);
+    const decls = symbol?.declarations ?? [];
+    if (decls.length === 0 || !decls.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName) && ts.isPropertyDeclaration (d))) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : identifierIndex (scope);
+    const name = String (declaration.name.escapedText);
+    if (index === undefined || index.has ('java') || index.has (javaType.split (/[.<]/)[0])
+        || (index.get (name) ?? []).some ((n) => n !== declaration.name && ts.isVariableDeclaration (n.parent) && n.parent.name === n)) {
+        return undefined;
+    }
+    return isSafeToNarrow (printer, declaration, name, javaType, isProFile, { nonNull: false }) ? javaType : undefined;
+}
+
+export function patchJavaBaseFieldLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBaseFieldLocalTypesPatched) {
+        return;
+    }
+    printer._javaBaseFieldLocalTypesPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        let type;
+        try {
+            type = baseFieldLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = this.`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !/^\w+;?\s*$/.test (printed.slice (at + marker.length))) {
+            return printed;
+        }
+        return printed.slice (0, at) + `${iden}${type} ${name} = this.` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => {
+        if (!ts.isVariableDeclaration (declaration) || declaration.parent?.declarations?.length !== 1
+            || declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        return baseFieldLocalType (printer, declaration);
+    });
 }

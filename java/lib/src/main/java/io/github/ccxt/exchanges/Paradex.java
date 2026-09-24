@@ -1800,7 +1800,7 @@ public class Paradex extends ParadexApi
             {
                 ((Map<String, Object>)request).put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
@@ -2422,10 +2422,10 @@ public class Paradex extends ParadexApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Object postOnly = this.isPostOnly(isMarket, null, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
         if (!Boolean.TRUE.equals(isMarket))
         {
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 ((Map<String, Object>)request).put("instruction", "POST_ONLY");
             } else if (java.util.Objects.equals(timeInForce, "IOC"))
@@ -2442,8 +2442,8 @@ public class Paradex extends ParadexApi
         {
             ((Map<String, Object>)request).put("client_id", clientOrderId);
         }
-        Object sizeString = "0";
-        Object stopPrice = null;
+        String sizeString = "0";
+        String stopPrice = null;
         if (Boolean.TRUE.equals(isStopOrder))
         {
             // flags: Reduce_Only must be provided for TPSL orders.
@@ -3215,7 +3215,7 @@ public class Paradex extends ParadexApi
             {
                 ((Map<String, Object>)request).put("page_size", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(request, parameters))).join();
@@ -3487,7 +3487,7 @@ public class Paradex extends ParadexApi
             {
                 ((Map<String, Object>)request).put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
@@ -3751,7 +3751,7 @@ public class Paradex extends ParadexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetLiquidations(this.extend(request, parameters))).join();
@@ -3858,7 +3858,7 @@ public class Paradex extends ParadexApi
             {
                 ((Map<String, Object>)request).put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
@@ -3959,7 +3959,7 @@ public class Paradex extends ParadexApi
             {
                 ((Map<String, Object>)request).put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
@@ -4067,7 +4067,7 @@ public class Paradex extends ParadexApi
             {
                 ((Map<String, Object>)request).put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
@@ -4773,7 +4773,7 @@ public class Paradex extends ParadexApi
             {
                 ((Map<String, Object>)request).put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetFundingPayments(this.extend(request, parameters))).join();

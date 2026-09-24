@@ -1186,7 +1186,7 @@ public class Pacifica extends PacificaApi
             List<Object> userAccountparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLeverage", (Map<String, Object>) (parameters));
             userAccount = (String) ((List<Object>) userAccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAccountparametersVariable).get(1);
-            Object cacheAddress = this.walletAddress;
+            String cacheAddress = this.walletAddress;
             Object settings = null;
             if (java.util.Objects.equals(userAccount, cacheAddress))
             {
@@ -1377,7 +1377,7 @@ public class Pacifica extends PacificaApi
             List<Object> userAccountparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMarginMode", (Map<String, Object>) (parameters));
             userAccount = (String) ((List<Object>) userAccountparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) userAccountparametersVariable).get(1);
-            Object cacheAddress = this.walletAddress;
+            String cacheAddress = this.walletAddress;
             Object settings = null;
             if (java.util.Objects.equals(userAccount, cacheAddress))
             {
@@ -1702,7 +1702,7 @@ public class Pacifica extends PacificaApi
                 put( "interval", tf );
                 put( "start_time", finalSince );
             }};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Long nowMillis = this.milliseconds();
@@ -1905,7 +1905,7 @@ public class Pacifica extends PacificaApi
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             ((Map<String, Object>)request).put("account", userAddress);
@@ -2884,8 +2884,8 @@ public class Pacifica extends PacificaApi
         }
         String operationType = "edit_order";
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        Object priceNormalized = this.priceToPrecision(symbol, price);
-        Object amountNormalized = this.amountToPrecision(symbol, amount);
+        String priceNormalized = this.priceToPrecision(symbol, price);
+        String amountNormalized = this.amountToPrecision(symbol, amount);
         Map<String, Object> sigPayload = new HashMap<String, Object>() {{
             put( "symbol", Pacifica.this.safeString(market, "id") );
             put( "price", priceNormalized );
@@ -4975,7 +4975,7 @@ public class Pacifica extends PacificaApi
         {
             return new ArrayList<Object>(Arrays.asList(address, parameters));
         }
-        Object address1 = this.walletAddress;
+        String address1 = this.walletAddress;
         if (!java.util.Objects.equals(address1, null))
         {
             return new ArrayList<Object>(Arrays.asList(address1, parameters));
@@ -5028,7 +5028,7 @@ public class Pacifica extends PacificaApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object isTestnet = this.isSandboxModeEnabled;
+        Boolean isTestnet = this.isSandboxModeEnabled;
         String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         String url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));

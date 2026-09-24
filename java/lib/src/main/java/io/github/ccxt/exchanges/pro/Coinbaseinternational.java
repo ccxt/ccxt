@@ -117,7 +117,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             this.checkRequiredCredentials();
             Map<String, Object> market = null;
             Object messageHash = name;
-            Object productIds = null;
+            List<Object> productIds = null;
             if (java.util.Objects.equals(symbols, null))
             {
                 symbols = Helpers.toStringListArg(this.getActiveSymbols());
@@ -127,7 +127,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (Helpers.isGreaterThan(symbolsLength, 1))
             {
                 Object parsedSymbols = this.marketSymbols(symbols);
-                Object marketIds = this.marketIds(parsedSymbols);
+                List<Object> marketIds = this.marketIds(parsedSymbols);
                 productIds = marketIds;
                 for (var i = 0; i < ((List<?>)parsedSymbols).size(); i++)
                 {
@@ -668,7 +668,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-            Object interval = this.safeString(options, timeframe, timeframe);
+            String interval = this.safeString(options, timeframe, timeframe);
             Object ohlcv = (this.subscribe(interval, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
             if (this.newUpdates)
             {

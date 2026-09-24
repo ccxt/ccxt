@@ -376,7 +376,7 @@ func (this *Coinex) HandleBalance(client any, message map[string]any) {
 	var unrealizedPnl *string = this.SafeString(firstEntry, "unrealized_pnl")
 	var isSpot bool = (updated != nil)
 	var isSwap bool = (unrealizedPnl != nil)
-	var info any = nil
+	var info []any = nil
 	var account any = nil
 	var rawBalances []any = []any{}
 	if isSpot {

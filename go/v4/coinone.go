@@ -571,7 +571,7 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var tickers []any = SafeListTypedDefault(response, "tickers", []any{})
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry any = this.SafeDict(tickers, i)
+		var entry map[string]any = SafeMapTyped(tickers, i)
 		var id *string = this.SafeString(entry, "id")
 		var baseId *string = this.SafeStringUpper(entry, "target_currency")
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
@@ -777,19 +777,17 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		"quote_currency": "KRW",
 	}
 	var market map[string]any = nil
-	var response any = nil
+	var response map[string]any = nil
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
 		market = this.Market(first)
 		request["quote_currency"] = GetValue(market, "quote")
 		request["target_currency"] = GetValue(market, "base")
 
-		response = (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params))).Raw))
 	}
 	//
 	//     {

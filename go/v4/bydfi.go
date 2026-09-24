@@ -714,7 +714,7 @@ func (this *Bydfi) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Bydfi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1322,7 +1322,7 @@ func (this *Bydfi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 	//         "success": true
 	//     }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.ParseFundingRate(data, market)
 	return nil
@@ -1991,7 +1991,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"symbol": market["id"],
 		"wallet": wallet,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var trigger any = false
 	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
@@ -2030,12 +2030,10 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -2091,19 +2089,17 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	wallet = GetValue(walletparamsVariable, 0)
 	params = MapTyped(GetValue(walletparamsVariable, 1))
 	request["wallet"] = wallet
-	var response any = nil
+	var response map[string]any = nil
 	var trigger any = false
 	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrder", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
 	params = MapTyped(GetValue(triggerparamsVariable, 1))
 	if !(trigger == true) {
 
-		response = (<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradeOpenOrder(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1FapiTradePlanOrder(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var order map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
@@ -3219,7 +3215,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	wallet = GetValue(walletparamsVariable, 0)
 	params = MapTyped(GetValue(walletparamsVariable, 1))
 	var request map[string]any = map[string]any{}
-	var response any = nil
+	var response map[string]any = nil
 	if wallet == nil {
 		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var parsedAccountType *string = this.SafeStringUpper(options, typeVar, typeVar)
@@ -3241,8 +3237,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = (<-this.PrivateGetV1AccountAssets(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1AccountAssets(this.Extend(request, params))).Raw))
 	} else {
 		request["wallet"] = wallet
 		//
@@ -3274,8 +3269,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//         "success": true
 		//     }
 
-		response = (<-this.PrivateGetV1FapiAccountBalance(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1FapiAccountBalance(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -3637,7 +3631,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(typeVar, "deposit") {
 		//
 		//     {
@@ -3661,15 +3655,13 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 		//     }
 		//
 
-		response = (<-this.PrivateGetV1SpotDepositRecords(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1SpotDepositRecords(this.Extend(request, params))).Raw))
 	} else {
 		//
 		// todo check after withdrawal
 		//
 
-		response = (<-this.PrivateGetV1SpotWithdrawRecords(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV1SpotWithdrawRecords(this.Extend(request, params))).Raw))
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var transactionParams map[string]any = map[string]any{

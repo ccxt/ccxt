@@ -1019,20 +1019,20 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":   this.SafeString(market, "id2"),
 	}
 	if limit == nil {
 		limit = Int64PtrTyped(200) // default is 200 when requested with `since`
 	}
-	limit = Int64PtrTyped(mathMin(limit, 200))  // fix maxcap
-	AddElementToObject(request, "limit", limit) // max 200, default 200
+	limit = Int64PtrTyped(mathMin(limit, 200)) // fix maxcap
+	request["limit"] = limit                   // max 200, default 200
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if since != nil {
-		AddElementToObject(request, "start", MathFloor(Divide(since, 1000)))
+		request["start"] = MathFloor(Divide(since, 1000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Klines(this.Extend(request, params))).Raw))
@@ -1656,10 +1656,10 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var orderSide string = ToUpper(side)
-	var orderSize any = this.AmountToPrecision(symbol, amount)
+	var orderSize *string = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"
 	if price != nil {
-		orderPrice = this.PriceToPrecision(symbol, price)
+		orderPrice = DerefScalar(this.PriceToPrecision(symbol, price))
 	}
 	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
@@ -2015,18 +2015,16 @@ func (this *Apex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
-	var response any = nil
+	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["id"] = clientOrderId
 		params = MapTyped(this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"}))
 
-		response = (<-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, params))).Raw))
 	} else {
 		request["id"] = id
 
-		response = (<-this.PrivatePostV3DeleteOrder(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostV3DeleteOrder(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 
@@ -2064,18 +2062,16 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
-	var response any = nil
+	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["id"] = clientOrderId
 		params = MapTyped(this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"}))
 
-		response = (<-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, params))).Raw))
 	} else {
 		request["id"] = id
 
-		response = (<-this.PrivateGetV3Order(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetV3Order(this.Extend(request, params))).Raw))
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 

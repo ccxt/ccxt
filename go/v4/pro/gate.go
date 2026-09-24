@@ -570,7 +570,7 @@ func (this *Gate) FetchOrdersByStatusWsAsync(status any, optionalArgs ...any) <-
 func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -585,7 +585,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status any, optionalArg
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		if ccxt.GetValue(market, "swap") != true {
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}
@@ -907,7 +907,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		}
 		return "contract"
 	}()
-	var delta any = this.SafeDict(message, "result")
+	var delta map[string]any = ccxt.SafeMapTyped(message, "result")
 	var deltaStart *int64 = this.SafeInteger(delta, "U")
 	var deltaEnd *int64 = this.SafeInteger(delta, "u")
 	var marketId *string = this.SafeString(delta, "s")
@@ -2070,7 +2070,7 @@ func (this *Gate) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2086,7 +2086,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	}
 	var typeVar any = nil
 	var query any = nil
@@ -2542,7 +2542,7 @@ func (this *Gate) HandleErrorMessage(client any, message any) any {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var errs any = this.SafeDict(data, "errs")
+	var errs map[string]any = ccxt.SafeMapTyped(data, "errs")
 	var error any = this.SafeDict(message, "error", errs)
 	var code *string = this.SafeString2(error, "code", "label")
 	var id *string = this.SafeStringN(message, []any{"id", "requestId", "request_id"})

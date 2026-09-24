@@ -432,7 +432,7 @@ public class Predictfun extends PredictfunApi
             {
                 this.requireEventQuery(parameters);
             }
-            Object queries = this.parseSearchQueries(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             Integer queriesLength = ((List<?>)queries).size();
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Long userLimit = this.safeInteger(parameters, "limit");
@@ -1645,7 +1645,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [market] the outcome the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -1701,7 +1701,7 @@ final Object finalMarketSymbol = marketSymbol;
         // the venue quotes each outcome on its own side of the book, so no complement is needed
         Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(rawOutcome, "bestBid", new HashMap<String, Object>() {{}});
         Map<String, Object> bestAsk = (Map<String, Object>) this.safeDict(rawOutcome, "bestAsk", new HashMap<String, Object>() {{}});
-        return this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safePredictionTicker((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "outcome", Predictfun.this.safeOutcomeSymbol((String) (null), market) );
             put( "outcomeId", Predictfun.this.safeString(market, "outcomeId") );
             put( "label", Predictfun.this.safeString(market, "label") );
@@ -1724,7 +1724,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "baseVolume", null );
             put( "quoteVolume", null );
             put( "info", ticker );
-        }}));
+        }})));
     }
     /**
      * @ignore
@@ -1735,7 +1735,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [market] the outcome the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public Object parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }

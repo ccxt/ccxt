@@ -2851,8 +2851,8 @@ public class Grvt extends GrvtApi
                 put( "reduce_only", isReduceOnly );
             }};
             String timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
-            Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
-            if (Boolean.TRUE.equals(postOnly))
+            boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarketOrder, null, parameters));
+            if (postOnly)
             {
                 ((Map<String, Object>)orderRequest).put("post_only", true);
             }
@@ -2871,7 +2871,7 @@ public class Grvt extends GrvtApi
             ((Map<String, Object>)orderRequest).put("time_in_force", timeInForce);
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                if (Boolean.TRUE.equals(postOnly))
+                if (postOnly)
                 {
                     timeInForce = "POST_ONLY";
                 } else if (java.util.Objects.equals(timeInForce, "ioc"))
@@ -4467,19 +4467,19 @@ public class Grvt extends GrvtApi
         }};
     }
 
-    public Object handleUntilOptionString(Object key, Map<String, Object> request, Object parameters, Object multiplier)
+    public Object handleUntilOptionString(Object key, Map<String, Object> request, Map<String, Object> parameters, Object multiplier)
     {
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (!java.util.Objects.equals(until, null))
         {
             ((Map<String, Object>)request).put((String)key, this.numberToString(this.parseToInt(Helpers.multiply(until, multiplier))));
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
+            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
     }
     public Object handleUntilOptionString(Object key, Map<String, Object> request, Object... optionalArgs)
     {
-        return this.handleUntilOptionString(key, request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1);
+        return this.handleUntilOptionString(key, request, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1);
     }
 
     public Long requestId()

@@ -1277,15 +1277,13 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan any, symbol any, optionalA
 	}
 	// publicGetProductsIdTicker or publicGetProductsIdStats
 	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "publicGetProductsIdTicker")
-	var response any = nil
+	var response map[string]any = nil
 	if method != nil && *method == "publicGetProductsIdStats" {
 
-		response = (<-this.PublicGetProductsIdStats(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetProductsIdStats(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.PublicGetProductsIdTicker(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PublicGetProductsIdTicker(this.Extend(request, params))).Raw))
 	}
 
 	//
@@ -1826,18 +1824,16 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan any, id any, optionalArgs .
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_oid")
-	var response any = nil
+	var response map[string]any = nil
 	if clientOrderId == nil {
 		request["id"] = id
 
-		response = (<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw))
 	} else {
 		request["client_oid"] = clientOrderId
 		params = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
 
-		response = (<-this.PrivateGetOrdersClientClientOid(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersClientClientOid(this.Extend(request, params))).Raw))
 	}
 
 	ch <- this.ParseOrder(response)
@@ -2275,23 +2271,20 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 		"currency": currency["id"],
 		"amount":   amount,
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if InOp(params, "payment_method_id") {
 
-		response = (<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, params))).Raw))
 	} else if InOp(params, "coinbase_account_id") {
 
-		response = (<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, params))).Raw))
 	} else {
 		request["crypto_address"] = address
 		if tag != nil {
 			request["destination_tag"] = tag
 		}
 
-		response = (<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, params))).Raw))
 	}
 	if response == nil {
 		panic(ExchangeError(Add(this.Id+" withdraw() error: ", this.Json(response))))
@@ -2425,12 +2418,12 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	PanicOnError((<-this.LoadAccountsAsync()))
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
-	var account any = this.SafeDict(accountsByCurrencyCode, code)
+	var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
 	if IsEqual(account, nil) {
 		panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
 	}
 	var request map[string]any = map[string]any{
-		"id": GetValue(account, "id"),
+		"id": account["id"],
 	}
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
@@ -2495,11 +2488,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		if code != nil {
 			currency = MapTyped(this.Currency(code))
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
-			var account any = this.SafeDict(accountsByCurrencyCode, code)
+			var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
 			if IsEqual(account, nil) {
 				panic(ExchangeError(Add(this.Id+" fetchDepositsWithdrawals() could not find account id for ", code)))
 			}
-			id = GetValue(account, "id")
+			id = account["id"]
 		}
 	}
 	var request map[string]any = map[string]any{}

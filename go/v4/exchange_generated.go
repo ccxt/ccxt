@@ -2236,13 +2236,13 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 			}
 			// limits
 			var limits map[string]any = SafeMapTyped(network, "limits")
-			var limitsMain any = this.SafeDict(currency, "limits")
+			var limitsMain map[string]any = SafeMapTyped(currency, "limits")
 			if IsEqual(limitsMain, nil) {
 				AddElementToObject(currency, "limits", map[string]any{})
 			}
 			// deposits
 			var limitsDeposit map[string]any = SafeMapTyped(limits, "deposit")
-			var limitsDepositMain any = this.SafeDict(limitsMain, "deposit")
+			var limitsDepositMain map[string]any = SafeMapTyped(limitsMain, "deposit")
 			if IsEqual(limitsDepositMain, nil) {
 				AddElementToObject(GetValue(currency, "limits"), "deposit", map[string]any{})
 			}
@@ -2260,7 +2260,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 			}
 			// withdrawals
 			var limitsWithdraw map[string]any = SafeMapTyped(limits, "withdraw")
-			var limitsWithdrawMain any = this.SafeDict(limitsMain, "withdraw")
+			var limitsWithdrawMain map[string]any = SafeMapTyped(limitsMain, "withdraw")
 			if IsEqual(limitsWithdrawMain, nil) {
 				AddElementToObject(GetValue(currency, "limits"), "withdraw", map[string]any{})
 			}
@@ -6532,9 +6532,9 @@ func (this *BaseExchange) CostToPrecision(symbol any, cost any) any {
 	PanicOnError(market)
 	return this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(market["precision"], "cost", "price"), this.PrecisionMode, this.PaddingMode)
 }
-func (this *BaseExchange) PriceToPrecision(symbol any, price any) any {
+func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 	if IsEqual(price, nil) {
-		return nil
+		return SafeStringPtr(nil)
 	}
 
 	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
@@ -6543,11 +6543,11 @@ func (this *BaseExchange) PriceToPrecision(symbol any, price any) any {
 	if result == "0" {
 		panic(InvalidOrder(Add(Add(Add(this.Id+" price of ", market["symbol"]), " must be greater than minimum price precision of "), this.NumberToString(GetValue(market["precision"], "price")))))
 	}
-	return result
+	return SafeStringPtr(result)
 }
-func (this *BaseExchange) AmountToPrecision(symbol any, amount any) any {
+func (this *BaseExchange) AmountToPrecision(symbol any, amount any) *string {
 	if IsEqual(amount, nil) {
-		return nil
+		return SafeStringPtr(nil)
 	}
 
 	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
@@ -6556,7 +6556,7 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) any {
 	if result == "0" {
 		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", market["symbol"]), " must be greater than minimum amount precision of "), this.NumberToString(GetValue(market["precision"], "amount")))))
 	}
-	return result
+	return SafeStringPtr(result)
 }
 func (this *BaseExchange) FeeToPrecision(symbol any, fee any) any {
 	if IsEqual(fee, nil) {
@@ -6998,11 +6998,11 @@ func (this *BaseExchange) HandleTriggerPricesAndParams(symbol any, params any, o
 	var omitParams bool = GetArgBool(optionalArgs, 0, true)
 	_ = omitParams
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var triggerPriceStr any = nil
+	var triggerPriceStr *string = nil
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
-	var stopLossPriceStr any = nil
+	var stopLossPriceStr *string = nil
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
-	var takeProfitPriceStr any = nil
+	var takeProfitPriceStr *string = nil
 	//
 	if triggerPrice != nil {
 		if omitParams == true {

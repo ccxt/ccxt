@@ -757,7 +757,7 @@ func (this *Btcbox) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -767,7 +767,7 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
 	if symbol == nil {
-		symbol = "BTC/JPY"
+		symbol = SafeStringPtr("BTC/JPY")
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -874,7 +874,7 @@ func (this *Btcbox) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -884,7 +884,7 @@ func (this *Btcbox) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
 	if symbol == nil {
-		symbol = "BTC/JPY"
+		symbol = SafeStringPtr("BTC/JPY")
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = this.Extend(map[string]any{
@@ -917,7 +917,7 @@ func (this *Btcbox) FetchOrdersByTypeAsync(typeVar any, optionalArgs ...any) <-c
 func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -931,7 +931,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
 	if symbol == nil {
-		symbol = "BTC/JPY"
+		symbol = SafeStringPtr("BTC/JPY")
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{

@@ -311,7 +311,8 @@ func (e *BaseExchange) IntToBase16(number any) string {
 }
 
 func (e *BaseExchange) Rawencode(params ...any) string {
-	parameters := params[0].(map[string]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	parameters := derefScalar(params[0]).(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
@@ -434,7 +435,8 @@ func (e *BaseExchange) UrlencodeNested(parameters2 any) string {
 }
 
 func (e *BaseExchange) Urlencode(params ...any) string {
-	parameters := params[0].(map[string]any)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	parameters := derefScalar(params[0]).(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 
 	var keys []string

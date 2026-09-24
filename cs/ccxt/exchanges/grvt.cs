@@ -3762,6 +3762,7 @@ public partial class grvt : Exchange
 
     public virtual List<object> handleUntilOptionString(object key, object request, object parameters = null, object multiplier = null)
     {
+        parameters ??= new Dictionary<string, object>();
         multiplier ??= 1;
         Int64? until = this.safeInteger2(parameters, "until", "till");
         if ((until != null))

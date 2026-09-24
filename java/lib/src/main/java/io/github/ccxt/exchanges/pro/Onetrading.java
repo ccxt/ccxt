@@ -197,7 +197,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object subscriptionHash = "MARKET_TICKER";
+            String subscriptionHash = "MARKET_TICKER";
             String messageHash = ("ticker." + symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
@@ -247,7 +247,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 symbols = Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList()));
             }
-            Object subscriptionHash = "MARKET_TICKER";
+            String subscriptionHash = "MARKET_TICKER";
             String messageHash = "tickers";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
@@ -447,7 +447,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("book:" + symbol);
-            Object subscriptionHash = "ORDER_BOOK";
+            String subscriptionHash = "ORDER_BOOK";
             Object depth = 0;
             if (!java.util.Objects.equals(limit, null))
             {

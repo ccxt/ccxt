@@ -119,7 +119,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             // to one timeframe per symbol
             String messageHash = ("candles:" + symbol);
             List<Object> reqParams = new ArrayList<Object>(Arrays.asList(marketId, interval));
-            Object method = "candles_subscribe";
+            String method = "candles_subscribe";
             Object ohlcv = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
             if (this.newUpdates)
             {
@@ -221,7 +221,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 limit = 10L; // max 100
             }
             String messageHash = (("orderbook" + ":") + ((Map<String, Object>)market).get("symbol"));
-            Object method = "depth_subscribe";
+            String method = "depth_subscribe";
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             String defaultPriceInterval = this.safeString(options, "priceInterval", "0");
             String priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
@@ -351,7 +351,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object method = "market_subscribe";
+            String method = "market_subscribe";
             String messageHash = ("ticker:" + symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
             return (this.watchMultipleSubscription(messageHash, method, (String) (symbol), false, parameters)).join();
@@ -504,7 +504,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("trades" + ":") + symbol);
-            Object method = "trades_subscribe";
+            String method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
             Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), false, parameters)).join();
             if (this.newUpdates)
@@ -608,7 +608,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("myTrades:" + symbol);
-            Object method = "deals_subscribe";
+            String method = "deals_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), true, parameters)).join();
             if (this.newUpdates)
             {
@@ -782,7 +782,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orders:" + symbol);
-            Object method = "ordersPending_subscribe";
+            String method = "ordersPending_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), false, parameters)).join();
             if (this.newUpdates)
             {

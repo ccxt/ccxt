@@ -1034,7 +1034,7 @@ func (this *Grvt) HandlePosition(client any, message map[string]any) {
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var data any = this.SafeDict(message, "feed")
+	var data map[string]any = ccxt.SafeMapTyped(message, "feed")
 	var position any = this.ParseWsPosition(data)
 	var symbol *string = this.SafeString(position, "symbol")
 	this.Positions.(ccxt.Appender).Append(position)
@@ -1172,7 +1172,7 @@ func (this *Grvt) HandleOrder(client any, message map[string]any) {
 	//        "prev_sequence_number": "16"
 	//    }
 	//
-	var data any = this.SafeDict(message, "feed")
+	var data map[string]any = ccxt.SafeMapTyped(message, "feed")
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

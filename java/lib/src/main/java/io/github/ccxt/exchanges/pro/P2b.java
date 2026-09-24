@@ -364,7 +364,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                     ((List<Object>)messageHashes).add(("deals::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
             }
-            Object marketIds = this.marketIds(symbols);
+            List<Object> marketIds = this.marketIds(symbols);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
@@ -420,7 +420,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object name = "depth.subscribe";
+            String name = "depth.subscribe";
             String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
             String interval = this.safeString(parameters, "interval", "0.001");
             if (java.util.Objects.equals(limit, null))

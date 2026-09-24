@@ -2003,7 +2003,7 @@ public class Woofipro extends WoofiproApi
             {
                 ((Map<String, Object>)request).put("start_t", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters, 0.001);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
@@ -2648,14 +2648,14 @@ public class Woofipro extends WoofiproApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
-        Object postOnly = this.isPostOnly(isMarket, null, parameters);
+        boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
         String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
         String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
         String typeKey = ((Boolean.TRUE.equals(isConditional))) ? "type" : "order_type";
         ((Map<String, Object>)request).put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Boolean.TRUE.equals(isConditional))
         {
-            if (Boolean.TRUE.equals(postOnly))
+            if (postOnly)
             {
                 ((Map<String, Object>)request).put("order_type", "POST_ONLY");
             } else if (java.util.Objects.equals(timeInForce, "fok"))
@@ -2964,8 +2964,8 @@ public class Woofipro extends WoofiproApi
                 String orderType = ((String)type).toUpperCase();
                 String timeInForce = this.safeStringLower(parameters, "timeInForce");
                 Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-                Object postOnly = this.isPostOnly(isMarket, null, parameters);
-                if (Boolean.TRUE.equals(postOnly))
+                boolean postOnly = Helpers.isTrue(this.isPostOnly(isMarket, null, parameters));
+                if (postOnly)
                 {
                     ((Map<String, Object>)request).put("order_type", "POST_ONLY");
                 } else if (java.util.Objects.equals(timeInForce, "fok"))
@@ -3472,7 +3472,7 @@ public class Woofipro extends WoofiproApi
             {
                 ((Map<String, Object>)request).put("algo_type", "STOP");
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = null;
@@ -3783,7 +3783,7 @@ public class Woofipro extends WoofiproApi
             {
                 ((Map<String, Object>)request).put("size", 500);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", request, parameters);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
             request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();

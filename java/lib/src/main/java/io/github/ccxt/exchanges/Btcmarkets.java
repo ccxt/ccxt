@@ -1565,7 +1565,7 @@ public class Btcmarkets extends BtcmarketsApi
          */
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object currency = null;
-        Object cost = null;
+        String cost = null;
         if (java.util.Objects.equals(((Map<String, Object>)market).get("quote"), "AUD"))
         {
             currency = ((Map<String, Object>)market).get("quote");

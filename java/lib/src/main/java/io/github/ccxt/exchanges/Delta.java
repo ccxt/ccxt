@@ -2610,7 +2610,7 @@ public class Delta extends DeltaApi
             }};
             if (!java.util.Objects.equals(amount, null))
             {
-                Object sizeString = this.amountToPrecision(symbol, amount);
+                String sizeString = this.amountToPrecision(symbol, amount);
                 if (java.util.Objects.equals(sizeString, null))
                 {
                     sizeString = "0";

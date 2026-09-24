@@ -4372,6 +4372,10 @@ ${constStatements.join('\n')}
             // this file are consumed through IsEqual/EvalTruthy and need no unwrap.
             [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
         ]);
+        // outcome/safeOutcome (: PredictionOutcomeMarket) and parseSearchQueries (: string[]) have no venue override
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'Outcome', undefined, true);
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SafeOutcome', undefined, true);
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]any');
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
         if (parts.length > 1) {
@@ -5008,7 +5012,8 @@ ${caseStatements.join('\n')}
 
         const files = fs.readdirSync(dirPath);
         for (const file of files) {
-            if (file.startsWith('exchange')) {
+            // _test.go files are not part of the ccxt package a sibling package imports
+            if (file.startsWith('exchange') && !file.endsWith('_test.go')) {
                 const fullPath = path.join(dirPath, file);
 
                 // Skip directories or non-files
@@ -5282,7 +5287,8 @@ ${caseStatements.join('\n')}
      * fail-closed shape check of coerceTypedStringAccessors). `accept`, when given with
      * `wrap`, must hold for every function-level return expression.
      */
-    retypeGoMapMethod (content: string, receiver: string, method: string, accept: (expr: string) => boolean | undefined, wrap: boolean): string {
+    retypeGoMapMethod (content: string, receiver: string, method: string, accept: (expr: string) => boolean | undefined, wrap: boolean, goType = 'map[string]any'): string {
+        const typed = (goType === '[]any') ? 'ListTyped(' : 'MapTyped(';
         const headRegex = new RegExp ('func\\s+\\(this \\*' + receiver + '\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{', 'g');
         let out = '';
         let cursor = 0;
@@ -5300,7 +5306,7 @@ ${caseStatements.join('\n')}
             const body = content.substring (open + 1, close);
             let newBody = body;
             if (wrap) {
-                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => 'MapTyped(' + expr + ')');
+                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => typed + expr + ')');
                 if ((scanned === undefined) || (scanned.total === 0)) {
                     return content;
                 }
@@ -5315,7 +5321,7 @@ ${caseStatements.join('\n')}
                 }
             }
             const head = content.substring (headStart, open);
-            out += content.substring (cursor, headStart) + head.replace (/\s+any\s*$/, ' map[string]any ') + '{' + newBody;
+            out += content.substring (cursor, headStart) + head.replace (/\s+any\s*$/, ' ' + goType + ' ') + '{' + newBody;
             cursor = close;
             match = headRegex.exec (content);
         }

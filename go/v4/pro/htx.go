@@ -699,7 +699,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			}()
 			// try block:
 			var orderbook any = this.SafeValue(this.Orderbooks, symbol)
-			var data any = this.SafeDict(message, "data")
+			var data map[string]any = ccxt.SafeMapTyped(message, "data")
 			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
 			var firstMessage map[string]any = ccxt.SafeMapTyped(messages, 0)
 			var snapshot map[string]any = this.ParseOrderBook(data, symbol)
@@ -1043,7 +1043,7 @@ func (this *Htx) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1065,7 +1065,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		typeVar = ccxt.GetValue(market, "type")
 		subType = func() string {
 			if ccxt.GetValue(market, "linear") == true {
@@ -1223,7 +1223,7 @@ func (this *Htx) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1241,7 +1241,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var suffix any = "*" // wildcard
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		typeVar = ccxt.GetValue(market, "type")
 		suffix = ccxt.GetValue(market, "lowercaseId")
 		subType = func() string {
@@ -1459,7 +1459,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString2(message, "ch", "topic")
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(message, "contract_code")
 	if marketId == nil {
 		marketId = this.SafeString2(data, "contract_code", "symbol")
@@ -1771,7 +1771,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 		"stopLossPrice":      this.SafeString2(order, "sl_trigger_price", "sl_order_price"),
 	}, market)
 }
-func (this *Htx) ParseOrderTrade(trade any, optionalArgs ...any) any {
+func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any {
 	// spot private wrapped trade
 	//
 	//     {

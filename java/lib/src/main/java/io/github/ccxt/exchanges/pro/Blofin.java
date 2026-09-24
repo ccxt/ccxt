@@ -870,7 +870,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Object channel = (((java.util.Objects.equals(trigger, true)))) ? "orders-algo" : "orders";
+            String channel = (((java.util.Objects.equals(trigger, true)))) ? "orders-algo" : "orders";
             Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters)).join();
             if (this.newUpdates)
             {

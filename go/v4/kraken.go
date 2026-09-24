@@ -2193,7 +2193,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var parsedAmount any = this.AmountToPrecision(GetValue(market, "symbol"), amount)
+		var parsedAmount *string = this.AmountToPrecision(GetValue(market, "symbol"), amount)
 		var req map[string]any = map[string]any{
 			"type":      side,
 			"ordertype": typeVar,
@@ -2203,15 +2203,14 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		ordersRequests = append(ordersRequests, GetValue(orderRequest, 0))
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var response any = nil
+	var response map[string]any = nil
 	var request map[string]any = map[string]any{
 		"orders": ordersRequests,
 		"pair":   this.SafeString(market, "id"),
 	}
 	request = this.Extend(request, params)
 
-	response = (<-this.PrivatePostAddOrderBatch(request)).Raw
-	PanicOnError(response)
+	response = MapTyped(PanicOnError((<-this.PrivatePostAddOrderBatch(request)).Raw))
 	//
 	//         {
 	//    "error":[
@@ -2410,7 +2409,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var isUsingCost *bool = this.SafeBool(order, "usingCost", false)
 	order = this.Omit(order, "usingCost")
 	var description map[string]any = SafeMapTyped(order, "descr")
-	var orderDescriptionObj any = this.SafeDict(order, "descr") // can be null
+	var orderDescriptionObj map[string]any = SafeMapTyped(order, "descr") // can be null
 	var orderDescription any = nil
 	if !IsEqual(orderDescriptionObj, nil) {
 		orderDescription = this.SafeString(orderDescriptionObj, "order")
@@ -3213,7 +3212,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var requestId any = this.SafeValue(params, "userref", id) // string or integer
 	params = MapTyped(this.Omit(params, "userref"))
 	var request any = map[string]any{
@@ -3247,8 +3246,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 			}()
 			// try block:
 
-			response = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
 			return nil
 		}(this)
 
@@ -3543,22 +3541,22 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if since != nil {
-		AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
+		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
 	if userref != nil {
-		AddElementToObject(request, "userref", userref)
+		request["userref"] = userref
 		params = MapTyped(this.Omit(params, "userref"))
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		AddElementToObject(request, "cl_ord_id", clientOrderId)
+		request["cl_ord_id"] = clientOrderId
 		params = MapTyped(this.Omit(params, "clientOrderId"))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("end", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostClosedOrders(this.Extend(request, params))).Raw))
@@ -4316,7 +4314,7 @@ func (this *Kraken) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	symbols = this.MarketSymbols(symbols)
-	var result any = this.SafeList(response, "result")
+	var result []any = SafeListTyped(response, "result")
 	var results any = this.ParsePositions(result, symbols)
 
 	ch <- this.FilterByArrayPositions(results, "symbol", symbols, false)

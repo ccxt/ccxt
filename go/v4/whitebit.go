@@ -1273,7 +1273,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var feeInfo any = GetValue(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
-			var depositWithdrawFee any = this.SafeDict(depositWithdrawFees, code)
+			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
 			}
@@ -1368,23 +1368,23 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//      }
 	//
 	var result map[string]any = map[string]any{}
-	var symbols any = this.Symbols
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(symbols, i))
+	var symbols []string = this.Symbols
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = GetValue(symbols, i).(string)
 		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee map[string]any = MapTyped(this.SafeDict(response, market["baseId"], map[string]any{}))
 		var makerFee *string = this.SafeString(fee, "maker_fee")
 		var takerFee *string = this.SafeString(fee, "taker_fee")
 		makerFee = Precise.StringDiv(makerFee, "100")
 		takerFee = Precise.StringDiv(takerFee, "100")
-		AddElementToObject(result, symbol, map[string]any{
+		result[symbol] = map[string]any{
 			"info":       fee,
 			"symbol":     market["symbol"],
 			"percentage": true,
 			"tierBased":  false,
 			"maker":      this.ParseNumber(makerFee),
 			"taker":      this.ParseNumber(takerFee),
-		})
+		}
 	}
 
 	ch <- result
@@ -2126,7 +2126,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.V2PublicGetTicker(params)).Raw
 		PanicOnError(response)
 	}
-	var resultList any = this.SafeList(response, "result")
+	var resultList []any = SafeListTyped(response, "result")
 	if !IsEqual(resultList, nil) {
 
 		ch <- this.ParseTickers(resultList, symbols)
@@ -2754,25 +2754,22 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	params = this.Omit(query, []any{"postOnly", "triggerPrice", "stopPrice", "timeInForce"})
 	var useCollateralEndpoint bool = !IsEqual(marginMode, nil) || (marketType != nil && *marketType == "swap")
-	var response any = nil
+	var response map[string]any = nil
 	if isStopOrder {
 		request["activation_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		if isLimitOrder {
 			// stop limit order
 			request["price"] = this.PriceToPrecision(symbol, price)
 
-			response = (<-this.V4PrivatePostOrderStopLimit(this.Extend(request, params))).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderStopLimit(this.Extend(request, params))).Raw))
 		} else {
 			// stop market order
 			if useCollateralEndpoint {
 
-				response = (<-this.V4PrivatePostOrderCollateralTriggerMarket(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderCollateralTriggerMarket(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.V4PrivatePostOrderStopMarket(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderStopMarket(this.Extend(request, params))).Raw))
 			}
 		}
 	} else {
@@ -2781,28 +2778,23 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 			request["price"] = this.PriceToPrecision(symbol, price)
 			if useCollateralEndpoint {
 
-				response = (<-this.V4PrivatePostOrderCollateralLimit(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderCollateralLimit(this.Extend(request, params))).Raw))
 			} else {
 
-				response = (<-this.V4PrivatePostOrderNew(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderNew(this.Extend(request, params))).Raw))
 			}
 		} else {
 			// market order
 			if useCollateralEndpoint {
 
-				response = (<-this.V4PrivatePostOrderCollateralMarket(this.Extend(request, params))).Raw
-				PanicOnError(response)
+				response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderCollateralMarket(this.Extend(request, params))).Raw))
 			} else {
 				if cost != nil {
 
-					response = (<-this.V4PrivatePostOrderMarket(this.Extend(request, params))).Raw
-					PanicOnError(response)
+					response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderMarket(this.Extend(request, params))).Raw))
 				} else {
 
-					response = (<-this.V4PrivatePostOrderStockMarket(this.Extend(request, params))).Raw
-					PanicOnError(response)
+					response = MapTyped(PanicOnError((<-this.V4PrivatePostOrderStockMarket(this.Extend(request, params))).Raw))
 				}
 			}
 		}
@@ -3180,11 +3172,10 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
-	var response any = nil
+	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = (<-this.V4PrivatePostCollateralAccountBalance(params)).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountBalance(params)).Raw))
 	} else {
 		var options map[string]any = SafeMapTyped(this.Options, "fetchBalance")
 		var defaultAccount *string = this.SafeString(options, "account")
@@ -3192,12 +3183,10 @@ func (this *Whitebit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		params = MapTyped(this.Omit(params, []any{"account", "type"}))
 		if (account != nil && *account == "main") || (account != nil && *account == "funding") {
 
-			response = (<-this.V4PrivatePostMainAccountBalance(params)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V4PrivatePostMainAccountBalance(params)).Raw))
 		} else {
 
-			response = (<-this.V4PrivatePostTradeAccountBalance(params)).Raw
-			PanicOnError(response)
+			response = MapTyped(PanicOnError((<-this.V4PrivatePostTradeAccountBalance(params)).Raw))
 		}
 	}
 
@@ -3315,7 +3304,7 @@ func (this *Whitebit) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -3331,7 +3320,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = GetValue(market, "symbol")
+		symbol = SafeStringPtr(GetValue(market, "symbol"))
 		request["market"] = GetValue(market, "id")
 	}
 	if limit != nil {
@@ -3764,7 +3753,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	var request map[string]any = map[string]any{
 		"ticker": currency["id"],
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if EvalTruthy(this.IsFiat(code)) {
 		var provider *string = this.SafeString(params, "provider")
 		if provider == nil {
@@ -3781,12 +3770,10 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan any, code any, optionalArg
 			panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires an uniqueId when the ticker is fiat"))
 		}
 
-		response = (<-this.V4PrivatePostMainAccountFiatDepositUrl(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V4PrivatePostMainAccountFiatDepositUrl(this.Extend(request, params))).Raw))
 	} else {
 
-		response = (<-this.V4PrivatePostMainAccountAddress(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.V4PrivatePostMainAccountAddress(this.Extend(request, params))).Raw))
 	}
 	//
 	// fiat
@@ -4723,17 +4710,17 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startDate", since)
+		request["startDate"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endDate", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountFundingHistory(this.Extend(request, params))).Raw))
@@ -5033,19 +5020,19 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if code != nil {
-		AddElementToObject(request, "fromTicker", code)
+		request["fromTicker"] = code
 	}
 	if since != nil {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
-		AddElementToObject(request, "from", this.NumberToString(start))
+		request["from"] = this.NumberToString(start)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("to", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PrivatePostConvertHistory(this.Extend(request, params))).Raw))
@@ -5173,17 +5160,17 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol any, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startDate", since)
+		request["startDate"] = since
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", since)
+		request["limit"] = since
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("endDate", request, params)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 
 	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(request, params))).Raw))
@@ -5458,17 +5445,17 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
 	if since != nil {
-		AddElementToObject(request, "startDate", MathRound(Divide(since, 1000)))
+		request["startDate"] = MathRound(Divide(since, 1000))
 	}
 	var requestparamsVariable []any = this.HandleUntilOption("until_timestamp", request, params, 0.001)
-	request = GetValue(requestparamsVariable, 0)
+	request = MapTyped(GetValue(requestparamsVariable, 0))
 	params = MapTyped(GetValue(requestparamsVariable, 1))
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = limit
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.V4PublicGetFundingHistoryMarket(this.Extend(request, params))).Raw))
@@ -5569,7 +5556,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		// For cases where we have a meaningful status
 		// {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
 		var status *string = this.SafeString(response, "status")
-		var errors any = this.SafeDict(response, "errors")
+		var errors map[string]any = SafeMapTyped(response, "errors")
 		// {"code":10,"message":"Unauthorized request."}
 		var message *string = this.SafeString(response, "message")
 		// For these cases where we have a generic code variable error key
