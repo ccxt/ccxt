@@ -86,7 +86,7 @@ export default class woo extends wooRest {
 
     async watchPublic (messageHash: string, message: Dict) {
         const urlUid = (this.uid !== '') ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
+        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -97,7 +97,7 @@ export default class woo extends wooRest {
 
     async unwatchPublic (subHash: string, symbol: Str, topic: string, params = {}): Promise<any> {
         const urlUid = (this.uid !== '') ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
+        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
         const requestId = this.requestId (url);
         const unsubHash = 'unsubscribe::' + subHash;
         const message: Dict = {
@@ -142,7 +142,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const topic = market['id'] + '@' + method;
         const urlUid = (this.uid !== '') ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
+        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
         const requestId = this.requestId (url);
         const request: Dict = {
             'event': 'subscribe',
@@ -916,7 +916,7 @@ export default class woo extends wooRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -942,7 +942,7 @@ export default class woo extends wooRest {
 
     async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -953,7 +953,7 @@ export default class woo extends wooRest {
 
     async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -1316,7 +1316,7 @@ export default class woo extends wooRest {
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
