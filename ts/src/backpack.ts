@@ -1872,7 +1872,7 @@ export default class backpack extends Exchange {
             params = this.omit (params, 'stopLoss');
         }
         let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        [ selfTradePrevention, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (selfTradePrevention === 'EXPIRE_MAKER') {
                 request['selfTradePrevention'] = 'RejectMaker';

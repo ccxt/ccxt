@@ -2567,7 +2567,7 @@ export default class lighter extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
         }
@@ -2673,12 +2673,12 @@ export default class lighter extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
         let address: Str = undefined;
-        [ address, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'address', 'l1_address');
+        [ address, params ] = this.handleOptionStringAndParams2 (params, 'fetchDeposits', 'address', 'l1_address');
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
         }
@@ -2739,7 +2739,7 @@ export default class lighter extends Exchange {
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
         }
@@ -2924,7 +2924,7 @@ export default class lighter extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, 50) as Trade[];
         }
@@ -3081,7 +3081,7 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
+        [ marginMode, params ] = this.handleOptionStringAndParams2 (params, 'setLeverage', 'marginMode', 'margin_mode');
         if (marginMode === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires an marginMode parameter');
         }

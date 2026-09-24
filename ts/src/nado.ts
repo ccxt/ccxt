@@ -576,7 +576,7 @@ export default class nado extends Exchange {
         let subaccount: Str = undefined;
         [ subaccount, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'subaccount', 'default');
         let expiration: Str = undefined;
-        [ expiration, params ] = this.handleOptionStringAndParams (params, 'editOrder', 'expiration', '4294967295');
+        [ expiration, params ] = this.handleOptionAndParams (params, 'editOrder', 'expiration', '4294967295');
         let recvWindow: Int = undefined;
         [ recvWindow, params ] = this.handleOptionAndParams (params, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce (recvWindow);

@@ -1224,7 +1224,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as Trade[];
         }
@@ -2250,7 +2250,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'next', 'cursor', undefined, 50) as Order[];
         }
@@ -2435,7 +2435,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as Trade[];
         }
@@ -2690,7 +2690,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'next', 'cursor', undefined, 100) as Transaction[];
         }
@@ -2754,7 +2754,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'next', 'cursor', undefined, 100) as Transaction[];
         }
@@ -2818,7 +2818,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'next', 'cursor', undefined, 100) as TransferEntry[];
         }
@@ -3320,7 +3320,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as FundingHistory[];
         }

@@ -1001,7 +1001,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', undefined, 100) as Trade[];
         }
@@ -1066,7 +1066,7 @@ export default class blofin extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 100) as OHLCV[];
         }
@@ -1109,7 +1109,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100) as FundingRateHistory[];
         }
@@ -1344,7 +1344,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let accountType: Str = undefined;
-        [ accountType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountType', 'type');
+        [ accountType, params ] = this.handleOptionStringAndParams2 (params, 'fetchBalance', 'accountType', 'type');
         const request: Dict = {
         };
         let response: Dict;
@@ -1793,7 +1793,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params) as Order[];
         }
@@ -1845,7 +1845,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -1912,7 +1912,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
@@ -1953,7 +1953,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
@@ -2122,7 +2122,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
         }
@@ -2896,7 +2896,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }

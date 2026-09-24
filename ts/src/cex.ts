@@ -782,7 +782,7 @@ export default class cex extends Exchange {
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         let dataType: Str = undefined;
-        [ dataType, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'dataType');
+        [ dataType, params ] = this.handleOptionStringAndParams (params, 'fetchOHLCV', 'dataType');
         if (dataType === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }

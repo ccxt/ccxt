@@ -969,7 +969,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
@@ -1053,7 +1053,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
@@ -1962,7 +1962,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
         }
@@ -3192,7 +3192,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }

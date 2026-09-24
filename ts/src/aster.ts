@@ -2905,7 +2905,7 @@ export default class aster extends Exchange {
         }
         if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
             let tif: Str = undefined;
-            [ tif, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+            [ tif, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce');
             request['timeInForce'] = tif;
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
@@ -3789,7 +3789,7 @@ export default class aster extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         let defaultMethod: Str = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
+        [ defaultMethod, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'method');
         if (defaultMethod === undefined) {
             const options = this.safeDict (this.options, 'fetchPositions');
             if (options === undefined) {

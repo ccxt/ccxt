@@ -1957,7 +1957,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params) as Order[];
         }
@@ -2966,7 +2966,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }

@@ -4763,7 +4763,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200) as FundingRateHistory[];
         }

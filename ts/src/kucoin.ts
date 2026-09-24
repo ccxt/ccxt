@@ -3376,7 +3376,7 @@ export default class kucoin extends Exchange {
         }
         const maxLimit = 1500;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchUTAOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
@@ -3461,7 +3461,7 @@ export default class kucoin extends Exchange {
         }
         const maxLimit = 1500;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchSpotOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
@@ -3520,7 +3520,7 @@ export default class kucoin extends Exchange {
         }
         const maxLimit = 200;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchContractOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
@@ -5643,7 +5643,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrdersByStatus', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params) as Order[];
         }
@@ -5758,7 +5758,7 @@ export default class kucoin extends Exchange {
         }
         let paginate = false;
         const maxLimit = 200;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrdersByStatus', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params, maxLimit) as Order[];
         }
@@ -5887,7 +5887,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
@@ -5926,7 +5926,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params) as Order[];
         }
@@ -6809,7 +6809,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -6939,7 +6939,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -7027,7 +7027,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -7849,7 +7849,7 @@ export default class kucoin extends Exchange {
             return await this.fetchContractDeposits (code, since, limit, params);
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
@@ -8004,7 +8004,7 @@ export default class kucoin extends Exchange {
         }
         const maxLimit = 500;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params, maxLimit);
         }
@@ -9110,7 +9110,7 @@ export default class kucoin extends Exchange {
             }
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, maxLimit) as LedgerEntry[];
         }
@@ -9952,7 +9952,7 @@ export default class kucoin extends Exchange {
             }
             request['accountMode'] = 'unified';
             let code: Str = undefined;
-            [ code, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'currency', 'code');
+            [ code, params ] = this.handleOptionStringAndParams2 (params, 'setLeverage', 'currency', 'code');
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' setLeverage requires a currency code in the params["code"] for unified trading account');
             }
@@ -11828,7 +11828,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params) as TransferEntry[];
         }

@@ -1568,7 +1568,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, methodName, 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, methodName, 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
@@ -2410,12 +2410,12 @@ export default class hashkey extends Exchange {
         }
         request['endTime'] = until;
         let flowType: Str = undefined;
-        [ flowType, params ] = this.handleOptionAndParams (params, methodName, 'flowType');
+        [ flowType, params ] = this.handleOptionStringAndParams (params, methodName, 'flowType');
         if (flowType !== undefined) {
             request['flowType'] = this.encodeFlowType (flowType);
         }
         let accountType: Str = undefined;
-        [ accountType, params ] = this.handleOptionAndParams (params, methodName, 'accountType');
+        [ accountType, params ] = this.handleOptionStringAndParams (params, methodName, 'accountType');
         if (accountType !== undefined) {
             request['accountType'] = this.encodeAccountType (accountType);
         }

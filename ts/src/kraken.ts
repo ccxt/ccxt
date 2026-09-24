@@ -1217,7 +1217,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 720) as OHLCV[];
         }
@@ -3190,7 +3190,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             params['cursor'] = true;
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'next_cursor', 'cursor') as Transaction[];

@@ -834,7 +834,7 @@ export default class gate extends gateRest {
         const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
         let channelName: Str = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'method');
+        [ channelName, params ] = this.handleOptionStringAndParams (params, callerMethodName, 'method');
         const url = this.getUrlByMarket (market);
         const channel = messageType + '.' + channelName;
         if (callerMethodName === undefined) {

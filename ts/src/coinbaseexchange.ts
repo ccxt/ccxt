@@ -1131,7 +1131,7 @@ export default class coinbaseexchange extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
         }
@@ -1513,7 +1513,7 @@ export default class coinbaseexchange extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, 100) as Order[];
         }

@@ -5557,7 +5557,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
@@ -7423,7 +7423,7 @@ export default class binance extends Exchange {
         }
         // unified stp
         let selfTradePrevention: Str = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
+        [ selfTradePrevention, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             const warnOnStpForInverse = this.handleOption ('createOrder', 'warnOnSTPForInverse');
             if ((market['inverse'] === true) && (warnOnStpForInverse === true)) {
@@ -7651,7 +7651,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
@@ -8893,7 +8893,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -9317,7 +9317,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
@@ -9439,7 +9439,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
@@ -9999,7 +9999,7 @@ export default class binance extends Exchange {
         const internal = this.safeBool (params, 'internal');
         params = this.omit (params, 'internal');
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate && (internal !== true)) {
             return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params);
         }
@@ -10891,7 +10891,7 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
         }
@@ -11943,7 +11943,7 @@ export default class binance extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         let defaultMethod: Str = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method'); // check if there is a key in options|params
+        [ defaultMethod, params ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'method'); // check if there is a key in options|params
         if (defaultMethod === undefined) {
             // check if .options['fetchPositions'] dict exist at all
             const options = this.safeDict (this.options, 'fetchPositions');
@@ -12866,7 +12866,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, undefined, false) as LedgerEntry[];
         }
@@ -13900,7 +13900,7 @@ export default class binance extends Exchange {
         [ isPortfolioMargin, params ] = this.handleOptionBoolAndParams2 (params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
             let method: Str = undefined;
-            [ method, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
+            [ method, params ] = this.handleOptionStringAndParams2 (params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
             if (method === 'papiPostMarginRepayDebt') {
                 response = await this.papiPostMarginRepayDebt (this.extend (request, params));
                 //
@@ -14272,7 +14272,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyLiquidations', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyLiquidations', symbol, since, limit, params, 'current', 100) as Liquidation[];
         }

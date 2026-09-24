@@ -1922,7 +1922,7 @@ export default class predictfun extends Exchange {
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
         let warnOnMarketOrderWithoutPrice: Bool = true;
-        [ warnOnMarketOrderWithoutPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
+        [ warnOnMarketOrderWithoutPrice, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
         if (price === undefined) {
             // a priceless limit order already threw above, so this is a market order
             if (warnOnMarketOrderWithoutPrice) {

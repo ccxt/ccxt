@@ -515,7 +515,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const name = 'balances';
         let messageHash = name;
         let account: Str = undefined;
-        [ account, params ] = this.handleOptionAndParams (params, 'watchBalance', 'account');
+        [ account, params ] = this.handleOptionStringAndParams (params, 'watchBalance', 'account');
         if (account !== undefined) {
             if (account !== 'futures' && account !== 'flex_futures') {
                 throw new ArgumentsRequired (this.id + ' watchBalance account must be either \'futures\' or \'flex_futures\'');

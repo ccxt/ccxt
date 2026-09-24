@@ -2180,7 +2180,7 @@ export default class okx extends Exchange {
             'instId': market['id'],
         };
         let rpi = false;
-        [ rpi, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'rpi');
+        [ rpi, params ] = this.handleOptionBoolAndParams (params, 'fetchOrderBook', 'rpi', false);
         let method: Str = undefined;
         [ method, params ] = this.handleOptionStringAndParams (params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
@@ -2600,7 +2600,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', undefined, 100) as Trade[];
         }
@@ -2716,7 +2716,7 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
         }
@@ -2826,7 +2826,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100) as FundingRateHistory[];
         }
@@ -3276,12 +3276,12 @@ export default class okx extends Exchange {
         } else if (contract === true) {
             if ((market['swap'] === true) || (market['future'] === true)) {
                 let positionSide: Str = undefined;
-                [ positionSide, params ] = this.handleOptionAndParams (params, 'createOrder', 'positionSide');
+                [ positionSide, params ] = this.handleOptionStringAndParams (params, 'createOrder', 'positionSide');
                 if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
                 } else {
                     let hedged: Bool = undefined;
-                    [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged');
+                    [ hedged, params ] = this.handleOptionBoolAndParams (params, 'createOrder', 'hedged');
                     if (hedged === true) {
                         const isBuy = (side === 'buy');
                         const isProtective = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined) || isReduceOnly;
@@ -4568,7 +4568,7 @@ export default class okx extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params, maxLimit) as Order[];
         }
@@ -4926,7 +4926,7 @@ export default class okx extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params, maxLimit) as Order[];
         }
@@ -5107,7 +5107,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
@@ -5208,7 +5208,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
         }
@@ -5664,7 +5664,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
         }
@@ -5776,7 +5776,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        [ paginate, params ] = this.handleOptionBoolAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
         }
