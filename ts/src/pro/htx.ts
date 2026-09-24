@@ -2699,10 +2699,7 @@ export default class htx extends htxRest {
             const data = this.safeValue (message, 'data');
             if (data !== undefined) {
                 const contractCode = this.safeString (message, 'contract_code');
-                let market: Market = undefined;
-                if (contractCode !== undefined) {
-                    market = this.safeMarket (contractCode);
-                }
+                const market = (contractCode !== undefined) ? this.safeMarket (contractCode) : undefined;
                 if (Array.isArray (data)) {
                     for (let i = 0; i < data.length; i++) {
                         const parsed = this.parseWsTrade (data[i], market);

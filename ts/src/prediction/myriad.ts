@@ -885,18 +885,8 @@ export default class myriad extends Exchange {
         const parsed = this.parsePredictionOrder (wrapper, outcomeObj);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-        let sideStr: Str = undefined;
-        if (side === undefined) {
-            sideStr = undefined;
-        } else {
-            sideStr = (side as string).toLowerCase ();
-        }
-        let typeStr: Str = undefined;
-        if (type === undefined) {
-            typeStr = 'limit';
-        } else {
-            typeStr = type.toLowerCase ();
-        }
+        const sideStr = (side === undefined) ? undefined : (side as string).toLowerCase ();
+        const typeStr = (type === undefined) ? 'limit' : type.toLowerCase ();
         if (this.safeString (parsed, 'side') === undefined) {
             parsed['side'] = sideStr;
         }
@@ -935,12 +925,7 @@ export default class myriad extends Exchange {
         const marketId = this.safeString (info, 'marketId');
         const outcomeId = this.safeInteger (info, 'outcomeId', 0);
         const trader = this.ethGetAddressFromPrivateKey (this.privateKey);
-        let typeStr: Str = undefined;
-        if (type === undefined) {
-            typeStr = 'limit';
-        } else {
-            typeStr = type.toLowerCase ();
-        }
+        const typeStr = (type === undefined) ? 'limit' : type.toLowerCase ();
         const sideStr = (side as string).toLowerCase ();
         const sideInt = (sideStr === 'buy') ? 0 : 1;
         const isMarket = (typeStr === 'market');
@@ -1074,10 +1059,7 @@ export default class myriad extends Exchange {
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        let sideLower: Str = undefined;
-        if (side !== undefined) {
-            sideLower = (side as string).toLowerCase ();
-        }
+        const sideLower = (side !== undefined) ? (side as string).toLowerCase () : undefined;
         const isCostDenominated = this.safeBool (params, 'costDenominated', false);
         if ((sideLower === 'buy') && (isCostDenominated !== true)) {
             throw new NotSupported (this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
@@ -2473,10 +2455,7 @@ export default class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        let outcomeId: Str = undefined;
-        if (market !== undefined && market !== null) {
-            outcomeId = this.safeString (market['info'], 'outcomeId');
-        }
+        const outcomeId = (market !== undefined && market !== null) ? this.safeString (market['info'], 'outcomeId') : undefined;
         const outcomes = this.safeList (raw, 'outcomes', []) as any[];
         let price: Num = undefined;
         let change: Num = undefined;

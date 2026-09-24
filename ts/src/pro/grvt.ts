@@ -542,12 +542,7 @@ export default class grvt extends grvtRest {
         let interval = 500;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
         symbols = this.marketSymbols (symbols);
-        let extraPart: Str = undefined;
-        if (isSnapshot) {
-            extraPart = (interval.toString () + '-' + limit.toString ());
-        } else {
-            extraPart = interval.toString ();
-        }
+        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
