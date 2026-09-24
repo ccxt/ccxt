@@ -945,6 +945,103 @@
                 "input": [],
                 "output": null
             }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "settled order history across all markets",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orders",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "settled order history for a single swap market",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orders?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "settled order history with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orders?symbol=ETH-USDT-PERP&beginTime=1790150400000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            },
+            {
+                "description": "settled trigger order history",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orderComplexs?symbol=ETH-USDT-PERP&complexType=trigger",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders are served by the settled order history endpoint",
+                "method": "fetchClosedOrders",
+                "url": "https://api.umx.com/api/v2/history/orders?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "trade history for a single swap market",
+                "method": "fetchMyTrades",
+                "url": "https://api.umx.com/api/v2/history/trades?symbol=ETH-USDT-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "trade history across all markets",
+                "method": "fetchMyTrades",
+                "url": "https://api.umx.com/api/v2/history/trades",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "trade history with since and limit, the limit stays off the wire when since is present",
+                "method": "fetchMyTrades",
+                "url": "https://api.umx.com/api/v2/history/trades?symbol=ETH-USDT-PERP&beginTime=1790150400000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1790150400000,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel several orders in a batch by their ids",
+                "method": "cancelOrders",
+                "url": "https://api.umx.com/api/v1/trade/batchCancelOrder",
+                "input": [
+                    [
+                        "3538122818192056320"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"orderCreateReq\":[{\"symbol\":\"ETH-USDT-PERP\",\"orderId\":\"3538122818192056320\"}]}"
+            }
         ]
     },
     "outputType": "both"

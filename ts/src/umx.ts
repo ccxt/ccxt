@@ -38,7 +38,7 @@ export default class umx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
@@ -57,8 +57,8 @@ export default class umx extends Exchange {
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
-                'fetchCanceledAndClosedOrders': false,
-                'fetchClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true, // private
@@ -78,7 +78,7 @@ export default class umx extends Exchange {
                 'fetchMarginMode': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -512,7 +512,12 @@ export default class umx extends Exchange {
                         'iceberg': false,
                     },
                     'createOrders': undefined,
-                    'fetchMyTrades': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'daysBack': undefined,
+                        'limit': 100,
+                        'symbolRequired': false,
+                    },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
@@ -527,7 +532,16 @@ export default class umx extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOHLCV': {
                         'limit': 1000, // the venue rejects a bigger limit with error 40008
                     },
@@ -1823,24 +1837,72 @@ export default class umx extends Exchange {
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // the public rows carry id, side, price, qty and time. a private fetchMyTrades row is a
+        // live capture below, with the account ids masked. the venue signs its fee the other way
+        // around, a positive fee is a rebate
+        //
+        //     {
+        //         "accountName": "1000000000000000000",
+        //         "id": "3538114212218466306",
+        //         "orderId": "3538114212218449920",
+        //         "clientOrderId": "3538114212218449920",
+        //         "businessType": "linear_perpetual",
+        //         "symbol": "ETH-USDT-PERP",
+        //         "pnl": "-0.00158",
+        //         "orderType": "market",
+        //         "side": "sell",
+        //         "fillPrice": "2691.34",
+        //         "tradeId": "3538114212218466306",
+        //         "role": "taker",
+        //         "fillQty": "0.001",
+        //         "fillTime": "1790236963181",
+        //         "lever": "10",
+        //         "feeCurrency": "USDT",
+        //         "fee": "-0.00134567",
+        //         "eventId": "1",
+        //         "quoteId": "",
+        //         "quoteSetId": "",
+        //         "indexPrice": "0",
+        //         "markPrice": "0",
+        //         "forwardPrice": "0",
+        //         "markIv": "0",
+        //         "riskReducing": false,
+        //         "iv": "0",
+        //         "matchId": "12513217912",
+        //         "tag": "",
+        //         "execType": "trade",
+        //         "cid": "100000000000002",
+        //         "pid": "1000000000000000000",
+        //         "uid": "100000000000001"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (trade, 'time');
+        const timestamp = this.safeInteger2 (trade, 'time', 'fillTime');
+        let fee = undefined;
+        const feeString = this.safeString (trade, 'fee');
+        if ((feeString !== undefined) && (!Precise.stringEq (feeString, '0'))) {
+            fee = {
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
+                'cost': Precise.stringNeg (feeString),
+            };
+        }
         // qty is denominated in the base currency on every instrument type
         return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString2 (trade, 'tradeId', 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': undefined,
-            'type': undefined,
+            'order': this.safeString (trade, 'orderId'),
+            'type': this.safeString (trade, 'orderType'),
             'side': this.safeString (trade, 'side'),
-            'takerOrMaker': undefined,
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'qty'),
+            'takerOrMaker': this.safeString (trade, 'role'),
+            'price': this.safeString2 (trade, 'price', 'fillPrice'),
+            'amount': this.safeString2 (trade, 'qty', 'fillQty'),
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
@@ -3497,6 +3559,183 @@ export default class umx extends Exchange {
         //     }
         //
         return [ this.safeOrder ({ 'info': response }) ];
+    }
+
+    /**
+     * @method
+     * @name umx#fetchCanceledAndClosedOrders
+     * @description fetch the history of settled orders, the venue keeps the open ones out of this history entirely, which is why the unified fetchOrders cannot be served
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/get-historical-orders
+     * @see https://www.umx.com/docs/coin-apis/trading/complex-order-trading/get-historical-complex-orders
+     * @param {string} [symbol] unified market symbol to narrow the answer to a single market
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest order to fetch
+     * @param {boolean} [params.trigger] true fetches the trigger order history instead
+     * @param {string} [params.complexType] "trigger" (default) or "tpsl", the flavour the trigger history serves
+     * @param {string} [params.orderFilter] "order" (default) or "oco", regular orders only
+     * @param {string} [params.businessType] the exchange instrument type to narrow the answer to, e.g. "spot"
+     * @param {boolean} [params.paginate] default false, when true fetches the orders in multiple calls, walking backwards from the newest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'paginate');
+        if (paginate) {
+            // the venue documents beginId and endId cursors, but the transfer history proved the
+            // family broken venue side, so the pagination walks on endTime, see fetchTransfers
+            return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params, 100) as Order[];
+        }
+        let market: Market = undefined;
+        let request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, 'fetchCanceledAndClosedOrders', 'trigger', 'stop', false);
+        let response = undefined;
+        if (isTrigger) {
+            let complexType: Str = undefined;
+            [ complexType, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'complexType', 'trigger');
+            request['complexType'] = complexType;
+            response = await this.privateGetV2HistoryOrderComplexs (this.extend (request, params));
+            // the rows share the shape fetchOpenOrders documents for trigger orders
+        } else {
+            response = await this.privateGetV2HistoryOrders (this.extend (request, params));
+            // the rows share the shape fetchOrder documents
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name umx#fetchClosedOrders
+     * @description fetch the filled orders, a filtered view of fetchCanceledAndClosedOrders, the venue has no history of its own for them
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/get-historical-orders
+     * @param {string} [symbol] unified market symbol to narrow the answer to a single market
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum amount of entries the underlying history call returns before the closed ones are filtered out of it
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed') as Order[];
+    }
+
+    /**
+     * @method
+     * @name umx#fetchMyTrades
+     * @description fetch the trades made by the account
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/get-account-trade-history
+     * @param {string} [symbol] unified market symbol to narrow the answer to a single market
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of entries to return, the venue defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {string} [params.businessType] the exchange instrument type to narrow the answer to, e.g. "spot"
+     * @param {boolean} [params.paginate] default false, when true fetches the trades in multiple calls, walking backwards from the newest entry
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
+        }
+        let market: Market = undefined;
+        let request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since === undefined) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['beginTime'] = since;
+            // limit keeps the newest entries of the requested range rather than the ones that
+            // follow since, so it is left out here and applied to the parsed result instead
+        }
+        const response = await this.privateGetV2HistoryTrades (this.extend (request, params));
+        // the private rows extend the public trade shape, parseTrade carries a live sample
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name umx#cancelOrders
+     * @description cancel several open orders in one call. the venue only acknowledges that each cancellation was accepted
+     * @see https://www.umx.com/docs/coin-apis/trading/regular-trading/batch-cancel
+     * @param {string[]} ids the order ids
+     * @param {string} [symbol] unified symbol of the market the orders were placed in, required, every order of the batch lives there
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] cancel by the client order ids instead of the order ids
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
+        params = this.omit (params, 'clientOrderIds');
+        const items = [];
+        if (clientOrderIds !== undefined) {
+            for (let i = 0; i < clientOrderIds.length; i++) {
+                items.push ({
+                    'symbol': market['id'],
+                    'clientOrderId': clientOrderIds[i],
+                });
+            }
+        } else {
+            for (let i = 0; i < ids.length; i++) {
+                items.push ({
+                    'symbol': market['id'],
+                    'orderId': ids[i],
+                });
+            }
+        }
+        const request: Dict = {
+            'orderCreateReq': items,
+        };
+        const response = await this.privatePostV1TradeBatchCancelOrder (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": [
+        //             {
+        //                 "orderId": "1322577577491374080",
+        //                 "code": "0",
+        //                 "msg": "success",
+        //                 "ts": "1732158178000"
+        //             }
+        //         ],
+        //         "ts": "1732158178000"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     parseOrderStatus (status: Str): Str {
