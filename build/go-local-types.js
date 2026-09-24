@@ -1246,7 +1246,21 @@ function goIdentifierImportedFromErrors (identifier) {
     return false;
 }
 
+// memoised per initializer; a re-entrant query during its own proof answers undefined (fail closed)
 function ccxtGoTypeOfAddChainInitializer (goTranspiler, initializer, printedValue) {
+    if ((initializer === undefined) || (initializer === null) || (typeof initializer !== 'object')) {
+        return undefined;
+    }
+    goTranspiler.ccxtGoAddChainTypes ??= new WeakMap ();
+    const cache = goTranspiler.ccxtGoAddChainTypes;
+    if (!cache.has (initializer)) {
+        cache.set (initializer, undefined);
+        cache.set (initializer, ccxtGoTypeOfAddChainInitializerUncached (goTranspiler, initializer, printedValue));
+    }
+    return cache.get (initializer);
+}
+
+function ccxtGoTypeOfAddChainInitializerUncached (goTranspiler, initializer, printedValue) {
     const declaration = initializer?.parent;
     if ((initializer?.kind !== ts.SyntaxKind.BinaryExpression) || (initializer.operatorToken?.kind !== ts.SyntaxKind.PlusToken)
         || (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.initializer !== initializer)
