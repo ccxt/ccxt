@@ -5905,6 +5905,59 @@ function ccxtGoAsyncScalarReceive (goTranspiler, awaitNode, call) {
     return { goType: scalar[0], wrap: (recv) => scalar[1] + '(PanicOnError(' + recv.trim () + '))' };
 }
 
+// newUpdates branch of a ws method declared Promise<Tickers|FundingRates>: the awaited value is only
+// read by key and stored as `d[x['symbol']] = x`, so TS types it as that dict's plain-dict value
+const CCXT_GO_WS_KEYED_STRUCTURE_RETURNS = /^Promise<\s*(Tickers|FundingRates)\s*>$/;
+
+function ccxtGoWsKeyedStructureRead (n) {
+    const parent = n.parent;
+    if ((parent?.kind === ts.SyntaxKind.ElementAccessExpression) && (parent.expression === n)) {
+        const grandparent = parent.parent;
+        const isWrite = (grandparent?.kind === ts.SyntaxKind.BinaryExpression) && (grandparent.left === parent);
+        return !isWrite && (parent.argumentExpression?.kind === ts.SyntaxKind.StringLiteral);
+    }
+    if ((parent?.kind !== ts.SyntaxKind.BinaryExpression) || (parent.right !== n)
+        || (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) || (parent.parent?.kind !== ts.SyntaxKind.ExpressionStatement)) {
+        return false;
+    }
+    const target = parent.left;
+    const key = target?.argumentExpression;
+    return (target?.kind === ts.SyntaxKind.ElementAccessExpression) && (target.expression.kind === ts.SyntaxKind.Identifier)
+        && (key?.kind === ts.SyntaxKind.ElementAccessExpression) && (key.expression.kind === ts.SyntaxKind.Identifier)
+        && (key.expression.escapedText === n.escapedText) && (key.argumentExpression?.kind === ts.SyntaxKind.StringLiteral)
+        && (key.argumentExpression.text === 'symbol');
+}
+
+function ccxtGoWsKeyedStructureReceive (goTranspiler, awaitNode, text) {
+    const declaration = ccxtGoAsyncReceiveDeclaration (awaitNode);
+    if ((declaration === undefined) || (declaration.initializer !== awaitNode) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+        || (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function') || (typeof goTranspiler.goEnclosingFunction !== 'function')
+        || !ccxtGoWsListSourceFile (awaitNode) || !/^\(\s*<-\s*this\.\w+\s*\(/.test (text)) {
+        return undefined;
+    }
+    const callee = awaitNode.expression?.expression;
+    if ((callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword)
+        || !ccxtGoAsyncDeclaredShapeAgrees (goTranspiler, callee, 'map[string]any')) {
+        return undefined;
+    }
+    const method = goTranspiler.goEnclosingFunction (declaration);
+    if ((method?.kind !== ts.SyntaxKind.MethodDeclaration) || !CCXT_GO_WS_KEYED_STRUCTURE_RETURNS.test (method.type?.getText?. () ?? '')) {
+        return undefined;
+    }
+    const name = declaration.name.escapedText;
+    let stored = false;
+    const visit = (node) => {
+        stored = stored || ((node.kind === ts.SyntaxKind.Identifier) && (node.escapedText === name) && (node !== declaration.name)
+            && (node.parent?.kind === ts.SyntaxKind.BinaryExpression) && ccxtGoWsKeyedStructureRead (node));
+        ts.forEachChild (node, visit);
+    };
+    visit (method);
+    if (!stored || (goTranspiler.goDeclaredLocalTypeIfSafe (declaration, 'map[string]any', ccxtGoWsKeyedStructureRead) === undefined)) {
+        return undefined;
+    }
+    return { goType: 'map[string]any', wrap: (recv) => 'MapTyped(PanicOnError(' + recv.trim () + '))' };
+}
+
 // The hook the printer consults for all three await shapes.  Fail closed: undefined keeps the
 // boxed `x := (<-...)` + `PanicOnError(x)` emission byte-for-byte.
 export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitializer) {
@@ -5919,6 +5972,10 @@ export function ccxtGoAwaitReceiveUnbox (goTranspiler, awaitNode, printedInitial
     const special = ccxtGoAwaitSpecialReceive (goTranspiler, awaitNode, text);
     if (special !== undefined) {
         return special;
+    }
+    const keyed = ccxtGoWsKeyedStructureReceive (goTranspiler, awaitNode, text);
+    if (keyed !== undefined) {
+        return keyed;
     }
     const printed = CCXT_GO_ASYNC_RECV_CALL.exec (text);
     if (printed === null) {
