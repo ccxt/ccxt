@@ -7610,7 +7610,7 @@ export default class bybit extends Exchange {
         return this.parseBorrowRate (coin, currency);
     }
 
-    override parseBorrowRate (info: Dict, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         // fetchCrossBorrowRate
         //     {

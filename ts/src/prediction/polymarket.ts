@@ -805,14 +805,8 @@ export default class polymarket extends Exchange {
                     'info': market,
                 });
             }
-            let baseId: Str = marketId;
-            if (conditionId !== undefined) {
-                baseId = conditionId;
-            }
-            let marketType: Str = 'binary';
-            if (outcomeLabelsLength > 2) {
-                marketType = 'categorical';
-            }
+            const baseId = (conditionId !== undefined) ? conditionId : marketId;
+            const marketType = (outcomeLabelsLength > 2) ? 'categorical' : 'binary';
             // effectively-final copy for the market object literal below (reassigned in the loop)
             const marketResolvedOutcome = resolvedOutcome;
             result.push ({

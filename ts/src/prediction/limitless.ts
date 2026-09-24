@@ -1890,10 +1890,11 @@ export default class limitless extends Exchange {
         const rawSide = this.safeString (rawOrder, 'side');
         const side = this.parseOrderSide (rawSide);
         const price = this.safeString (rawOrder, 'price');
+        // todo check
         let amountKey: Str = 'makerAmount';
         if (side === 'buy') {
             amountKey = 'takerAmount';
-        } // todo check
+        }
         const amount = this.safeString (rawOrder, amountKey);
         const remaining = this.safeString (rawOrder, 'remainingSize');
         const datetime = this.safeString (rawOrder, 'createdAt');

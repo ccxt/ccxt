@@ -3373,7 +3373,7 @@ export default class digifinex extends Exchange {
         return this.parseBorrowRates (result, 'currency');
     }
 
-    override parseBorrowRate (info: NullableDict, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "valuation_rate": 1,

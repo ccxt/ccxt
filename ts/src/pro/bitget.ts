@@ -1679,10 +1679,11 @@ export default class bitget extends bitgetRest {
         if (isTrigger === true) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
+        // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let instId: Str = 'default';
         if (type === 'spot' || type === 'margin') {
             instId = marketId;
-        } // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        }
         let channel: Str = 'orders';
         if (isTrigger === true) {
             channel = 'orders-algo';

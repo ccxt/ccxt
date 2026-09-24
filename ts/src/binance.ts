@@ -13653,7 +13653,7 @@ export default class binance extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info: NullableDict, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "USDT",

@@ -9262,7 +9262,7 @@ export default class kucoin extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override parseBorrowRate (info: Dict, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "tradeId": "62db2dcaff219600012b56cd",
