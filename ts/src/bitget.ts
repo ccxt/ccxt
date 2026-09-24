@@ -11075,7 +11075,7 @@ export default class bitget extends Exchange {
         return this.parseBorrowRate (result, currency);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: Dict, currency: Currency = undefined) {
         //
         // default
         //

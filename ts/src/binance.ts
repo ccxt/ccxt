@@ -12759,7 +12759,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any, market: any) {
+    parseSettlements (settlements: any[], market: Market) {
         //
         // fetchSettlementHistory
         //
@@ -13617,7 +13617,7 @@ export default class binance extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: NullableDict, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "USDT",
@@ -14043,7 +14043,7 @@ export default class binance extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         //     {
         //         "tranId": 108988250265,

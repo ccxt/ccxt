@@ -7572,7 +7572,7 @@ export default class bybit extends Exchange {
         return this.parseBorrowRate (coin, currency);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: Dict, currency: Currency = undefined) {
         //
         // fetchCrossBorrowRate
         //     {
@@ -7927,7 +7927,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    parseMarginLoan (info: any, currency: Currency = undefined): MarginLoan {
+    parseMarginLoan (info: Dict, currency: Currency = undefined): MarginLoan {
         //
         // borrowCrossMargin
         //
@@ -8445,7 +8445,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any[], market: any): List {
+    parseSettlements (settlements: any[], market: Market): List {
         //
         // fetchSettlementHistory
         //

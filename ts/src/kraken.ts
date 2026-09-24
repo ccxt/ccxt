@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -988,13 +988,13 @@ export default class kraken extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    parseTradingFee (response: Dict, market: any): TradingFeeInterface {
-        const makerFees = this.safeDict (response, 'fees_maker', {});
-        const takerFees = this.safeDict (response, 'fees', {});
+    parseTradingFee (fee: Dict, market: MarketInterface): TradingFeeInterface {
+        const makerFees = this.safeDict (fee, 'fees_maker', {});
+        const takerFees = this.safeDict (fee, 'fees', {});
         const symbolMakerFee = this.safeDict (makerFees, market['id'], {});
         const symbolTakerFee = this.safeDict (takerFees, market['id'], {});
         return {
-            'info': response,
+            'info': fee,
             'symbol': market['symbol'],
             'maker': this.parseNumber (Precise.stringDiv (this.safeString (symbolMakerFee, 'fee'), '100')),
             'taker': this.parseNumber (Precise.stringDiv (this.safeString (symbolTakerFee, 'fee'), '100')),
