@@ -650,7 +650,7 @@ export default class bitfinex extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const pairObj = markets[i];
             const id = this.safeStringUpper (pairObj, 0);
-            const market = this.safeList (pairObj, 1, []);
+            const market = this.safeValue (pairObj, 1, {});
             let spot = true;
             let type: Str = undefined;
             if ((id as string).indexOf ('F0') >= 0) {

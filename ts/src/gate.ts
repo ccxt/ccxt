@@ -3430,7 +3430,7 @@ export default class gate extends Exchange {
         let data = response;
         if ('balances' in data) { // True for cross_margin and unified
             const flatBalances: Dict[] = [];
-            const balances = this.safeDict (data, 'balances', {});
+            const balances = this.safeValue (data, 'balances', []);
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             const keys = Object.keys (balances);
