@@ -6201,7 +6201,7 @@ export default class coinex extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
         if (method === 'POST') {
-            const parts = path.split ('/');
+            const parts: string[] = path.split ('/');
             const firstPart = this.safeString (parts, 0, '');
             const numParts = parts.length;
             const lastPart = this.safeString (parts, numParts - 1, '');

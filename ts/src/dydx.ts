@@ -2513,7 +2513,7 @@ export default class dydx extends Exchange {
 
     override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.urls['api'][section];
+        let url: string = this.urls['api'][section];
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         url += '/' + pathWithParams;
