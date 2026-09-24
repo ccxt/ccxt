@@ -716,6 +716,10 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
+    def nonce(self) -> float:
+        # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return self.milliseconds()
+
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
@@ -725,7 +729,8 @@ class coinspot(Exchange, ImplicitAPI):
         url = self.urls['api'][accessType] + fullPath
         if accessType == 'private':
             self.check_required_credentials()
-            nonce = self.nonce()
+            # coinspot requires an increasing nonce
+            nonce = self.incrementing_nonce()
             body = self.json(self.extend({'nonce': nonce}, params))
             headers = {
                 'Content-Type': 'application/json',

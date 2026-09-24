@@ -1303,6 +1303,10 @@ func (this *Mercado) OrdersToTrades(orders any) any {
 	}
 	return result
 }
+func (this *Mercado) Nonce() any {
+	// the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+	return this.Milliseconds()
+}
 func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
@@ -1324,7 +1328,8 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		url = Add(url, this.Version+"/")
-		var nonce any = this.Nonce()
+		// mercado requires each tonce to be greater than the previous one
+		var nonce any = this.IncrementingNonce()
 		body = this.Urlencode(this.Extend(map[string]any{
 			"tapi_method": path,
 			"tapi_nonce":  nonce,

@@ -1382,10 +1382,13 @@ function writeTestCoreRegistry(): void {
         L.push('};');
         L.push('');
     }
-    for (const id of predDup) {
+    // every prediction Core also gets its `Pred<Id>Core` alias, not only the ids shared with
+    // a REST venue: live_dispatch.rs names PredBinanceCore / PredHyperliquidCore by hand, and
+    // a scoped (pruned) build may have dropped the REST twin
+    for (const id of pred) {
         L.push(`pub(crate) use ccxt::prediction::${id}::${capitalize(id)}Core as Pred${capitalize(id)}Core;`);
     }
-    if (predDup.length) L.push('');
+    if (pred.length) L.push('');
     if (pro.length) {
         L.push('pub(crate) use ccxt_pro::pro::{');
         for (const id of pro) L.push(`    ${id}::${capitalize(id)}Core as Ws${capitalize(id)}Core,`);

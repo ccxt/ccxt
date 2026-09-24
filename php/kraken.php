@@ -3683,7 +3683,8 @@ class kraken extends Exchange {
             $isCancelOrderBatch = ($path === 'CancelOrderBatch');
             $isBatchOrder = ($path === 'AddOrderBatch');
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            $nonce = (string) $this->incrementing_nonce();
             if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {

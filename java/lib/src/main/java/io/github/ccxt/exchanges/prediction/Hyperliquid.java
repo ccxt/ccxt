@@ -175,6 +175,13 @@ public class Hyperliquid extends HyperliquidApi
         Helpers.addElementToObject(this.options, "sandboxMode", enabled);
     }
 
+    public Object nonce()
+    {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return this.milliseconds();
+    }
+
     /**
      * @ignore
      * @method
@@ -1614,7 +1621,7 @@ public class Hyperliquid extends HyperliquidApi
             String marketSymbol = this.safeString(outcomeObj, "market");
             Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Long nonce = this.milliseconds();
+            Object nonce = this.incrementingNonce();
             Boolean isBuy = (java.util.Objects.equals(((String)side).toUpperCase(), "BUY"));
             Boolean isMarket = (java.util.Objects.equals(((String)type).toUpperCase(), "MARKET"));
             Long assetId = this.safeInteger(outcomeInfo, "assetId");
@@ -1846,7 +1853,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long assetId = this.safeInteger(outcomeInfo, "assetId");
-            Long nonce = this.milliseconds();
+            Object nonce = this.incrementingNonce();
             Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             List<Object> cancelReq = new ArrayList<Object>(Arrays.asList());
@@ -2967,7 +2974,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Long nonce = this.milliseconds();
+            Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             final Boolean finalIsSandboxMode = isSandboxMode;
             Map<String, Object> payload = new HashMap<String, Object>() {{

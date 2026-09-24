@@ -107,7 +107,9 @@ impl crate::exchange::DerivedExchange for WhitebitCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on WhitebitCore.
-        WhitebitCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const WhitebitCore as *mut WhitebitCore) };
+        WhitebitCore::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on WhitebitCore.
@@ -5701,7 +5703,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -5729,7 +5731,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         if (accessibility.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = to_string_val(&self.nonce());
+            // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            let mut nonce: Value = to_string_val(&self.incrementing_nonce());
             let mut secret: Value = self.encode(self.secret.clone());
             let mut request: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api".into())).into()), Value::Str("/".into())).into()), &version), pathWithParams).into());
             let mut nonceWindowrequestParamsVariable = self.handle_option_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]);

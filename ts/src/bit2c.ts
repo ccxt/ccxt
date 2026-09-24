@@ -1056,7 +1056,8 @@ export default class bit2c extends Exchange {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
+            // bit2c requires an increasing nonce per key
+            const nonce = this.incrementingNonce ();
             const query = this.extend ({
                 'nonce': nonce,
             }, params);

@@ -1280,7 +1280,7 @@ export default class derive extends Exchange {
         const orderType = type.toLowerCase ();
         const orderSide = (side as string).toLowerCase ();
         const orderSideIsBuy = (orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
@@ -1472,7 +1472,7 @@ export default class derive extends Exchange {
         const orderType = type.toLowerCase ();
         const orderSide = (side as string).toLowerCase ();
         const orderSideIsBuy = (orderSide === 'buy'); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', this.seconds () + 7776000);
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
@@ -2766,6 +2766,12 @@ export default class derive extends Exchange {
             throw new ExchangeError (feedback);
         }
         return undefined;
+    }
+
+    override nonce (): number {
+        // the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
+        // incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
+        return this.milliseconds ();
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {

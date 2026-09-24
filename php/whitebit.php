@@ -4271,7 +4271,8 @@ class whitebit extends Exchange {
         }
         if ($accessibility === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            $nonce = (string) $this->incrementing_nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
             list($nonceWindow, $requestParams) = $this->handle_option_and_params($params, 'sign', 'nonceWindow', false);

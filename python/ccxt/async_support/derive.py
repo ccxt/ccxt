@@ -1243,7 +1243,7 @@ class derive(Exchange, ImplicitAPI):
         orderType = type.lower()
         orderSide = side.lower()
         orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         # Order signature expiry must be between 2592000 and 7776000 sec from now
         signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
@@ -1425,7 +1425,7 @@ class derive(Exchange, ImplicitAPI):
         orderType = type.lower()
         orderSide = side.lower()
         orderSideIsBuy = (orderSide == 'buy')  # extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         signatureExpiry = self.safe_number(params, 'signature_expiry_sec', self.seconds() + 7776000)
         # TODO: subaccount id / trade module address
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
@@ -2630,6 +2630,11 @@ class derive(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)
         return None
+
+    def nonce(self) -> float:
+        # the order nonce is a millisecond timestamp and must be unique per wallet (error 11017), while staying a valid date (error 11018)
+        # incrementingNonce () reads this and bumps past the previous value when two orders share a millisecond
+        return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/' + path

@@ -305,7 +305,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $url = $this->urls['api']['ws']['public'];
-        $id = (string) $this->nonce();
+        $id = (string) $this->incrementing_nonce();
         $request = array(
             'id' => $id,
             'method' => 'unsubscribe',

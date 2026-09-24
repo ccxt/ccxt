@@ -2883,7 +2883,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
      * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
      * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
-     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -2964,17 +2964,16 @@ final Object finalClobTokenId = clobTokenId;
             List<Object> bodies = new ArrayList<Object>(Arrays.asList());
             List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
             List<Object> requests = new ArrayList<Object>(Arrays.asList());
-            Long batchSalt = this.milliseconds();
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object o = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(o, "params", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeString(orderParams, "salt"), null))
                 {
-                    // a distinct salt per order so two identical orders in one batch don't collide
-                    final Object finalI = i;
+                    // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                    Object orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
                     orderParams = this.extend(orderParams, new HashMap<String, Object>() {{
-                        put( "salt", Polymarket.this.numberToString(Polymarket.this.sum(batchSalt, finalI)) );
+                        put( "salt", Polymarket.this.numberToString(orderSalt) );
                     }});
                 }
                 Map<String, Object> built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
@@ -3083,8 +3082,9 @@ final Object finalClobTokenId = clobTokenId;
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         Object eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         Object funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        String salt = this.safeString(parameters, "salt", this.numberToString(this.milliseconds()));
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        Object defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        String salt = this.safeString(parameters, "salt", this.numberToString(defaultSalt));
         String timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         String expiration = this.safeString(parameters, "expiration", "0");
@@ -3949,6 +3949,13 @@ final Object finalClobTokenId = clobTokenId;
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
         }
         return null;
+    }
+
+    public Object nonce()
+    {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two identical orders are signed within the same millisecond
+        return this.milliseconds();
     }
 
     /**

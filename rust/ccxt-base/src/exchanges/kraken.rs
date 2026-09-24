@@ -91,7 +91,9 @@ impl crate::exchange::DerivedExchange for KrakenCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenCore.
-        KrakenCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const KrakenCore as *mut KrakenCore) };
+        KrakenCore::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on KrakenCore.
@@ -4781,7 +4783,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4805,7 +4807,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isCancelOrderBatch: bool = path.as_str() == Some("CancelOrderBatch");
             let mut isBatchOrder: bool = path.as_str() == Some("AddOrderBatch");
             self.check_required_credentials(&[]);
-            let mut nonce: Value = to_string_val(&self.nonce());
+            // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            let mut nonce: Value = to_string_val(&self.incrementing_nonce());
             if isCancelOrderBatch || is_true(&isTriggerPercent) || isBatchOrder {
                 let __ws_arg_29 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();

@@ -169,7 +169,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         $subscribe = array(
             'method' => 'subscribe',
-            'id' => $this->nonce(),
+            'id' => $this->incrementing_nonce(),
             'ch' => $name,
         );
         $request = $this->extend($subscribe, $params);
@@ -200,7 +200,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $subscribe = array(
             'method' => $name,
             'params' => $params,
-            'id' => $this->nonce(),
+            'id' => $this->incrementing_nonce(),
         );
         return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
     }
@@ -220,7 +220,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['private'];
-        $messageHash = (string) $this->nonce();
+        $messageHash = (string) $this->incrementing_nonce();
         $subscribe = array(
             'method' => $name,
             'params' => $params,

@@ -2688,7 +2688,7 @@ public class Limitless extends LimitlessApi
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
             }
-            Long nonce = this.milliseconds();
+            Object nonce = this.incrementingNonce();
             Map<String, Object> sides = new HashMap<String, Object>() {{
                 put( "buy", 0 );
                 put( "sell", 1 );
@@ -4138,6 +4138,13 @@ public class Limitless extends LimitlessApi
     public CompletableFuture<Object> fetchRawMarketsByTags(Object tags, Object... optionalArgs)
     {
         return this.fetchRawMarketsByTags(tags, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
+
+    public Object nonce()
+    {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two orders are signed within the same millisecond
+        return this.milliseconds();
     }
 
     /**

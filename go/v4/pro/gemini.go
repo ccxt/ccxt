@@ -1141,7 +1141,7 @@ func (this *Gemini) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var request string = ccxt.Slice(url, startIndex, endIndex)
 	var payload map[string]any = map[string]any{
 		"request": request,
-		"nonce":   this.Nonce(),
+		"nonce":   this.IncrementingNonce(),
 	}
 	var b64 string = this.StringToBase64(this.Json(payload))
 	var signature string = this.Hmac(this.Encode(b64), this.Encode(this.Secret), ccxt.Sha384, "hex")

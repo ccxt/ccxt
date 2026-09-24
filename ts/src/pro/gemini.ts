@@ -958,7 +958,7 @@ export default class gemini extends geminiRest {
         const request = url.slice (startIndex, endIndex);
         const payload: Dict = {
             'request': request,
-            'nonce': this.nonce (),
+            'nonce': this.incrementingNonce (), // must be greater than the previously used nonce, shared with the REST counter
         };
         const b64 = this.stringToBase64 (this.json (payload));
         const signature = this.hmac (this.encode (b64), this.encode (this.secret), sha384, 'hex');

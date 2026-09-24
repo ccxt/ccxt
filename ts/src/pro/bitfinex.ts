@@ -1034,7 +1034,8 @@ export default class bitfinex extends bitfinexRest {
         const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
-            const nonce = this.milliseconds ();
+            // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+            const nonce = this.incrementingNonce ();
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
             const event = 'auth';

@@ -1148,6 +1148,11 @@ export default class independentreserve extends Exchange {
         } as Transaction;
     }
 
+    override nonce (): number {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds ();
+    }
+
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
@@ -1156,7 +1161,8 @@ export default class independentreserve extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
+            // independentreserve requires an increasing nonce
+            const nonce = this.incrementingNonce ();
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,

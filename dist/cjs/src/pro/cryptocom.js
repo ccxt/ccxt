@@ -517,7 +517,7 @@ class cryptocom extends cryptocom$1["default"] {
             messageHashes.push('ticker.' + marketId);
         }
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'method': 'subscribe',
             'params': {
@@ -667,7 +667,7 @@ class cryptocom extends cryptocom$1["default"] {
             topics.push('ticker.' + marketId);
         }
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'method': 'subscribe',
             'params': {
@@ -890,7 +890,7 @@ class cryptocom extends cryptocom$1["default"] {
         }
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'method': 'subscribe',
             'params': {
@@ -1107,7 +1107,7 @@ class cryptocom extends cryptocom$1["default"] {
             'method': 'private/create-order',
             'params': params,
         };
-        const messageHash = this.nonce();
+        const messageHash = this.incrementingNonce();
         return await this.watchPrivateRequest(messageHash, request);
     }
     /**
@@ -1134,7 +1134,7 @@ class cryptocom extends cryptocom$1["default"] {
             'method': 'private/amend-order',
             'params': params,
         };
-        const messageHash = this.nonce();
+        const messageHash = this.incrementingNonce();
         return await this.watchPrivateRequest(messageHash, request);
     }
     handleOrder(client, message) {
@@ -1175,7 +1175,7 @@ class cryptocom extends cryptocom$1["default"] {
             'method': 'private/cancel-order',
             'params': params,
         };
-        const messageHash = this.nonce();
+        const messageHash = this.incrementingNonce();
         return await this.watchPrivateRequest(messageHash, request);
     }
     /**
@@ -1200,7 +1200,7 @@ class cryptocom extends cryptocom$1["default"] {
             market = this.market(symbol);
             request['params']['instrument_name'] = market['id'];
         }
-        const messageHash = this.nonce();
+        const messageHash = this.incrementingNonce();
         return await this.watchPrivateRequest(messageHash, request);
     }
     handleCancelAllOrders(client, message) {
@@ -1216,7 +1216,7 @@ class cryptocom extends cryptocom$1["default"] {
     }
     async watchPublic(messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'method': 'subscribe',
             'params': {
@@ -1229,7 +1229,7 @@ class cryptocom extends cryptocom$1["default"] {
     }
     async watchPublicMultiple(messageHashes, topics, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'method': 'subscribe',
             'params': {
@@ -1242,7 +1242,7 @@ class cryptocom extends cryptocom$1["default"] {
     }
     async unWatchPublicMultiple(topic, symbols, messageHashes, subMessageHashes, topics, params = {}, subExtend = {}) {
         const url = this.urls['api']['ws']['public'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'method': 'unsubscribe',
             'params': {
@@ -1274,7 +1274,7 @@ class cryptocom extends cryptocom$1["default"] {
     async watchPrivateSubscribe(messageHash, params = {}) {
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
-        const id = this.nonce();
+        const id = this.incrementingNonce();
         const request = {
             'method': 'subscribe',
             'params': {
@@ -1413,7 +1413,7 @@ class cryptocom extends cryptocom$1["default"] {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const method = 'public/auth';
-            const nonce = this.nonce().toString();
+            const nonce = this.incrementingNonce().toString();
             const auth = method + nonce + this.apiKey + nonce;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             const request = {

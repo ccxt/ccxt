@@ -1311,7 +1311,9 @@ class p2b(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         if api == 'private':
             params['request'] = '/api/v2/' + path
-            params['nonce'] = str(self.nonce())
+            # p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            # the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            params['nonce'] = str(self.incrementing_nonce())
             payload = self.string_to_base64(self.json(params))  # Body json encoded in base64
             headers = {
                 'Content-Type': 'application/json',

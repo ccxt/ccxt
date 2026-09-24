@@ -1950,7 +1950,8 @@ class bitso extends bitso$1["default"] {
         const url = this.urls['api']['rest'] + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // bitso rejects a nonce that is not higher than the previous one (error 104)
+            const nonce = this.incrementingNonce().toString();
             endpoint = '/api' + endpoint;
             const content = [nonce, method, endpoint];
             let request = content.join('');

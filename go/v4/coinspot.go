@@ -1179,6 +1179,10 @@ func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any
 	}
 	return nil
 }
+func (this *Coinspot) Nonce() any {
+	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+	return this.Milliseconds()
+}
 func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
@@ -1213,7 +1217,8 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), accessType), fullPath)
 	if IsEqual(accessType, "private") {
 		this.CheckRequiredCredentials()
-		var nonce any = this.Nonce()
+		// coinspot requires an increasing nonce
+		var nonce any = this.IncrementingNonce()
 		body = this.Json(this.Extend(map[string]any{
 			"nonce": nonce,
 		}, params))

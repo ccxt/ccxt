@@ -273,7 +273,7 @@ class whitebit(ccxt.async_support.whitebit):
         symbols = self.market_symbols(symbols, None, False)
         method = 'market_subscribe'
         url = self.urls['api']['ws']
-        id = self.nonce()
+        id = self.incrementing_nonce()
         messageHashes = []
         args = []
         for i in range(0, len(symbols)):
@@ -816,7 +816,7 @@ class whitebit(ccxt.async_support.whitebit):
 
     async def watch_public(self, messageHash: str, method: str, reqParams: list[object] = [], params: dict = {}):
         url = self.urls['api']['ws']
-        id = self.nonce()
+        id = self.incrementing_nonce()
         request = {
             'id': id,
             'method': method,
@@ -829,7 +829,7 @@ class whitebit(ccxt.async_support.whitebit):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']
-        id = self.nonce()
+        id = self.incrementing_nonce()
         client = self.safe_value(self.clients, url)
         request = None
         marketIds = []
@@ -881,7 +881,7 @@ class whitebit(ccxt.async_support.whitebit):
         self.check_required_credentials()
         await self.authenticate()
         url = self.urls['api']['ws']
-        id = self.nonce()
+        id = self.incrementing_nonce()
         request = {
             'id': id,
             'method': method,
@@ -934,7 +934,7 @@ class whitebit(ccxt.async_support.whitebit):
                 # reject instead of authorizing with an empty credential, the
                 # venue answers that with an opaque socket drop
                 raise AuthenticationError(self.id + ' authenticate() received an empty websocket_token')
-            id = self.nonce()
+            id = self.incrementing_nonce()
             request = {
                 'id': id,
                 'method': 'authorize',

@@ -1142,24 +1142,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         };
         match self.fetch_typed(&url_str, &method_str, headers_map, body_str).await {
             Ok(v) => v,
-            // Propagate, do NOT swallow. Returning `Value::Null` here hid every
-            // transport-level failure — network errors, and `InvalidProxySettings`,
-            // which the static request tests rely on: they set two conflicting
-            // proxies so `fetch` aborts right after the request is built, then
-            // assert on the captured URL/body. Swallowed, the method instead ran
-            // on with a null response, so a venue that validates what it parsed
-            // (bitstamp's fetchDepositAddress -> checkAddress) failed with a
-            // misleading `InvalidAddress` instead of aborting. `panic!` is the
-            // transpiled error convention — `ExchangeError`'s Display renders
-            // `[Kind] message`, which `is_instance` matches on.
-            Err(e) if e.kind == "InvalidProxySettings" => panic!("{}", e),
-            // Everything else is still swallowed, which is also wrong — a real
-            // network failure should reach the caller. It cannot be propagated
-            // yet: the transpiler drops `catch` blocks (test.fetchHistory.ts's
-            // `try { fetch2('sample1') } catch { ... }` lowers to a bare block),
-            // so the panic escapes a test TS expects to swallow. Propagating
-            // everything needs that lowering fixed first.
-            Err(_) => Value::Null,
+            // `panic!` is the transpiled error convention — `ExchangeError`'s Display
+            // renders `[Kind] message`, which `is_instance` matches on.
+            Err(e) => panic!("{}", e),
         }
     } }
 
@@ -1466,6 +1451,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let __http_t0 = std::time::Instant::now();
         let resp = req.send().await?;
         let status = resp.status().as_u16();
+        let reason = resp.status().canonical_reason().unwrap_or("");
         let text   = resp.text().await?;
         HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed);
@@ -1487,20 +1473,30 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         };
         JSON_NANOS.fetch_add(__json_t0.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed);
-        if status >= 400 {
-            // Static dispatch to the derived exchange's handle_errors override.
-            crate::exchange::DerivedExchange::handle_errors(
-                self,
+        // Venues also report failures in a 2xx body, so every response goes through
+        // the derived handle_errors; a Null result falls back to httpExceptions.
+        let handled = crate::exchange::DerivedExchange::handle_errors(
+            self,
+            Value::Int(status as i64),
+            Value::Str(reason.into()),
+            Value::Str(url.to_string().into()),
+            Value::Str(method.to_string().into()),
+            Value::Null,
+            Value::Str(text.clone().into()),
+            json.clone(),
+            Value::Null,
+            Value::Null,
+        );
+        if matches!(handled, Value::Null) {
+            self.handle_http_status_code(
                 Value::Int(status as i64),
-                Value::Null,
+                Value::Str(reason.into()),
                 Value::Str(url.to_string().into()),
                 Value::Str(method.to_string().into()),
-                Value::Null,
                 Value::Str(text.clone().into()),
-                json.clone(),
-                Value::Null,
-                Value::Null,
             );
+        }
+        if status >= 400 {
             return Err(ExchangeError::new(
                 if status == 429 { "RateLimitExceeded" }
                 else if status >= 500 { "ExchangeNotAvailable" }
@@ -2829,5 +2825,90 @@ mod cow_alias_tests {
             assert_eq!(get_array_length(&col), Value::Int(2),
                 "result['{key}'] lost its pushes — COW write-back failed");
         }
+    }
+}
+
+#[cfg(test)]
+mod http_error_tests {
+    use super::{BaseCore, DerivedExchange, Exchange, ExchangeRuntime};
+    use crate::Value;
+    use futures::FutureExt;
+    use std::io::{Read, Write};
+
+    // Answers one request on a local port with the given status line and body.
+    fn serve_once(status_line: &'static str, body: &'static str) -> String {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/", listener.local_addr().unwrap());
+        std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut request = [0u8; 4096];
+            let _ = stream.read(&mut request);
+            let response = format!(
+                "HTTP/1.1 {status_line}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                body.len(),
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+        });
+        url
+    }
+
+    // A venue that reports failures inside a 200 body, the way okx does.
+    struct EnvelopeCore {
+        exchange: Exchange,
+    }
+    impl std::ops::Deref for EnvelopeCore {
+        type Target = Exchange;
+        fn deref(&self) -> &Exchange { &self.exchange }
+    }
+    impl std::ops::DerefMut for EnvelopeCore {
+        fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
+    }
+    impl DerivedExchange for EnvelopeCore {
+        fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
+            let code = crate::get_value(&response, &Value::Str("code".into()));
+            if !matches!(code, Value::Null) && code != Value::Str("0".into()) {
+                panic!("{}", crate::exchange_errors::create_error("InsufficientFunds", "code 51008"));
+            }
+            Value::Null
+        }
+    }
+    impl crate::exchange_generated::ExchangeBase for EnvelopeCore {
+        fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
+            -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
+        {
+            Box::pin(async move { self.call_dynamic_base(method, args).await })
+        }
+    }
+
+    async fn fetch_error<C: ExchangeRuntime + Send>(core: &mut C, url: String) -> String {
+        let outcome = std::panic::AssertUnwindSafe(core.fetch(Value::Str(url.into()), &[])).catch_unwind().await;
+        match outcome {
+            Ok(value) => format!("no error, returned {value:?}"),
+            Err(payload) => payload.downcast_ref::<String>().cloned().unwrap_or_default(),
+        }
+    }
+
+    #[tokio::test]
+    async fn an_error_in_a_2xx_body_reaches_handle_errors() {
+        let url = serve_once("200 OK", r#"{"code":"51008","msg":"Insufficient balance"}"#);
+        let mut core = EnvelopeCore { exchange: Exchange::new(None) };
+        let error = fetch_error(&mut core, url).await;
+        assert!(error.contains("InsufficientFunds"), "{error}");
+    }
+
+    #[tokio::test]
+    async fn a_status_in_http_exceptions_raises_its_class() {
+        let url = serve_once("401 Unauthorized", "{}");
+        let mut core = BaseCore::new(Exchange::new(None));
+        let error = fetch_error(&mut core, url).await;
+        assert!(error.contains("AuthenticationError"), "{error}");
+    }
+
+    #[tokio::test]
+    async fn a_status_outside_http_exceptions_still_fails() {
+        let url = serve_once("402 Payment Required", "{}");
+        let mut core = BaseCore::new(Exchange::new(None));
+        let error = fetch_error(&mut core, url).await;
+        assert!(error.contains("ExchangeError"), "{error}");
     }
 }

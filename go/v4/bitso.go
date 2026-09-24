@@ -2484,7 +2484,8 @@ func (this *Bitso) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), endpoint)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		// bitso rejects a nonce that is not higher than the previous one (error 104)
+		var nonce string = ToString(this.IncrementingNonce())
 		endpoint = Add("/api", endpoint)
 		var content []any = []any{nonce, method, endpoint}
 		var request any = Join(content, "")

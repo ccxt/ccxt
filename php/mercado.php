@@ -1001,6 +1001,11 @@ class mercado extends Exchange {
         return $result;
     }
 
+    public function nonce(): float {
+        // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/';
         $query = $this->omit($params, $this->extract_params($path));
@@ -1012,7 +1017,8 @@ class mercado extends Exchange {
         } else {
             $this->check_required_credentials();
             $url .= $this->version . '/';
-            $nonce = $this->nonce();
+            // mercado requires each tonce to be greater than the previous one
+            $nonce = $this->incrementing_nonce();
             $body = $this->urlencode($this->extend(array(
                 'tapi_method' => $path,
                 'tapi_nonce' => $nonce,

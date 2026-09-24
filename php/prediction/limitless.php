@@ -2106,7 +2106,7 @@ class limitless extends Exchange {
         } catch (Exception $e) {
             throw new InvalidAddress($this->id . ' createOrder requires a valid $taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
         }
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $sides = array(
             'buy' => 0,
             'sell' => 1,
@@ -3169,6 +3169,12 @@ class limitless extends Exchange {
             }
         }
         return $allRaw;
+    }
+
+    public function nonce(): float {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two orders are signed within the same millisecond
+        return $this->milliseconds();
     }
 
     public function sign(mixed $path, mixed $api = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {

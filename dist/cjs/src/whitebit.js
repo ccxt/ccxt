@@ -4243,7 +4243,8 @@ class whitebit extends whitebit$1["default"] {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+            const nonce = this.incrementingNonce().toString();
             const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
             const [nonceWindow, requestParams] = this.handleOptionAndParams(params, 'sign', 'nonceWindow', false);

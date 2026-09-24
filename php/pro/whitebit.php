@@ -310,7 +310,7 @@ class whitebit extends \ccxt\async\whitebit {
         $symbols = $this->market_symbols($symbols, null, false);
         $method = 'market_subscribe';
         $url = $this->urls['api']['ws'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $messageHashes = array();
         $args = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -928,7 +928,7 @@ class whitebit extends \ccxt\async\whitebit {
 
     private function do_watch_public(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
         $url = $this->urls['api']['ws'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'id' => $id,
             'method' => $method,
@@ -947,7 +947,7 @@ class whitebit extends \ccxt\async\whitebit {
             Async\await($this->load_markets());
         }
         $url = $this->urls['api']['ws'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $client = $this->safe_value($this->clients, $url);
         $request = null;
         $marketIds = array();
@@ -1012,7 +1012,7 @@ class whitebit extends \ccxt\async\whitebit {
         $this->check_required_credentials();
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws'];
-        $id = $this->nonce();
+        $id = $this->incrementing_nonce();
         $request = array(
             'id' => $id,
             'method' => $method,
@@ -1073,7 +1073,7 @@ class whitebit extends \ccxt\async\whitebit {
                 // venue answers that with an opaque socket drop
                 throw new AuthenticationError($this->id . ' authenticate() received an empty websocket_token');
             }
-            $id = $this->nonce();
+            $id = $this->incrementing_nonce();
             $request = array(
                 'id' => $id,
                 'method' => 'authorize',

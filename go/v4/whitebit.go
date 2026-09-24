@@ -5518,7 +5518,8 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(accessibility, "private") {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		// whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
+		var nonce string = ToString(this.IncrementingNonce())
 		var secret string = this.Encode(this.Secret)
 		var request any = Add(Add("/"+"api"+"/", version), pathWithParams)
 		var nonceWindowrequestParamsVariable []any = this.HandleOptionAndParams(params, "sign", "nonceWindow", false)

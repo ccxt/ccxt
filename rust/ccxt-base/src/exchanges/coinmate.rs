@@ -67,7 +67,9 @@ impl crate::exchange::DerivedExchange for CoinmateCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinmateCore.
-        CoinmateCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const CoinmateCore as *mut CoinmateCore) };
+        CoinmateCore::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on CoinmateCore.
@@ -1943,7 +1945,7 @@ impl CoinmateCore {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1959,7 +1961,8 @@ impl CoinmateCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = to_string_val(&self.nonce());
+            // coinmate requires each nonce to be greater than the previous one for the key
+            let mut nonce: Value = to_string_val(&self.incrementing_nonce());
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone()).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let __ws_arg_10 = self.extend(Value::Map({

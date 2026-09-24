@@ -1117,7 +1117,7 @@ func (this *Hibachi) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var nonce any = this.Nonce()
+	var nonce any = this.IncrementingNonce()
 	var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
 	AddElementToObject(request, "accountId", this.GetAccountId())
 
@@ -1158,7 +1158,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var nonce any = this.Nonce()
+	var nonce any = this.IncrementingNonce()
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
@@ -1274,7 +1274,7 @@ func (this *Hibachi) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var nonce any = this.Nonce()
+	var nonce any = this.IncrementingNonce()
 	var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
 	AddElementToObject(request, "accountId", this.GetAccountId())
 
@@ -1314,7 +1314,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var nonce any = this.Nonce()
+	var nonce any = this.IncrementingNonce()
 	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
@@ -1491,7 +1491,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var nonce any = this.Nonce()
+	var nonce any = this.IncrementingNonce()
 	var nonce16 string = this.IntToBase16(nonce)
 	var noncePadded string = PadStart(nonce16, 16, "0")
 	var message []byte = this.Base16ToBinary(noncePadded)

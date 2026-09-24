@@ -2063,7 +2063,7 @@ export default class limitless extends Exchange {
         catch (e) {
             throw new InvalidAddress(this.id + ' createOrder requires a valid taker address. Set the "taker" parameter to a valid address or set the "nullAddress" property in the constructor options.');
         }
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const sides = {
             'buy': 0,
             'sell': 1,
@@ -3089,6 +3089,11 @@ export default class limitless extends Exchange {
             }
         }
         return allRaw;
+    }
+    nonce() {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two orders are signed within the same millisecond
+        return this.milliseconds();
     }
     /**
      * @ignore

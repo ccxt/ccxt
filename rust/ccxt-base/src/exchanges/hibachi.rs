@@ -1426,7 +1426,7 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut nonce: Value = self.nonce();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut request: Value = self.create_order_request(nonce, symbol, type_var, side, amount, &[price, params]);
         add_element_to_object(&mut request, &Value::Str("accountId".into()), self.get_account_id());
         let mut response: Value = self.private_post_trade_order(&[request]).await;
@@ -1457,7 +1457,7 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut nonce: Value = self.nonce();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut requestOrders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1570,7 +1570,7 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut nonce: Value = self.nonce();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut request: Value = self.edit_order_request(nonce, id.clone(), symbol, type_var, side, &[amount, price, params]);
         add_element_to_object(&mut request, &Value::Str("accountId".into()), self.get_account_id());
         self.private_put_trade_order(&[request]).await;
@@ -1601,7 +1601,7 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut nonce: Value = self.nonce();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut requestOrders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1778,7 +1778,7 @@ impl HibachiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut nonce: Value = self.nonce();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut nonce16: Value = self.int_to_base16(nonce.clone(), &[]);
         let mut noncePadded: Value = pad_start(&nonce16, &Value::Int(16), &Value::Str("0".into()));
         let mut message: Value = self.base16_to_binary(noncePadded, &[]);

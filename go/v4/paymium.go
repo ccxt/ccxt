@@ -829,6 +829,10 @@ func (this *Paymium) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
+func (this *Paymium) Nonce() any {
+	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+	return this.Milliseconds()
+}
 func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
@@ -848,7 +852,8 @@ func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		// paymium requires an increasing nonce
+		var nonce string = ToString(this.IncrementingNonce())
 		var auth any = Add(nonce, url)
 		headers = map[string]any{
 			"Api-Key":   this.ApiKey,

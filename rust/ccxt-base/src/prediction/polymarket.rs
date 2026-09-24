@@ -44,6 +44,10 @@ impl PolymarketCore {
 }
 
 impl crate::exchange::DerivedExchange for PolymarketCore {
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on PolymarketCore.
+        PolymarketCore::nonce(self, )
+    }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on PolymarketCore.
         PolymarketCore::parse_ohlcv(self, ohlcv, &[market])
@@ -116,6 +120,7 @@ impl crate::exchange_generated::ExchangeBase for PolymarketCore {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "load_api_credentials" => self.load_api_credentials().await,
+                "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event_to_markets" => self.parse_event_to_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -3056,7 +3061,7 @@ impl PolymarketCore {
  * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
  * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
  * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
- * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+ * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
  * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
  * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
  * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -3115,7 +3120,6 @@ impl PolymarketCore {
         let mut bodies: Value = Value::from(vec![]);
         let mut outcomes: Value = Value::from(vec![]);
         let mut requests: Value = Value::from(vec![]);
-        let mut batchSalt: Value = self.milliseconds();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1391: bool = true;
@@ -3126,8 +3130,9 @@ impl PolymarketCore {
     m
 })]);
             if (self.safe_string_k(orderParams.clone(), "salt", &[]) == Value::Null) {
-                // a distinct salt per order so two identical orders in one batch don't collide
-                let __ws_arg_13 = self.number_to_string(self.sum(&[batchSalt.clone(), i.clone()]));
+                // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                let mut orderSalt: Value = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                let __ws_arg_13 = self.number_to_string(orderSalt);
                 orderParams = self.extend(orderParams.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("salt".to_string(), __ws_arg_13);
@@ -3178,7 +3183,7 @@ impl PolymarketCore {
  * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
  * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
  */
-    pub fn build_clob_order_body(&self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn build_clob_order_body(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3236,8 +3241,9 @@ impl PolymarketCore {
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         let mut eoa: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut funder: Value = self.eth_checksum_address(self.safe_string2(params.clone(), Value::Str("funder".into()), Value::Str("maker".into()), &[self.safe_string_k(self.options.clone(), "funder", &[self.walletAddress.clone()])])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        let mut salt: Value = self.safe_string_k(params.clone(), "salt", &[self.number_to_string(self.milliseconds())]);
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        let mut defaultSalt: Value = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        let mut salt: Value = self.safe_string_k(params.clone(), "salt", &[self.number_to_string(defaultSalt)]);
         let mut timestamp: Value = self.safe_string_k(params.clone(), "timestamp", &[self.number_to_string(self.milliseconds())]);
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         let mut expiration: Value = self.safe_string_k(params.clone(), "expiration", &[Value::Str("0".into())]);
@@ -4088,6 +4094,12 @@ impl PolymarketCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage, feedback);
         }
         return Value::Null;
+
+    Value::Null
+}
+
+    pub fn nonce(&self) -> Value {
+        return self.milliseconds();
 
     Value::Null
 }

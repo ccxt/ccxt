@@ -1420,7 +1420,9 @@ class p2b extends Exchange {
         }
         if ($api === 'private') {
             $params['request'] = '/api/v2/' . $path;
-            $params['nonce'] = (string) $this->nonce();
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            $params['nonce'] = (string) $this->incrementing_nonce();
             $payload = base64_encode($this->json($params));  // Body json encoded in base64
             $headers = array(
                 'Content-Type' => 'application/json',

@@ -41,6 +41,10 @@ impl IndependentreserveCore {
 }
 
 impl crate::exchange::DerivedExchange for IndependentreserveCore {
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on IndependentreserveCore.
+        IndependentreserveCore::nonce(self, )
+    }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndependentreserveCore.
         IndependentreserveCore::parse_ticker(self, ticker, &[market])
@@ -67,7 +71,9 @@ impl crate::exchange::DerivedExchange for IndependentreserveCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on IndependentreserveCore.
-        IndependentreserveCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const IndependentreserveCore as *mut IndependentreserveCore) };
+        IndependentreserveCore::sign(me, path, &[api, method, params, headers, body])
     }
 }
 
@@ -90,6 +96,7 @@ impl crate::exchange_generated::ExchangeBase for IndependentreserveCore {
                 "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
+                "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1667,7 +1674,13 @@ impl IndependentreserveCore {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn nonce(&self) -> Value {
+        return self.milliseconds();
+
+    Value::Null
+}
+
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1683,7 +1696,8 @@ impl IndependentreserveCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = self.nonce();
+            // independentreserve requires an increasing nonce
+            let mut nonce: Value = self.incrementing_nonce();
             let mut auth: Value = Value::from(vec![url.clone(), Value::Str(format!("{}{}", Value::Str("apiKey=".into()), self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), to_string_val(&nonce)).into())]);
             let mut keys: Value = object_keys(&params);
             {

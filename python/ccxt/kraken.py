@@ -3456,7 +3456,8 @@ class kraken(Exchange, ImplicitAPI):
             isCancelOrderBatch = (path == 'CancelOrderBatch')
             isBatchOrder = (path == 'AddOrderBatch')
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            # kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
+            nonce = str(self.incrementing_nonce())
             if isCancelOrderBatch or isTriggerPercent or isBatchOrder:
                 body = self.json(self.extend({'nonce': nonce}, params))
             else:

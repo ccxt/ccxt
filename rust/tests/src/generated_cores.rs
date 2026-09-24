@@ -128,6 +128,13 @@ pub(crate) use ccxt::prediction::{
 
 pub(crate) use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
 pub(crate) use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
+pub(crate) use ccxt::prediction::kalshi::KalshiCore as PredKalshiCore;
+pub(crate) use ccxt::prediction::limitless::LimitlessCore as PredLimitlessCore;
+pub(crate) use ccxt::prediction::myriad::MyriadCore as PredMyriadCore;
+pub(crate) use ccxt::prediction::opinion::OpinionCore as PredOpinionCore;
+pub(crate) use ccxt::prediction::polymarket::PolymarketCore as PredPolymarketCore;
+pub(crate) use ccxt::prediction::predictfun::PredictfunCore as PredPredictfunCore;
+pub(crate) use ccxt::prediction::sxbet::SxbetCore as PredSxbetCore;
 
 pub(crate) use ccxt_pro::pro::{
     alpaca::AlpacaCore as WsAlpacaCore,

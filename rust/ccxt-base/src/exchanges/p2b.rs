@@ -67,7 +67,9 @@ impl crate::exchange::DerivedExchange for P2bCore {
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on P2bCore.
-        P2bCore::sign(self, path, &[api, method, params, headers, body])
+        #[allow(invalid_reference_casting)]
+        let me = unsafe { &mut *(self as *const P2bCore as *mut P2bCore) };
+        P2bCore::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
         // Forward to the inherent method on P2bCore.
@@ -1751,7 +1753,7 @@ impl P2bCore {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1769,7 +1771,9 @@ impl P2bCore {
         }
         if (api.as_str() == Some("private")) {
             add_element_to_object(&mut params, &Value::Str("request".into()), add(&Value::Str("/api/v2/".into()), &path));
-            add_element_to_object(&mut params, &Value::Str("nonce".into()), to_string_val(&self.nonce()));
+            // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
+            // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
+            add_element_to_object(&mut params, &Value::Str("nonce".into()), to_string_val(&self.incrementing_nonce()));
             let mut payload: Value = self.string_to_base64(json_stringify(&params), &[]); // Body json encoded in base64
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();

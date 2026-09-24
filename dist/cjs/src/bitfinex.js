@@ -3060,7 +3060,8 @@ class bitfinex extends bitfinex$1["default"] {
         }
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
+            const nonce = this.incrementingNonce().toString();
             body = this.json(query);
             const auth = '/api/' + request + nonce + body;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha384);

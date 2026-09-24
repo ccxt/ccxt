@@ -993,7 +993,7 @@ class gemini extends \ccxt\async\gemini {
         $request = mb_substr($url, $startIndex, $endIndex - $startIndex);
         $payload = array(
             'request' => $request,
-            'nonce' => $this->nonce(),
+            'nonce' => $this->incrementing_nonce(), // must be greater than the previously used nonce, shared with the REST counter
         );
         $b64 = base64_encode($this->json($payload));
         $signature = $this->hmac($this->encode($b64), $this->encode($this->secret), 'sha384', 'hex');

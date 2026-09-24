@@ -892,7 +892,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(messageType, "snapshot"))
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-            Helpers.addElementToObject(this.balance, tradingAccountId, this.parseBalance(data));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseBalance(data);
+            List<Object> parsedKeys = new ArrayList<Object>(parsed.keySet());
+            for (var i = 0; i < ((List<?>)parsedKeys).size(); i++)
+            {
+                Object parsedKey = (parsedKeys == null || i < 0 || i >= parsedKeys.size() ? null : parsedKeys.get(i));
+                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), parsedKey, (parsed == null || parsedKey == null ? null : parsed.get(parsedKey)));
+            }
+            Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
         } else
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});

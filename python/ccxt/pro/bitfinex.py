@@ -944,7 +944,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
-            nonce = self.milliseconds()
+            # the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
+            nonce = self.incrementing_nonce()
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
             event = 'auth'

@@ -1,3 +1,19 @@
+<a id="v4.5.84"></a>
+# [v4.5.84](https://github.com/ccxt/ccxt/releases/tag/v4.5.84) - 2026-09-24
+
+## What's Changed
+* fix(foxbit): precision mode to TICK_SIZE by [@ttodua](https://github.com/ttodua) in [#30594](https://github.com/ccxt/ccxt/pull/30594)
+* chore: delist bitmex :/  by [@carlosmiei](https://github.com/carlosmiei) in [#30612](https://github.com/ccxt/ccxt/pull/30612)
+* feat(binance): FX swap tests and FAQ by [@Dan-krm](https://github.com/Dan-krm) in [#30614](https://github.com/ccxt/ccxt/pull/30614)
+* feat(rust): add per crate features to improve build by [@carlosmiei](https://github.com/carlosmiei) in [#30615](https://github.com/ccxt/ccxt/pull/30615)
+* chore: update rust readme [ci skip] by [@carlosmiei](https://github.com/carlosmiei) in [#30618](https://github.com/ccxt/ccxt/pull/30618)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.83...v4.5.84
+
+[Changes][v4.5.84]
+
+
 <a id="v4.5.83"></a>
 # [v4.5.83](https://github.com/ccxt/ccxt/releases/tag/v4.5.83) - 2026-09-23
 
@@ -14378,6 +14394,7 @@
 [Changes][4.3.22]
 
 
+[v4.5.84]: https://github.com/ccxt/ccxt/compare/v4.5.83...v4.5.84
 [v4.5.83]: https://github.com/ccxt/ccxt/compare/v4.5.82...v4.5.83
 [v4.5.82]: https://github.com/ccxt/ccxt/compare/v4.5.81...v4.5.82
 [v4.5.81]: https://github.com/ccxt/ccxt/compare/v4.5.80...v4.5.81

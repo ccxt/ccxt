@@ -44,6 +44,10 @@ impl LimitlessCore {
 }
 
 impl crate::exchange::DerivedExchange for LimitlessCore {
+    fn nonce(&self, ) -> crate::Value {
+        // Forward to the inherent method on LimitlessCore.
+        LimitlessCore::nonce(self, )
+    }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on LimitlessCore.
         LimitlessCore::parse_market(self, market)
@@ -109,6 +113,7 @@ impl crate::exchange_generated::ExchangeBase for LimitlessCore {
                 "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "nonce" => self.nonce(),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2838,7 +2843,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.".into()))));
         }
-        let mut nonce: Value = self.milliseconds();
+        let mut nonce: Value = self.incrementing_nonce();
         let mut sides: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("buy".to_string(), Value::Int(0));
@@ -4149,6 +4154,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         return allRaw;
+
+    Value::Null
+}
+
+    pub fn nonce(&self) -> Value {
+        return self.milliseconds();
 
     Value::Null
 }
