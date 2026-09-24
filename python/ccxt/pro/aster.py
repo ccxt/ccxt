@@ -1057,7 +1057,7 @@ class aster(ccxt.async_support.aster):
             if symbolString is None:
                 continue
             market = self.market(symbolString)
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unfiedTimeframe = self.safe_string(data, 1)
             timeframeId = None if (unfiedTimeframe is None) else self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)
@@ -1104,7 +1104,7 @@ class aster(ccxt.async_support.aster):
             if symbolString is None:
                 continue
             market = self.market(symbolString)
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol')
             unfiedTimeframe = self.safe_string(data, 1)
             timeframeId = None if (unfiedTimeframe is None) else self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@kline_' + timeframeId)

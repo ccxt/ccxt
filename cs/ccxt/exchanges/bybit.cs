@@ -3568,7 +3568,7 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object code = this.safeStringN(parameters, new List<object>() {"code", "currency", "baseCoin"});
+        string? code = this.safeStringN(parameters, new List<object>() {"code", "currency", "baseCoin"});
         IDictionary<string, object> market = null;
         List<object> parsedSymbols = null;
         if ((symbols != null))
@@ -3577,7 +3577,7 @@ public partial class bybit : Exchange
             List<object> marketTypeInfo = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             object defaultType = getValue(marketTypeInfo, 0); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
-            object currentType = null;
+            string? currentType = null;
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
@@ -3593,7 +3593,7 @@ public partial class bybit : Exchange
                 }
                 if ((currentType == null))
                 {
-                    currentType = (market.ContainsKey("type") ? market["type"] : null);
+                    currentType = this.safeString(market, "type");
                 } else if (!isEqual((market.ContainsKey("type") ? market["type"] : null), currentType))
                 {
                     throw new BadRequest ((this.id + " fetchTickers can only accept a list of symbols of the same type")) ;
@@ -3606,7 +3606,7 @@ public partial class bybit : Exchange
                     }
                     if ((code == null))
                     {
-                        code = (market.ContainsKey("base") ? market["base"] : null);
+                        code = this.safeString(market, "base");
                     }
                     parameters = this.omit(parameters, new List<object>() {"code", "currency"});
                 }

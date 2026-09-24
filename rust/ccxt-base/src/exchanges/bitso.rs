@@ -1107,10 +1107,10 @@ impl BitsoCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut payload: Value = self.safe_value_k(response.clone(), "payload", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
+        let mut payload: Value = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut balances: Value = self.safe_list_k(payload, "balances", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

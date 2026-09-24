@@ -198,7 +198,7 @@ class bybit(ccxt.async_support.bybit):
         if symbol is not None:
             market = self.market(symbol)
             isUsdcSettled = market['settle'] == 'USDC'
-            type = market['type']
+            type = self.safe_string(market, 'type')
         else:
             type, params = self.handle_market_type_and_params(method, None, params)
             defaultSettle = self.safe_string(self.options, 'defaultSettle')
@@ -587,13 +587,13 @@ class bybit(ccxt.async_support.bybit):
         parsed = None
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
         elif updateType == 'delta':
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
             market = self.safe_market(marketId, None, None, type)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
             # update the info in place
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})

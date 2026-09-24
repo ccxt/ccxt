@@ -2824,7 +2824,7 @@ impl NdaxCore {
         let mut tag: Value = self.safe_string(parts, Value::Int(1), &[]);
         let mut code: Value = Value::Null;
         if (currency != Value::Null) {
-            code = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
+            code = self.safe_string_k(currency, "code", &[]);
         }
         self.check_address(&[address.clone()]);
         return Value::Map({

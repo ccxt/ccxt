@@ -5661,6 +5661,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaBaseFieldLocalTypes (transpiler);
     // (16) ws cache limit locals (section 22)
     patchJavaLimitLocalTypes (transpiler);
+    // (17) element reads of declared typed lists (section 23)
+    patchJavaTypedListElementLocals (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -11241,5 +11243,366 @@ export function patchJavaLimitLocalTypes (transpiler) {
         const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
         const at = printed.lastIndexOf (marker);
         return at === -1 ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = ` + printed.slice (at + marker.length);
+    };
+}
+
+// ===== 23. element-read locals of declared typed lists =====
+// `const x = xs[i]` where xs is declared List<String> / List<<TypedMap DTO>> and i is an int
+// counter prints the guarded native `xs.get(i)`, statically the list's element type: no cast.
+const JAVA_TYPED_MAP_DTO_DIR = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'types');
+const javaTypedMapDtoCache = new Map ();
+
+export function javaIsTypedMapDto (name) {
+    if (!javaTypedMapDtoCache.has (name)) {
+        let ok = false;
+        try {
+            ok = new RegExp (`\\bclass ${name} extends TypedMap\\b`).test (fs.readFileSync (path.join (JAVA_TYPED_MAP_DTO_DIR, `${name}.java`), 'utf8'));
+        } catch (e) {
+            ok = false;
+        }
+        javaTypedMapDtoCache.set (name, ok);
+    }
+    return javaTypedMapDtoCache.get (name);
+}
+
+function javaDtoElementUsesAreMapOnly (declaration) {
+    const scope = enclosingFunction (declaration);
+    for (const n of (scope === undefined ? [] : identifierIndex (scope).get (declaration.name.escapedText) ?? [])) {
+        const parent = n.parent;
+        if (n === declaration.name || (ts.isPropertyAccessExpression (parent) && parent.name === n)) {
+            continue;
+        }
+        const keyRead = ts.isElementAccessExpression (parent) && parent.expression === n
+            && ts.isStringLiteralLike (parent.argumentExpression)
+            && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent);
+        const argument = (ts.isCallExpression (parent) || ts.isNewExpression (parent)) && (parent.arguments ?? []).includes (n);
+        const value = ts.isPropertyAssignment (parent) && parent.initializer === n;
+        if (!keyRead && !argument && !value) {
+            return false;
+        }
+    }
+    return scope !== undefined;
+}
+
+function javaTypedListElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || typeof printer.javaDeclaredTypeOf !== 'function' || typeof printer.javaPrimitiveCounterIndex !== 'function'
+        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        return undefined;
+    }
+    const match = /^(?:java\.util\.)?List<(\w+)>$/.exec (String (printer.javaDeclaredTypeOf (read.expression) ?? '').trim ());
+    const element = match?.[1];
+    if (element === undefined || (element !== 'String' && !javaIsTypedMapDto (element))) {
+        return undefined;
+    }
+    // a DTO box is final and implements no List: keep only uses whose printed Java is a Map
+    // read or an Object slot, so no List/String cast can land on it
+    if (element !== 'String' && !javaDtoElementUsesAreMapOnly (declaration)) {
+        return undefined;
+    }
+    const info = element === 'String' ? { type: 'String', nonNull: false, strictPlus: true } : { type: element };
+    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, info.type, /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info)) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    const index = printer.printNode (read.argumentExpression, 0);
+    return { type: element, rhs: `(${list} == null || ${index} < 0 || ${index} >= ${list}.size() ? null : ${list}.get(${index}))` };
+}
+
+export function patchJavaTypedListElementLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaTypedListElementPatched) {
+        return;
+    }
+    printer._javaTypedListElementPatched = true;
+    const retyped = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined
+            || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        let found;
+        try {
+            found = javaTypedListElementLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (found === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== found.rhs) {
+            return printed;
+        }
+        retyped.set (declaration, found.type);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = ` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
+}
+
+// ===== 24. null-initialised scalar locals joined over their writes =====
+// `Object x = null;` whose every non-null write already prints one scalar box (String / Long /
+// Double / Boolean) with no cast. Uses resolve by symbol, so a same-named sibling block local
+// is its own candidate; the one-box families' use scans gate the retype.
+function nullScalarWriteType (printer, node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return 'null';
+    }
+    const numeric = numericFamilyCallType (printer, value);
+    if (numeric === 'Long' || numeric === 'Double') {
+        return numeric;
+    }
+    if (literalTypeOfValue (printer, value)?.type === LITERAL_BOOLEAN_TYPE) {
+        return 'Boolean';
+    }
+    if (isStaticallyStringExpression (printer, value, undefined)) {
+        return JAVA_DATAFLOW_STRING;
+    }
+    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
+        const callee = value.expression;
+        if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise') {
+            return PRECISE_STRING_STATICS.has (String (callee.name.escapedText)) ? JAVA_DATAFLOW_STRING : undefined;
+        }
+        if (isThisCall (value) && (dataflowThisCallType (printer, value) ?? joinBaseProducerType (printer, value)) === JAVA_DATAFLOW_STRING) {
+            return JAVA_DATAFLOW_STRING;
+        }
+    }
+    return undefined;
+}
+
+function nullScalarLocalType (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer)
+        || declaration.parent?.declarations?.length !== 1 || declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    if (symbol === undefined) {
+        return undefined;
+    }
+    const sourceName = String (declaration.name.escapedText);
+    let type;
+    for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
+        if (n === declaration.name || dataflowNotAUse (n) || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope || isClassThrowArgument (n)) {
+            return undefined;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (parent !== undefined && (ts.isReturnStatement (parent)
+            || (ts.isConditionalExpression (parent) && parent.condition !== host))) {
+            return undefined; // returns / ternary arms move javac's inferred types
+        }
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host
+            && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            const written = nullScalarWriteType (printer, parent.right);
+            if (written === undefined || (written !== 'null' && type !== undefined && written !== type)) {
+                return undefined;
+            }
+            type = (written === 'null') ? type : written;
+        }
+    }
+    if (type === undefined || literalTypeTokenShadowed (scope, type)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    if (type === 'Long' || type === 'Double') {
+        return numericIsSafeToNarrow (printer, declaration, sourceName, type, isProFile) ? type : undefined;
+    }
+    const writeOk = (right) => {
+        const written = nullScalarWriteType (printer, right);
+        return written === 'null' || written === type;
+    };
+    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk }) ? type : undefined;
+}
+
+export function installJavaNullScalarLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaNullScalarPatched) {
+        return;
+    }
+    printer._javaNullScalarPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = null`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== '') {
+            return printed;
+        }
+        let type;
+        try {
+            type = nullScalarLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        return type === undefined ? printed : printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+    };
+}
+
+// ===== 25. omit of a Map =====
+// `const x = this.omit (m, ...)` with m declared Map<String, Object> in Java: Functions.omit only
+// hands a List back for a List input, so the result is a fresh Map (or null for a null m).
+function javaOmitMapCall (printer, node, depth = 0) {
+    const call = unwrapParens (node);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call)
+        || call.expression.name.escapedText !== 'omit' || call.arguments.length < 2
+        || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return undefined;
+    }
+    const file = declaration?.getSourceFile?.().fileName;
+    const name = declaration?.name?.escapedText ?? declaration?.parent?.name?.escapedText;
+    if (file === undefined || !COLLECTION_SOURCE_FILE.test (file) || String (name) !== 'omit') {
+        return undefined;
+    }
+    if (!javaOmitSourceIsMap (printer, unwrapParens (call.arguments[0]), depth)) {
+        return undefined;
+    }
+    // the source may print as an Object snapshot copy, which binds an Object-declared overload
+    return { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' };
+}
+
+// the omitted source is a Map in Java: a parameter the printer declares Map<String, Object> (the
+// async snapshot copy may print Object, so every write in the body must be a Map producer too) or
+// a local another section typed Map
+function javaOmitSourceIsMap (printer, source, depth) {
+    if (source === undefined || !ts.isIdentifier (source) || depth > 3) {
+        return false;
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (source)?.valueDeclaration;
+    if (declaration === undefined) {
+        return false;
+    }
+    let type;
+    if (ts.isParameter (declaration)) {
+        type = declaration.initializer !== undefined
+            ? printer.javaOptionalParameterType?.(declaration) : printer.javaNativeParameterType?.(declaration);
+    } else {
+        type = printer.javaDeclaredLocalTypeResolver?.(declaration);
+    }
+    if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
+        return false;
+    }
+    if (!ts.isParameter (declaration)) {
+        return true;
+    }
+    const scope = enclosingFunction (declaration);
+    const name = String (declaration.name.escapedText);
+    for (const n of (identifierIndex (scope).get (name) ?? [])) {
+        const parent = n.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n
+            && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            const right = unwrapParens (parent.right);
+            const ok = parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && (javaOmitMapCall (printer, right, depth + 1) !== undefined
+                    || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE);
+            if (!ok) {
+                return false;
+            }
+        }
+        if (parent !== undefined && ts.isArrayLiteralExpression (parent)) {
+            return false; // destructuring target
+        }
+    }
+    return true;
+}
+
+function javaOmitLocalType (printer, declaration) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const info = javaOmitMapCall (printer, declaration.initializer);
+    if (info === undefined) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined
+        || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
+    return isSafeToNarrow (printer, declaration, String (declaration.name.escapedText), JAVA_STRUCTURE_TYPE, isProFile,
+        { noCastAssertions: true, writeOk }) ? info : undefined;
+}
+
+export function patchJavaOmitLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaOmitLocalTypesPatched) {
+        return;
+    }
+    printer._javaOmitLocalTypesPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined) {
+            return printed;
+        }
+        let info;
+        try {
+            info = javaOmitLocalType (printer, declaration);
+        } catch (e) {
+            return printed;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1 || !printed.startsWith ('this.omit(', at + marker.length)) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        const cast = info.cast === '' ? '' : info.cast + ' ';
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${cast}` + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later omit/Map-producer writes to a typed local take the checkcast their Object overload needs
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration;
+        } catch (e) {
+            return printed;
+        }
+        if (declaration === undefined || !typed.has (declaration)) {
+            return printed;
+        }
+        const info = javaOmitMapCall (printer, node.right) ?? accumulatorWriteInfo (printer, node.right);
+        return info === undefined || info.type !== JAVA_STRUCTURE_TYPE ? printed : accumulatorCastWrite (printer, node, printed, info);
     };
 }

@@ -2206,7 +2206,7 @@ public partial class coinbaseexchange : Exchange
         }
         await this.loadAccounts();
         IDictionary<string, object> currency = null;
-        object id = this.safeString(parameters, "id"); // account id
+        string? id = this.safeString(parameters, "id"); // account id
         if ((id == null))
         {
             if ((code != null))
@@ -2218,7 +2218,7 @@ public partial class coinbaseexchange : Exchange
                 {
                     throw new ExchangeError (((this.id + " fetchDepositsWithdrawals() could not find account id for ") + code)) ;
                 }
-                id = (account != null && account.ContainsKey("id") ? account["id"] : null);
+                id = this.safeString(account, "id");
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};

@@ -587,7 +587,7 @@ class bitflyer extends Exchange {
         if ($side !== null) {
             $idInner = $side . '_child_order_acceptance_id';
             if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
-                $order = $trade[$idInner];
+                $order = $this->safe_string($trade, $idInner);
             }
         }
         if ($order === null) {

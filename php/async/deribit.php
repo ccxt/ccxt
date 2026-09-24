@@ -1455,8 +1455,8 @@ class deribit extends Exchange {
                     throw new BadRequest($this->id . ' fetchTickers the base $currency must be the same for all $symbols, this endpoint only supports one base $currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if ($code === null) {
-                    $code = $market['base'];
-                    $type = $market['type'];
+                    $code = $this->safe_string($market, 'base');
+                    $type = $this->safe_string($market, 'type');
                 }
             }
         }

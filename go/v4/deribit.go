@@ -1860,33 +1860,33 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	symbols = this.MarketSymbols(symbols)
-	var code any = DerefScalar(this.SafeString2(params, "code", "currency"))
+	var code *string = this.SafeString2(params, "code", "currency")
 	var typeVar any = nil
 	params = MapTyped(this.Omit(params, []any{"code"}))
 	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market map[string]any = MapTyped(this.Market(GetValue(symbols, i)))
-			if !IsEqual(code, nil) && !IsEqual(code, GetValue(market, "base")) {
+			if (code != nil) && !IsEqual(code, GetValue(market, "base")) {
 				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency"))
 			}
-			if IsEqual(code, nil) {
-				code = market["base"]
-				typeVar = market["type"]
+			if code == nil {
+				code = this.SafeString(market, "base")
+				typeVar = this.SafeString(market, "type")
 			}
 		}
 	}
-	if IsEqual(code, nil) {
+	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for"))
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if typeVar != nil {
+	if !IsEqual(typeVar, nil) {
 		var requestType any = nil
 		if IsEqual(typeVar, "spot") {
 			requestType = "spot"
-		} else if (IsEqual(typeVar, "future")) || (IsEqual(typeVar, "contract")) {
+		} else if IsEqual(typeVar, "future") || (IsEqual(typeVar, "contract")) {
 			requestType = "future"
 		} else if IsEqual(typeVar, "option") {
 			requestType = "option"

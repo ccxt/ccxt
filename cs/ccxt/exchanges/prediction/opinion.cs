@@ -991,7 +991,7 @@ public partial class opinion : PredictionExchange
      * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field
      * @returns {object} the matching quote-token entry
      */
-    public async virtual Task<object> loadQuoteToken(object quoteTokenAddress)
+    public async virtual Task<IDictionary<string, object>> loadQuoteToken(object quoteTokenAddress)
     {
         if ((quoteTokenAddress == null))
         {
@@ -1194,7 +1194,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? topicId = this.safeInteger(info, "marketId");
         string? quoteTokenAddress = this.safeString(info, "quoteToken");
-        object quoteToken = await this.loadQuoteToken(quoteTokenAddress);
+        IDictionary<string, object> quoteToken = await this.loadQuoteToken(quoteTokenAddress);
         string? exchangeAddress = this.safeString(quoteToken, "ctfExchangeAddress", "");
         Int64? decimals = this.safeInteger(quoteToken, "decimal", 18);
         Dictionary<string, object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
@@ -1613,7 +1613,7 @@ public partial class opinion : PredictionExchange
         {
             object rawBalance = getValue(rawBalances, i);
             string? quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
-            object quoteToken = await this.loadQuoteToken(quoteTokenAddress);
+            IDictionary<string, object> quoteToken = await this.loadQuoteToken(quoteTokenAddress);
             ((IDictionary<string,object>)rawBalance)["symbol"] = this.safeString(quoteToken, "symbol", "USDT");
         }
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));

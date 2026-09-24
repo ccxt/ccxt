@@ -991,7 +991,7 @@ export default class onetrading extends onetradingRest {
             const datetime = this.safeString2 (update, 'time', 'timestamp');
             const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
             const previousOrder = this.safeDict (previousOrderArray, 0, {});
-            symbol = previousOrder['symbol'];
+            symbol = this.safeString (previousOrder, 'symbol');
             const filled = this.safeString (update, 'filled_amount');
             let status = this.parseWsOrderStatus (updateType);
             if (updateType === 'ORDER_CLOSED' && Precise.stringEq (filled, '0')) {

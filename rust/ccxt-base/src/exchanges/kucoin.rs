@@ -8069,7 +8069,7 @@ impl KucoinCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }  else {
             marketType = self.safe_string_k(params.clone(), "marketType", &[]);
@@ -8302,7 +8302,7 @@ impl KucoinCore {
             { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         }  else {
             let mut market: Value = self.market(symbol.clone());
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market, "type", &[]);
         }
         if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
             return self.fetch_spot_order(id.clone(), &[symbol.clone(), params.clone()]).await;

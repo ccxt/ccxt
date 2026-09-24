@@ -550,7 +550,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if side is not None:
             idInner = side + '_child_order_acceptance_id'
             if idInner in trade:
-                order = trade[idInner]
+                order = self.safe_string(trade, idInner)
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))

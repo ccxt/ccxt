@@ -3805,9 +3805,9 @@ public class Nado extends NadoApi
         // }
         //
         String id = null;
-        Object timestamp = null;
+        Long timestamp = null;
         String timeInForce = null;
-        Object postOnly = null;
+        Boolean postOnly = null;
         String side = null;
         Object price = null;
         Object amount = null;
@@ -3816,8 +3816,8 @@ public class Nado extends NadoApi
         Object cost = null;
         String average = null;
         Map<String, Object> fee = null;
-        Object lastTradeTimestamp = null;
-        Object lastUpdateTimestamp = null;
+        Long lastTradeTimestamp = null;
+        Long lastUpdateTimestamp = null;
         String status = null;
         String cancelOrderDigest = this.safeString(order, "digest");
         String archiveFilled = this.safeString(order, "base_filled");
@@ -3928,12 +3928,12 @@ public class Nado extends NadoApi
             price = this.parseX18(this.safeString(rawOrder, "priceX18"));
         }
         final String finalId = id;
-        final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Long finalTimestamp = timestamp;
+        final Long finalLastTradeTimestamp = lastTradeTimestamp;
+        final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
         final Map<String, Object> finalMarket_2 = market;
         final String finalTimeInForce = timeInForce;
-        final Object finalPostOnly = postOnly;
+        final Boolean finalPostOnly = postOnly;
         final String finalSide = side;
         final Object finalPrice = price;
         final Object finalAmount = amount;

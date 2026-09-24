@@ -1234,7 +1234,7 @@ class aster extends \ccxt\async\aster {
                 continue;
             }
             $market = $this->market($symbolString);
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol');
             $unfiedTimeframe = $this->safe_string($data, 1);
             $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
@@ -1291,7 +1291,7 @@ class aster extends \ccxt\async\aster {
                 continue;
             }
             $market = $this->market($symbolString);
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol');
             $unfiedTimeframe = $this->safe_string($data, 1);
             $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;

@@ -1677,7 +1677,7 @@ public class Bitteam extends BitteamApi
         String marketId = this.safeString(order, "pair");
         market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String clientOrderId = this.safeString(order, "orderCid");
-        Object timestamp = null;
+        Long timestamp = null;
         String createdAt = this.safeString(order, "createdAt");
         if (!java.util.Objects.equals(createdAt, null))
         {
@@ -1706,7 +1706,7 @@ public class Bitteam extends BitteamApi
                 put( "rate", null );
             }};
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final Map<String, Object> finalMarket = market;
         final Map<String, Object> finalFee = fee;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2680,7 +2680,7 @@ public class Bitteam extends BitteamApi
             put( "datetime", null );
         }};
         Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        Object balanceByCurrencies = this.omit(result, new ArrayList<Object>(Arrays.asList("free", "used", "total")));
+        Map<String, Object> balanceByCurrencies = (Map<String, Object>) this.omit(result, new ArrayList<Object>(Arrays.asList("free", "used", "total")));
         List<Object> rawCurrencyIds = Helpers.objectKeys(balanceByCurrencies);
         for (var i = 0; i < ((List<?>)rawCurrencyIds).size(); i++)
         {

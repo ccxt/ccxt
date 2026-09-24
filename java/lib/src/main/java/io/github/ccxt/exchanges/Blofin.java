@@ -1253,22 +1253,22 @@ public class Blofin extends BlofinApi
         String orderId = this.safeString(trade, "orderId");
         String feeCost = this.safeString(trade, "fee");
         Map<String, Object> fee = null;
-        Object feeCurrency = this.safeString(trade, "feeCurrency");
+        String feeCurrency = this.safeString(trade, "feeCurrency");
         Boolean isSpot = !java.util.Objects.equals(feeCurrency, null);
         if (java.util.Objects.equals(feeCurrency, null))
         {
-            feeCurrency = ((Map<String, Object>)market).get("settle");
+            feeCurrency = this.safeString(market, "settle");
         } else if (java.util.Objects.equals(feeCurrency, "base_currency"))
         {
-            feeCurrency = ((Map<String, Object>)market).get("base");
+            feeCurrency = this.safeString(market, "base");
         } else if (java.util.Objects.equals(feeCurrency, "quote_currency"))
         {
-            feeCurrency = ((Map<String, Object>)market).get("quote");
+            feeCurrency = this.safeString(market, "quote");
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
             final String finalFeeCost = feeCost;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
                 put( "currency", finalFeeCurrency );
@@ -1279,7 +1279,7 @@ public class Blofin extends BlofinApi
             String spotSymbol = ((((Map<String, Object>)market).get("base") + "/") + ((Map<String, Object>)market).get("quote"));
             Double cost = this.parseNumber(Precise.stringMul(price, amount));
             final String finalFeeCost_2 = feeCost;
-            final Object finalFeeCurrency_2 = feeCurrency;
+            final String finalFeeCurrency_2 = feeCurrency;
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", trade );
                 put( "timestamp", timestamp );
@@ -2359,7 +2359,7 @@ public class Blofin extends BlofinApi
                     ((Map<String, Object>)request).put("algoId", String.valueOf(id));
                 }
             }
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
             if (java.util.Objects.equals(isTpsl, true))
             {
                 List<Order> tpslResponse = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();

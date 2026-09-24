@@ -1776,7 +1776,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var id any = nil
 	var orderId *string = nil
 	var fee map[string]any = nil
-	var symbol any = nil
+	var symbol *string = nil
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
 		side = func() string {
@@ -1816,9 +1816,9 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 		price = this.SafeString(trade, "price")
 		amount = this.SafeString(trade, "vol")
 		if InOp(trade, "fee") {
-			var currency any = nil
+			var currency *string = nil
 			if market != nil {
-				currency = GetValue(market, "quote")
+				currency = this.SafeString(market, "quote")
 			}
 			fee = map[string]any{
 				"cost":     this.SafeString(trade, "fee"),
@@ -1826,7 +1826,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		symbol = DerefScalar(this.SafeString(trade, "symbol"))
+		symbol = this.SafeString(trade, "symbol")
 		datetime = this.SafeString(trade, "timestamp")
 		id = DerefScalar(this.SafeString(trade, "trade_id"))
 		side = DerefScalar(this.SafeString(trade, "side"))
@@ -1835,7 +1835,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = this.SafeString(trade, "qty")
 	}
 	if market != nil {
-		symbol = GetValue(market, "symbol")
+		symbol = this.SafeString(market, "symbol")
 	}
 	var cost *string = this.SafeString(trade, "cost")
 	var maker *bool = this.SafeBool(trade, "maker")
@@ -2450,7 +2450,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	rawType = DerefScalar(this.SafeString(description, "ordertype", rawType)) // orderType has dash, e.g. trailing-stop
 	marketId = DerefScalar(this.SafeString(description, "pair", marketId))
 	var foundMarket any = this.FindMarketByAltnameOrId(marketId)
-	var symbol any = nil
+	var symbol *string = nil
 	if !IsEqual(foundMarket, nil) {
 		market = foundMarket
 	} else if !IsEqual(marketId, nil) {
@@ -2481,7 +2481,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	}() > -1)
 	var average *float64 = this.SafeNumber(order, "price")
 	if market != nil {
-		symbol = GetValue(market, "symbol")
+		symbol = this.SafeString(market, "symbol")
 		if InOp(order, "fee") {
 			var feeCost *string = this.SafeString(order, "fee")
 			fee = map[string]any{

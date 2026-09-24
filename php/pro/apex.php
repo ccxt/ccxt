@@ -479,13 +479,13 @@ class apex extends \ccxt\async\apex {
         $parsed = $this->parse_ticker($data);
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
         } elseif ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->safe_market($marketId, null, null);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = $this->extend($rawTicker, $data);

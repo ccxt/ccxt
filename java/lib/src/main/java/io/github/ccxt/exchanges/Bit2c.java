@@ -1276,7 +1276,7 @@ public class Bit2c extends Bit2cApi
         //         "isMaker": True,
         //     }
         //
-        Object timestamp = null;
+        Long timestamp = null;
         String id = null;
         Object price = null;
         String amount = null;
@@ -1336,7 +1336,7 @@ public class Bit2c extends Bit2cApi
         }
         market = (Map<String, Object>) (this.safeMarket(null, market));
         final String finalId = id;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final Map<String, Object> finalMarket = market;
         final Object finalOrderId = orderId;
         final Object finalSide = side;

@@ -1248,18 +1248,18 @@ public partial class btcmarkets : Exchange
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
-        object currency = null;
+        string? currency = null;
         string? cost = null;
         if ((((market.ContainsKey("quote") ? market["quote"] : null) as string) == "AUD"))
         {
-            currency = (market.ContainsKey("quote") ? market["quote"] : null);
+            currency = this.safeString(market, "quote");
             string? amountString = this.numberToString(amount);
             string? priceString = this.numberToString(price);
             string? otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         } else
         {
-            currency = (market.ContainsKey("base") ? market["base"] : null);
+            currency = this.safeString(market, "base");
             cost = this.amountToPrecision(symbol, amount);
         }
         object rate = this.safeValue(market, takerOrMaker);

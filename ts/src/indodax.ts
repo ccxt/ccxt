@@ -819,7 +819,7 @@ export default class indodax extends Exchange {
         //
         let side: Str = undefined;
         if ('type' in order) {
-            side = order['type'];
+            side = this.safeString (order, 'type');
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
         let symbol: Str = undefined;

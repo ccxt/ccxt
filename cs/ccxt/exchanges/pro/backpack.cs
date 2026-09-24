@@ -261,9 +261,9 @@ public partial class backpack : ccxt.backpack
         List<object> topics = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             string? marketId = this.marketId(symbol);
-            messageHashes.Add(("ticker:" + (symbol)));
+            messageHashes.Add(("ticker:" + symbol));
             topics.Add(("ticker." + marketId));
         }
         await this.watchPublic(topics, messageHashes, parameters);
@@ -396,10 +396,10 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             string? marketId = this.marketId(symbol);
             topics.Add(("bookTicker." + marketId));
-            messageHashes.Add(("bidask:" + (symbol)));
+            messageHashes.Add(("bidask:" + symbol));
         }
         await this.watchPublic(topics, messageHashes, parameters);
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));
@@ -745,10 +745,10 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             string? marketId = this.marketId(symbol);
             topics.Add(("trade." + marketId));
-            messageHashes.Add(("trades:" + (symbol)));
+            messageHashes.Add(("trades:" + symbol));
         }
         object trades = await this.watchPublic(topics, messageHashes, parameters);
         if (this.newUpdates)
@@ -937,8 +937,8 @@ public partial class backpack : ccxt.backpack
         List<object> topics = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
-            messageHashes.Add(("orderbook:" + (symbol)));
+            string? symbol = ((string)getValue(symbols, i));
+            messageHashes.Add(("orderbook:" + symbol));
             string? marketId = ((string)getValue(marketIds, i));
             string topic = ("depth." + marketId);
             topics.Add(topic);
@@ -1347,8 +1347,8 @@ public partial class backpack : ccxt.backpack
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                messageHashes.Add((("positions" + ":") + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add((("positions" + ":") + symbol));
                 topics.Add(("account.positionUpdate." + this.marketId(symbol)));
             }
         } else

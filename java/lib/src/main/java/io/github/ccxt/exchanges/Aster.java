@@ -1416,8 +1416,8 @@ public class Aster extends AsterApi
         String settle = null;
         String settleId = null;
         Boolean swap = null;
-        Object linear = null;
-        Object inverse = null;
+        Boolean linear = null;
+        Boolean inverse = null;
         Double contractSize = null;
         String contractType = this.safeString(market, "contractType");
         Boolean isContract = !java.util.Objects.equals(contractType, null);
@@ -1457,8 +1457,8 @@ public class Aster extends AsterApi
         final String finalSettleId = settleId;
         final Boolean finalSpot = spot;
         final Boolean finalSwap = swap;
-        final Object finalLinear = linear;
-        final Object finalInverse = inverse;
+        final Boolean finalLinear = linear;
+        final Boolean finalInverse = inverse;
         final Double finalContractSize = contractSize;
         final Double finalPricePrecision = pricePrecision;
         final Map<String, Object> finalFilterLotSize = filterLotSize;
@@ -5022,7 +5022,7 @@ public class Aster extends AsterApi
         List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
-        Object maintenanceMarginPercentageString = null;
+        String maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
@@ -5030,7 +5030,7 @@ public class Aster extends AsterApi
             {
                 break;
             }
-            maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         Double notional = this.parseNumber(notionalStringAbs);
         String contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
@@ -5071,7 +5071,7 @@ public class Aster extends AsterApi
                 if (Boolean.TRUE.equals(linear))
                 {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                    Object onePlusMaintenanceMarginPercentageString = null;
+                    String onePlusMaintenanceMarginPercentageString = null;
                     Object entryPriceSignString = entryPriceString;
                     if (java.util.Objects.equals(side, "short"))
                     {
@@ -5091,7 +5091,7 @@ public class Aster extends AsterApi
                 } else
                 {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                    Object onePlusMaintenanceMarginPercentageString = null;
+                    String onePlusMaintenanceMarginPercentageString = null;
                     String entryPriceSignString = entryPriceString;
                     if (java.util.Objects.equals(side, "short"))
                     {
@@ -5427,7 +5427,7 @@ public class Aster extends AsterApi
         Double contracts = this.parseNumber(contractsStringAbs);
         Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
-        Object maintenanceMarginPercentageString = null;
+        String maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
@@ -5435,7 +5435,7 @@ public class Aster extends AsterApi
             {
                 break;
             }
-            maintenanceMarginPercentageString = Helpers.GetValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         Double maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
@@ -5490,7 +5490,7 @@ public class Aster extends AsterApi
                 // mmp = maintenanceMarginPercentage
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
-                Object onePlusMaintenanceMarginPercentageString = null;
+                String onePlusMaintenanceMarginPercentageString = null;
                 Object entryPriceSignString = entryPriceString;
                 if (java.util.Objects.equals(side, "short"))
                 {
@@ -5509,7 +5509,7 @@ public class Aster extends AsterApi
                 //
                 // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 //
-                Object onePlusMaintenanceMarginPercentageString = null;
+                String onePlusMaintenanceMarginPercentageString = null;
                 String entryPriceSignString = entryPriceString;
                 if (java.util.Objects.equals(side, "short"))
                 {

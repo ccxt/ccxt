@@ -1640,7 +1640,7 @@ class bitget extends \ccxt\async\bitget {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
             $messageHash = $messageHash . ':' . $symbol;
         }
         $uta = null;

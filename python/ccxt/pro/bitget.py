@@ -1490,7 +1490,7 @@ class bitget(ccxt.async_support.bitget):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             messageHash = messageHash + ':' + symbol
         uta = None
         uta, params = self.handle_option_bool_and_params(params, 'watchOrders', 'uta', False)

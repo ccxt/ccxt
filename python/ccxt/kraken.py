@@ -1471,7 +1471,7 @@ class kraken(Exchange, ImplicitAPI):
             if 'fee' in trade:
                 currency = None
                 if market is not None:
-                    currency = market['quote']
+                    currency = self.safe_string(market, 'quote')
                 fee = {
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': currency,
@@ -1485,7 +1485,7 @@ class kraken(Exchange, ImplicitAPI):
             price = self.safe_string(trade, 'price')
             amount = self.safe_string(trade, 'qty')
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         cost = self.safe_string(trade, 'cost')
         maker = self.safe_bool(trade, 'maker')
         takerOrMaker = None
@@ -1993,7 +1993,7 @@ class kraken(Exchange, ImplicitAPI):
         isPostOnly = flags.find('post') > -1
         average = self.safe_number(order, 'price')
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
             if 'fee' in order:
                 feeCost = self.safe_string(order, 'fee')
                 fee = {

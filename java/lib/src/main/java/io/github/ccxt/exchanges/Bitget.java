@@ -3962,15 +3962,15 @@ public class Bitget extends BitgetApi
                 }
                 String settle = this.safeCurrencyCode(settleId);
                 String symbol = ((base + "/") + quote);
-                Object type = null;
+                String type = null;
                 Boolean swap = false;
                 Boolean spot = false;
                 Boolean future = false;
                 Boolean contract = false;
                 Double pricePrecision = null;
                 Double amountPrecision = null;
-                Object linear = null;
-                Object inverse = null;
+                Boolean linear = null;
+                Boolean inverse = null;
                 Long expiry = null;
                 String expiryDatetime = null;
                 String symbolType = this.safeString(market, "symbolType");
@@ -4035,7 +4035,7 @@ public class Bitget extends BitgetApi
                     }};
                 }
                 String status = this.safeString2(market, "status", "symbolStatus");
-                Object active = null;
+                Boolean active = null;
                 if (!java.util.Objects.equals(status, null))
                 {
                     active = ((java.util.Objects.equals(status, "online")) || (java.util.Objects.equals(status, "normal")));
@@ -4050,16 +4050,16 @@ public class Bitget extends BitgetApi
                 final String finalBase = base;
                 final String finalQuote = quote;
                 final String finalSettleId = settleId;
-                final Object finalType = type;
+                final String finalType = type;
                 final Boolean finalSpot = spot;
                 final Boolean finalIsMarginTradingAllowed = isMarginTradingAllowed;
                 final Map<String, Object> finalMarginModes = marginModes;
                 final Boolean finalSwap = swap;
                 final Boolean finalFuture = future;
-                final Object finalActive = active;
+                final Boolean finalActive = active;
                 final Boolean finalContract = contract;
-                final Object finalLinear = linear;
-                final Object finalInverse = inverse;
+                final Boolean finalLinear = linear;
+                final Boolean finalInverse = inverse;
                 final Long finalExpiry = expiry;
                 final String finalExpiryDatetime = expiryDatetime;
                 final Double finalAmountPrecision = amountPrecision;
@@ -4269,8 +4269,8 @@ public class Bitget extends BitgetApi
                 Boolean contract = false;
                 Double pricePrecision = null;
                 Double amountPrecision = null;
-                Object linear = null;
-                Object inverse = null;
+                Boolean linear = null;
+                Boolean inverse = null;
                 Long expiry = null;
                 String expiryDatetime = null;
                 String symbolType = this.safeString(market, "type");
@@ -4327,7 +4327,7 @@ public class Bitget extends BitgetApi
                 pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
                 String status = this.safeString(market, "status");
-                Object active = null;
+                Boolean active = null;
                 if (!java.util.Objects.equals(status, null))
                 {
                     active = ((java.util.Objects.equals(status, "online")) || (java.util.Objects.equals(status, "normal")));
@@ -4343,10 +4343,10 @@ public class Bitget extends BitgetApi
                 final Map<String, Object> finalMarginModes = marginModes;
                 final Boolean finalSwap = swap;
                 final Boolean finalFuture = future;
-                final Object finalActive = active;
+                final Boolean finalActive = active;
                 final Boolean finalContract = contract;
-                final Object finalLinear = linear;
-                final Object finalInverse = inverse;
+                final Boolean finalLinear = linear;
+                final Boolean finalInverse = inverse;
                 final Long finalExpiry = expiry;
                 final String finalExpiryDatetime = expiryDatetime;
                 final Double finalAmountPrecision = amountPrecision;

@@ -1946,13 +1946,13 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(order, "price")
 	var average *string = this.SafeString(order, "avg_execution_price")
-	var typeVar any = DerefScalar(this.SafeString(order, "type"))
-	if IsEqual(typeVar, "exchange limit") {
-		typeVar = "limit"
-	} else if IsEqual(typeVar, "market buy") || IsEqual(typeVar, "market sell") {
-		typeVar = "market"
+	var typeVar *string = this.SafeString(order, "type")
+	if typeVar != nil && *typeVar == "exchange limit" {
+		typeVar = SafeStringPtr("limit")
+	} else if (typeVar != nil && *typeVar == "market buy") || (typeVar != nil && *typeVar == "market sell") {
+		typeVar = SafeStringPtr("market")
 	} else {
-		typeVar = GetValue(order, "type")
+		typeVar = this.SafeString(order, "type")
 	}
 	var fee any = nil
 	var marketId *string = this.SafeString(order, "symbol")

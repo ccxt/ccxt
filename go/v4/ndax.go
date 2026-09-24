@@ -2878,9 +2878,9 @@ func (this *Ndax) ParseDepositAddress(depositAddress any, optionalArgs ...any) a
 	var parts []string = Split(lastString, "?memo=")
 	var address *string = this.SafeString(parts, 0)
 	var tag *string = this.SafeString(parts, 1)
-	var code any = nil
+	var code *string = nil
 	if currency != nil {
-		code = GetValue(currency, "code")
+		code = this.SafeString(currency, "code")
 	}
 	this.CheckAddress(address)
 	return map[string]any{

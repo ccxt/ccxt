@@ -1378,7 +1378,7 @@ class coinex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'created_at')
         defaultType = self.safe_string(self.options, 'defaultType')
         if market is not None:
-            defaultType = market['type']
+            defaultType = self.safe_string(market, 'type')
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
         feeCostString = self.safe_string(trade, 'fee')
@@ -2083,7 +2083,7 @@ class coinex(Exchange, ImplicitAPI):
         feeCurrencyId = self.safe_string(order, 'fee_ccy')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:
-            feeCurrency = market['quote']
+            feeCurrency = self.safe_string(market, 'quote')
         side = self.safe_string(order, 'side')
         if side == 'long':
             side = 'buy'

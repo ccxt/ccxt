@@ -1075,7 +1075,7 @@ public class Derive extends DeriveApi
         String symbol = ((base + "/") + quote);
         String settleId = null;
         String settle = null;
-        Object expiry = null;
+        Long expiry = null;
         Long strike = null;
         String optionType = null;
         String optionLetter = null;
@@ -1128,7 +1128,7 @@ public class Derive extends DeriveApi
         final Boolean finalOption = option;
         final Boolean finalLinear = linear;
         final Boolean finalInverse = inverse;
-        final Object finalExpiry = expiry;
+        final Long finalExpiry = expiry;
         final Long finalStrike = strike;
         final String finalOptionType = optionType;
         return this.safeMarketStructure(new HashMap<String, Object>() {{

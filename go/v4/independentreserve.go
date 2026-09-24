@@ -767,7 +767,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	} else if market != nil {
 		symbol = GetValue(market, "symbol")
 		base = GetValue(market, "base")
-		quote = GetValue(market, "quote")
+		quote = this.SafeString(market, "quote")
 	}
 	var orderType *string = this.SafeString2(order, "Type", "OrderType")
 	var side any = nil

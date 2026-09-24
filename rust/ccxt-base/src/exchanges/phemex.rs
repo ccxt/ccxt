@@ -5079,7 +5079,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
         if (firstSymbol != Value::Null) {
             market = self.market(firstSymbol);
-            settle = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null);
+            settle = self.safe_string_k(market.clone(), "settle", &[]);
             code = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null);
         }  else {
             { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchPositions".into()), Value::Str("settle".into()), &[code.clone()]); settle = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -7028,7 +7028,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
         if (firstSymbol != Value::Null) {
             market = self.market(firstSymbol);
-            settle = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null);
+            settle = self.safe_string_k(market.clone(), "settle", &[]);
             code = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null);
         }  else {
             { let __destr_tmp = self.handle_option_string_and_params(params.clone(), Value::Str("fetchPositionsADLRank".into()), Value::Str("settle".into()), &[code.clone()]); settle = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }

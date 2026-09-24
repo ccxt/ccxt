@@ -592,7 +592,7 @@ public partial class gemini : ccxt.gemini
         List<object> marketIds = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             object messageHash = add(add(itemHashName, ":"), symbol);
             messageHashes.Add(messageHash);
             Dictionary<string, object> market = this.market(symbol);

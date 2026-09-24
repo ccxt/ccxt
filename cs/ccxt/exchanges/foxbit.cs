@@ -2015,14 +2015,14 @@ public partial class foxbit : Exchange
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
-        object symbol = this.safeString(order, "market_symbol");
+        string? symbol = this.safeString(order, "market_symbol");
         if ((market == null) && (symbol != null))
         {
             market = this.market(symbol);
         }
         if ((market != null))
         {
-            symbol = getValue(market, "symbol");
+            symbol = this.safeString(market, "symbol");
         }
         Int64? timestamp = this.parseDate(this.safeString(order, "created_at"));
         string? price = this.safeString(order, "price");

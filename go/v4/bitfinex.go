@@ -3367,7 +3367,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 		var data []any = SafeListTypedDefault(transaction, 4, []any{})
 		timestamp = this.SafeInteger(transaction, 0)
 		if currency != nil {
-			code = GetValue(currency, "code")
+			code = DerefScalar(this.SafeString(currency, "code"))
 		}
 		feeCost = this.SafeString(data, 8)
 		if !IsEqual(feeCost, nil) {

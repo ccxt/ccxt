@@ -1201,25 +1201,25 @@ class bigone(Exchange, ImplicitAPI):
         if takerOrMaker is not None:
             if side == 'buy':
                 if takerOrMaker == 'maker':
-                    makerCurrencyCode = market['base']
-                    takerCurrencyCode = market['quote']
+                    makerCurrencyCode = self.safe_string(market, 'base')
+                    takerCurrencyCode = self.safe_string(market, 'quote')
                 else:
-                    makerCurrencyCode = market['quote']
-                    takerCurrencyCode = market['base']
+                    makerCurrencyCode = self.safe_string(market, 'quote')
+                    takerCurrencyCode = self.safe_string(market, 'base')
             else:
                 if takerOrMaker == 'maker':
-                    makerCurrencyCode = market['quote']
-                    takerCurrencyCode = market['base']
+                    makerCurrencyCode = self.safe_string(market, 'quote')
+                    takerCurrencyCode = self.safe_string(market, 'base')
                 else:
-                    makerCurrencyCode = market['base']
-                    takerCurrencyCode = market['quote']
+                    makerCurrencyCode = self.safe_string(market, 'base')
+                    takerCurrencyCode = self.safe_string(market, 'quote')
         elif side == 'SELF_TRADING':
             if takerSide == 'BID':
-                makerCurrencyCode = market['quote']
-                takerCurrencyCode = market['base']
+                makerCurrencyCode = self.safe_string(market, 'quote')
+                takerCurrencyCode = self.safe_string(market, 'base')
             elif takerSide == 'ASK':
-                makerCurrencyCode = market['base']
-                takerCurrencyCode = market['quote']
+                makerCurrencyCode = self.safe_string(market, 'base')
+                takerCurrencyCode = self.safe_string(market, 'quote')
         makerFeeCost = self.safe_string(trade, 'maker_fee')
         takerFeeCost = self.safe_string(trade, 'taker_fee')
         if makerFeeCost is not None:

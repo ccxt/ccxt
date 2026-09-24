@@ -396,7 +396,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             Object url = this.getStockWsUrl("market");
             Long requestId = this.requestId(url);
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", streams );
@@ -1503,7 +1503,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     if (Helpers.isGreaterThan(u, nonce))
                     {
                         Long timestamp = this.safeInteger(orderbook, "timestamp");
-                        Object conditional = null;
+                        Boolean conditional = null;
                         if (java.util.Objects.equals(timestamp, null))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1

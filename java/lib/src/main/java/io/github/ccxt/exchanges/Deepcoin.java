@@ -724,7 +724,7 @@ public class Deepcoin extends DeepcoinApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         String symbol = ((base + "/") + quote);
-        Object isLinear = null;
+        Boolean isLinear = null;
         if (Boolean.TRUE.equals(swap))
         {
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
@@ -749,7 +749,7 @@ public class Deepcoin extends DeepcoinApi
         final String finalType = type;
         final Boolean finalSpot = spot;
         final String finalState = state;
-        final Object finalIsLinear = isLinear;
+        final Boolean finalIsLinear = isLinear;
         final String finalMaxLeverage = maxLeverage;
         return this.extend(fees, new HashMap<String, Object>() {{
             put( "id", id );

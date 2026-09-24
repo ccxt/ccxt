@@ -3856,7 +3856,7 @@ class phemex extends Exchange {
         $firstSymbol = $this->safe_string($symbols, 0);
         if ($firstSymbol !== null) {
             $market = $this->market($firstSymbol);
-            $settle = $market['settle'];
+            $settle = $this->safe_string($market, 'settle');
             $code = $market['settle'];
         } else {
             list($settle, $params) = $this->handle_option_string_and_params($params, 'fetchPositions', 'settle', $code);
@@ -5490,7 +5490,7 @@ class phemex extends Exchange {
         $firstSymbol = $this->safe_string($symbols, 0);
         if ($firstSymbol !== null) {
             $market = $this->market($firstSymbol);
-            $settle = $market['settle'];
+            $settle = $this->safe_string($market, 'settle');
             $code = $market['settle'];
         } else {
             list($settle, $params) = $this->handle_option_string_and_params($params, 'fetchPositionsADLRank', 'settle', $code);

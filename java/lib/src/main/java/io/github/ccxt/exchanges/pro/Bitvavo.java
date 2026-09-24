@@ -763,7 +763,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
-                Object interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
+                String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
     final Object finalInterval = interval;
                             ((List<Object>)channels).add(new HashMap<String, Object>() {{
                     put( "name", name );
@@ -885,7 +885,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
-                Object interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
+                String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
     final String finalName = name;
                 final Object finalInterval = interval;
                             ((List<Object>)channels).add(new HashMap<String, Object>() {{

@@ -1011,7 +1011,7 @@ impl IndependentreserveCore {
         }  else if (market != Value::Null) {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             base = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
-            quote = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            quote = self.safe_string_k(market.clone(), "quote", &[]);
         }
         let mut orderType: Value = self.safe_string2(order.clone(), Value::Str("Type".into()), Value::Str("OrderType".into()), &[]);
         let mut side: Value = Value::Null;

@@ -1325,7 +1325,7 @@ public class Woo extends WooApi
         //
         Boolean isFromFetchOrder = (((Map<?, ?>)trade).containsKey("id"));
         String timestampString = this.safeString2(trade, "executed_timestamp", "executedTimestamp");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
             if (Helpers.isGreaterThan(((String)timestampString).indexOf("."), -1))
@@ -1357,7 +1357,7 @@ public class Woo extends WooApi
             Boolean isMaker = java.util.Objects.equals(this.safeString2(trade, "is_maker", "isMaker"), "1");
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
@@ -2946,7 +2946,7 @@ public class Woo extends WooApi
         //         "positionSide": "BOTH"
         //     }
         //
-        Object timestamp = null;
+        Long timestamp = null;
         String timestrampString = this.safeString(order, "createdTime");
         if (!java.util.Objects.equals(timestrampString, null))
         {
@@ -2980,7 +2980,7 @@ public class Woo extends WooApi
         String feeCurrency = this.safeString(order, "feeAsset");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         String lastUpdateTimestampString = this.safeString(order, "updatedTime");
-        Object lastUpdateTimestamp = null;
+        Long lastUpdateTimestamp = null;
         if (!java.util.Objects.equals(lastUpdateTimestampString, null))
         {
             if (((String)lastUpdateTimestampString).indexOf(".") >= 0)
@@ -2991,15 +2991,15 @@ public class Woo extends WooApi
                 lastUpdateTimestamp = this.safeInteger(order, "updatedTime"); // regular orders
             }
         }
-        Object postOnly = null;
+        Boolean postOnly = null;
         if (!java.util.Objects.equals(orderType, null))
         {
             postOnly = (java.util.Objects.equals(orderType, "post_only"));
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Long finalTimestamp = timestamp;
+        final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
         final Object finalOrderType = orderType;
-        final Object finalPostOnly = postOnly;
+        final Boolean finalPostOnly = postOnly;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
@@ -5914,7 +5914,7 @@ public class Woo extends WooApi
         String contractSize = this.safeString(market, "contractSize");
         String markPrice = this.safeString2(position, "markPrice", "mark_price");
         String timestampString = this.safeString(position, "timestamp");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
             if (Helpers.isGreaterThan(((String)timestampString).indexOf("."), -1))
@@ -5932,7 +5932,7 @@ public class Woo extends WooApi
         String notional = Precise.stringMul(size, markPrice);
         String positionSide = this.safeString(position, "positionSide"); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
         final Map<String, Object> finalMarket = market;
-        final Object finalTimestamp = timestamp;
+        final Long finalTimestamp = timestamp;
         final String finalSize = size;
         final String finalSide = side;
         final String finalPositionSide = positionSide;

@@ -1711,7 +1711,7 @@ impl AsterCore {
                 continue;
             }
             let mut market: Value = self.market(symbolString.clone());
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[]);
             let mut timeframeId: Value = (if (unfiedTimeframe == Value::Null) { Value::Null } else { self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]) });
             append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into()));
@@ -1781,7 +1781,7 @@ impl AsterCore {
                 continue;
             }
             let mut market: Value = self.market(symbolString.clone());
-            symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolString = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[]);
             let mut timeframeId: Value = (if (unfiedTimeframe == Value::Null) { Value::Null } else { self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]) });
             append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[]), Value::Str("@kline_".into())).into()), timeframeId).into()));

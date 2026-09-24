@@ -2025,15 +2025,15 @@ public partial class weex : Exchange
         if ((commission != null))
         {
             string? commissionAsset = this.safeString(trade, "commissionAsset");
-            object feeCurrency = this.safeCurrencyCode(commissionAsset);
+            string? feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (isEqual(isSpot, true))
             {
                 if (side == "buy")
                 {
-                    feeCurrency = getValue(market, "base");
+                    feeCurrency = this.safeString(market, "base");
                 } else
                 {
-                    feeCurrency = getValue(market, "quote");
+                    feeCurrency = this.safeString(market, "quote");
                 }
             }
             fee = new Dictionary<string, object>() {

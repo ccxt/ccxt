@@ -653,7 +653,7 @@ class weex extends \ccxt\async\weex {
             if ($market['type'] !== $firstMarket['type']) {
                 throw new BadRequest($this->id . ' ' . $callerMethodName . ' $market symbols must be of the same type');
             }
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol');
             $unifiedTimeframe = $this->safe_string($data, 1, '1');
             $interval = $this->safe_string($this->timeframes, $unifiedTimeframe, $unifiedTimeframe);
             $channel = $market['id'] . '@kline_' . $interval . '_' . $priceType;
@@ -727,7 +727,7 @@ class weex extends \ccxt\async\weex {
             if ($market['type'] !== $firstMarket['type']) {
                 throw new BadRequest($this->id . ' ' . $callerMethodName . ' $market symbols must be of the same type');
             }
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol');
             $unifiedTimeframe = $this->safe_string($data, 1, '1');
             $interval = $this->safe_string($this->timeframes, $unifiedTimeframe, $unifiedTimeframe);
             $channel = $market['id'] . '@kline_' . $interval . '_' . $priceType;
@@ -1335,9 +1335,9 @@ class weex extends \ccxt\async\weex {
             $feeCurrency = $this->safe_currency_code($commissionAsset);
             if ($marketType === 'spot') {
                 if ($side === 'buy') {
-                    $feeCurrency = $marketResolved['base'];
+                    $feeCurrency = $this->safe_string($marketResolved, 'base');
                 } else {
-                    $feeCurrency = $marketResolved['quote'];
+                    $feeCurrency = $this->safe_string($marketResolved, 'quote');
                 }
             }
             $fee = array(
@@ -1619,9 +1619,9 @@ class weex extends \ccxt\async\weex {
             $feeCurrency = $this->safe_currency_code($commissionAsset);
             if ($marketType === 'spot') {
                 if ($side === 'buy') {
-                    $feeCurrency = $marketResolved['base'];
+                    $feeCurrency = $this->safe_string($marketResolved, 'base');
                 } else {
-                    $feeCurrency = $marketResolved['quote'];
+                    $feeCurrency = $this->safe_string($marketResolved, 'quote');
                 }
             }
             $fee = array(

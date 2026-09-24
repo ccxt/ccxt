@@ -914,13 +914,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
-                Object symbolString = this.safeString(data, 0);
+                String symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), ((Map<String, Object>)firstMarket).get("type")))
                 {
                     throw new BadRequest((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
                 }
-                symbolString = ((Map<String, Object>)market).get("symbol");
+                symbolString = this.safeString(market, "symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
                 String interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
                 String channel = ((Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval) + "_") + priceType);
@@ -1033,13 +1033,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
-                Object symbolString = this.safeString(data, 0);
+                String symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), ((Map<String, Object>)firstMarket).get("type")))
                 {
                     throw new BadRequest((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
                 }
-                symbolString = ((Map<String, Object>)market).get("symbol");
+                symbolString = this.safeString(market, "symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
                 String interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
                 String channel = ((Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval) + "_") + priceType);
@@ -1835,7 +1835,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         for (var j = 0; j < ((List<?>)symbolKeys).size(); j++)
         {
-            Object symbol = (symbolKeys == null || j < 0 || j >= symbolKeys.size() ? null : symbolKeys.get(j));
+            String symbol = (symbolKeys == null || j < 0 || j >= symbolKeys.size() ? null : symbolKeys.get(j));
             String symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(trades, symbolMessageHash);
         }
@@ -1877,19 +1877,19 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!java.util.Objects.equals(commission, null))
         {
             String commissionAsset = this.safeString(trade, "coin");
-            Object feeCurrency = this.safeCurrencyCode((String) (commissionAsset));
+            String feeCurrency = this.safeCurrencyCode((String) (commissionAsset));
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    feeCurrency = ((Map<String, Object>)marketResolved).get("base");
+                    feeCurrency = this.safeString(marketResolved, "base");
                 } else
                 {
-                    feeCurrency = ((Map<String, Object>)marketResolved).get("quote");
+                    feeCurrency = this.safeString(marketResolved, "quote");
                 }
             }
             final String finalCommission = commission;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalCommission );
                 put( "currency", finalFeeCurrency );
@@ -2125,7 +2125,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
         {
-            Object symbol = (symbolKeys == null || i < 0 || i >= symbolKeys.size() ? null : symbolKeys.get(i));
+            String symbol = (symbolKeys == null || i < 0 || i >= symbolKeys.size() ? null : symbolKeys.get(i));
             String symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(orders, symbolMessageHash);
         }
@@ -2235,19 +2235,19 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!java.util.Objects.equals(commission, null))
         {
             String commissionAsset = this.safeString(order, "coin");
-            Object feeCurrency = this.safeCurrencyCode((String) (commissionAsset));
+            String feeCurrency = this.safeCurrencyCode((String) (commissionAsset));
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    feeCurrency = ((Map<String, Object>)marketResolved).get("base");
+                    feeCurrency = this.safeString(marketResolved, "base");
                 } else
                 {
-                    feeCurrency = ((Map<String, Object>)marketResolved).get("quote");
+                    feeCurrency = this.safeString(marketResolved, "quote");
                 }
             }
             final String finalCommission = commission;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalCommission );
                 put( "currency", finalFeeCurrency );

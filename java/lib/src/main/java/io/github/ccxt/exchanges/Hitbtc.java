@@ -937,8 +937,8 @@ public class Hitbtc extends HitbtcApi
                 String symbol = ((base + "/") + quote);
                 String type = "spot";
                 Double contractSize = null;
-                Object linear = null;
-                Object inverse = null;
+                Boolean linear = null;
+                Boolean inverse = null;
                 if (Boolean.TRUE.equals(contract))
                 {
                     contractSize = this.parseNumber("1");
@@ -968,8 +968,8 @@ public class Hitbtc extends HitbtcApi
                 final String finalType = type;
                 final Boolean finalSpot = spot;
                 final Boolean finalContract = contract;
-                final Object finalLinear = linear;
-                final Object finalInverse = inverse;
+                final Boolean finalLinear = linear;
+                final Boolean finalInverse = inverse;
                 final Double finalContractSize = contractSize;
                 final Long finalExpiry = expiry;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1978,7 +1978,7 @@ public class Hitbtc extends HitbtcApi
         String addressTo = address;
         String tag = this.safeString(nativeVar, "payment_id");
         String tagTo = tag;
-        Object sender = this.safeValue(nativeVar, "senders");
+        List<Object> sender = (List<Object>) this.safeList(nativeVar, "senders");
         String addressFrom = this.safeString(sender, 0);
         Double amount = this.safeNumber(nativeVar, "amount");
         String subType = this.safeString(transaction, "subtype");
@@ -3580,7 +3580,7 @@ public class Hitbtc extends HitbtcApi
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Object postOnly = this.safeValue(order, "post_only");
         String timeInForce = this.safeString(order, "time_in_force");
-        Object rawTrades = this.safeValue(order, "trades");
+        List<Object> rawTrades = (List<Object>) this.safeList(order, "trades");
         final Long finalLastTradeTimestamp = lastTradeTimestamp;
         return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", order );

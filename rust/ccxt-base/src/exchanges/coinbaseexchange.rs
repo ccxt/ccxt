@@ -2729,7 +2729,7 @@ impl CoinbaseexchangeCore {
                 if (account == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() could not find account id for ".into())).into()), code)));
                 }
-                id = account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+                id = self.safe_string_k(account.clone(), "id", &[]);
             }
         }
         let mut request: Value = Value::Map({

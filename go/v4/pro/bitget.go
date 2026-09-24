@@ -2010,7 +2010,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
-		marketId = ccxt.GetValue(market, "id")
+		marketId = ccxt.DerefScalar(this.SafeString(market, "id"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var uta any = nil

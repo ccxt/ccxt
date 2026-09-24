@@ -11196,10 +11196,10 @@ impl OkxCore {
         let mut market: Value = Value::Null;
         if ((self.markets.clone() != Value::Null) && (in_op(&self.markets, &symbol))) || ((self.markets_by_id.clone() != Value::Null) && (in_op(&self.markets_by_id, &symbol))) {
             market = self.market(symbol.clone());
-            currencyId = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null);
+            currencyId = self.safe_string_k(market.clone(), "baseId", &[]);
         }  else {
             let mut currency: Value = self.currency(symbol);
-            currencyId = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            currencyId = self.safe_string_k(currency, "id", &[]);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

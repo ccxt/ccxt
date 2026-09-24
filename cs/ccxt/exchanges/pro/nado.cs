@@ -256,14 +256,14 @@ public partial class nado : ccxt.nado
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
             markets.Add(market);
             messageHashes.Add(messageHash);
             if (!(inOp(this.orderbooks, (market.ContainsKey("symbol") ? market["symbol"] : null))))
             {
-                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
+                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
                 ((IDictionary<string,object>)this.orderbooks)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.orderBook(snapshot, limit);
             }
         }
@@ -1260,7 +1260,7 @@ public partial class nado : ccxt.nado
             { "sender", sender },
             { "expiration", this.numberToString(expiration) },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))

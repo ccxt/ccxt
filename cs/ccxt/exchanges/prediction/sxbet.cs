@@ -236,9 +236,9 @@ public partial class sxbet : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         object rest = this.omit(parameters, new List<object>() {"limit"});
         Int64? userLimit = this.safeInteger(parameters, "limit");
-        object rawMarkets = await this.fetchRawMarketsPaged(rest, userLimit);
+        List<object> rawMarkets = await this.fetchRawMarketsPaged(rest, userLimit);
         List<object> markets = new List<object>() {};
-        int rawMarketsLength = getArrayLength(rawMarkets);
+        int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
             markets.Add(this.parseSxbetMarket(getValue(rawMarkets, i)));
@@ -260,7 +260,7 @@ public partial class sxbet : PredictionExchange
      * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
      * @returns {object[]} the raw (unparsed) sx.bet market objects
      */
-    public async virtual Task<object> fetchRawMarketsPaged(object extra = null, object userLimit = null)
+    public async virtual Task<List<object>> fetchRawMarketsPaged(object extra = null, object userLimit = null)
     {
         extra ??= new Dictionary<string, object>();
         Int64? pageSize = this.safeInteger(this.options, "marketsPageSize", 100);
@@ -728,7 +728,7 @@ public partial class sxbet : PredictionExchange
      * @see https://docs.sx.bet/api-reference/get-metadata-obv3
      * @returns {object} the cached obv3 metadata data object
      */
-    public async virtual Task<object> loadSxObv3Metadata()
+    public async virtual Task<IDictionary<string, object>> loadSxObv3Metadata()
     {
         IDictionary<string, object> cached = this.safeDict(this.options, "sxObv3Metadata");
         if ((cached != null))
@@ -800,7 +800,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} tokenAddress the token contract address
      * @returns {string} the token's on-chain name
      */
-    public async virtual Task<object> fetchErc20Name(object rpcUrl, object tokenAddress)
+    public async virtual Task<string?> fetchErc20Name(object rpcUrl, object tokenAddress)
     {
         string nameCallData = "0x06fdde03"; // name()
         object result = await this.ethRpc(rpcUrl, "eth_call", new List<object>() {new Dictionary<string, object>() {
@@ -813,7 +813,7 @@ public partial class sxbet : PredictionExchange
         object length = this.hexToInt(lengthHex);
         object dataEnd = this.sum(128, multiply(length, 2));
         string? dataHex = slice(hex, 128, dataEnd);
-        return this.decode(this.base16ToBinary(dataHex));
+        return ((string?)((object)(this.decode(this.base16ToBinary(dataHex)))));
     }
 
     /**
@@ -847,7 +847,7 @@ public partial class sxbet : PredictionExchange
      * @see https://docs.sx.bet/api-reference/get-user-proxy
      * @returns {object} the raw proxy data ({obv3ProxyWalletAddress, deployed, multisigSafeAddress})
      */
-    public async virtual Task<object> fetchSxbetProxy()
+    public async virtual Task<IDictionary<string, object>> fetchSxbetProxy()
     {
         Dictionary<string, object> response = await this.sxbetPrivateGetUserProxy();
         return this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -876,7 +876,7 @@ public partial class sxbet : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " approve() requires params.amount - the USDC amount to move into the proxy wallet")) ;
         }
-        object proxy = await this.fetchSxbetProxy();
+        IDictionary<string, object> proxy = await this.fetchSxbetProxy();
         bool? deployed = this.safeBool(proxy, "deployed", false);
         if ((deployed != true))
         {
@@ -885,14 +885,14 @@ public partial class sxbet : PredictionExchange
             for (int i = 0; i < 30; i++)
             {
                 await this.sleep(2000);
-                object state = await this.fetchSxbetProxy();
+                IDictionary<string, object> state = await this.fetchSxbetProxy();
                 if ((this.safeBool(state, "deployed", false) == true))
                 {
                     break;
                 }
             }
         }
-        object obv3 = await this.loadSxObv3Metadata();
+        IDictionary<string, object> obv3 = await this.loadSxObv3Metadata();
         IDictionary<string, object> activeAsset = this.safeDict(obv3, "activeAsset", new Dictionary<string, object>() {});
         Int64? chainId = this.safeInteger(obv3, "chainId");
         string? usdcAddress = this.safeString(activeAsset, "baseToken");
@@ -926,7 +926,7 @@ public partial class sxbet : PredictionExchange
 }, "latest"});
         string? nonceHex = this.hexToRlpBytes(nonceResult);
         string? nonce = (nonceHex == "") ? "0" : this.numberToString(this.hexToInt(nonceHex));
-        object tokenName = await this.fetchErc20Name(rpcUrl, tokenAddress);
+        string? tokenName = await this.fetchErc20Name(rpcUrl, tokenAddress);
         Int64? defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
         Int64? deadline = this.safeInteger(parameters, "deadline", this.sum(this.seconds(), defaultDeadlineSeconds));
         string value = this.decimalToPrecision(Precise.stringMul(this.numberToString(amount), "1000000"), ROUND, 0, DECIMAL_PLACES);
@@ -1036,7 +1036,7 @@ public partial class sxbet : PredictionExchange
         bool isMakerBettingOutcomeOne = isBuy ? isOutcomeOne : !isOutcomeOne;
         string? priceStr = this.numberToString(price);
         string? probability = isBuy ? priceStr : Precise.stringSub("1", priceStr);
-        object obv3 = await this.loadSxObv3Metadata();
+        IDictionary<string, object> obv3 = await this.loadSxObv3Metadata();
         IDictionary<string, object> domain = this.safeDict(obv3, "domain", new Dictionary<string, object>() {});
         IDictionary<string, object> activeAsset = this.safeDict(obv3, "activeAsset", new Dictionary<string, object>() {});
         string? baseToken = this.safeString(activeAsset, "baseToken");
@@ -1725,7 +1725,7 @@ public partial class sxbet : PredictionExchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object obv3 = await this.loadSxObv3Metadata();
+        IDictionary<string, object> obv3 = await this.loadSxObv3Metadata();
         IDictionary<string, object> activeAsset = this.safeDict(obv3, "activeAsset", new Dictionary<string, object>() {});
         string? usdcAddress = this.safeStringLower(activeAsset, "baseToken", "");
         Dictionary<string, object> response = await this.sxbetPrivateGetUserBalanceV3(parameters);
@@ -2006,7 +2006,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} marketHash the market hash
      * @returns {object} the raw snapshot data
      */
-    public async virtual Task<object> fetchSxbetBookSnapshot(object marketHash)
+    public async virtual Task<IDictionary<string, object>> fetchSxbetBookSnapshot(object marketHash)
     {
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "marketHash", marketHash },
@@ -2032,7 +2032,7 @@ public partial class sxbet : PredictionExchange
         string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash");
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
-        object snapshot = await this.fetchSxbetBookSnapshot(marketHash);
+        IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
         IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
         return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, ((object)outcomeObj)));
     }
@@ -2047,7 +2047,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    public async virtual Task<object> fetchSxbetBestOdds(object marketHashes, object parameters = null)
+    public async virtual Task<List<object>> fetchSxbetBestOdds(object marketHashes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2126,7 +2126,7 @@ public partial class sxbet : PredictionExchange
             for (int i = 0; i < hashesLength; i++)
             {
                 object marketHash = getValue(hashesOrder, i);
-                object snapshot = await this.fetchSxbetBookSnapshot(marketHash);
+                IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
                 rowsByHash[(string)marketHash] = this.parseSxbetSnapshotBestOdds(snapshot);
             }
             return ccxt.BaseExchange.ToPredictionTickers(this.parseSxbetTickersByHash(outcomesList, rowsByHash));
@@ -2142,8 +2142,8 @@ public partial class sxbet : PredictionExchange
                 end = hashesLength;
             }
             List<object> chunk = ((List<object>)this.arraySlice(hashesOrder, start, end));
-            object rows = await this.fetchSxbetBestOdds(chunk, parameters);
-            int rowsLength = getArrayLength(rows);
+            List<object> rows = await this.fetchSxbetBestOdds(chunk, parameters);
+            int rowsLength = (rows?.Count ?? 0);
             for (int j = 0; j < rowsLength; j++)
             {
                 object row = getValue(rows, j);
@@ -2399,7 +2399,7 @@ public partial class sxbet : PredictionExchange
      * @see https://docs.sx.bet/developers/realtime-initialization
      * @returns {string} the JWT connection token
      */
-    public async virtual Task<object> fetchSxbetRealtimeToken()
+    public async virtual Task<string?> fetchSxbetRealtimeToken()
     {
         if ((this.apiKey == null))
         {
@@ -2420,7 +2420,7 @@ public partial class sxbet : PredictionExchange
         if ((connectSent == null))
         {
             this.options["wsConnected"] = false;
-            object token = await this.fetchSxbetRealtimeToken();
+            string? token = await this.fetchSxbetRealtimeToken();
             Int64 requestId = this.requestId(url);
             this.registerSxbetWsRequest(requestId, "centrifugoConnected", "connect");
             Dictionary<string, object> connectMsg = new Dictionary<string, object>() {
@@ -2620,7 +2620,7 @@ public partial class sxbet : PredictionExchange
                 this.options["wsWatchedBooks"] = this.createSafeDictionary();
             }
             ((IDictionary<string,object>)(this.options.ContainsKey("wsWatchedBooks") ? this.options["wsWatchedBooks"] : null))[(string)sym] = marketHash;
-            object snapshot = await this.fetchSxbetBookSnapshot(marketHash);
+            IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             this.applySxbetWsSnapshot(snapshot);
             if (isEqual(this.safeOrderBook(this.orderbooks, sym), null))
             {
@@ -2765,7 +2765,7 @@ public partial class sxbet : PredictionExchange
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
-            object snapshot = await this.fetchSxbetBookSnapshot(marketHash);
+            IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
             Dictionary<string, object> ticker = this.parsePredictionTicker(raw, ((object)outcomeObj));
             ((IDictionary<string,object>)this.tickers)[(string)sym] = ((object)ticker);

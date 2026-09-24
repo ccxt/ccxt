@@ -1966,11 +1966,11 @@ class dydx extends Exchange {
         $gasPrice = null;
         $denom = null;
         if ($defaultFeeDenom === 'uusdc') {
-            $gasPrice = $feeDenom['USDC_GAS_PRICE'];
-            $denom = $feeDenom['USDC_DENOM'];
+            $gasPrice = $this->safe_string($feeDenom, 'USDC_GAS_PRICE');
+            $denom = $this->safe_string($feeDenom, 'USDC_DENOM');
         } else {
-            $gasPrice = $feeDenom['CHAINTOKEN_GAS_PRICE'];
-            $denom = $feeDenom['CHAINTOKEN_DENOM'];
+            $gasPrice = $this->safe_string($feeDenom, 'CHAINTOKEN_GAS_PRICE');
+            $denom = $this->safe_string($feeDenom, 'CHAINTOKEN_DENOM');
         }
         $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
         $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);

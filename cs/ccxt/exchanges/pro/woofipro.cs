@@ -1118,8 +1118,8 @@ public partial class woofipro : ccxt.woofipro
                 {
                     throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
                 }
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(("positions::" + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(("positions::" + symbol));
             }
         } else
         {

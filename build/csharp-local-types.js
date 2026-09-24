@@ -2180,6 +2180,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // declares the same signatures; nonce/milliseconds are non-nullable Int64)
     'milliseconds': 'Int64',
     'nonce': 'Int64',
+    // incrementingNonce (base only, no override): returns nonce () or lastNonce + 1, an Int64 box
+    'incrementingNonce': 'Int64?',
     'parseToInt': 'Int64?',
     // grvt#convertToBigIntCustom (generated): its single definition's single return path is
     // `return parseInt (x);` — an Int64 or null box once parseInt is retyped (see
@@ -2600,6 +2602,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // `string?` local), so the pro tree's `object token = await this.authenticateRest ()` takes
     // the string? box; the name is declared in the REST file only, hence this table
     'authenticateRest': 'string?',
+    // nado's queryContracts (CSHARP_AWAITED_CORE_RETURNS), awaited from the pro subclass too
+    'queryContracts': 'IDictionary<string, object>',
     // cs/ccxt/base/PredictionExchange.cs, retyped from Task<object> by
     // installCsharpAsyncCoreReturns() (CSHARP_ASYNC_CORE_RETURNS above); the awaited value is
     // the outcome row the accessor returned — the same IDictionary box the call site used to
@@ -8662,6 +8666,45 @@ function stringListParameterElementType (csharp, scope, parameter) {
     return true;
 }
 
+// A string-list parameter left `object` in C#: its elements are strings at `read` only when a
+// `name = <string-list producer>` statement precedes the read in an enclosing block (the caller's
+// list is replaced) and every write is such a producer, with no in-place mutation.
+function rewrittenStringListParameter (csharp, scope, parameter, read) {
+    const name = parameter.name?.escapedText;
+    if (name === undefined || !stringListParameterAnnotation (parameter)) {
+        return false;
+    }
+    const writes = [];
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === parameter.name || isNotAUse (use)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, parameter, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !stringListParameterWriteProducer (parent.right)) {
+                return false;
+            }
+            writes.push (parent);
+            continue;
+        }
+        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return false;
+        }
+    }
+    return writes.some ((write) => {
+        const statement = write.parent;
+        if (statement?.kind !== ts.SyntaxKind.ExpressionStatement || statement.parent?.kind !== ts.SyntaxKind.Block) {
+            return false;
+        }
+        const siblings = statement.parent.statements;
+        const index = siblings.indexOf (statement);
+        return siblings.some ((later, i) => i > index && later.getStart () <= read.getStart () && read.getEnd () <= later.getEnd ());
+    });
+}
+
 // the element type of `recv[key]`, or undefined. `getValue (recv, key)` is an object box, so a
 // named declaration needs the cast csharpLocalTypeOf adds; the receiver must have exactly one
 // binding, declared before the read, and every other use of it must be a read the producer proved
@@ -8695,7 +8738,7 @@ function elementAccessElementType (csharp, initializer, context) {
     }
     if (declaration.kind === ts.SyntaxKind.Parameter) {
         // U02: a parameter receiver -- the receiver IS a narrowed list parameter (see above)
-        return stringListParameterElementType (csharp, scope, declaration) ? 'string' : undefined;
+        return (stringListParameterElementType (csharp, scope, declaration) || rewrittenStringListParameter (csharp, scope, declaration, initializer)) ? 'string' : undefined;
     }
     if (declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
         return undefined;
@@ -13847,6 +13890,22 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     // 'jwt_token')), so the one `object token = await this.authenticateRest ()` local (pro tree)
     // takes the string? box; the six other call sites ignore the result
     'authenticateRest': 'string?',
+    // venue helpers whose every path hands back a safeDict() result or a safeDict() local
+    // (nado, prediction sxbet/opinion: cached-or-fetched config rows)
+    'queryContracts': 'IDictionary<string, object>',
+    'loadSxObv3Metadata': 'IDictionary<string, object>',
+    'fetchSxbetBookSnapshot': 'IDictionary<string, object>',
+    'fetchSxbetProxy': 'IDictionary<string, object>',
+    'loadQuoteToken': 'IDictionary<string, object>',
+    // a List<object> local or safeList() on every path (grvt, prediction sxbet/kalshi)
+    'internalFetchTransfers': 'List<object>',
+    'fetchRawMarketsPaged': 'List<object>',
+    'resolveEventSeriesTickers': 'List<object>',
+    'fetchSxbetBestOdds': 'List<object>',
+    // string helpers: safeString2 / decode / a string-literal-left concatenation
+    'fetchSxbetRealtimeToken': 'string?',
+    'fetchErc20Name': 'string?',
+    'walletEventsTopic': [ 'string', 'string?' ],
 };
 
 const awaitedCoreProofs = new WeakMap ();
@@ -14016,6 +14075,7 @@ export function installCsharpAsyncCoreReturns (transpiler) {
 export const CSHARP_NUMERIC_RETURN_TYPES = {
     // Exchange.BaseMethods.cs (transpiled from ts/src/base/Exchange.ts)
     'nonce': 'Int64',
+    'incrementingNonce': 'Int64?',
     'parseToInt': 'Int64?',
     'safeNumber': 'double?',
     'safeNumber2': 'double?',

@@ -1254,28 +1254,28 @@ class bigone extends Exchange {
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
-                    $makerCurrencyCode = $market['base'];
-                    $takerCurrencyCode = $market['quote'];
+                    $makerCurrencyCode = $this->safe_string($market, 'base');
+                    $takerCurrencyCode = $this->safe_string($market, 'quote');
                 } else {
-                    $makerCurrencyCode = $market['quote'];
-                    $takerCurrencyCode = $market['base'];
+                    $makerCurrencyCode = $this->safe_string($market, 'quote');
+                    $takerCurrencyCode = $this->safe_string($market, 'base');
                 }
             } else {
                 if ($takerOrMaker === 'maker') {
-                    $makerCurrencyCode = $market['quote'];
-                    $takerCurrencyCode = $market['base'];
+                    $makerCurrencyCode = $this->safe_string($market, 'quote');
+                    $takerCurrencyCode = $this->safe_string($market, 'base');
                 } else {
-                    $makerCurrencyCode = $market['base'];
-                    $takerCurrencyCode = $market['quote'];
+                    $makerCurrencyCode = $this->safe_string($market, 'base');
+                    $takerCurrencyCode = $this->safe_string($market, 'quote');
                 }
             }
         } elseif ($side === 'SELF_TRADING') {
             if ($takerSide === 'BID') {
-                $makerCurrencyCode = $market['quote'];
-                $takerCurrencyCode = $market['base'];
+                $makerCurrencyCode = $this->safe_string($market, 'quote');
+                $takerCurrencyCode = $this->safe_string($market, 'base');
             } elseif ($takerSide === 'ASK') {
-                $makerCurrencyCode = $market['base'];
-                $takerCurrencyCode = $market['quote'];
+                $makerCurrencyCode = $this->safe_string($market, 'base');
+                $takerCurrencyCode = $this->safe_string($market, 'quote');
             }
         }
         $makerFeeCost = $this->safe_string($trade, 'maker_fee');

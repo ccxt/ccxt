@@ -1099,7 +1099,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 		var datetime *string = this.SafeString2(update, "time", "timestamp")
 		var previousOrderArray any = this.FilterByArray(this.Orders, "id", orderId, false)
 		var previousOrder map[string]any = ccxt.SafeMapTyped(previousOrderArray, 0)
-		symbol = previousOrder["symbol"]
+		symbol = ccxt.DerefScalar(this.SafeString(previousOrder, "symbol"))
 		var filled *string = this.SafeString(update, "filled_amount")
 		var status *string = this.ParseWsOrderStatus(updateType)
 		if (updateType != nil && *updateType == "ORDER_CLOSED") && ccxt.Precise.StringEq(filled, "0") {

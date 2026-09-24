@@ -1963,9 +1963,9 @@ func (this *Coinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
-	var defaultType any = DerefScalar(this.SafeString(this.Options, "defaultType"))
+	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	if market != nil {
-		defaultType = GetValue(market, "type")
+		defaultType = this.SafeString(market, "type")
 	}
 	var marketId *string = this.SafeString(trade, "market")
 	market = MapTyped(this.SafeMarket(marketId, market, nil, defaultType))
@@ -2804,9 +2804,9 @@ func (this *Coinex) ParseOrder(order any, optionalArgs ...any) any {
 	}()
 	market = MapTyped(this.SafeMarket(marketId, market, nil, marketType))
 	var feeCurrencyId *string = this.SafeString(order, "fee_ccy")
-	var feeCurrency any = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+	var feeCurrency *string = this.SafeCurrencyCode(feeCurrencyId)
 	if feeCurrency == nil {
-		feeCurrency = GetValue(market, "quote")
+		feeCurrency = this.SafeString(market, "quote")
 	}
 	var side *string = this.SafeString(order, "side")
 	if side != nil && *side == "long" {

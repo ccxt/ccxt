@@ -1429,7 +1429,7 @@ public class Btse extends BtseApi
         List<String> codes = new ArrayList<String>(totals.keySet());
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
-            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> account = (Map<String, Object>) this.account();
             ((Map<String, Object>)account).put("total", this.safeString(totals, code));
             ((Map<String, Object>)account).put("free", this.safeString(frees, code));

@@ -152,7 +152,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLengthDefined; i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object streamMarketId = null;
             if (isGenerationTwo)

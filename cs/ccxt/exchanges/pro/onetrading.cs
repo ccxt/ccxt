@@ -1024,7 +1024,7 @@ public partial class onetrading : ccxt.onetrading
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object symbol = null;
+        string? symbol = null;
         ccxt.pro.ArrayCache orders = this.orders;
         IDictionary<string, object> update = this.safeDict(message, "update", new Dictionary<string, object>() {});
         string? updateType = this.safeString(update, "type");
@@ -1034,7 +1034,7 @@ public partial class onetrading : ccxt.onetrading
             string? datetime = this.safeString2(update, "time", "timestamp");
             IList<object> previousOrderArray = ((IList<object>)this.filterByArray(this.orders, "id", orderId, false));
             IDictionary<string, object> previousOrder = this.safeDict(previousOrderArray, 0, new Dictionary<string, object>() {});
-            symbol = (previousOrder != null && previousOrder.ContainsKey("symbol") ? previousOrder["symbol"] : null);
+            symbol = this.safeString(previousOrder, "symbol");
             string? filled = this.safeString(update, "filled_amount");
             string? status = this.parseWsOrderStatus(updateType);
             if (updateType == "ORDER_CLOSED" && Precise.stringEq(filled, "0"))
@@ -1055,7 +1055,7 @@ public partial class onetrading : ccxt.onetrading
             symbol = this.safeString(parsed, "symbol", "");
             callDynamically(orders, "append", new object[] {parsed});
         }
-        client.resolve(this.orders, ("orders:" + (symbol)));
+        client.resolve(this.orders, ("orders:" + symbol));
         client.resolve(this.orders, "orders");
         // update balance
         List<object> balanceKeys = new List<object>() {"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"};
@@ -1075,7 +1075,7 @@ public partial class onetrading : ccxt.onetrading
             symbol = this.safeString(parsed, "symbol", "");
             ccxt.pro.ArrayCache myTrades = this.myTrades;
             callDynamically(myTrades, "append", new object[] {parsed});
-            client.resolve(this.myTrades, ("myTrades:" + (symbol)));
+            client.resolve(this.myTrades, ("myTrades:" + symbol));
             client.resolve(this.myTrades, "myTrades");
         }
     }

@@ -2993,7 +2993,7 @@ public partial class bitfinex : Exchange
         int transactionLength = getArrayLength(transaction);
         Int64? timestamp = null;
         Int64? updated = null;
-        object code = null;
+        string? code = null;
         object amount = null;
         object id = null;
         string? status = null;
@@ -3010,7 +3010,7 @@ public partial class bitfinex : Exchange
             timestamp = this.safeInteger(transaction, 0);
             if ((currency != null))
             {
-                code = getValue(currency, "code");
+                code = this.safeString(currency, "code");
             }
             feeCost = this.safeString(data, 8);
             if ((feeCost != null))

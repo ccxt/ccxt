@@ -2018,7 +2018,7 @@ class coinbaseexchange extends Exchange {
                 if ($account === null) {
                     throw new ExchangeError($this->id . ' fetchDepositsWithdrawals() could not find $account $id for ' . $code);
                 }
-                $id = $account['id'];
+                $id = $this->safe_string($account, 'id');
             }
         }
         $request = array();

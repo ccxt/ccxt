@@ -1198,7 +1198,7 @@ public partial class bit2c : Exchange
         {
             this.checkRequiredCredentials();
             // bit2c requires an increasing nonce per key
-            object nonce = this.incrementingNonce();
+            Int64? nonce = this.incrementingNonce();
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters);

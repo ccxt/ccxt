@@ -3673,7 +3673,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var code any = DerefScalar(this.SafeStringN(params, []any{"code", "currency", "baseCoin"}))
+	var code *string = this.SafeStringN(params, []any{"code", "currency", "baseCoin"})
 	var market any = nil
 	var parsedSymbols any = nil
 	if symbols != nil {
@@ -3702,17 +3702,17 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			} else {
 				market = this.Market(symbol)
 			}
-			if currentType == nil {
-				currentType = GetValue(market, "type")
-			} else if GetValue(market, "type") != currentType {
+			if IsEqual(currentType, nil) {
+				currentType = this.SafeString(market, "type")
+			} else if !IsEqual(GetValue(market, "type"), currentType) {
 				panic(BadRequest(this.Id + " fetchTickers can only accept a list of symbols of the same type"))
 			}
 			if GetValue(market, "option") == true {
-				if !IsEqual(code, nil) && !IsEqual(code, GetValue(market, "base")) {
+				if (code != nil) && !IsEqual(code, GetValue(market, "base")) {
 					panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers"))
 				}
-				if IsEqual(code, nil) {
-					code = GetValue(market, "base")
+				if code == nil {
+					code = this.SafeString(market, "base")
 				}
 				params = MapTyped(this.Omit(params, []any{"code", "currency"}))
 			}
@@ -3727,8 +3727,8 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	request["category"] = category
 	if IsEqual(category, "option") {
 		request["category"] = "option"
-		if IsEqual(code, nil) {
-			code = "BTC"
+		if code == nil {
+			code = SafeStringPtr("BTC")
 		}
 		request["baseCoin"] = code
 	}

@@ -1567,13 +1567,13 @@ impl BtcmarketsCore {
         let mut currency: Value = Value::Null;
         let mut cost: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")) {
-            currency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
+            currency = self.safe_string_k(market.clone(), "quote", &[]);
             let mut amountString: Value = self.number_to_string(amount.clone());
             let mut priceString: Value = self.number_to_string(price);
             let mut otherUnitsAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
             cost = self.cost_to_precision(symbol.clone(), otherUnitsAmount);
         }  else {
-            currency = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
+            currency = self.safe_string_k(market.clone(), "base", &[]);
             cost = self.amount_to_precision(symbol.clone(), amount);
         }
         let mut rate: Value = self.safe_value(market, takerOrMaker.clone(), &[]);

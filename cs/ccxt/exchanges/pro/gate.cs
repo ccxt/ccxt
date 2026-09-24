@@ -956,8 +956,8 @@ public partial class gate : ccxt.gate
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
-            messageHashes.Add(((prefix + ":") + (symbol)));
+            string? symbol = ((string)getValue(symbols, i));
+            messageHashes.Add(((prefix + ":") + symbol));
         }
         object tickerOrBidAsk = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
         if (this.newUpdates)
@@ -1062,8 +1062,8 @@ public partial class gate : ccxt.gate
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
-            messageHashes.Add(("trades:" + (symbol)));
+            string? symbol = ((string)getValue(symbols, i));
+            messageHashes.Add(("trades:" + symbol));
         }
         string? url = this.getUrlByMarket(market);
         object trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);

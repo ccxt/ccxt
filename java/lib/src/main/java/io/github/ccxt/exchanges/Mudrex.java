@@ -2100,12 +2100,12 @@ public class Mudrex extends MudrexApi
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)transactions).size(); i++)
             {
-                Object rebate = null;
+                String rebate = null;
                 for (var j = 0; j < ((List<?>)rebateKeys).size(); j++)
                 {
                     if (java.util.Objects.equals((rebateKeys == null || j < 0 || j >= rebateKeys.size() ? null : rebateKeys.get(j)), (transactionKeys == null || i < 0 || i >= transactionKeys.size() ? null : transactionKeys.get(i))))
                     {
-                        rebate = (rebateAmounts == null || j < 0 || j >= rebateAmounts.size() ? null : rebateAmounts.get(j));
+                        rebate = this.safeString(rebateAmounts, j);
                         // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                         Helpers.addElementToObject(rebateKeys, j, null);
                         break;
@@ -2116,7 +2116,7 @@ public class Mudrex extends MudrexApi
                     ((List<Object>)rows).add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
                 } else
                 {
-    final Object finalRebate = rebate;
+    final String finalRebate = rebate;
                                     ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), new HashMap<String, Object>() {{
                         put( "rebate_amount", finalRebate );
                     }}));

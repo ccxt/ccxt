@@ -2483,8 +2483,8 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 
 	PanicOnError((<-this.LoadAccountsAsync()))
 	var currency map[string]any = nil
-	var id any = DerefScalar(this.SafeString(params, "id")) // account id
-	if IsEqual(id, nil) {
+	var id *string = this.SafeString(params, "id") // account id
+	if id == nil {
 		if code != nil {
 			currency = MapTyped(this.Currency(code))
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
@@ -2492,18 +2492,18 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 			if IsEqual(account, nil) {
 				panic(ExchangeError(Add(this.Id+" fetchDepositsWithdrawals() could not find account id for ", code)))
 			}
-			id = account["id"]
+			id = this.SafeString(account, "id")
 		}
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(id, nil) {
+	if id != nil {
 		request["id"] = id
 	}
 	if limit != nil {
 		request["limit"] = limit
 	}
 	var response []any = nil
-	if IsEqual(id, nil) {
+	if id == nil {
 
 		var transfers []any = ListTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
 		//

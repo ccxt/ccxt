@@ -1998,7 +1998,7 @@ impl LunoCore {
             if (account == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
             }
-            id = account.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            id = self.safe_string_k(account, "id", &[]);
         }
         if (min_row == Value::Null) && (max_row == Value::Null) {
             max_row = Value::Int(0); // Default to most recent transactions

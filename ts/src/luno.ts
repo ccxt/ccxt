@@ -1443,7 +1443,7 @@ export default class luno extends Exchange {
             if (account === undefined) {
                 throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
             }
-            id = account['id'];
+            id = this.safeString (account, 'id');
         }
         if (min_row === undefined && max_row === undefined) {
             max_row = 0; // Default to most recent transactions

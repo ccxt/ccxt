@@ -4542,7 +4542,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
-	var maintenanceMarginPercentageString any = nil
+	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
 		var bracket any = func() any {
 			if i >= 0 && i < len(leverageBracket) {
@@ -4553,7 +4553,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		if Precise.StringLt(notionalStringAbs, GetValue(bracket, 0)) {
 			break
 		}
-		maintenanceMarginPercentageString = GetValue(bracket, 1)
+		maintenanceMarginPercentageString = this.SafeString(bracket, 1)
 	}
 	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalStringAbs))
 	var contractsAbs *string = Precise.StringAbs(this.SafeString(position, "positionAmt"))
@@ -4923,7 +4923,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var contracts *float64 = Float64PtrTyped(this.ParseNumber(contractsStringAbs))
 	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
-	var maintenanceMarginPercentageString any = nil
+	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
 		var bracket any = func() any {
 			if i >= 0 && i < len(leverageBracket) {
@@ -4934,7 +4934,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		if Precise.StringLt(notionalStringAbs, GetValue(bracket, 0)) {
 			break
 		}
-		maintenanceMarginPercentageString = GetValue(bracket, 1)
+		maintenanceMarginPercentageString = this.SafeString(bracket, 1)
 	}
 	var maintenanceMarginPercentage *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentageString))
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")

@@ -1115,8 +1115,8 @@ public partial class modetrade : ccxt.modetrade
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
-                messageHashes.Add(("positions::" + (symbol)));
+                string? symbol = ((string)getValue(symbols, i));
+                messageHashes.Add(("positions::" + symbol));
             }
         } else
         {

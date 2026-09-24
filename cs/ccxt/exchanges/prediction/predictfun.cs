@@ -2151,7 +2151,7 @@ public partial class predictfun : PredictionExchange
             Int64 now = this.seconds();
             expiration = this.sum(now, expirationDelta);
         }
-        object nonce = this.incrementingNonce();
+        Int64? nonce = this.incrementingNonce();
         string? salt = this.safeString(parameters, "salt", this.numberToString(nonce));
         object taker = "0x0000000000000000000000000000000000000000";
         IList<object> takerparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
@@ -3462,7 +3462,7 @@ public partial class predictfun : PredictionExchange
      * @description the wallet topic, which carries the jwt inside the topic string itself
      * @returns {string} the topic to subscribe to
      */
-    public async virtual Task<object> walletEventsTopic()
+    public async virtual Task<string> walletEventsTopic()
     {
         // authenticate () serves the cached token until it expires, so subscribe and unsubscribe
         // name the same topic. a re-minted token is a different topic, which is why the socket
@@ -3471,7 +3471,7 @@ public partial class predictfun : PredictionExchange
         // the local is not called jwt: that is the name of a base method, and the regex transpiler
         // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
         string? walletToken = await this.authenticate();
-        return ("predictWalletEvents/" + walletToken);
+        return ((string)((object)(("predictWalletEvents/" + walletToken))));
     }
 
     /**
@@ -3486,7 +3486,7 @@ public partial class predictfun : PredictionExchange
     public async virtual Task<object> watchWalletEvents(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object topic = await this.walletEventsTopic();
+        string topic = await this.walletEventsTopic();
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -3549,7 +3549,7 @@ public partial class predictfun : PredictionExchange
     public async virtual Task<object> unWatchWalletEvents(object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object topic = await this.walletEventsTopic();
+        string topic = await this.walletEventsTopic();
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },

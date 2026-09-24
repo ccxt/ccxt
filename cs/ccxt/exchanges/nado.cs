@@ -524,7 +524,7 @@ public partial class nado : Exchange
             appendix = this.createOrderAppendix(isTriggerOrder, parameters);
         }
         order["appendix"] = appendix;
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? signature = this.signOrder(order, productId, chainId);
         placeOrder["order"] = order;
@@ -666,7 +666,7 @@ public partial class nado : Exchange
             { "nonce", orderNonce },
             { "appendix", appendix },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))
@@ -798,7 +798,7 @@ public partial class nado : Exchange
             { "productIds", productIds },
             { "nonce", nonce },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))
@@ -905,7 +905,7 @@ public partial class nado : Exchange
             { "digests", ids },
             { "nonce", nonce },
         };
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         if ((endpointAddress == null))
@@ -1038,7 +1038,7 @@ public partial class nado : Exchange
         {
             request["limit"] = mathMin(limit, 500);
         }
-        object contracts = await this.queryContracts();
+        IDictionary<string, object> contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
         string? endpointAddress = this.safeString(contracts, "endpoint_addr");
         string? signature = ((string)this.signFetchTriggerOrders(tx, chainId, endpointAddress));
@@ -3213,7 +3213,7 @@ public partial class nado : Exchange
         return (("0x" + address) + this.padHex(encoded, 24, false));
     }
 
-    public async virtual Task<object> queryContracts(object parameters = null)
+    public async virtual Task<IDictionary<string, object>> queryContracts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> cachedContracts = this.safeDict(this.options, "gatewayContracts");

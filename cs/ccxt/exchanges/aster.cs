@@ -4097,7 +4097,7 @@ public partial class aster : Exchange
         List<object> leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
         string? notionalString = this.safeString2(position, "notional", "notionalValue");
         string? notionalStringAbs = Precise.stringAbs(notionalString);
-        object maintenanceMarginPercentageString = null;
+        string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
@@ -4105,7 +4105,7 @@ public partial class aster : Exchange
             {
                 break;
             }
-            maintenanceMarginPercentageString = getValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         double? notional = this.parseNumber(notionalStringAbs);
         string? contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
@@ -4451,7 +4451,7 @@ public partial class aster : Exchange
         double? contracts = this.parseNumber(contractsStringAbs);
         IDictionary<string, object> leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
         List<object> leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
-        object maintenanceMarginPercentageString = null;
+        string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
             object bracket = leverageBracket[i];
@@ -4459,7 +4459,7 @@ public partial class aster : Exchange
             {
                 break;
             }
-            maintenanceMarginPercentageString = getValue(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(bracket, 1);
         }
         double? maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");

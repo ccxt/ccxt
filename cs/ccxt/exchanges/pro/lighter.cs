@@ -437,7 +437,7 @@ public partial class lighter : ccxt.lighter
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 messageHashes.Add(this.getMessageHash("ticker", symbol));
             }
         }

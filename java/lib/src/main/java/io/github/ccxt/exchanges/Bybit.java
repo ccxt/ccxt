@@ -3801,7 +3801,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object code = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("code", "currency", "baseCoin")));
+            String code = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("code", "currency", "baseCoin")));
             Map<String, Object> market = null;
             List<Object> parsedSymbols = null;
             if (!java.util.Objects.equals(symbols, null))
@@ -3810,7 +3810,7 @@ public class Bybit extends BybitApi
                 Object marketTypeInfo = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
                 Object defaultType = ((List<Object>)marketTypeInfo).get(0); // don't omit here
                 // we can't use marketSymbols here due to the conflicting ids between markets
-                Object currentType = null;
+                String currentType = null;
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
@@ -3826,7 +3826,7 @@ public class Bybit extends BybitApi
                     }
                     if (java.util.Objects.equals(currentType, null))
                     {
-                        currentType = ((Map<String, Object>)market).get("type");
+                        currentType = this.safeString(market, "type");
                     } else if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), currentType))
                     {
                         throw new BadRequest((this.id + " fetchTickers can only accept a list of symbols of the same type")) ;
@@ -3839,7 +3839,7 @@ public class Bybit extends BybitApi
                         }
                         if (java.util.Objects.equals(code, null))
                         {
-                            code = ((Map<String, Object>)market).get("base");
+                            code = this.safeString(market, "base");
                         }
                         parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("code", "currency")));
                     }
@@ -9552,7 +9552,7 @@ public class Bybit extends BybitApi
         String size = Precise.stringAbs(this.safeString2(position, "size", "qty"));
         String side = this.safeString(position, "side");
         String positionIdx = this.safeString(position, "positionIdx");
-        Object hedged = null;
+        Boolean hedged = null;
         if (!java.util.Objects.equals(positionIdx, null))
         {
             hedged = (!java.util.Objects.equals(positionIdx, "0"));
@@ -9649,7 +9649,7 @@ public class Bybit extends BybitApi
         final String finalLiquidationPrice = liquidationPrice;
         final String finalCollateralString = collateralString;
         final String finalSide = side;
-        final Object finalHedged = hedged;
+        final Boolean finalHedged = hedged;
         return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );

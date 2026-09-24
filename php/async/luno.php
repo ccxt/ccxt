@@ -1527,7 +1527,7 @@ class luno extends Exchange {
             if ($account === null) {
                 throw new ExchangeError($this->id . ' fetchLedger() could not find $account $id for ' . $code);
             }
-            $id = $account['id'];
+            $id = $this->safe_string($account, 'id');
         }
         if ($min_row === null && $max_row === null) {
             $max_row = 0; // Default to most recent transactions

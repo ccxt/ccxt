@@ -1716,7 +1716,7 @@ public partial class hitbtc : Exchange
         string? addressTo = address;
         string? tag = this.safeString(native, "payment_id");
         string? tagTo = tag;
-        object sender = this.safeValue(native, "senders");
+        List<object> sender = this.safeList(native, "senders");
         string? addressFrom = this.safeString(sender, 0);
         double? amount = this.safeNumber(native, "amount");
         string? subType = this.safeString(transaction, "subtype");
@@ -2927,7 +2927,7 @@ public partial class hitbtc : Exchange
         string? symbol = ((string)getValue(market, "symbol"));
         object postOnly = this.safeValue(order, "post_only");
         string? timeInForce = this.safeString(order, "time_in_force");
-        object rawTrades = this.safeValue(order, "trades");
+        List<object> rawTrades = this.safeList(order, "trades");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },

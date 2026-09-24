@@ -212,22 +212,22 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	}
 	var isUsdcSettled any = nil
 	var isSpot any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var market map[string]any = nil
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if symbol != nil {
 		market = this.Market(symbol)
 		isUsdcSettled = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDC")
-		typeVar = ccxt.GetValue(market, "type")
+		typeVar = this.SafeString(market, "type")
 	} else {
 		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, nil, params)
-		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+		typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
 		params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 		var defaultSettle *string = this.SafeString(this.Options, "defaultSettle")
 		defaultSettle = this.SafeString2(params, "settle", "defaultSettle", defaultSettle)
 		isUsdcSettled = (defaultSettle != nil && *defaultSettle == "USDC")
 	}
-	isSpot = (ccxt.IsEqual(typeVar, "spot"))
+	isSpot = (typeVar != nil && *typeVar == "spot")
 	if isPrivate == true {
 
 		var unified []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync())))
@@ -241,7 +241,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	} else {
 		if isSpot == true {
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "spot")
-		} else if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
+		} else if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 			var subType any = nil
 			var subTypeparamsVariable []any = this.HandleSubTypeAndParams(method, market, params, "linear")
 			subType = ccxt.GetValue(subTypeparamsVariable, 0)
@@ -744,20 +744,20 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 	var parsed any = nil
 	if updateType != nil && *updateType == "snapshot" {
 		parsed = this.ParseTicker(data)
-		symbol = ccxt.GetValue(parsed, "symbol")
+		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
 	} else if updateType != nil && *updateType == "delta" {
 		var topicParts []string = ccxt.Split(topic, ".")
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, typeVar))
-		symbol = market["symbol"]
+		symbol = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		// update the info in place
 		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = this.ParseTicker(merged)
 	}
-	if (ccxt.IsEqual(parsed, nil)) || (symbol == nil) {
+	if (ccxt.IsEqual(parsed, nil)) || (ccxt.IsEqual(symbol, nil)) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")

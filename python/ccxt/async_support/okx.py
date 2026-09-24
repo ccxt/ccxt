@@ -7663,10 +7663,10 @@ class okx(Exchange, ImplicitAPI):
         market = None
         if ((self.markets is not None) and (symbol in self.markets)) or ((self.markets_by_id is not None) and (symbol in self.markets_by_id)):
             market = self.market(symbol)
-            currencyId = market['baseId']
+            currencyId = self.safe_string(market, 'baseId')
         else:
             currency = self.currency(symbol)
-            currencyId = currency['id']
+            currencyId = self.safe_string(currency, 'id')
         request = {
             'ccy': currencyId,
             'period': timeframe,

@@ -569,7 +569,7 @@ export default class bitflyer extends Exchange {
         if (side !== undefined) {
             const idInner = side + '_child_order_acceptance_id';
             if (idInner in trade) {
-                order = trade[idInner];
+                order = this.safeString (trade, idInner);
             }
         }
         if (order === undefined) {

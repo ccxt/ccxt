@@ -1757,16 +1757,16 @@ public partial class gemini : Exchange
         }
         string? price = this.safeString(order, "price");
         string? average = this.safeString(order, "avg_execution_price");
-        object type = this.safeString(order, "type");
-        if (isEqual(type, "exchange limit"))
+        string? type = this.safeString(order, "type");
+        if (type == "exchange limit")
         {
             type = "limit";
-        } else if (isEqual(type, "market buy") || isEqual(type, "market sell"))
+        } else if (type == "market buy" || type == "market sell")
         {
             type = "market";
         } else
         {
-            type = getValue(order, "type");
+            type = this.safeString(order, "type");
         }
         object fee = null;
         string? marketId = this.safeString(order, "symbol");

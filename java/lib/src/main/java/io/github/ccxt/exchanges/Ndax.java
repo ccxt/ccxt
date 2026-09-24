@@ -3107,13 +3107,13 @@ public class Ndax extends NdaxApi
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)lastString).split(java.util.regex.Pattern.quote("?memo="))));
         String address = this.safeString(parts, 0);
         String tag = this.safeString(parts, 1);
-        Object code = null;
+        String code = null;
         if (!java.util.Objects.equals(currency, null))
         {
-            code = ((Map<String, Object>)currency).get("code");
+            code = this.safeString(currency, "code");
         }
         this.checkAddress(address);
-        final Object finalCode = code;
+        final String finalCode = code;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", finalCode );

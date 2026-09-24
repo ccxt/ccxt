@@ -2466,7 +2466,7 @@ impl FoxbitCore {
             market = self.market(symbol.clone());
         }
         if (market != Value::Null) {
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut timestamp: Value = self.parse_date(self.safe_string_k(order.clone(), "created_at", &[]), &[]);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);

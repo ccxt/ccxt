@@ -605,7 +605,7 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object first = getValue(symbols, 0);
+        string? first = ((string)getValue(symbols, 0));
         Dictionary<string, object> market = this.market(first);
         bool? isSwap = ((bool?)(market.ContainsKey("swap") ? market["swap"] : null));
         bool settleIsUSDT = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");

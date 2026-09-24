@@ -3588,7 +3588,7 @@ export default class aster extends Exchange {
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
-            maintenanceMarginPercentageString = bracket[1];
+            maintenanceMarginPercentageString = this.safeString (bracket, 1);
         }
         const notional = this.parseNumber (notionalStringAbs);
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'positionAmt'));
@@ -3892,7 +3892,7 @@ export default class aster extends Exchange {
             if (Precise.stringLt (notionalStringAbs, bracket[0])) {
                 break;
             }
-            maintenanceMarginPercentageString = bracket[1];
+            maintenanceMarginPercentageString = this.safeString (bracket, 1);
         }
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString (position, 'unrealizedProfit');

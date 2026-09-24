@@ -4543,25 +4543,25 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subType *string = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
-	var settle any = nil
+	var settle *string = nil
 	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
-		settle = GetValue(market, "settle")
+		settle = this.SafeString(market, "settle")
 		code = GetValue(market, "settle")
 	} else {
 		var settleparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositions", "settle", code)
-		settle = GetValue(settleparamsVariable, 0)
+		settle = SafeStringPtr(GetValue(settleparamsVariable, 0))
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositions", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
+	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
 		code = "USDT"
-	} else if IsEqual(settle, "BTC") {
+	} else if settle != nil && *settle == "BTC" {
 		code = "BTC"
 	} else if IsEqual(code, nil) {
 		code = func() string {
@@ -6547,25 +6547,25 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	var subType *string = nil
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
 	params = MapTyped(this.Omit(params, []any{"currency", "code"}))
-	var settle any = nil
+	var settle *string = nil
 	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		market = this.Market(firstSymbol)
-		settle = GetValue(market, "settle")
+		settle = this.SafeString(market, "settle")
 		code = GetValue(market, "settle")
 	} else {
 		var settleparamsVariable []any = this.HandleOptionStringAndParams(params, "fetchPositionsADLRank", "settle", code)
-		settle = GetValue(settleparamsVariable, 0)
+		settle = SafeStringPtr(GetValue(settleparamsVariable, 0))
 		params = MapTyped(GetValue(settleparamsVariable, 1))
 	}
 	var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params)
 	subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 	params = MapTyped(GetValue(subTypeparamsVariable, 1))
-	var isUSDTSettled bool = (IsEqual(settle, "USDT"))
+	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
 		code = "USDT"
-	} else if IsEqual(settle, "BTC") {
+	} else if settle != nil && *settle == "BTC" {
 		code = "BTC"
 	} else if IsEqual(code, nil) {
 		code = func() string {

@@ -4560,7 +4560,7 @@ impl AsterCore {
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
-            maintenanceMarginPercentageString = get_value(&bracket, &Value::Int(1));
+            maintenanceMarginPercentageString = self.safe_string(bracket, Value::Int(1), &[]);
         }
         }
         let mut notional: Value = self.parse_number(notionalStringAbs.clone(), &[]);
@@ -4922,7 +4922,7 @@ impl AsterCore {
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
-            maintenanceMarginPercentageString = get_value(&bracket, &Value::Int(1));
+            maintenanceMarginPercentageString = self.safe_string(bracket, Value::Int(1), &[]);
         }
         }
         let mut maintenanceMarginPercentage: Value = self.parse_number(maintenanceMarginPercentageString.clone(), &[]);

@@ -1520,7 +1520,7 @@ export default class kraken extends Exchange {
             if ('fee' in trade) {
                 let currency: Str = undefined;
                 if (market !== undefined) {
-                    currency = market['quote'];
+                    currency = this.safeString (market, 'quote');
                 }
                 fee = {
                     'cost': this.safeString (trade, 'fee'),
@@ -1537,7 +1537,7 @@ export default class kraken extends Exchange {
             amount = this.safeString (trade, 'qty');
         }
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         const cost = this.safeString (trade, 'cost');
         const maker = this.safeBool (trade, 'maker');
@@ -2086,7 +2086,7 @@ export default class kraken extends Exchange {
         let isPostOnly: Bool = flags.indexOf ('post') > -1;
         const average = this.safeNumber (order, 'price');
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
             if ('fee' in order) {
                 const feeCost = this.safeString (order, 'fee');
                 fee = {

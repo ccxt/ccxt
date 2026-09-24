@@ -2373,19 +2373,19 @@ public class Weex extends WeexApi
         if (!java.util.Objects.equals(commission, null))
         {
             String commissionAsset = this.safeString(trade, "commissionAsset");
-            Object feeCurrency = this.safeCurrencyCode(commissionAsset);
+            String feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (java.util.Objects.equals(isSpot, true))
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    feeCurrency = ((Map<String, Object>)market).get("base");
+                    feeCurrency = this.safeString(market, "base");
                 } else
                 {
-                    feeCurrency = ((Map<String, Object>)market).get("quote");
+                    feeCurrency = this.safeString(market, "quote");
                 }
             }
             final String finalCommission = commission;
-            final Object finalFeeCurrency = feeCurrency;
+            final String finalFeeCurrency = feeCurrency;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalCommission );
                 put( "currency", finalFeeCurrency );

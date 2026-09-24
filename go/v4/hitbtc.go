@@ -1837,7 +1837,7 @@ func (this *Hitbtc) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var addressTo *string = address
 	var tag *string = this.SafeString(native, "payment_id")
 	var tagTo *string = tag
-	var sender any = this.SafeValue(native, "senders")
+	var sender []any = SafeListTyped(native, "senders")
 	var addressFrom *string = this.SafeString(sender, 0)
 	var amount *float64 = this.SafeNumber(native, "amount")
 	var subType *string = this.SafeString(transaction, "subtype")
@@ -3245,7 +3245,7 @@ func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 	var postOnly any = this.SafeValue(order, "post_only")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
-	var rawTrades any = this.SafeValue(order, "trades")
+	var rawTrades []any = SafeListTyped(order, "trades")
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  id,

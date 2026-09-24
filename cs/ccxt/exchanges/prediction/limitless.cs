@@ -2353,7 +2353,7 @@ public partial class limitless : PredictionExchange
         {
             throw new InvalidAddress ((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
         }
-        object nonce = this.incrementingNonce();
+        Int64? nonce = this.incrementingNonce();
         Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "buy", 0 },
             { "sell", 1 },

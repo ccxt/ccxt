@@ -9561,16 +9561,16 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         // handle unified currency code or symbol
-        object currencyId = null;
+        string? currencyId = null;
         IDictionary<string, object> market = null;
         if ((((this.markets != null)) && (inOp(this.markets, symbol))) || (((this.markets_by_id != null)) && (inOp(this.markets_by_id, symbol))))
         {
             market = this.market(symbol);
-            currencyId = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            currencyId = this.safeString(market, "baseId");
         } else
         {
             Dictionary<string, object> currency = this.currency(symbol);
-            currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
+            currencyId = this.safeString(currency, "id");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ccy", currencyId },

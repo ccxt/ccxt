@@ -2350,7 +2350,7 @@ impl GeminiCore {
         }  else if (type_var.as_str() == Some("market buy")) || (type_var.as_str() == Some("market sell")) {
             type_var = Value::Str("market".into());
         }  else {
-            type_var = order.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            type_var = self.safe_string_k(order.clone(), "type", &[]);
         }
         let mut fee: Value = Value::Null;
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
