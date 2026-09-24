@@ -1172,7 +1172,7 @@ export default class bingx extends bingxRest {
         return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
-    setBalanceCache (client: Client, type: any, subType: Str, subscriptionHash: string, params: Dict) {
+    setBalanceCache (client: Client, type: string, subType: Str, subscriptionHash: string, params: Dict) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -1189,7 +1189,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: any, subType: Str) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string, subType: Str) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache

@@ -257,7 +257,7 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    getWsUrl (type: any, category: any) {
+    getWsUrl (type: any, category: any): string {
         if ((type === 'option') || (type === 'optionMarket') || (type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -1559,9 +1559,9 @@ export default class binance extends binanceRest {
         const orderId = this.safeString (trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = (trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (this.safeBool (trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (trade['m'] === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'm') === true) ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');
@@ -2307,7 +2307,7 @@ export default class binance extends binanceRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiTickerHelper (methodName: any, channelName: Str, symbols: Strings = undefined, params: Dict = {}, isUnsubscribe: boolean = false) {
+    async watchMultiTickerHelper (methodName: string, channelName: Str, symbols: Strings = undefined, params: Dict = {}, isUnsubscribe: boolean = false) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2707,7 +2707,7 @@ export default class binance extends binanceRest {
         this.handleTickersAndBidsAsks (client, message, 'markPrices');
     }
 
-    handleTickersAndBidsAsks (client: Client, message: any, methodType: any) {
+    handleTickersAndBidsAsks (client: Client, message: any, methodType: string) {
         const isBidAsk = (methodType === 'bidasks');
         const isMarkPrice = (methodType === 'markPrices');
         let unifiedPrefix: Str = undefined;
@@ -3211,7 +3211,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    setBalanceCache (client: Client, type: any, isPortfolioMargin: boolean = false) {
+    setBalanceCache (client: Client, type: string, isPortfolioMargin: boolean = false) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
@@ -3228,7 +3228,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string, isPortfolioMargin: boolean) {
         const params: Dict = {
             'type': type,
         };
@@ -5010,7 +5010,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined, isPortfolioMargin: boolean = false) {
+    setPositionsCache (client: Client, type: string, symbols: Strings = undefined, isPortfolioMargin: boolean = false) {
         if (type === 'spot') {
             return;
         }
@@ -5032,7 +5032,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: string, isPortfolioMargin: boolean) {
         const params: Dict = {
             'type': type,
         };
