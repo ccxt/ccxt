@@ -252,6 +252,7 @@ name = "ccxt_tests"
 version = "0.1.0"
 dependencies = [
  "ccxt",
+ "ccxt-prediction",
  "ccxt-pro",
  "futures",
  "indexmap",
