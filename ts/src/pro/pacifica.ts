@@ -599,7 +599,7 @@ export default class pacifica extends pacificaRest {
                 'source': 'prices',
             },
         };
-        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const tickers: Tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             return this.filterByArrayTickers (tickers, 'symbol', symbols);
         }
