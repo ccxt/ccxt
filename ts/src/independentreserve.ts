@@ -1020,7 +1020,7 @@ export default class independentreserve extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        Tag: '3307446684',

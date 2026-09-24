@@ -1095,7 +1095,7 @@ export default class modetrade extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseIncome (income: any, market: Market = undefined): Dict {
+    override parseIncome (income: Dict, market: Market = undefined): Dict {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",

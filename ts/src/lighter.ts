@@ -2435,7 +2435,7 @@ export default class lighter extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderType (type: any) {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',

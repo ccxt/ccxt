@@ -5969,7 +5969,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "chainType": "ERC20",
@@ -6581,7 +6581,7 @@ export default class bybit extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -8411,7 +8411,7 @@ export default class bybit extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
-    parseSettlement (settlement: Dict, market: any): Dict {
+    parseSettlement (settlement: Dict, market: Market): Dict {
         //
         // fetchSettlementHistory
         //
@@ -9053,7 +9053,7 @@ export default class bybit extends Exchange {
         return this.parseIncomes (fundings, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         // {
         //     "symbol": "XMRUSDT",

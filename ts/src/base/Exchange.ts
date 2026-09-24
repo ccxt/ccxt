@@ -3828,7 +3828,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
-    parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
@@ -7289,7 +7289,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
     }
 
-    parseLastPrice (price: any, market: Market = undefined): LastPrice {
+    parseLastPrice (price: Dict, market: Market = undefined): LastPrice {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -8271,7 +8271,7 @@ export class BaseExchange {
         return fee;
     }
 
-    parseIncome (info: any, market: Market = undefined): object {
+    parseIncome (info: Dict, market: Market = undefined): object {
         throw new NotSupported (this.id + ' parseIncome () is not supported yet');
     }
 

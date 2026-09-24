@@ -1379,7 +1379,7 @@ export default class weex extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -3660,7 +3660,7 @@ export default class weex extends Exchange {
         return this.parseIncomes (items, market, since, limit);
     }
 
-    override parseIncome (income: any, market: Market = undefined): object {
+    override parseIncome (income: Dict, market: Market = undefined): object {
         //
         //     {
         //         "billId": "793622764958253481",

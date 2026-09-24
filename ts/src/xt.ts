@@ -4114,7 +4114,7 @@ export default class xt extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -4167,7 +4167,7 @@ export default class xt extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -5154,7 +5154,7 @@ export default class xt extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit) as FundingHistory[];
     }
 
-    parseFundingHistory (contract: any, market: Market = undefined) {
+    parseFundingHistory (contract: Dict, market: Market = undefined) {
         //
         //     {
         //         "id": "210804044057280512",

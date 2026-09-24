@@ -4044,7 +4044,7 @@ export default class coinex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",

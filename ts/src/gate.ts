@@ -2445,7 +2445,7 @@ export default class gate extends Exchange {
         return chainsIndexedById[selectedNetworkIdOrCode as string];
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         chain: "BTC",
@@ -2795,7 +2795,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseFundingHistory (info: any, market: Market = undefined) {
+    parseFundingHistory (info: Dict, market: Market = undefined) {
         //
         //    {
         //        "time": 1646899200,

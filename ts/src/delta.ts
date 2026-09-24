@@ -2527,7 +2527,7 @@ export default class delta extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -2642,7 +2642,7 @@ export default class delta extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        "id": 1915615,
@@ -3285,7 +3285,7 @@ export default class delta extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
-    parseSettlement (settlement: Dict, market: any): Dict {
+    parseSettlement (settlement: Dict, market: Market): Dict {
         //
         //     {
         //         "contract_value": "0.001",
