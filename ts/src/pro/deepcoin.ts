@@ -114,7 +114,7 @@ export default class deepcoin extends deepcoinRest {
         return newValue;
     }
 
-    createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
+    createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false): Dict {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
@@ -172,7 +172,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, undefined, 'private', params);
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<Str> {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
         // single-flight leader election on a never-dialed client, see
@@ -791,7 +791,7 @@ export default class deepcoin extends deepcoinRest {
     }
 
     handleOrderBookSnapshot (client: Client, message: Dict) {
-        const entries = this.safeList (message, 'r', []);
+        const entries: Dict[] = this.safeList (message, 'r', []);
         const first = this.safeDict (entries, 0, {});
         const data = this.safeDict (first, 'd', {});
         const marketId = this.safeString (data, 'I');
@@ -1170,7 +1170,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    parseWsPosition (position: any, market: Market = undefined): Position {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "A": "9256245",

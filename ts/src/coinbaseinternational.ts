@@ -666,7 +666,7 @@ export default class coinbaseinternational extends Exchange {
             request['result_limit'] = 100;
         }
         const response = await this.v1PrivateGetTransfers (this.extend (request, params));
-        const fundings = this.safeList (response, 'results', []);
+        const fundings: Dict[] = this.safeList (response, 'results', []);
         return this.parseIncomes (fundings, market, since, limit);
     }
 
@@ -747,7 +747,7 @@ export default class coinbaseinternational extends Exchange {
             request['result_limit'] = 100;
         }
         const response = await this.v1PrivateGetTransfers (this.extend (request, params));
-        const transfers = this.safeList (response, 'results', []);
+        const transfers: Dict[] = this.safeList (response, 'results', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -1602,7 +1602,7 @@ export default class coinbaseinternational extends Exchange {
         symbols = this.marketSymbols (symbols);
         const instruments = await this.v1PublicGetInstruments (params);
         const tickers: Dict = {};
-        let rows: List = [];
+        let rows: Dict[] = [];
         if (Array.isArray (instruments)) {
             rows = instruments;
         }
@@ -2246,7 +2246,7 @@ export default class coinbaseinternational extends Exchange {
         //        ]
         //    }
         //
-        const rawOrders = this.safeList (response, 'results', []);
+        const rawOrders: Dict[] = this.safeList (response, 'results', []);
         return this.parseOrders (rawOrders, market, since, limit);
     }
 
@@ -2339,7 +2339,7 @@ export default class coinbaseinternational extends Exchange {
         //        ]
         //    }
         //
-        const trades = this.safeList (response, 'results', []);
+        const trades: Dict[] = this.safeList (response, 'results', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

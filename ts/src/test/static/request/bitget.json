@@ -250,7 +250,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "25000"
+                    25000
                 ],
                 "output": { "symbol": "BTCUSDT", "orderType": "limit", "price": "25000", "force": "GTC", "side": "buy", "size": "0.0002" }
             },
@@ -263,7 +263,7 @@
                     "limit",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "marginMode": "cross"
                     }
@@ -279,7 +279,7 @@
                     "limit",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "triggerPrice": 26000,
                         "marginMode": "cross"
@@ -296,7 +296,7 @@
                     "market",
                     "buy",
                     0.0003,
-                    "37811"
+                    37811
                 ],
                 "output": { "symbol": "BTCUSDT", "orderType": "market", "force": "GTC", "side": "buy", "size": "11.34" }
             },
@@ -354,7 +354,7 @@
                     "market",
                     "buy",
                     0.0003,
-                    "25000",
+                    25000,
                     {
                         "triggerPrice": 26000
                     }
@@ -370,7 +370,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "25000",
+                    25000,
                     {
                         "postOnly": true
                     }
@@ -386,7 +386,7 @@
                     "limit",
                     "sell",
                     0.001,
-                    "38000",
+                    38000,
                     {
                         "postOnly": true,
                         "reduceOnly": true,
@@ -404,7 +404,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "25000",
+                    25000,
                     {
                         "marginMode": "cross"
                     }
@@ -862,7 +862,7 @@
                     "limit",
                     "buy",
                     0.0002,
-                    "27000",
+                    27000,
                     {
                         "triggerPrice": 28000
                     }
@@ -896,7 +896,7 @@
                     "limit",
                     "buy",
                     0.002,
-                    "27000"
+                    27000
                 ],
                 "output": { "orderId": "1113283350484385804", "symbol": "BTCUSDT", "productType": "USDT-FUTURES", "newSize": "0.002", "newPrice": "27000", "newClientOid": "f0c222d0-65c0-4502-b859-39d78e41450e" }
             },
@@ -910,7 +910,7 @@
                     "limit",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "triggerPrice": 27000
                     }
@@ -927,7 +927,7 @@
                     "market",
                     "buy",
                     0.001,
-                    "25000",
+                    25000,
                     {
                         "stopLossPrice": 27000
                     }

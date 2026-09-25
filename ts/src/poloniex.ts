@@ -1268,7 +1268,7 @@ export default class poloniex extends Exchange {
         const id = this.safeString (entry, 'coin');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains = this.safeList (entry, 'networkList', []);
+        const chains: Dict[] = this.safeList (entry, 'networkList', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = this.safeDict (chains, j);
@@ -1532,7 +1532,7 @@ export default class poloniex extends Exchange {
             //             cT: "1740777074704",
             //         },
             //
-            const tradesList = this.safeList (response, 'data', []);
+            const tradesList: Dict[] = this.safeList (response, 'data', []);
             return this.parseTrades (tradesList, market, since, limit);
         }
         const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
@@ -1635,7 +1635,7 @@ export default class poloniex extends Exchange {
             //                "actType": "TRADING"
             //            },
             //
-            const data = this.safeList (raw, 'data', []);
+            const data: Dict[] = this.safeList (raw, 'data', []);
             return this.parseTrades (data, market, since, limit);
         }
         const response = await this.privateGetTrades (this.extend (request, params));
@@ -2053,7 +2053,7 @@ export default class poloniex extends Exchange {
         //                "qCcy": "USDT"
         //            },
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2506,7 +2506,7 @@ export default class poloniex extends Exchange {
             const ts = this.safeInteger (response, 'uTime');
             result['timestamp'] = ts;
             result['datetime'] = this.iso8601 (ts);
-            const details = this.safeList (response, 'details', []);
+            const details: Dict[] = this.safeList (response, 'details', []);
             for (let i = 0; i < details.length; i++) {
                 const balance = this.safeDict (details, i);
                 const currencyId = this.safeString (balance, 'ccy');
@@ -2806,7 +2806,7 @@ export default class poloniex extends Exchange {
         return [ request, params, currency, networkEntry ];
     }
 
-    parseDepositAddressSpecial (response: any, currency: any, networkEntry: any): DepositAddress {
+    parseDepositAddressSpecial (response: Dict, currency: any, networkEntry: Dict): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
             address = this.safeString (response, networkEntry['id']);
@@ -3025,8 +3025,8 @@ export default class poloniex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const withdrawals = this.safeList (response, 'withdrawals', []);
-        const deposits = this.safeList (response, 'deposits', []);
+        const withdrawals: Dict[] = this.safeList (response, 'withdrawals', []);
+        const deposits: Dict[] = this.safeList (response, 'deposits', []);
         const withdrawalTransactions = this.parseTransactions (withdrawals, currency, since, limit);
         const depositTransactions = this.parseTransactions (deposits, currency, since, limit);
         const transactions = this.arrayConcat (depositTransactions, withdrawalTransactions);
@@ -3050,7 +3050,7 @@ export default class poloniex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const withdrawals = this.safeList (response, 'withdrawals', []);
+        const withdrawals: Dict[] = this.safeList (response, 'withdrawals', []);
         const transactions = this.parseTransactions (withdrawals, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
@@ -3209,7 +3209,7 @@ export default class poloniex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const deposits = this.safeList (response, 'deposits', []);
+        const deposits: Dict[] = this.safeList (response, 'deposits', []);
         const transactions = this.parseTransactions (deposits, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
@@ -3419,7 +3419,7 @@ export default class poloniex extends Exchange {
         let longLeverage: Int = undefined;
         let marketId: Str = undefined;
         let marginMode: Str = undefined;
-        const data = this.safeList (leverage, 'data', []);
+        const data: Dict[] = this.safeList (leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i);
             marketId = this.safeString (entry, 'symbol');
@@ -3553,7 +3553,7 @@ export default class poloniex extends Exchange {
         //        ]
         //    }
         //
-        const positions = this.safeList (response, 'data', []);
+        const positions: Dict[] = this.safeList (response, 'data', []);
         return this.parsePositions (positions, symbols);
     }
 

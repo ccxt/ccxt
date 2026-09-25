@@ -609,7 +609,7 @@ export default class latoken extends Exchange {
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeList (balancesByType, accountType, []);
+        const balances: Dict[] = this.safeList (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency');
@@ -681,10 +681,10 @@ export default class latoken extends Exchange {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        const rawAsks = this.safeList (response, 'ask', []);
-        const rawBids = this.safeList (response, 'bid', []);
-        const asks = [];
-        const bids = [];
+        const rawAsks: Dict[] = this.safeList (response, 'ask', []);
+        const rawBids: Dict[] = this.safeList (response, 'bid', []);
+        const asks: Dict[] = [];
+        const bids: Dict[] = [];
         for (let i = 0; i < rawAsks.length; i++) {
             const askEntry = rawAsks[i];
             const askQuantity = this.safeString (askEntry, 'quantity');
@@ -1613,7 +1613,7 @@ export default class latoken extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const content = this.safeList (response, 'content', []);
+        const content: Dict[] = this.safeList (response, 'content', []);
         return this.parseTransactions (content, currency, since, limit);
     }
 
@@ -1749,7 +1749,7 @@ export default class latoken extends Exchange {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeList (response, 'content', []);
+        const transfers: Dict[] = this.safeList (response, 'content', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 

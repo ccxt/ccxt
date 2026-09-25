@@ -1377,7 +1377,7 @@ export default class bitvavo extends Exchange {
         //         "limit": 25
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items: Dict[] = this.safeList (response, 'items', []);
         return this.parseTransfers (items, currency, since, limit);
     }
 
@@ -2290,7 +2290,7 @@ export default class bitvavo extends Exchange {
         //         "maxItems": 100
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items: Dict[] = this.safeList (response, 'items', []);
         return this.parseLedger (items, currency, since, limit);
     }
 

@@ -553,7 +553,7 @@ export default class coinbaseexchange extends Exchange {
         const code = this.safeCurrencyCode (id);
         const details = this.safeDict (rawCurrency, 'details', {});
         const networks: Dict = {};
-        const supportedNetworks = this.safeList (rawCurrency, 'supported_networks', []);
+        const supportedNetworks: Dict[] = this.safeList (rawCurrency, 'supported_networks', []);
         for (let j = 0; j < supportedNetworks.length; j++) {
             const network = supportedNetworks[j];
             const networkId = this.safeString (network, 'id');

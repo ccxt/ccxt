@@ -554,7 +554,7 @@ export default class backpack extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (currencyId);
-        const networks = this.safeList (rawCurrency, 'tokens', []);
+        const networks: Dict[] = this.safeList (rawCurrency, 'tokens', []);
         const parsedNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];

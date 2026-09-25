@@ -650,7 +650,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    parseWsPosition (position: any, market: Market = undefined): Position {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         return this.parsePosition (position, market);
     }
 

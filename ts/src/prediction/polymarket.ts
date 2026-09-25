@@ -3048,8 +3048,8 @@ export default class polymarket extends Exchange {
         }
         const orderbook = this.orderbooks[outcome];
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
-        const rawBids = this.safeList (event, 'bids', []) as any[];
-        const rawAsks = this.safeList (event, 'asks', []) as any[];
+        const rawBids: Dict[] = this.safeList (event, 'bids', []);
+        const rawAsks: Dict[] = this.safeList (event, 'asks', []);
         const bids: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
             const b = this.safeDict (rawBids, i);
@@ -3076,7 +3076,7 @@ export default class polymarket extends Exchange {
 
     handleOrderBookDelta (client: any, event: Dict) {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
-        const changes = this.safeList (event, 'price_changes', []) as any[];
+        const changes: Dict[] = this.safeList (event, 'price_changes', []);
         const updated: Dict = {};
         for (let i = 0; i < changes.length; i++) {
             const change = this.safeDict (changes, i);

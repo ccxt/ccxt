@@ -618,7 +618,7 @@ export default class hyperliquid extends hyperliquidRest {
         return true;
     }
 
-    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
@@ -658,7 +658,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
-        const data = this.safeList (entry, 'fills', []);
+        const data: Dict[] = this.safeList (entry, 'fills', []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -1277,7 +1277,7 @@ export default class hyperliquid extends hyperliquidRest {
         const data = this.safeDict (message, 'data', {});
         const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
         const newPositions: Position[] = [];
-        const rawPositions = this.safeList (clearinghouseState, 'assetPositions', []);
+        const rawPositions: Dict[] = this.safeList (clearinghouseState, 'assetPositions', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1443,7 +1443,7 @@ export default class hyperliquid extends hyperliquidRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);

@@ -621,7 +621,7 @@ export default class lighter extends Exchange {
         return r;
     }
 
-    hashMessage (message: string) {
+    hashMessage (message: string): string {
         const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
@@ -630,7 +630,7 @@ export default class lighter extends Exchange {
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: any, privateKey: any): string {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
@@ -639,7 +639,7 @@ export default class lighter extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: any) {
+    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: any): string {
         const hashMessage = this.hashMessage (message);
         const signature = this.signHash (hashMessage, privateKey);
         const decTxInfo = this.parseJson (txInfo);
@@ -647,7 +647,7 @@ export default class lighter extends Exchange {
         return this.json (decTxInfo);
     }
 
-    async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number) {
+    async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number): Promise<boolean> {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         if (buildFee !== true) {
             return false;
@@ -1855,11 +1855,11 @@ export default class lighter extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = this.safeDict (accounts, i);
             if (type === 'spot') {
-                const assets = this.safeList (account, 'assets', []);
+                const assets: Dict[] = this.safeList (account, 'assets', []);
                 for (let j = 0; j < assets.length; j++) {
                     const asset = this.safeDict (assets, j);
                     const codeId = this.safeString (asset, 'symbol');
@@ -1973,7 +1973,7 @@ export default class lighter extends Exchange {
         //     }
         //
         const allPositions: List = [];
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
             const account = this.safeDict (accounts, i);
             const positions = this.safeList (account, 'positions', []);
@@ -2103,7 +2103,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         return this.parseAccounts (accounts, params);
     }
 
@@ -2216,7 +2216,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'orders', []);
+        const data: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2298,7 +2298,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'orders', []);
+        const data: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2437,7 +2437,7 @@ export default class lighter extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',
@@ -2452,7 +2452,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseOrderTypeInteger (typeInteger: any) {
+    parseOrderTypeInteger (typeInteger: Int): Str {
         if (typeInteger === undefined) {
             return undefined;
         }
@@ -2470,7 +2470,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, typeInteger.toString ());
     }
 
-    parseOrderTimeInForce (tif: any) {
+    parseOrderTimeInForce (tif: Str): Str {
         const timeInForces: Dict = {
             'immediate-or-cancel': 'IOC',
             'good-till-time': 'GTC',

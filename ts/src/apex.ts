@@ -504,7 +504,7 @@ export default class apex extends Exchange {
         //     ]
         // }
         const rows = this.safeList (spotConfig, 'assets', []);
-        const chains = this.safeList (multiChain, 'chains', []);
+        const chains: Dict[] = this.safeList (multiChain, 'chains', []);
         this.options['_temp_currencies_chains'] = chains;
         const result = this.parseCurrencies (rows);
         delete this.options['_temp_currencies_chains'];
@@ -519,7 +519,7 @@ export default class apex extends Exchange {
         const chains = this.options['_temp_currencies_chains'];
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict (chains, j);
-            const tokens = this.safeList (chain, 'tokens', []);
+            const tokens: Dict[] = this.safeList (chain, 'tokens', []);
             for (let f = 0; f < tokens.length; f++) {
                 const token = this.safeDict (tokens, f);
                 const tokenName = this.safeString (token, 'token');
@@ -812,7 +812,7 @@ export default class apex extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.publicGetV3DataAllTickerInfo (params);
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -979,7 +979,7 @@ export default class apex extends Exchange {
         //  }
         //  ]
         //
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1131,7 +1131,7 @@ export default class apex extends Exchange {
         //
         const rates: FundingRateHistory[] = [];
         const data = this.safeDict (response, 'data', {});
-        const resultList = this.safeList (data, 'historyFunds', []);
+        const resultList: Dict[] = this.safeList (data, 'historyFunds', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'fundingTimestamp');
@@ -1479,9 +1479,9 @@ export default class apex extends Exchange {
         const configResponse = await this.publicGetV3Symbols (params);
         const configData = this.safeDict (configResponse, 'data', {});
         const contractConfig = this.safeDict (configData, 'contractConfig', {});
-        const contractAssets = this.safeList (contractConfig, 'assets', []);
+        const contractAssets: Dict[] = this.safeList (contractConfig, 'assets', []);
         const spotConfig = this.safeDict (configData, 'spotConfig', {});
-        const spotAssets = this.safeList (spotConfig, 'assets', []);
+        const spotAssets: Dict[] = this.safeList (spotConfig, 'assets', []);
         const globalConfig = this.safeDict (spotConfig, 'global', {});
         const receiverAddress = this.safeString (globalConfig, 'contractAssetPoolEthAddress', '');
         const receiverZkAccountId = this.safeString (globalConfig, 'contractAssetPoolZkAccountId', '');
@@ -1492,7 +1492,7 @@ export default class apex extends Exchange {
         const spotAccount = this.safeDict (accountData, 'spotAccount', {});
         const zkAccountId = this.safeString (spotAccount, 'zkAccountId', '');
         const subAccountId = this.safeString (spotAccount, 'defaultSubAccountId', '0');
-        const subAccounts = this.safeList (spotAccount, 'subAccounts', []);
+        const subAccounts: Dict[] = this.safeList (spotAccount, 'subAccounts', []);
         let nonce = '0';
         if (subAccounts.length > 0) {
             nonce = this.safeString (subAccounts[0], 'nonce', '0');
@@ -1719,7 +1719,7 @@ export default class apex extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privateGetV3OpenOrders (params);
-        const orders = this.safeList (response, 'data', []);
+        const orders: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (orders, undefined, since, limit);
     }
 
@@ -1763,7 +1763,7 @@ export default class apex extends Exchange {
         }
         const response = await this.privateGetV3HistoryOrders (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1793,7 +1793,7 @@ export default class apex extends Exchange {
         params = this.omit (params, [ 'clientOrderId', 'clientId' ]);
         const response = await this.privateGetV3OrderFills (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseTrades (orders, undefined, since, limit);
     }
 
@@ -1835,7 +1835,7 @@ export default class apex extends Exchange {
         }
         const response = await this.privateGetV3Fills (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseTrades (orders, market, since, limit);
     }
 
@@ -1876,7 +1876,7 @@ export default class apex extends Exchange {
         }
         const response = await this.privateGetV3Funding (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const fundingValues = this.safeList (data, 'fundingValues', []);
+        const fundingValues: Dict[] = this.safeList (data, 'fundingValues', []);
         return this.parseIncomes (fundingValues, market, since, limit);
     }
 
@@ -1955,7 +1955,7 @@ export default class apex extends Exchange {
         }
         const response = await this.privateGetV3Account (params);
         const data = this.safeDict (response, 'data', {});
-        const positions = this.safeList (data, 'positions', []);
+        const positions: Dict[] = this.safeList (data, 'positions', []);
         return this.parsePositions (positions, symbols);
     }
 

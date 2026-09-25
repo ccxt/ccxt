@@ -1150,7 +1150,7 @@ export default class sxbet extends Exchange {
             if (end > idsLength) {
                 end = idsLength;
             }
-            const orderItems = [];
+            const orderItems: Dict[] = [];
             for (let i = start; i < end; i++) {
                 orderItems.push ({ 'orderId': ids[i] });
             }
@@ -1544,7 +1544,7 @@ export default class sxbet extends Exchange {
         //         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
         //
         const data = this.safeDict (response, 'data', {});
-        const balances = this.safeList (data, 'balances', []);
+        const balances: Dict[] = this.safeList (data, 'balances', []);
         const result: Dict = { 'info': response };
         const usdcDecimals = '1000000';
         const balancesLength = balances.length;
@@ -1597,7 +1597,7 @@ export default class sxbet extends Exchange {
         const rest = this.omit (params, [ 'status' ]);
         const response = await this.sxbetPrivateGetPositionsV3 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         const result: PredictionPosition[] = [];
         const rawPositionsLength = rawPositions.length;
         for (let i = 0; i < rawPositionsLength; i++) {

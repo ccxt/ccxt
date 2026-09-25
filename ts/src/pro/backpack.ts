@@ -1163,7 +1163,7 @@ export default class backpack extends backpackRest {
         }, market);
     }
 
-    parseWsOrderStatus (status: Str, market: Market = undefined) {
+    parseWsOrderStatus (status: Str, market: Market = undefined): Str {
         const statuses: Dict = {
             'New': 'open',
             'Filled': 'closed',
@@ -1176,7 +1176,7 @@ export default class backpack extends backpackRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrderSide (side: Str) {
+    parseWsOrderSide (side: Str): Str {
         const sides: Dict = {
             'Bid': 'buy',
             'Ask': 'sell',

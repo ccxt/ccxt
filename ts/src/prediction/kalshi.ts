@@ -261,7 +261,7 @@ export default class kalshi extends Exchange {
                 request['cursor'] = cursor;
             }
             const response = await this.kalshiPublicGetMarkets (this.extend (request, rest));
-            const rawMarkets = this.safeList (response, 'markets', []);
+            const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             const rawMarketsLength = rawMarkets.length;
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
@@ -1038,7 +1038,7 @@ export default class kalshi extends Exchange {
                 'limit': chunkSize,
             };
             const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
-            const rawMarkets = this.safeList (response, 'markets', []);
+            const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
                 const marketTicker = this.safeString (raw, 'ticker');
@@ -1330,7 +1330,7 @@ export default class kalshi extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         const response = await this.kalshiPublicGetMarketsTrades (this.extend (request, params));
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         const filteredTrades: any[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -2179,7 +2179,7 @@ export default class kalshi extends Exchange {
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
         }
         const restingResponse = await this.kalshiPrivateGetPortfolioOrders (request);
-        const restingOrders = this.safeList (restingResponse, 'orders', []);
+        const restingOrders: Dict[] = this.safeList (restingResponse, 'orders', []);
         const restingOrdersLength = restingOrders.length;
         const canceledOrders: PredictionOrder[] = [];
         for (let i = 0; i < restingOrdersLength; i++) {
@@ -2569,7 +2569,7 @@ export default class kalshi extends Exchange {
         //         "sub_title": "During Trump's term",
         //         "title": "Will Trump balance the budget?"
         // }
-        const rawMarkets = this.safeList (rawEvent, 'markets', []);
+        const rawMarkets: Dict[] = this.safeList (rawEvent, 'markets', []);
         const marketsList: any[] = [];
         // aggregate volume/liquidity from the markets and derive the creation time so sort works;
         // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,

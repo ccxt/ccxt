@@ -78,8 +78,8 @@
                 "url": "https://test-api.pacifica.fi/api/v1/orders/batch",
                 "input": [
                     [
-                        241524077,
-                        241567560
+                        "241524077",
+                        "241567560"
                     ],
                     "BTC/USDC:USDC",
                     {}

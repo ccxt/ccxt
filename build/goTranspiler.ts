@@ -6183,7 +6183,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // that change, because test code compares such locals against untyped bool
                 // constants (`local != true`) -- always true for an interface holding a *bool.
                 // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-                [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+                [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 // the markers sit inside `// ` comments: drop the marker text and the space
@@ -6258,7 +6258,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // because test code compares such locals against untyped bool constants
             // (`local != true`) -- always true for an interface holding a *bool. Mirrors the
             // DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-            [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+            [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
             // the (?!=) guard keeps the assignment rewrite off == comparisons
             [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
@@ -6385,7 +6385,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // that change, because these tests compare such locals against untyped bool
                 // constants (`local != true`) -- always true for an interface holding a *bool.
                 // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-                [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+                [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],

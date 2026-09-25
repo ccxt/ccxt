@@ -341,7 +341,7 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const orders: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -629,7 +629,7 @@ export default class poloniex extends poloniexRest {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV (data, market);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        let stored = (timeframe === undefined) ? undefined : this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -662,7 +662,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const item = this.safeDict (data, i);
             const marketId = this.safeString (item, 'symbol');
@@ -1041,7 +1041,7 @@ export default class poloniex extends poloniexRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -1120,7 +1120,7 @@ export default class poloniex extends poloniexRest {
         //        "action": "update"
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const type = this.safeString (message, 'action');
         const snapshot = type === 'snapshot';
         const update = type === 'update';

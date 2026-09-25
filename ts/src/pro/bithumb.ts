@@ -264,7 +264,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -493,7 +493,7 @@ export default class bithumb extends bithumbRest {
         orderbook['symbol'] = symbol;
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
-        const units = this.safeList (message, 'orderbook_units', []);
+        const units: Dict[] = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < units.length; i++) {
             const entry = this.safeDict (units, i);
             const bidPrice = this.safeNumber (entry, 'bid_price');
@@ -813,7 +813,7 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const messageHash = 'myAsset';
-        const assets = this.safeList (message, 'assets', []);
+        const assets: Dict[] = this.safeList (message, 'assets', []);
         if (this.balance === undefined) {
             this.balance = {};
         }

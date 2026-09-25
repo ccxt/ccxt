@@ -69,7 +69,10 @@ func (this *BaseExchange) Sort(input any) []any {
 			list = append(list, item)
 		}
 	case []any:
-		list = append([]any{}, v...)
+		// typed-pointer elements (*string from SafeStringPtr) sort and return by value, as in JS
+		for _, item := range v {
+			list = append(list, derefScalar(item))
+		}
 	default:
 		return []any{}
 	}

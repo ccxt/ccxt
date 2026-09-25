@@ -814,7 +814,7 @@ export default class extended extends Exchange {
         //       ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const tickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const marketData = this.safeDict (data, i);
@@ -975,7 +975,7 @@ export default class extended extends Exchange {
         //       ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1151,7 +1151,7 @@ export default class extended extends Exchange {
         } as FundingHistory;
     }
 
-    parseFundingHistories (histories: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (histories: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < histories.length; i++) {
             result.push (this.parseFundingHistory (histories[i], market));
@@ -2344,7 +2344,7 @@ export default class extended extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parsePositions (data, symbols);
     }
 
@@ -3197,7 +3197,7 @@ export default class extended extends Exchange {
         //       ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const orders = this.parseOrders (data, market, since, limit);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }

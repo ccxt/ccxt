@@ -519,7 +519,7 @@ export default class toobit extends toobitRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (ticker, market);
     }
 
@@ -610,7 +610,7 @@ export default class toobit extends toobitRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i);
             const messageHash = 'orderBook::' + symbol + '::' + 'diffDepth';
@@ -662,7 +662,7 @@ export default class toobit extends toobitRest {
     }
 
     setOrderBookSnapshot (client: Client, message: Dict, channel: string) {
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const length = data.length;
         if (length === 0) {
             return;
@@ -1279,7 +1279,7 @@ export default class toobit extends toobitRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    getUserStreamUrl () {
+    getUserStreamUrl (): string {
         return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
     }
 

@@ -535,7 +535,7 @@ export default class bitrue extends bitrueRest {
         }
         const symbol = market['symbol'];
         const tick = this.safeDict (message, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const data: Dict[] = this.safeList (tick, 'data', []);
         let appended = false;
         let stored = this.safeValue (this.trades, symbol);
         for (let i = 0; i < data.length; i++) {
@@ -855,7 +855,7 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<Str> {
         const listenKey: Str = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
             // single-flight leader election on a never-dialed client, see

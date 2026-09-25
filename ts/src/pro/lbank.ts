@@ -339,7 +339,7 @@ export default class lbank extends lbankRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "tick":{
@@ -489,7 +489,7 @@ export default class lbank extends lbankRest {
             this.trades[symbol] = stored;
         }
         const rawTrade = this.safeDict (message, 'trade');
-        const rawTrades = this.safeList (message, 'trades', [ rawTrade ]);
+        const rawTrades: Dict[] = this.safeList (message, 'trades', [ rawTrade ]);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseWsTrade (rawTrades[i], market);
             trade['symbol'] = symbol;
@@ -977,7 +977,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<Str> {
         // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
         // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
         // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately

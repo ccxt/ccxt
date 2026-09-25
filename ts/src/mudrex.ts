@@ -1105,7 +1105,7 @@ export default class mudrex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -1298,7 +1298,7 @@ export default class mudrex extends Exchange {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
             pageSize = limit * 2;
         }
-        const allRows = [];
+        const allRows: Dict[] = [];
         let transactionsCount = 0;
         let calls = 0;
         let offset = 0;
@@ -1310,7 +1310,7 @@ export default class mudrex extends Exchange {
                 request['offset'] = offset;
             }
             const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
-            const data = this.safeList (response, 'data', []);
+            const data: Dict[] = this.safeList (response, 'data', []);
             const dataLength = data.length;
             for (let i = 0; i < dataLength; i++) {
                 const entry = data[i];
@@ -1333,9 +1333,9 @@ export default class mudrex extends Exchange {
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
         const rebateKeys = [];
-        const rebateAmounts = [];
-        const transactions = [];
-        const transactionKeys = [];
+        const rebateAmounts: string[] = [];
+        const transactions: Dict[] = [];
+        const transactionKeys: string[] = [];
         for (let i = 0; i < allRows.length; i++) {
             const entry = allRows[i];
             const feeType = this.safeString (entry, 'fee_type');
@@ -1348,7 +1348,7 @@ export default class mudrex extends Exchange {
                 rebateAmounts.push (this.safeString (entry, 'fee_amount', '0'));
             }
         }
-        const rows = [];
+        const rows: Dict[] = [];
         for (let i = 0; i < transactions.length; i++) {
             let rebate: Str = undefined;
             for (let j = 0; j < rebateKeys.length; j++) {

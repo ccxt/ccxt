@@ -68,7 +68,7 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    getPrivateUrl (listenKey: any) {
+    getPrivateUrl (listenKey: any): string {
         return this.urls['api']['ws']['private'] + '/' + listenKey;
     }
 
@@ -687,7 +687,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (parsed, messageHash + ':' + symbol);
     }
 
-    parseWsPosition (position: any, market: Market = undefined): Position {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         const marketId = this.safeString (position, 's');
         market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (position, 'E');

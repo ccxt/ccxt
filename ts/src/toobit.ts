@@ -732,7 +732,7 @@ export default class toobit extends Exchange {
         //            },
         //          ...
         //
-        const coins = this.safeList (response, 'coins', []);
+        const coins: Dict[] = this.safeList (response, 'coins', []);
         const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
@@ -749,7 +749,7 @@ export default class toobit extends Exchange {
         const id = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const rawNetworks = this.safeList (rawCurrency, 'chainTypes', []);
+        const rawNetworks: Dict[] = this.safeList (rawCurrency, 'chainTypes', []);
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString (rawNetwork, 'chainType');
@@ -1525,7 +1525,7 @@ export default class toobit extends Exchange {
         return this.parseBidsAsksCustom (response, symbols);
     }
 
-    parseBidsAsksCustom (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
+    parseBidsAsksCustom (tickers: Dict[], symbols: Strings = undefined, params: Dict = {}): Tickers {
         const results: Ticker[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const parsedTicker = this.parseBidAskCustom (tickers[i]);
@@ -1729,7 +1729,7 @@ export default class toobit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'balances', response);
+        const balances: Dict[] = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
@@ -2191,7 +2191,7 @@ export default class toobit extends Exchange {
             //
             // or empty array if no orders were canceled
         }
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market);
     }
 

@@ -1804,7 +1804,7 @@ export default class bingx extends Exchange {
         } else {
             response = await this.swapV2PublicGetQuotePremiumIndex (params);
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbols);
     }
 
@@ -1992,7 +1992,7 @@ export default class bingx extends Exchange {
         //                 }
         //             ]
         //         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseIncomes (data, market, since, limit) as FundingHistory[];
     }
 

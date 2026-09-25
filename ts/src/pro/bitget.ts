@@ -699,7 +699,7 @@ export default class bitget extends bitgetRest {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -1190,7 +1190,7 @@ export default class bitget extends bitgetRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const length = data.length;
         // fix chronological order by reversing
         for (let i = 0; i < length; i++) {
@@ -1483,7 +1483,7 @@ export default class bitget extends bitgetRest {
             this.positions[instType] = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions[instType];
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions: Dict[] = this.safeList (message, 'data', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -2325,7 +2325,7 @@ export default class bitget extends bitgetRest {
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const length = data.length;
         const messageHash = 'myTrades';
         const arg = this.safeDict (message, 'arg', {});
@@ -2506,11 +2506,11 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
             if (instType === 'uta') {
-                const coins = this.safeList (rawBalance, 'coin', []);
+                const coins: Dict[] = this.safeList (rawBalance, 'coin', []);
                 for (let j = 0; j < coins.length; j++) {
                     const entry = this.safeDict (coins, j);
                     const currencyId = this.safeString (entry, 'coin');

@@ -560,7 +560,7 @@ export default class bittrade extends Exchange {
         //         ]
         //    }
         //
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned empty response: ' + this.json (markets));
@@ -838,7 +838,7 @@ export default class bittrade extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         const response = await this.marketGetTickers (params);
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -955,7 +955,7 @@ export default class bittrade extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, undefined, since, limit);
     }
 
@@ -987,7 +987,7 @@ export default class bittrade extends Exchange {
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1037,10 +1037,10 @@ export default class bittrade extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         let result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeList (data[i], 'data', []);
+            const trades: Dict[] = this.safeList (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade (trades[j], market);
                 result.push (trade);
@@ -1228,7 +1228,7 @@ export default class bittrade extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response['data'], 'list', []);
+        const balances: Dict[] = this.safeList (response['data'], 'list', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1448,7 +1448,7 @@ export default class bittrade extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1910,7 +1910,7 @@ export default class bittrade extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1947,7 +1947,7 @@ export default class bittrade extends Exchange {
         }
         const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
