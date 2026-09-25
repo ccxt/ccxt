@@ -876,7 +876,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "type": "ticker",

@@ -744,7 +744,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(ticker, idMessageHash)
         return message
 
-    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict | list, market: Market = None) -> Ticker:
         #
         #     {
         #         "type": "ticker",

@@ -479,7 +479,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict | list, market: Market = None) -> Trade:
         #
         # request
         #    [ 'timestamp', 'price', 'volume', 'direction' ]

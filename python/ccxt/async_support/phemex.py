@@ -1682,7 +1682,7 @@ class phemex(Exchange, ImplicitAPI):
         trades = self.safe_list_2(result, 'trades', 'trades_p', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict | list, market: Market = None) -> Trade:
         #
         # fetchTrades (public) spot & contract
         #

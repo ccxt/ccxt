@@ -926,7 +926,7 @@ impl LbankCore {
 }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        let mut id: Value = self.safe_string(get_value(&rawCurrency, &Value::Int(0)), Value::Str("assetCode".into()), &[]); // first member is guaranteed
+        let mut id: Value = self.safe_string(rawCurrency.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("assetCode".into()), &[]); // first member is guaranteed
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut networksRaw: Value = rawCurrency;
         let mut networks: Value = Value::Map({

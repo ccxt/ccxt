@@ -482,11 +482,11 @@ export default class luno extends Exchange {
         return this.parseCurrencies (values);
     }
 
-    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+    override parseCurrency (rawCurrency: Dict[]): CurrencyInterface {
         const id = this.safeString (rawCurrency[0], 'native_currency'); // first item is guaranteed
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        for (let i = 0; i < (rawCurrency as List).length; i++) {
+        for (let i = 0; i < rawCurrency.length; i++) {
             const networkEntry = this.safeDict (rawCurrency, i);
             const networkId = this.safeString (networkEntry, 'name');
             const networkCode = this.networkIdToCode (networkId, code);

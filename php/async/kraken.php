@@ -1467,7 +1467,7 @@ class kraken extends Exchange {
         return $items[0];
     }
 
-    public function parse_trade(array $trade, ?array $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //

@@ -1202,7 +1202,7 @@ class bitfinex(Exchange, ImplicitAPI):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: list, market: Market = None) -> Ticker:
         #
         # on trading pairs (ex. tBTCUSD)
         #
@@ -2401,7 +2401,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: list, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -3678,7 +3678,7 @@ class bitfinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 0)
         return self.parse_margin_modification(data, market)
 
-    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: list, market: Market = None) -> MarginModification:
         #
         # setMargin
         #

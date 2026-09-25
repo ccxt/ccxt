@@ -1024,7 +1024,7 @@ export default class ndax extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict | List, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //

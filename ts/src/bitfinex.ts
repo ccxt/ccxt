@@ -1230,7 +1230,7 @@ export default class bitfinex extends Exchange {
         return result as OrderBook;
     }
 
-    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: List, market: Market = undefined): Ticker {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1271,7 +1271,7 @@ export default class bitfinex extends Exchange {
         //            FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        const length = (ticker as List).length;
+        const length = ticker.length;
         // the list shapes (fetchTickers) carry the market id in slot 0, the singular
         // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
@@ -2531,7 +2531,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: List, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2583,7 +2583,7 @@ export default class bitfinex extends Exchange {
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
-        const transactionLength = (transaction as List).length;
+        const transactionLength = transaction.length;
         let timestamp: Int = undefined;
         let updated: Int = undefined;
         let code: Str = undefined;
@@ -3892,7 +3892,7 @@ export default class bitfinex extends Exchange {
         return this.parseMarginModification (data, market);
     }
 
-    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: List, market: Market = undefined): MarginModification {
         //
         // setMargin
         //

@@ -1418,7 +1418,7 @@ export default class kraken extends Exchange {
         return items[0];
     }
 
-    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict | List | string, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //

@@ -486,7 +486,7 @@ export default class gemini extends Exchange {
         return this.parseCurrencies (currenciesArray);
     }
 
-    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+    override parseCurrency (rawCurrency: List): CurrencyInterface {
         const id = this.safeString (rawCurrency, 0);
         const code = this.safeCurrencyCode (id);
         const fiatFlag = this.safeString (rawCurrency, 7);
@@ -786,7 +786,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    override parseMarket (response: Dict): Market {
+    override parseMarket (response: Dict | List | string): Market {
         //
         // response might be:
         //

@@ -3,7 +3,7 @@
 
 import coincheckRest from '../coincheck.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Trade, Dict } from '../base/types.js';
+import type { Int, Market, OrderBook, Trade, Dict, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
@@ -174,7 +174,7 @@ export default class coincheck extends coincheckRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: List, market: Market = undefined): Trade {
         //
         //     [
         //         "1663318663", // transaction timestamp (unix time)

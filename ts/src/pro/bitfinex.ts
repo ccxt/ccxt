@@ -602,7 +602,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: List, market: Market = undefined): Ticker {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -1193,7 +1193,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order: Dict, market: Market = undefined): Order {
+    override parseWsOrder (order: List, market: Market = undefined): Order {
         //
         //   [
         //       97084883506, // order id

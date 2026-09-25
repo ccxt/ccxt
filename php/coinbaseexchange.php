@@ -852,7 +852,7 @@ class coinbaseexchange extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //

@@ -2751,7 +2751,7 @@ class hitbtc extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer(array $transfer, ?array $currency = null): array {
+    public function parse_transfer(mixed $transfer, ?array $currency = null): array {
         //
         // transfer
         //

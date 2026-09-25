@@ -4644,7 +4644,7 @@ public class Bitfinex extends BitfinexApi
         //         ]
         //     ]
         //
-        Object marginStatusRaw = Helpers.GetValue(data, 0);
+        Object marginStatusRaw = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
         String marginStatus = "failed";
         if (Helpers.isEqual(marginStatusRaw, 1))
         {

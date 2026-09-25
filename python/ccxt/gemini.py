@@ -488,7 +488,7 @@ class gemini(Exchange, ImplicitAPI):
         currenciesArray = self.safe_list(data, 'currencies', [])
         return self.parse_currencies(currenciesArray)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: list) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 0)
         code = self.safe_currency_code(id)
         fiatFlag = self.safe_string(rawCurrency, 7)
@@ -755,7 +755,7 @@ class gemini(Exchange, ImplicitAPI):
                             result.append(parsed)
         return result
 
-    def parse_market(self, response: dict) -> Market:
+    def parse_market(self, response: dict | list | str) -> Market:
         #
         # response might be:
         #
