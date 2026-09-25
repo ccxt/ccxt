@@ -5069,16 +5069,8 @@ public class Aster extends AsterApi
                 put( "amount", Aster.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             String type = null;
-            Object fromId = null;
-            if (!java.util.Objects.equals(fromAccount, null))
-            {
-                fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
-            }
-            Object toId = null;
-            if (!java.util.Objects.equals(toAccount, null))
-            {
-                toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
-            }
+            String fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
+            String toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
             if (java.util.Objects.equals(fromId, "SPOT") && java.util.Objects.equals(toId, "FUTURE"))
             {
                 type = "SPOT_FUTURE";

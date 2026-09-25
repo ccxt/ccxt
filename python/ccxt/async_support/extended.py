@@ -1855,7 +1855,7 @@ class extended(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' transfer() can only transfer from the authenticated account')
         toVault = self.safe_string_2(params, 'toVault', 'receiverPositionId')
         toL2Key = self.safe_string_2(params, 'toL2Key', 'receiverPublicKey')
-        if (toAccount is None) or (toVault is None) or (toL2Key is None):
+        if (toVault is None) or (toL2Key is None):
             raise ArgumentsRequired(self.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]')
         amountString = self.currency_to_precision(code, amount)
         settlement = self.create_transfer_settlement_data(amountString, currency, account, toVault, toL2Key, params)

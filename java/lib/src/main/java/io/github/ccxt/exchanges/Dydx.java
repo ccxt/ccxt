@@ -1891,7 +1891,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
             String idString = String.valueOf(id);
-            if (!java.util.Objects.equals(id, null) && ((String)idString).indexOf("-") > -1)
+            if (((String)idString).indexOf("-") > -1)
             {
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }

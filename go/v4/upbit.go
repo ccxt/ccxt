@@ -1825,12 +1825,12 @@ func (this *Upbit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Upbit) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Upbit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Upbit) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -1854,7 +1854,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		panic(ExchangeError(this.Id + " editOrder() does not support post_only and selfTradePrevention simultaneously."))
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderId"))
-	if !IsEqual(id, nil) {
+	if true {
 		request["prev_order_uuid"] = id
 	} else if prevClientOrderId != nil {
 		request["prev_order_identifier"] = prevClientOrderId
@@ -2969,12 +2969,12 @@ func (this *Upbit) createDepositAddressBody(ch chan any, code string, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Upbit) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Upbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Upbit) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -2993,7 +2993,7 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 		"amount": amount,
 	}
 	var response any = nil
-	if !IsEqual(code, "KRW") {
+	if code != "KRW" {
 		this.CheckAddress(address)
 		// 2023-05-23 Change to required parameters for digital assets
 		var network *string = this.SafeStringUpper2(paramsTag, "network", "net_type")

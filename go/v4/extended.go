@@ -2408,12 +2408,12 @@ func (this *Extended) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Extended) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Extended) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Extended) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Extended) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2571,12 +2571,12 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Extended) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Extended) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Extended) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2600,7 +2600,7 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 	}
 	var toVault *string = this.SafeString2(params, "toVault", "receiverPositionId")
 	var toL2Key *string = this.SafeString2(params, "toL2Key", "receiverPublicKey")
-	if (IsEqual(toAccount, nil)) || (toVault == nil) || (toL2Key == nil) {
+	if (toVault == nil) || (toL2Key == nil) {
 		panic(ArgumentsRequired(this.Id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]"))
 	}
 	var amountString any = this.CurrencyToPrecision(code, amount)
@@ -3753,12 +3753,12 @@ func (this *Extended) createOrderBody(ch chan any, symbol string, typeVar string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Extended) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Extended) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Extended) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -3767,7 +3767,7 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(id, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an id argument"))
 	}
 	var amountValue any = amount

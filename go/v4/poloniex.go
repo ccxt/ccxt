@@ -2668,12 +2668,12 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Poloniex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Poloniex) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -3013,12 +3013,12 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan any, id string, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Poloniex) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Poloniex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3496,12 +3496,12 @@ func (this *Poloniex) ParseDepositAddressSpecial(response any, currency any, net
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Poloniex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Poloniex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3562,12 +3562,12 @@ func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Poloniex) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -3588,7 +3588,7 @@ func (this *Poloniex) withdrawBody(ch chan any, code any, amount any, address an
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" withdraw requires a network parameter for ", code), ".")))
+		panic(ArgumentsRequired(this.Id + " withdraw requires a network parameter for " + code + "."))
 	}
 	request["network"] = this.NetworkCodeToId(networkCode, code)
 	if !IsEqual(tagWithdrawTag, nil) {

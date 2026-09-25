@@ -4928,12 +4928,12 @@ func (this *Bitget) fetchDepositBody(ch chan any, id any, optionalArgs ...any) a
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitget) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bitget) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bitget) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8514,12 +8514,12 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitget) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Bitget) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitget) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -12796,12 +12796,12 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Bitget) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Bitget) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Bitget) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Bitget) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -12811,7 +12811,7 @@ func (this *Bitget) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	var marginModeValue string = ToLower(marginMode)
+	var marginModeValue string = strings.ToLower(marginMode)
 	if marginModeValue == "cross" {
 		marginModeValue = "crossed"
 	}
@@ -13123,12 +13123,12 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.clientOid] custom id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitget) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Bitget) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Bitget) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

@@ -1725,7 +1725,7 @@ public class Apex extends ApexApi
             String accountId = this.safeString(accountData, "id", "");
             Object currency = new HashMap<String, Object>() {{}};
             List<Object> assets = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(fromAccount, null) && java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
+            if (java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
             {
                 assets = contractAssets;
             } else
@@ -1752,7 +1752,7 @@ public class Apex extends ApexApi
             }
             Object finalClientOrderId = clientOrderId; // java req
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            if (!java.util.Objects.equals(fromAccount, null) && java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
+            if (java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
             {
                 String formattedUint32 = "4294967295";
                 String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);

@@ -4915,7 +4915,7 @@ public class Hyperliquid extends HyperliquidApi
             // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
             // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
             String transferType = this.safeString(parameters, "type");
-            Boolean isUsdc = (java.util.Objects.equals(code, null)) || (java.util.Objects.equals(((String)code).toUpperCase(), "USDC"));
+            Boolean isUsdc = (java.util.Objects.equals(((String)code).toUpperCase(), "USDC"));
             if (Boolean.TRUE.equals(isUsdc) && (!java.util.Objects.equals(transferType, "spot")))
             {
                 // Transfer USDC with subAccountTransfer
@@ -5013,12 +5013,9 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             this.checkAddress(address);
-            if (!java.util.Objects.equals(code, null))
+            if (!java.util.Objects.equals(((String)code).toUpperCase(), "USDC"))
             {
-                if (!java.util.Objects.equals(((String)code).toUpperCase(), "USDC"))
-                {
-                    throw new NotSupported((this.id + " withdraw() only support USDC")) ;
-                }
+                throw new NotSupported((this.id + " withdraw() only support USDC")) ;
             }
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "withdraw", "vaultAddress", (String) null)).get(0);
             Object vaultAddress = this.formatVaultAddress(vaultAddressOption);

@@ -1578,7 +1578,7 @@ class dydx extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $clientOrderId parameter, cancelling using $id is not currently supported.');
         }
         $idString = (string) $id;
-        if ($id !== null && mb_strpos($idString, '-') > -1) {
+        if (mb_strpos($idString, '-') > -1) {
             throw new NotSupported($this->id . ' cancelOrder() cancelling using $id is not currently supported, please use provide the $clientOrderId parameter.');
         }
         $goodTillBlock = $this->safe_integer($paramsOmitted, 'goodTillBlock');

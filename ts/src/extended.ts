@@ -1940,7 +1940,7 @@ export default class extended extends Exchange {
         }
         const toVault = this.safeString2 (params, 'toVault', 'receiverPositionId');
         const toL2Key = this.safeString2 (params, 'toL2Key', 'receiverPublicKey');
-        if ((toAccount === undefined) || (toVault === undefined) || (toL2Key === undefined)) {
+        if ((toVault === undefined) || (toL2Key === undefined)) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]');
         }
         const amountString = this.currencyToPrecision (code, amount);

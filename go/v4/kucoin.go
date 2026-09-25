@@ -6013,12 +6013,12 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
  * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Kucoin) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -8299,12 +8299,12 @@ func (this *Kucoin) ParseOrderStatus(status *string) *string {
  * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Kucoin) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Kucoin) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9392,12 +9392,12 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Kucoin) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Kucoin) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -10492,12 +10492,12 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
  * Check transferClassic() and transferUta() for more details on params
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoin) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Kucoin) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10539,12 +10539,12 @@ func (this *Kucoin) transferBody(ch chan any, code any, amount any, fromAccount 
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoin) TransferUtaAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) TransferUtaAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferUtaBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Kucoin) transferUtaBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10653,12 +10653,12 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoin) TransferClassicAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) TransferClassicAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferClassicBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) transferClassicBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Kucoin) transferClassicBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13795,12 +13795,12 @@ func (this *Kucoin) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Kucoin) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Kucoin) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -13821,7 +13821,7 @@ func (this *Kucoin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	}
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
-		"marginMode": ToUpper(marginMode),
+		"marginMode": strings.ToUpper(marginMode),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.FuturesPrivatePostPositionChangeMarginMode(this.Extend(request, params))).Raw))

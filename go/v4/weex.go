@@ -4056,12 +4056,12 @@ func (this *Weex) HandleOrderOrPositionError(errorCode any, errorMessage any, or
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Weex) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Weex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Weex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5021,12 +5021,12 @@ func (this *Weex) ParseMarginType(marginType *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Weex) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Weex) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Weex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Weex) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

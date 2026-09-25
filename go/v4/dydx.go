@@ -1968,7 +1968,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported."))
 	}
 	var idString string = ToString(id)
-	if (!IsEqual(id, nil)) && (strings.Index(idString, "-") > -1) {
+	if strings.Index(idString, "-") > -1 {
 		panic(NotSupported(this.Id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter."))
 	}
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsOmitted, "goodTillBlock"))
@@ -2390,17 +2390,17 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Dydx) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Dydx) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Dydx) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !IsEqual(code, "USDC") {
+	if code != "USDC" {
 		panic(NotSupported(this.Id + " transfer() only support USDC"))
 	}
 	if this.Markets == nil {
@@ -2651,19 +2651,19 @@ func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Dydx) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Dydx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Dydx) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !IsEqual(code, "USDC") {
+	if code != "USDC" {
 		panic(NotSupported(this.Id + " withdraw() only support USDC"))
 	}
 	if this.Markets == nil {

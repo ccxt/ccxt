@@ -1410,12 +1410,12 @@ func (this *Independentreserve) ParseDepositAddress(depositAddress any, optional
  * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Independentreserve) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Independentreserve) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Independentreserve) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)

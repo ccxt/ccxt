@@ -2514,12 +2514,12 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {bool} [params.margin] true for fetching margin trades
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Hitbtc) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2891,12 +2891,12 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Hitbtc) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hitbtc) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3281,12 +3281,12 @@ func (this *Hitbtc) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Hitbtc) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Hitbtc) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// account can be "spot", "wallet", or "derivatives"
@@ -3300,7 +3300,7 @@ func (this *Hitbtc) transferBody(ch chan any, code any, amount any, fromAccount 
 	var requestAmount any = this.CurrencyToPrecision(code, amount)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromAccountValue string = ToLower(fromAccount)
-	var toAccountValue string = ToLower(toAccount)
+	var toAccountValue string = strings.ToLower(toAccount)
 	var fromId *string = this.SafeString(accountsByType, fromAccountValue, fromAccountValue)
 	var toId *string = this.SafeString(accountsByType, toAccountValue, toAccountValue)
 	if fromId == toId || (fromId != nil && toId != nil && *fromId == *toId) {
@@ -3402,12 +3402,12 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan any, code any, amount any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hitbtc) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Hitbtc) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -3433,14 +3433,14 @@ func (this *Hitbtc) withdrawBody(ch chan any, code any, amount any, address any,
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
-	if (network != nil) && (IsEqual(code, "USDT")) {
+	if (network != nil) && (code == "USDT") {
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
 			request["network_code"] = parsedNetwork
 		}
 	}
 	var paramsOmitted any = paramsWithdrawTag
-	if (network != nil) && (IsEqual(code, "USDT")) {
+	if (network != nil) && (code == "USDT") {
 		paramsOmitted = this.Omit(paramsWithdrawTag, "network")
 	}
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")

@@ -2863,7 +2863,7 @@ impl ExtendedCore {
         }
         let mut toVault: Value = self.safe_string2(params.clone(), Value::Str("toVault".into()), Value::Str("receiverPositionId".into()), &[]);
         let mut toL2Key: Value = self.safe_string2(params.clone(), Value::Str("toL2Key".into()), Value::Str("receiverPublicKey".into()), &[]);
-        if (toAccount == Value::Null) || (toVault == Value::Null) || (toL2Key == Value::Null) {
+        if (toVault == Value::Null) || (toL2Key == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]".into()))));
         }
         let mut amountString: Value = self.currency_to_precision(code, amount, &[]);

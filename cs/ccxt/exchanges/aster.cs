@@ -4854,16 +4854,8 @@ public partial class aster : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         string? type = null;
-        string? fromId = null;
-        if ((fromAccount != null))
-        {
-            fromId = ((string)this.convertTypeToAccount(fromAccount)).ToUpper();
-        }
-        string? toId = null;
-        if ((toAccount != null))
-        {
-            toId = ((string)this.convertTypeToAccount(toAccount)).ToUpper();
-        }
+        string fromId = ((string)this.convertTypeToAccount(fromAccount)).ToUpper();
+        string toId = ((string)this.convertTypeToAccount(toAccount)).ToUpper();
         if (fromId == "SPOT" && toId == "FUTURE")
         {
             type = "SPOT_FUTURE";

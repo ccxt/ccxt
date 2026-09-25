@@ -3138,12 +3138,12 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan any, order any, optionalArgs
  * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bithumb) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -3167,7 +3167,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var destinationRequest any = nil
-	var requiresDestination bool = ((IsEqual(code, "XRP")) || (IsEqual(code, "XMR")) || (IsEqual(code, "EOS")) || (IsEqual(code, "STEEM")) || (IsEqual(code, "TON")))
+	var requiresDestination bool = ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"))
 	var paramsDestination any = paramsNetwork
 	if requiresDestination {
 		paramsDestination = this.Omit(paramsNetwork, []any{"destination", "secondary_address"})
@@ -3175,7 +3175,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 	if requiresDestination {
 		var destination *string = this.SafeString2(paramsNetwork, "destination", "secondary_address")
 		if (IsEqual(tagWithdrawTag, nil)) && (destination == nil) {
-			panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " withdraw() requires a tag argument or an extra destination param")))
+			panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a tag argument or an extra destination param"))
 		} else if !IsEqual(tagWithdrawTag, nil) {
 			destinationRequest = tagWithdrawTag
 		} else {
@@ -3185,10 +3185,10 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 	var receiverType *string = this.SafeString2(paramsDestination, "receiver_type", "cust_type_cd")
 	var paramsReceiverType any = this.Omit(paramsDestination, []any{"receiver_type", "cust_type_cd"})
 	if IsEqual(generation, 2) {
-		if IsEqual(code, "KRW") {
+		if code == "KRW" {
 			var twoFactorType *string = this.SafeString(paramsReceiverType, "two_factor_type")
 			if twoFactorType == nil {
-				panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")))
+				panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a two_factor_type parameter for withdrawing KRW"))
 			}
 			var krwRequest map[string]any = map[string]any{
 				"amount": this.NumberToString(amount),
@@ -3197,7 +3197,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 			response = MapTyped(PanicOnError((<-this.PrivatePostV1WithdrawsKrw(this.Extend(krwRequest, paramsReceiverType))).Raw))
 		} else {
 			if network == nil {
-				panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " withdraw() requires a network parameter")))
+				panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a network parameter"))
 			}
 			request["address"] = address
 			request["currency"] = currency["id"]

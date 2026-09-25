@@ -1956,12 +1956,12 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Backpack) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Backpack) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Backpack) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)

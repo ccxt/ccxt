@@ -2746,11 +2746,9 @@ export default class modetrade extends Exchange {
             await this.loadMarkets ();
         }
         this.checkAddress (address);
-        const codeUpper: string = (code !== undefined) ? code.toUpperCase () : code;
-        if (codeUpper !== undefined) {
-            if (codeUpper !== 'USDC') {
-                throw new NotSupported (this.id + ' withdraw() only support USDC');
-            }
+        const codeUpper = code.toUpperCase ();
+        if (codeUpper !== 'USDC') {
+            throw new NotSupported (this.id + ' withdraw() only support USDC');
         }
         const currency = this.currency (codeUpper);
         const verifyingContractAddress = this.safeString (this.options, 'verifyingContractAddress');

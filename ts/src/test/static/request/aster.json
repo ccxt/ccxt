@@ -548,7 +548,7 @@
                 "method": "fetchOrder",
                 "url": "https://sapi.asterdex.com/api/v3/order?symbol=BTCUSDT&orderId=1917641&nonce=1776835698441000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signature=0x4817a0a83f9c069073bc977442ce972c74a36226153c9ffb8a4abd3a6af9c5be77134a8f37ee71acdf1005f640f7175006b5739b6003497d94ec44d59e6a542d1b",
                 "input": [
-                    1917641,
+                    "1917641",
                     "BTC/USDT"
                 ]
             },
@@ -557,7 +557,7 @@
                 "method": "fetchOrder",
                 "url": "https://fapi.asterdex.com/fapi/v3/order?symbol=BTCUSDT&orderId=1917641&nonce=1776835698444000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signature=0xcf0bcb0f445a80fdb50e9fea73fd8809ac9339815c8b4c76e531d4cb84d80964636b36d9666816189592aacb2089880f799535e86fbdd4ca40e5166ec3618afe1c",
                 "input": [
-                    1917641,
+                    "1917641",
                     "BTC/USDT:USDT"
                 ]
             }
@@ -713,7 +713,7 @@
                 "method": "cancelOrder",
                 "url": "https://sapi.asterdex.com/api/v3/order",
                 "input": [
-                    417663664,
+                    "417663664",
                     "ETH/USDT"
                 ],
                 "output": "symbol=ETHUSDT&orderId=417663664&nonce=1776318948277000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signature=0x4aa48434f01282881450559ff99802a34993655932fdd7ccb7db827770b982ce60d1b076f1f6e3581e05b0687e0c165d8a54f020fffbc0ce4ec52790fc87bf0b1b"

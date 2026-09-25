@@ -188,7 +188,7 @@
                 "description": "edit order takeProfit and stopLoss prices",
                 "method": "editOrder",
                 "input": [
-                    1001112132350609,
+                    "1001112132350609",
                     "DOGE/USDT:USDT",
                     "limit",
                     "buy",
@@ -238,7 +238,7 @@
                 "description": "edit order amount and price",
                 "method": "editOrder",
                 "input": [
-                    1001111677169084,
+                    "1001111677169084",
                     "DOGE/USDT:USDT",
                     "limit",
                     "buy",
@@ -1042,7 +1042,7 @@
                 "description": "cancel trigger order",
                 "method": "cancelOrder",
                 "input": [
-                    1001112135133243,
+                    "1001112135133243",
                     "DOGE/USDT:USDT",
                     {
                         "trigger": true
@@ -1097,7 +1097,7 @@
                 "description": "Cancel order",
                 "method": "cancelOrder",
                 "input": [
-                    1001441400627435,
+                    "1001441400627435",
                     "ETH/USDT"
                 ],
                 "httpResponse": {

@@ -2875,11 +2875,9 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         $this->check_address($address);
-        $codeUpper = ($code !== null) ? strtoupper($code) : $code;
-        if ($codeUpper !== null) {
-            if ($codeUpper !== 'USDC') {
-                throw new NotSupported($this->id . ' withdraw() only support USDC');
-            }
+        $codeUpper = strtoupper($code);
+        if ($codeUpper !== 'USDC') {
+            throw new NotSupported($this->id . ' withdraw() only support USDC');
         }
         $currency = $this->currency($codeUpper);
         $verifyingContractAddress = $this->safe_string($this->options, 'verifyingContractAddress');

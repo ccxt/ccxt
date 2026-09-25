@@ -1800,7 +1800,7 @@ public partial class dydx : Exchange
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
         }
         string idString = id.ToString();
-        if ((id != null) && idString.IndexOf("-", StringComparison.Ordinal) > -1)
+        if (idString.IndexOf("-", StringComparison.Ordinal) > -1)
         {
             throw new NotSupported ((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
         }

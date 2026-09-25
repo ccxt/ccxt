@@ -1040,12 +1040,12 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol string, typeVar string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Mudrex) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1969,12 +1969,12 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
  */
-func (this *Mudrex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Mudrex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1987,14 +1987,14 @@ func (this *Mudrex) transferBody(ch chan any, code any, amount any, fromAccount 
 		"FUTURES": "FUTURES",
 	}
 	var fw *string = this.SafeString(mp, fromAccount, ToUpper(fromAccount))
-	var tw *string = this.SafeString(mp, toAccount, ToUpper(toAccount))
+	var tw *string = this.SafeString(mp, toAccount, strings.ToUpper(toAccount))
 	var body map[string]any = map[string]any{
 		"from_wallet_type": fw,
 		"to_wallet_type":   tw,
 		"amount":           this.NumberToString(amount),
 	}
 	var useInr bool = false
-	if IsEqual(code, "INR") {
+	if code == "INR" {
 		useInr = true
 	} else {
 		// default USDT does not use the inr path

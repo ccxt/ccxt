@@ -6053,12 +6053,12 @@ func (this *Bybit) EditOrderRequest(id any, symbol any, typeVar any, side any, o
  * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Bybit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bybit) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bybit) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -7504,12 +7504,12 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bybit) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bybit) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bybit) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8389,12 +8389,12 @@ func (this *Bybit) ParseLedgerEntryType(typeVar *string) *string {
  * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bybit) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bybit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -9009,12 +9009,12 @@ func (this *Bybit) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
  * @returns {object} response from the exchange
  */
-func (this *Bybit) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Bybit) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9053,7 +9053,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		market = this.Market(symbol)
 		var isUsdcSettled bool = IsEqual(market["settle"], "USDC")
 		if isUsdcSettled {
-			if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "portfolio")) {
+			if (marginMode != "cross") && (marginMode != "portfolio") {
 				panic(NotSupported(this.Id + " setMarginMode() for usdc market marginMode must be either [cross, portfolio]"))
 			}
 			var request map[string]any = map[string]any{
@@ -9066,9 +9066,9 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 			var typeVar *string = SafeStringPtr(GetValue(typeVarparamsTypeVariable, 0))
 			paramsType := GetValue(typeVarparamsTypeVariable, 1)
 			var tradeMode any = nil
-			if IsEqual(marginMode, "cross") {
+			if marginMode == "cross" {
 				tradeMode = 0
-			} else if IsEqual(marginMode, "isolated") {
+			} else if marginMode == "isolated" {
 				tradeMode = 1
 			} else {
 				panic(NotSupported(this.Id + " setMarginMode() with symbol marginMode must be either [isolated, cross]"))
@@ -9807,12 +9807,12 @@ func (this *Bybit) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bybit) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Bybit) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bybit) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Bybit) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

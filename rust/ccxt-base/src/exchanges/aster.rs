@@ -5383,14 +5383,8 @@ impl AsterCore {
             m
         });
         let mut type_var: Value = Value::Null;
-        let mut fromId: Value = Value::Null;
-        if (fromAccount != Value::Null) {
-            fromId = to_upper(&self.convert_type_to_account(fromAccount));
-        }
-        let mut toId: Value = Value::Null;
-        if (toAccount != Value::Null) {
-            toId = to_upper(&self.convert_type_to_account(toAccount));
-        }
+        let mut fromId: Value = to_upper(&self.convert_type_to_account(fromAccount));
+        let mut toId: Value = to_upper(&self.convert_type_to_account(toAccount));
         if (fromId.as_str() == Some("SPOT")) && (toId.as_str() == Some("FUTURE")) {
             type_var = Value::Str("SPOT_FUTURE".into());
         }  else if (fromId.as_str() == Some("FUTURE")) && (toId.as_str() == Some("SPOT")) {

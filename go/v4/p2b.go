@@ -1239,12 +1239,12 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.offset] 0-10000, default=0
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *P2b) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *P2b) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *P2b) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

@@ -2195,7 +2195,7 @@ public partial class extended : Exchange
         }
         string? toVault = this.safeString2(parameters, "toVault", "receiverPositionId");
         string? toL2Key = this.safeString2(parameters, "toL2Key", "receiverPublicKey");
-        if (((toAccount == null)) || ((toVault == null)) || ((toL2Key == null)))
+        if (((toVault == null)) || ((toL2Key == null)))
         {
             throw new ArgumentsRequired ((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
         }
