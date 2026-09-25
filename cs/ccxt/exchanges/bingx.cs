@@ -4179,7 +4179,7 @@ public partial class bingx : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot
@@ -4488,18 +4488,18 @@ public partial class bingx : Exchange
         string? feeCost = this.safeStringN(order, new List<object>() {"fee", "commission", "n"});
         if (((feeCurrencyCode == null)))
         {
-            if (isEqual(getValue(market, "spot"), true))
+            if (isEqual((market != null && market.ContainsKey("spot") ? market["spot"] : null), true))
             {
                 if (side == "buy")
                 {
-                    feeCurrencyCode = getValue(market, "base");
+                    feeCurrencyCode = (market != null && market.ContainsKey("base") ? market["base"] : null);
                 } else
                 {
-                    feeCurrencyCode = getValue(market, "quote");
+                    feeCurrencyCode = (market != null && market.ContainsKey("quote") ? market["quote"] : null);
                 }
             } else
             {
-                feeCurrencyCode = (isEqual(getValue(market, "inverse"), true)) ? getValue(market, "settle") : getValue(market, "quote");
+                feeCurrencyCode = (isEqual((market != null && market.ContainsKey("inverse") ? market["inverse"] : null), true)) ? (market != null && market.ContainsKey("settle") ? market["settle"] : null) : (market != null && market.ContainsKey("quote") ? market["quote"] : null);
             }
         }
         object stopLoss = this.safeValue(order, "stopLoss");

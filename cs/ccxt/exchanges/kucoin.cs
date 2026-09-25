@@ -7250,7 +7250,7 @@ public partial class kucoin : Exchange
         return tradeType;
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? tradeType = this.safeString(order, "tradeType");
         List<object> utaTradeTypes = new List<object>() {"SPOT", "CROSS", "ISOLATED", "FUTURES"}; // tradeType specific for uta endpoint
@@ -7265,7 +7265,7 @@ public partial class kucoin : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        if (((market != null)) && (isEqual(getValue(market, "contract"), true)))
+        if (((market != null)) && (isEqual((market != null && market.ContainsKey("contract") ? market["contract"] : null), true)))
         {
             return ((Dictionary<string, object>)((object)(this.parseContractOrder(order, market))));
         } else
@@ -7274,7 +7274,7 @@ public partial class kucoin : Exchange
         }
     }
 
-    public virtual object parseContractOrder(object order, object market = null)
+    public virtual object parseContractOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrder, fetchOrdersByStatus
@@ -7336,7 +7336,7 @@ public partial class kucoin : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         string? orderId = this.safeString2(order, "id", "orderId");
         string? type = this.safeString(order, "type");
         Int64? timestamp = this.safeInteger(order, "createdAt");
@@ -7355,7 +7355,7 @@ public partial class kucoin : Exchange
         if (((average == null)) && Precise.stringGt(filled, "0"))
         {
             string? contractSize = this.safeString(market, "contractSize");
-            if (isEqual(getValue(market, "linear"), true))
+            if (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true))
             {
                 average = Precise.stringDiv(cost, Precise.stringMul(contractSize, filled));
             } else
@@ -7414,7 +7414,7 @@ public partial class kucoin : Exchange
         }, market);
     }
 
-    public virtual object parseSpotOrder(object order, object market = null)
+    public virtual object parseSpotOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -7603,7 +7603,7 @@ public partial class kucoin : Exchange
         }, market);
     }
 
-    public virtual object parseUtaOrder(object order, object market = null)
+    public virtual object parseUtaOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder
@@ -7654,7 +7654,7 @@ public partial class kucoin : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
         Int64? lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
         string? rawTimeInForce = this.safeString(order, "timeInForce");

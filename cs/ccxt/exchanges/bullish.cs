@@ -2222,7 +2222,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOrders, fetchOrder
@@ -2303,7 +2303,7 @@ public partial class bullish : Exchange
         if ((quoteFee != null))
         {
             fee["cost"] = quoteFee;
-            fee["currency"] = getValue(market, "quote");
+            fee["currency"] = (market != null && market.ContainsKey("quote") ? market["quote"] : null);
         }
         string? average = this.safeString(order, "averageFillPrice");
         return this.safeOrder(new Dictionary<string, object>() {

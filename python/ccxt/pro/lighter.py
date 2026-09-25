@@ -1134,7 +1134,8 @@ class lighter(ccxt.async_support.lighter):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         messageHash = 'jsonapi/sendtx:' + requestId
-        txType, txInfo, order, market = await self.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params)
+        txType, txInfo, order = await self.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params)
+        market = self.market(symbol)
         parsedTx = self.parse_json(txInfo)
         message = {
             'type': 'jsonapi/sendtx',
@@ -1166,7 +1167,8 @@ class lighter(ccxt.async_support.lighter):
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         messageHash = 'jsonapi/sendtx:' + requestId
-        txType, txInfo, market = await self.signAndCancelOrder('cancelOrderWs', id, symbol, params)
+        txType, txInfo = await self.signAndCancelOrder('cancelOrderWs', id, symbol, params)
+        market = self.market(symbol)
         parsedTx = self.parse_json(txInfo)
         message = {
             'type': 'jsonapi/sendtx',

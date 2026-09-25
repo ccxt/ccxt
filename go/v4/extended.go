@@ -3722,7 +3722,7 @@ func (this *Extended) createOrderBody(ch chan any, symbol any, typeVar any, side
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var market any = GetValue(extendedOrderRequest, "market")
+	var market map[string]any = this.Market(symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
 	AddElementToObject(data, "timestamp", now)
 	AddElementToObject(data, "status", "NEW")
@@ -3820,7 +3820,7 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	//     }
 	//
 	var responseData any = this.SafeDict(editResponse, "data", map[string]any{})
-	var market any = GetValue(extendedOrderRequest, "market")
+	var market map[string]any = this.Market(symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
 	AddElementToObject(responseData, "timestamp", now)
 	AddElementToObject(responseData, "status", "NEW")

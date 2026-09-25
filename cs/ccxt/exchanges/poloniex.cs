@@ -1927,7 +1927,7 @@ public partial class poloniex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // fetchOpenOrder
@@ -2034,7 +2034,7 @@ public partial class poloniex : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, "_");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         object resultingTrades = this.safeValue(order, "resultingTrades");
         if ((resultingTrades != null))
         {
@@ -2058,7 +2058,7 @@ public partial class poloniex : Exchange
         string? rate = this.safeString(order, "fee");
         if ((feeCurrency == null))
         {
-            feeCurrencyCode = (side == "buy") ? getValue(market, "base") : getValue(market, "quote");
+            feeCurrencyCode = (side == "buy") ? (market != null && market.ContainsKey("base") ? market["base"] : null) : (market != null && market.ContainsKey("quote") ? market["quote"] : null);
         } else
         {
             // poloniex accepts a 30% discount to pay fees in TRX

@@ -2804,7 +2804,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // regular order
@@ -2905,7 +2905,7 @@ public partial class deepcoin : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(order, "uTime") },
             { "status", this.parseOrderStatus(state) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", this.parseOrderType(orderType) },
             { "timeInForce", this.parseOrderTimeInForce(orderType) },
             { "side", this.safeString(order, "side") },

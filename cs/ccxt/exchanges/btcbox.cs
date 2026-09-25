@@ -710,7 +710,7 @@ public partial class btcbox : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -761,7 +761,7 @@ public partial class btcbox : Exchange
             { "timeInForce", null },
             { "postOnly", null },
             { "status", status },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "price", price },
             { "triggerPrice", null },
             { "cost", null },

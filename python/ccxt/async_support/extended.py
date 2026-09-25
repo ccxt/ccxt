@@ -2718,7 +2718,7 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        market = extendedOrderRequest['market']
+        market = self.market(symbol)
         now = self.safe_integer(extendedOrderRequest, 'timestamp')
         data['timestamp'] = now
         data['status'] = 'NEW'
@@ -2785,7 +2785,7 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         responseData = self.safe_dict(editResponse, 'data', {})
-        market = extendedOrderRequest['market']
+        market = self.market(symbol)
         now = self.safe_integer(extendedOrderRequest, 'timestamp')
         responseData['timestamp'] = now
         responseData['status'] = 'NEW'

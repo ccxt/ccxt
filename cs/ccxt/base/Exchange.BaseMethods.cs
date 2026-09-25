@@ -1261,7 +1261,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseLedgerEntry() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseOrder(object order, object market = null)
+    public virtual Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseOrder() is not supported yet")) ;
     }

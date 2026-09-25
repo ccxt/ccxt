@@ -1148,7 +1148,6 @@ public partial class lighter : Exchange
         accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         ((IDictionary<string,object>)parameters)["accountIndex"] = accountIndex;
-        Dictionary<string, object> market = this.market(symbol);
         Int64? groupingType = null;
         IList<object> groupingTypeparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "groupingType", 3);
         groupingType = (Int64?)groupingTypeparametersVariable[0];
@@ -1196,7 +1195,7 @@ public partial class lighter : Exchange
             txType = ((IList<object>)txTypetxInfoVariable)[0];
             txInfo = ((IList<object>)txTypetxInfoVariable)[1];
         }
-        return new List<object>() {txType, txInfo, order, market};
+        return new List<object>() {txType, txInfo, order};
     }
 
     /**
@@ -1222,11 +1221,11 @@ public partial class lighter : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        var txTypetxInfoordermarketVariable = await this.signAndCreateOrder("createOrder", symbol, type, side, amount, price, parameters);
-        var txType = ((IList<object>) txTypetxInfoordermarketVariable)[0];
-        var txInfo = ((IList<object>) txTypetxInfoordermarketVariable)[1];
-        var order = ((IList<object>) txTypetxInfoordermarketVariable)[2];
-        var market = ((IList<object>) txTypetxInfoordermarketVariable)[3];
+        var txTypetxInfoorderVariable = await this.signAndCreateOrder("createOrder", symbol, type, side, amount, price, parameters);
+        var txType = ((IList<object>) txTypetxInfoorderVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoorderVariable)[1];
+        var order = ((IList<object>) txTypetxInfoorderVariable)[2];
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", txInfo },
@@ -2643,7 +2642,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2747,7 +2746,7 @@ public partial class lighter : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeTimestamp(order, "updated_at") },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", this.parseOrderType(type) },
             { "timeInForce", this.parseOrderTimeInForce(tif) },
             { "postOnly", tif == "post-only" },
@@ -3670,7 +3669,7 @@ public partial class lighter : Exchange
         var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, parameters));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
-        return new List<object>() {txType, txInfo, market};
+        return new List<object>() {txType, txInfo};
     }
 
     /**
@@ -3687,10 +3686,10 @@ public partial class lighter : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        var txTypetxInfomarketVariable = await this.signAndCancelOrder("cancelOrder", id, symbol, parameters);
-        var txType = ((IList<object>) txTypetxInfomarketVariable)[0];
-        var txInfo = ((IList<object>) txTypetxInfomarketVariable)[1];
-        var market = ((IList<object>) txTypetxInfomarketVariable)[2];
+        var txTypetxInfoVariable = await this.signAndCancelOrder("cancelOrder", id, symbol, parameters);
+        var txType = ((IList<object>) txTypetxInfoVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", txInfo },

@@ -2245,7 +2245,7 @@ public partial class krakenfutures : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // LIMIT
@@ -2718,7 +2718,7 @@ public partial class krakenfutures : Exchange
             }
             if ((whichPrice != null))
             {
-                if (isEqual(getValue(market, "linear"), true))
+                if (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true))
                 {
                     cost = Precise.stringMul(filled, whichPrice); // in quote
                 } else

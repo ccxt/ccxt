@@ -924,7 +924,6 @@ export default class lighter extends Exchange {
         let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
-        const market = this.market (symbol);
         let groupingType: Int = undefined;
         [ groupingType, params ] = this.handleOptionIntegerAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -961,7 +960,7 @@ export default class lighter extends Exchange {
             }
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
-        return [ txType, txInfo, order, market ];
+        return [ txType, txInfo, order ];
     }
 
     /**
@@ -985,7 +984,8 @@ export default class lighter extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrder', symbol, type, side, amount, price, params);
+        const [ txType, txInfo, order ] = await this.signAndCreateOrder ('createOrder', symbol, type, side, amount, price, params);
+        const market = this.market (symbol);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,
@@ -3184,7 +3184,7 @@ export default class lighter extends Exchange {
             throw new ArgumentsRequired (this.id + ' ' + method + ' requires order id or client order id');
         }
         const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
-        return [ txType, txInfo, market ];
+        return [ txType, txInfo ];
     }
 
     /**
@@ -3199,7 +3199,8 @@ export default class lighter extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
-        const [ txType, txInfo, market ] = await this.signAndCancelOrder ('cancelOrder', id, symbol, params);
+        const [ txType, txInfo ] = await this.signAndCancelOrder ('cancelOrder', id, symbol, params);
+        const market = this.market (symbol);
         const request: Dict = {
             'tx_type': txType,
             'tx_info': txInfo,

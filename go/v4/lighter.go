@@ -1226,7 +1226,6 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method string, symbol a
 	accountIndex = GetValue(accountIndexparamsVariable, 0)
 	params = GetValue(accountIndexparamsVariable, 1)
 	AddElementToObject(params, "accountIndex", accountIndex)
-	var market map[string]any = this.Market(symbol)
 	var groupingType any = nil
 	var groupingTypeparamsVariable []any = this.HandleOptionIntegerAndParams(params, method, "groupingType", 3)
 	groupingType = GetValue(groupingTypeparamsVariable, 0)
@@ -1272,7 +1271,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method string, symbol a
 		txInfo = GetValue(txTypetxInfoVariable, 1)
 	}
 
-	ch <- []any{txType, txInfo, order, market}
+	ch <- []any{txType, txInfo, order}
 	return nil
 }
 
@@ -1308,11 +1307,11 @@ func (this *Lighter) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var txTypetxInfoordermarketVariable []any = ListTyped(PanicOnError((<-this.SignAndCreateOrderAsync("createOrder", symbol, typeVar, side, amount, price, params))))
-	txType := GetValue(txTypetxInfoordermarketVariable, 0)
-	txInfo := GetValue(txTypetxInfoordermarketVariable, 1)
-	order := GetValue(txTypetxInfoordermarketVariable, 2)
-	market := GetValue(txTypetxInfoordermarketVariable, 3)
+	var txTypetxInfoorderVariable []any = ListTyped(PanicOnError((<-this.SignAndCreateOrderAsync("createOrder", symbol, typeVar, side, amount, price, params))))
+	txType := GetValue(txTypetxInfoorderVariable, 0)
+	txInfo := GetValue(txTypetxInfoorderVariable, 1)
+	order := GetValue(txTypetxInfoorderVariable, 2)
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": txInfo,
@@ -4124,7 +4123,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method string, id any, 
 	txType := GetValue(txTypetxInfoVariable, 0)
 	txInfo := GetValue(txTypetxInfoVariable, 1)
 
-	ch <- []any{txType, txInfo, market}
+	ch <- []any{txType, txInfo}
 	return nil
 }
 
@@ -4151,10 +4150,10 @@ func (this *Lighter) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var txTypetxInfomarketVariable []any = ListTyped(PanicOnError((<-this.SignAndCancelOrderAsync("cancelOrder", id, symbol, params))))
-	txType := GetValue(txTypetxInfomarketVariable, 0)
-	txInfo := GetValue(txTypetxInfomarketVariable, 1)
-	market := GetValue(txTypetxInfomarketVariable, 2)
+	var txTypetxInfoVariable []any = ListTyped(PanicOnError((<-this.SignAndCancelOrderAsync("cancelOrder", id, symbol, params))))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": txInfo,
@@ -4333,8 +4332,8 @@ func (this *Lighter) addMarginBody(ch chan any, symbol any, amount any, optional
 		"direction": 1,
 	}
 
-	var retRes330515 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes330515)
+	var retRes330615 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes330615)
 	return nil
 }
 
@@ -4361,8 +4360,8 @@ func (this *Lighter) reduceMarginBody(ch chan any, symbol any, amount any, optio
 		"direction": 0,
 	}
 
-	var retRes332115 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes332115)
+	var retRes332215 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes332215)
 	return nil
 }
 

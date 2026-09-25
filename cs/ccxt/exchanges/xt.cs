@@ -4548,7 +4548,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(response)});
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // spot: createOrder
@@ -4682,9 +4682,9 @@ public partial class xt : Exchange
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
         double? quantity = this.safeNumber(order, "origQty");
-        object amount = (marketType == "spot") ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(getValue(market, "contractSize")));
+        object amount = (marketType == "spot") ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString((market != null && market.ContainsKey("contractSize") ? market["contractSize"] : null)));
         double? filledQuantity = this.safeNumber(order, "executedQty");
-        object filled = (marketType == "spot") ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(getValue(market, "contractSize")));
+        object filled = (marketType == "spot") ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString((market != null && market.ContainsKey("contractSize") ? market["contractSize"] : null)));
         Int64? lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         string? timeInForce = this.safeString(order, "timeInForce");
         bool? postOnly = null;

@@ -2079,7 +2079,7 @@ public partial class bydfi : Exchange
         return this.extend(request, parameters);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, fetchOpenOrders, fetchOpenOrder
@@ -2165,7 +2165,7 @@ public partial class bydfi : Exchange
         if ((quoteFee != null))
         {
             fee["cost"] = quoteFee;
-            fee["currency"] = getValue(market, "quote");
+            fee["currency"] = (market != null && market.ContainsKey("quote") ? market["quote"] : null);
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -2176,7 +2176,7 @@ public partial class bydfi : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger2(order, "updateTime", "mtime") },
             { "status", this.parseOrderStatus(rawStatus) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", this.parseOrderType(rawType) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },

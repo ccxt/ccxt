@@ -3230,7 +3230,7 @@ public partial class extended : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object market = (extendedOrderRequest != null && ((IDictionary<string, object>)extendedOrderRequest).ContainsKey("market") ? ((IDictionary<string, object>)extendedOrderRequest)["market"] : null);
+        Dictionary<string, object> market = this.market(symbol);
         Int64? now = this.safeInteger(extendedOrderRequest, "timestamp");
         data["timestamp"] = now;
         data["status"] = "NEW";
@@ -3324,7 +3324,7 @@ public partial class extended : Exchange
         //     }
         //
         IDictionary<string, object> responseData = this.safeDict(editResponse, "data", new Dictionary<string, object>() {});
-        object market = (extendedOrderRequest != null && ((IDictionary<string, object>)extendedOrderRequest).ContainsKey("market") ? ((IDictionary<string, object>)extendedOrderRequest)["market"] : null);
+        Dictionary<string, object> market = this.market(symbol);
         Int64? now = this.safeInteger(extendedOrderRequest, "timestamp");
         responseData["timestamp"] = now;
         responseData["status"] = "NEW";
@@ -3738,7 +3738,7 @@ public partial class extended : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3795,7 +3795,7 @@ public partial class extended : Exchange
         IDictionary<string, object> stopLoss = this.safeDict(order, "stopLoss", new Dictionary<string, object>() {});
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", feeCost },
-            { "currency", ((market == null)) ? null : getValue(market, "settle") },
+            { "currency", ((market == null)) ? null : (market != null && market.ContainsKey("settle") ? market["settle"] : null) },
         };
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -3805,7 +3805,7 @@ public partial class extended : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", type },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", this.safeBool(order, "postOnly") },

@@ -7085,7 +7085,7 @@ public partial class bitget : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         //
         // createOrder, editOrder, closePosition
@@ -7318,7 +7318,7 @@ public partial class bitget : Exchange
         }
         if ((market != null))
         {
-            marketType = getValue(market, "type");
+            marketType = (market != null && market.ContainsKey("type") ? market["type"] : null);
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
@@ -7332,7 +7332,7 @@ public partial class bitget : Exchange
             // swap
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(Precise.stringNeg(feeCostString)) },
-                { "currency", getValue(market, "settle") },
+                { "currency", (market != null && market.ContainsKey("settle") ? market["settle"] : null) },
             };
         }
         object feeDetail = this.safeValue(order, "feeDetail");
@@ -7343,7 +7343,7 @@ public partial class bitget : Exchange
             string? utaFee = this.safeString(feeResult, "fee");
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(Precise.stringNeg(utaFee)) },
-                { "currency", getValue(market, "settle") },
+                { "currency", (market != null && market.ContainsKey("settle") ? market["settle"] : null) },
             };
         } else
         {
@@ -7414,7 +7414,7 @@ public partial class bitget : Exchange
         }
         string? orderType = this.safeString(order, "orderType");
         bool isBuyMarket = (side == "buy") && (orderType == "market");
-        if ((isEqual(getValue(market, "spot"), true)) && isBuyMarket)
+        if ((isEqual((market != null && market.ContainsKey("spot") ? market["spot"] : null), true)) && isBuyMarket)
         {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = this.safeString(order, "baseVolume");
@@ -7427,7 +7427,7 @@ public partial class bitget : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", updateTimestamp },
             { "lastUpdateTimestamp", updateTimestamp },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "type", orderType },
             { "side", side },
             { "price", price },
