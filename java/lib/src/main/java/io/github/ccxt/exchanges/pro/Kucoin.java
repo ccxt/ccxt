@@ -2670,12 +2670,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
             if (!java.util.Objects.equals(order.get("average"), null))
             {
-                Helpers.addElementToObject(parsed, "average", order.get("average"));
-                Helpers.addElementToObject(parsed, "cost", order.get("cost"));
+                parsed.put("average", order.get("average"));
+                parsed.put("cost", order.get("cost"));
             }
             if (java.util.Objects.equals(parsed.get("filled"), null))
             {
-                Helpers.addElementToObject(parsed, "filled", order.get("filled"));
+                parsed.put("filled", order.get("filled"));
             }
         }
         // accumulate the average fill price and cost from the match messages,
@@ -2689,11 +2689,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String matchCost = Precise.stringMul(matchPrice, matchSize);
             String previousCost = (((java.util.Objects.equals(order, null)))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
             String costString = Precise.stringAdd(previousCost, matchCost);
-            Helpers.addElementToObject(parsed, "cost", this.parseNumber(costString));
+            parsed.put("cost", this.parseNumber(costString));
             String filledString = this.numberToString(parsed.get("filled"));
             if ((!java.util.Objects.equals(filledString, null)) && (Precise.stringGt(filledString, "0")))
             {
-                Helpers.addElementToObject(parsed, "average", this.parseNumber(Precise.stringDiv(costString, filledString)));
+                parsed.put("average", this.parseNumber(Precise.stringDiv(costString, filledString)));
             }
         }
         cachedOrders.append(parsed);

@@ -916,9 +916,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 List<Object> bids = (List<Object>) this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
                 this.customHandleDeltas((orderbook == null ? null : orderbook.get("asks")), asks, market);
                 this.customHandleDeltas((orderbook == null ? null : orderbook.get("bids")), bids, market);
-                Helpers.addElementToObject(orderbook, "nonce", nonce);
-                Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-                Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+                orderbook.put("nonce", nonce);
+                orderbook.put("timestamp", timestamp);
+                orderbook.put("datetime", this.iso8601(timestamp));
                 Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
                 client.resolve(orderbook, messageHash);
             }

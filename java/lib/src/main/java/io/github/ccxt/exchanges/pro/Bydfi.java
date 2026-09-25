@@ -852,7 +852,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), market);
         Long lastUpdateTimestamp = this.safeInteger(message, "T");
-        Helpers.addElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp);
+        order.put("lastUpdateTimestamp", lastUpdateTimestamp);
         orders.append(order);
         client.resolve(orders, messageHash);
         client.resolve(orders, symbolMessageHash);

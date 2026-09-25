@@ -343,7 +343,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
         orderbook.reset(new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
+        orderbook.put("symbol", symbol);
         io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
@@ -359,8 +359,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.iso8601(timestamp);
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", datetime);
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", datetime);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }

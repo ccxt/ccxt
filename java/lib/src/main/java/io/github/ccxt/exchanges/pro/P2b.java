@@ -561,7 +561,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
             }
         }
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
+        orderbook.put("symbol", symbol);
         client.resolve(orderbook, messageHash);
     }
 

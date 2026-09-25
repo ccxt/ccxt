@@ -517,7 +517,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             bookside.store(price, size);
             Helpers.addElementToObject(orderbook, side, bookside);
         }
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
+        orderbook.put("symbol", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
@@ -726,12 +726,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 asks.store(price, size);
             }
         }
-        Helpers.addElementToObject(orderbook, "bids", bids);
-        Helpers.addElementToObject(orderbook, "asks", asks);
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Helpers.addElementToObject(orderbook, "nonce", nonce);
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("bids", bids);
+        orderbook.put("asks", asks);
+        orderbook.put("symbol", symbol);
+        orderbook.put("nonce", nonce);
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }

@@ -161,9 +161,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "b", new ArrayList<Object>(Arrays.asList())));
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "a", new ArrayList<Object>(Arrays.asList())));
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(orderbook, "nonce", nonce);
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
+        orderbook.put("nonce", nonce);
         client.resolve(orderbook, messageHash);
     }
 

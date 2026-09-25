@@ -146,8 +146,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
         Long timestamp = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(ticker, "timestamp", timestamp);
-        Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
+        ticker.put("timestamp", timestamp);
+        ticker.put("datetime", this.iso8601(timestamp));
         Object symbol = ticker.get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(ticker, ch);

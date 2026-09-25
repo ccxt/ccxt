@@ -831,8 +831,8 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", datetime);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", datetime);
         } else
         {
             throw new NotSupported((((this.id + " watchOrderBook() does not support ") + eventVar) + " yet")) ;

@@ -1510,10 +1510,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 }
             }
             Long timestamp = this.safeInteger(data, "t");
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(data, "i", "u"));
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
+            orderbook.put("nonce", this.safeInteger2(data, "i", "u"));
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
+            orderbook.put("symbol", symbol);
             client.resolve(orderbook, messageHash);
         }
     }

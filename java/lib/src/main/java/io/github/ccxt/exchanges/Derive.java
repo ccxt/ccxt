@@ -1852,7 +1852,7 @@ public class Derive extends DeriveApi
                 rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
             }
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
-            Helpers.addElementToObject(order, "type", type);
+            order.put("type", type);
             return order;
         }).thenApply(Order::new);
 

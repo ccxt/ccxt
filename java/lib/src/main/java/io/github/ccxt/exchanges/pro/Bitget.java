@@ -1132,8 +1132,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             List<Object> bids = (List<Object>) this.safeList2(rawOrderBook, "bids", "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
             this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
-            Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
-            Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
+            storedOrderBook.put("timestamp", timestamp);
+            storedOrderBook.put("datetime", this.iso8601(timestamp));
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
             Boolean isSnapshot = java.util.Objects.equals(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),

@@ -4792,7 +4792,7 @@ public class Binance extends BinanceApi
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            Helpers.addElementToObject(parsed, "margin", this.safeBool(marginEntry, "isBorrowable", (Object) null));
+            parsed.put("margin", this.safeBool(marginEntry, "isBorrowable", (Object) null));
             result.put((String)code, parsed);
         }
         return result;
@@ -6758,7 +6758,7 @@ public class Binance extends BinanceApi
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "spot");
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(response, i), (Map<String, Object>) null);
-            Helpers.addElementToObject(parsedTicker, "symbol", tickerMarket.get("symbol"));
+            parsedTicker.put("symbol", tickerMarket.get("symbol"));
             ((List<Object>)results).add(parsedTicker);
         }
         return this.filterByArray(results, "symbol", symbols, true);

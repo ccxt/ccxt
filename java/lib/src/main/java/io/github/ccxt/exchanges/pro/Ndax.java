@@ -550,9 +550,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 Helpers.callDynamically(orderbookSide, "store", new Object[]{price, 0});
             }
         }
-        Helpers.addElementToObject(orderbook, "nonce", nonce);
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        orderbook.put("nonce", nonce);
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
         String name = "SubscribeLevel2";
         String messageHash = ((name + ":") + marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
