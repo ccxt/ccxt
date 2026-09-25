@@ -1891,6 +1891,9 @@ export default class kraken extends Exchange {
         const quoteId = id.slice (quoteIdStart, quoteIdEnd);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         market = {
             'symbol': symbol,

@@ -111,6 +111,9 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeStringUpper (data, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = this.symbol (base + '/' + quote);
         const timestamp = this.safeInteger (data, 'timestamp');
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -197,9 +200,12 @@ export default class coinone extends coinoneRest {
         const data = this.safeDict (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        this.tickers[(symbol as string)] = ticker;
+        if (symbol === undefined) {
+            return;
+        }
+        this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[(symbol as string)], messageHash);
+        client.resolve (this.tickers[symbol], messageHash);
     }
 
     parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -234,7 +240,10 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeString (ticker, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = this.symbol (base + '/' + quote);
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = this.symbol (base + '/' + quote);
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
