@@ -666,7 +666,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             orderbook['symbol'] = symbol
         else:
             changes = self.safe_list(message, 'changes', [])
-            self.handle_deltas(orderbook, changes)
+            self.handle_book_deltas(orderbook, changes)
         orderbook['nonce'] = self.safe_integer(message, 'sequence')
         orderbook['datetime'] = datetime
         orderbook['timestamp'] = self.parse8601(datetime)
@@ -674,7 +674,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if channel is not None:
             client.resolve(orderbook, channel + '::' + symbol)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         rawSide = self.safe_string_lower(delta, 0)
         side = 'asks'
         if rawSide == 'buy':
@@ -684,9 +684,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         bookside = orderbook[side]
         bookside.store(price, amount)
 
-    def handle_deltas(self, orderbook: object, deltas: object):
+    def handle_book_deltas(self, orderbook: object, deltas: object):
         for i in range(0, len(deltas)):
-            self.handle_delta(orderbook, deltas[i])
+            self.handle_book_delta(orderbook, deltas[i])
 
     def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #

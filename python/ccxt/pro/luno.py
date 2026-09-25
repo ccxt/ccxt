@@ -219,7 +219,7 @@ class luno(ccxt.async_support.luno):
             self.orderbooks[symbol] = self.indexed_order_book(snapshot)
         else:
             ob = self.orderbooks[symbol]
-            self.handle_delta(ob, message)
+            self.handle_book_delta(ob, message)
             ob['timestamp'] = timestamp
             ob['datetime'] = self.iso8601(timestamp)
         orderbook = self.orderbooks[symbol]
@@ -255,7 +255,7 @@ class luno(ccxt.async_support.luno):
             result.append(thirdValue)
         return result
 
-    def handle_delta(self, orderbook: object, message: object):
+    def handle_book_delta(self, orderbook: object, message: object):
         #
         #  create
         #     {

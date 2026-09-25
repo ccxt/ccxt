@@ -380,7 +380,7 @@ class onetrading(ccxt.async_support.onetrading):
             orderbook.reset(snapshot)
         elif type == 'ORDER_BOOK_UPDATE':
             changes = self.safe_list(message, 'changes', [])
-            self.handle_deltas(orderbook, changes)
+            self.handle_book_deltas(orderbook, changes)
         else:
             raise NotSupported(self.id + ' watchOrderBook() did not recognize message type ' + type)
         orderbook['nonce'] = timestamp
@@ -389,7 +389,7 @@ class onetrading(ccxt.async_support.onetrading):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, channel)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         #
         #   [ 'BUY', "0.053595", "0" ]
         #
@@ -404,7 +404,7 @@ class onetrading(ccxt.async_support.onetrading):
         else:
             raise NotSupported(self.id + ' watchOrderBook () received unknown change type ' + self.json(delta))
 
-    def handle_deltas(self, orderbook: object, deltas: object):
+    def handle_book_deltas(self, orderbook: object, deltas: object):
         #
         #    [
         #       [ 'BUY', "0.053593", "0" ],
@@ -412,7 +412,7 @@ class onetrading(ccxt.async_support.onetrading):
         #    ]
         #
         for i in range(0, len(deltas)):
-            self.handle_delta(orderbook, deltas[i])
+            self.handle_book_delta(orderbook, deltas[i])
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

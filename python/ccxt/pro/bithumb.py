@@ -439,7 +439,7 @@ class bithumb(ccxt.async_support.bithumb):
                 ob['symbol'] = legacySymbol
                 self.orderbooks[legacySymbol] = ob
             legacyOrderbook = self.orderbooks[legacySymbol]
-            self.handle_deltas(legacyOrderbook, list)
+            self.handle_book_deltas(legacyOrderbook, list)
             legacyOrderbook['timestamp'] = legacyTimestamp
             legacyOrderbook['datetime'] = self.iso8601(legacyTimestamp)
             legacyMessageHash = 'orderbook' + ':' + legacySymbol
@@ -481,7 +481,7 @@ class bithumb(ccxt.async_support.bithumb):
         messageHash = 'orderbook' + ':' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, orderbook: object, delta: object):
+    def handle_book_delta(self, orderbook: object, delta: object):
         #
         #    {
         #        symbol: "ETH_BTC",
@@ -499,9 +499,9 @@ class bithumb(ccxt.async_support.bithumb):
         orderbookSide = orderbook[side]
         orderbookSide.storeArray(bidAsk)
 
-    def handle_deltas(self, orderbook: object, deltas: object):
+    def handle_book_deltas(self, orderbook: object, deltas: object):
         for i in range(0, len(deltas)):
-            self.handle_delta(orderbook, deltas[i])
+            self.handle_book_delta(orderbook, deltas[i])
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
