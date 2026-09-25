@@ -1238,11 +1238,11 @@ class polymarket extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the CLOB order book for a single $outcome token
          *
@@ -3260,11 +3260,11 @@ class polymarket extends Exchange {
         $client->resolve($stored, 'trades::' . $outcome);
     }
 
-    public function watch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_watch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_watch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * streams live order-book updates for a single Polymarket $outcome token
          * @param {string} $outcome unified $outcome (e.g. "TRUMP_WINS_2028:YES") or an $outcome token id
@@ -3283,11 +3283,11 @@ class polymarket extends Exchange {
         return $orderbook->limit();
     }
 
-    public function watch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($outcome, $since, $limit, $params);
     }
 
-    private function do_watch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * streams live fills for a single Polymarket $outcome token
          * @param {string} $outcome unified $outcome
@@ -3307,11 +3307,11 @@ class polymarket extends Exchange {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function watch_ticker(?string $outcome, $params = array()): PromiseInterface {
+    public function watch_ticker(string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ticker(...))($outcome, $params);
     }
 
-    private function do_watch_ticker(?string $outcome, $params = array()) {
+    private function do_watch_ticker(string $outcome, $params = array()) {
         /**
          * streams a synthetic ticker derived from order-book snapshots and deltas ($mid = (bid . ask) / 2)
          * @param {string} $outcome unified $outcome

@@ -917,7 +917,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a prediction $outcome
          * @param {string} $outcome unified $outcome handle

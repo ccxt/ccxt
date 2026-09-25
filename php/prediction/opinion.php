@@ -793,11 +793,11 @@ class opinion extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the order book for a single $outcome token
          *
@@ -1868,11 +1868,11 @@ class opinion extends Exchange {
         return $orderbook->limit();
     }
 
-    public function seed_order_book(?string $outcome, ?string $sym, ?int $limit = null) {
+    public function seed_order_book(string $outcome, ?string $sym, ?int $limit = null) {
         return Async\async(self::do_seed_order_book(...))($outcome, $sym, $limit);
     }
 
-    private function do_seed_order_book(?string $outcome, ?string $sym, ?int $limit = null) {
+    private function do_seed_order_book(string $outcome, ?string $sym, ?int $limit = null) {
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         $snapshot = Async\await($this->fetch_order_book($outcome, $limit));
         $orderbook = $this->order_book(array());
