@@ -6195,12 +6195,12 @@ func (this *Hyperliquid) reserveRequestWeightBody(ch chan any, weight any, optio
  * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
  * @returns {object} a response object
  */
-func (this *Hyperliquid) CreateSubAccountAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CreateSubAccountAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSubAccountBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createSubAccountBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Hyperliquid) createSubAccountBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

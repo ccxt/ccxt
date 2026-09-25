@@ -4321,12 +4321,12 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
  * @returns {object} a response object
  */
-func (this *Pacifica) CreateSubAccountAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) CreateSubAccountAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSubAccountBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Pacifica) createSubAccountBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

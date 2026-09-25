@@ -3082,12 +3082,12 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Kucoin) FetchTransactionFeeAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTransactionFeeBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3114,7 +3114,7 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
 	var withdrawFees map[string]any = map[string]any{}
-	AddElementToObject(withdrawFees, code, this.SafeNumber(data, "withdrawMinFee"))
+	withdrawFees[code] = this.SafeNumber(data, "withdrawMinFee")
 
 	ch <- map[string]any{
 		"info":     response,
@@ -3134,12 +3134,12 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
  * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Kucoin) FetchDepositWithdrawFeeAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchDepositWithdrawFeeAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositWithdrawFeeBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4362,12 +4362,12 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol string, optionalA
  * @param {string} [params.network] the blockchain network name
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Kucoin) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kucoin) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4422,12 +4422,12 @@ func (this *Kucoin) createDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Kucoin) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kucoin) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4502,12 +4502,12 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Kucoin) FetchContractDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchContractDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchContractDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4586,12 +4586,12 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Kucoin) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6124,12 +6124,12 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, paramsUta)
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		var retRes498219 map[string]any = MapTyped(PanicOnError((<-this.CancelSpotOrderAsync(id, symbol, paramsMarketType))))
+		var retRes498219 map[string]any = MapTyped(PanicOnError((<-this.CancelSpotOrderAsync(StringArg(id), symbol, paramsMarketType))))
 		ch <- BoxAbsent(retRes498219)
 		return nil
 	} else {
 
-		var retRes498419 map[string]any = MapTyped(PanicOnError((<-this.CancelContractOrderAsync(id, symbol, paramsMarketType))))
+		var retRes498419 map[string]any = MapTyped(PanicOnError((<-this.CancelContractOrderAsync(StringArg(id), symbol, paramsMarketType))))
 		ch <- BoxAbsent(retRes498419)
 		return nil
 	}
@@ -6158,12 +6158,12 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns Response from the exchange
  */
-func (this *Kucoin) CancelSpotOrderAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) CancelSpotOrderAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelSpotOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Kucoin) cancelSpotOrderBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6322,12 +6322,12 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
  * @param {string} [params.clientOrderId] cancel order by client order id
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) CancelContractOrderAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) CancelContractOrderAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelContractOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) cancelContractOrderBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Kucoin) cancelContractOrderBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11787,12 +11787,12 @@ func (this *Kucoin) ParseBorrowRateHistories(response []any, codes any, since an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Kucoin) FetchCrossBorrowRateAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11837,12 +11837,12 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
  * @param {string} [params.timeInForce] either IOC or FOK
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) BorrowCrossMarginAsync(code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) BorrowCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) borrowCrossMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Kucoin) borrowCrossMarginBody(ch chan any, code string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11889,12 +11889,12 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan any, code any, amount any, opt
  * @param {string} [params.timeInForce] either IOC or FOK
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) BorrowIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) BorrowIsolatedMarginAsync(symbol string, code string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
+func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol string, code string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11942,12 +11942,12 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol string, code an
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) RepayCrossMarginAsync(code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) RepayCrossMarginAsync(code string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) repayCrossMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Kucoin) repayCrossMarginBody(ch chan any, code string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11992,12 +11992,12 @@ func (this *Kucoin) repayCrossMarginBody(ch chan any, code any, amount any, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func (this *Kucoin) RepayIsolatedMarginAsync(symbol string, code any, amount any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) RepayIsolatedMarginAsync(symbol string, code string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) repayIsolatedMarginBody(ch chan any, symbol string, code any, amount any, optionalArgs ...any) any {
+func (this *Kucoin) repayIsolatedMarginBody(ch chan any, symbol string, code string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

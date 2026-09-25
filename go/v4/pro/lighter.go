@@ -1606,12 +1606,12 @@ func (this *Lighter) createOrderWsBody(ch chan any, symbol string, typeVar strin
  * @param {string} [params.apiKeyIndex] api key index
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lighter) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Lighter) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lighter) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Lighter) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)

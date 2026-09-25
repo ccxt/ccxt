@@ -2779,12 +2779,12 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Cryptocom) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Cryptocom) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2861,12 +2861,12 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Cryptocom) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Cryptocom) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Cryptocom) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

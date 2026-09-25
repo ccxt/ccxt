@@ -1689,12 +1689,12 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitvavo) FetchTransferAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) FetchTransferAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTransferBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTransferBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTransferBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1780,12 +1780,12 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bitvavo) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Bitvavo) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

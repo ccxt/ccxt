@@ -2973,12 +2973,12 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	ch <- order
 	return nil
 }
-func (this *Poloniex) FetchOrderStatusAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) FetchOrderStatusAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderStatusBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Poloniex) fetchOrderStatusBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2993,7 +2993,7 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
 	var indexed map[string]any = this.IndexBy(orders, "id")
 
 	ch <- func() string {
-		if InOp(indexed, id) {
+		if func() bool { _, ok := indexed[id]; return ok }() {
 			return "open"
 		}
 		return "closed"
@@ -3355,12 +3355,12 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol string, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Poloniex) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Poloniex) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3394,12 +3394,12 @@ func (this *Poloniex) createDepositAddressBody(ch chan any, code any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Poloniex) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Poloniex) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3428,11 +3428,11 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	ch <- this.ParseDepositAddressSpecial(response, currency, networkEntry)
 	return nil
 }
-func (this *Poloniex) PrepareRequestForDepositAddress(code any, optionalArgs ...any) any {
+func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if !(InOp(this.Currencies, code)) {
-		panic(BadSymbol(Add(Add(this.Id+" fetchDepositAddress(): can not recognize ", code), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")))
+		panic(BadSymbol(this.Id + " fetchDepositAddress(): can not recognize " + code + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })"))
 	}
 	var currency map[string]any = this.Currency(code)
 	var networkCode any = nil
@@ -3441,7 +3441,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code any, optionalArgs ...
 	networkCode = GetValue(networkCodequeryVariable, 0)
 	query = GetValue(networkCodequeryVariable, 1)
 	if networkCode == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" fetchDepositAddress requires a network parameter for ", code), ".")))
+		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires a network parameter for " + code + "."))
 	}
 	var exchangeNetworkId any = nil
 	networkCode = DerefScalar(this.NetworkIdToCode(networkCode, code))

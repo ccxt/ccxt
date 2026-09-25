@@ -2138,12 +2138,12 @@ func (this *Backpack) ParseTransactionStatus(status *string) *string {
  * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Backpack) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Backpack) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Backpack) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

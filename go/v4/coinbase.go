@@ -1037,12 +1037,12 @@ func (this *Coinbase) ParseAccount(account any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Coinbase) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Coinbase) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1061,7 +1061,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan any, code any, optionalAr
 		}
 	}
 	if accountId == nil {
-		panic(ExchangeError(Add(Add(this.Id+" createDepositAddress() could not find the account with matching currency code ", code), ", specify an `account_id` extra param to target specific wallet")))
+		panic(ExchangeError(this.Id + " createDepositAddress() could not find the account with matching currency code " + code + ", specify an `account_id` extra param to target specific wallet"))
 	}
 	var request map[string]any = map[string]any{
 		"account_id": accountId,
@@ -5442,12 +5442,12 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Coinbase) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5920,12 +5920,12 @@ func (this *Coinbase) ParseDepositMethodId(depositId any) map[string]any {
  * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Coinbase) FetchConvertQuoteAsync(fromCode any, toCode any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchConvertQuoteBody(ch, fromCode, toCode, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, optionalArgs ...any) any {
+func (this *Coinbase) fetchConvertQuoteBody(ch chan any, fromCode string, toCode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -5961,12 +5961,12 @@ func (this *Coinbase) fetchConvertQuoteBody(ch chan any, fromCode any, toCode an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Coinbase) CreateConvertTradeAsync(id any, fromCode any, toCode any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createConvertTradeBody(ch, id, fromCode, toCode, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) createConvertTradeBody(ch chan any, id any, fromCode any, toCode any, optionalArgs ...any) any {
+func (this *Coinbase) createConvertTradeBody(ch chan any, id string, fromCode string, toCode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -6001,12 +6001,12 @@ func (this *Coinbase) createConvertTradeBody(ch chan any, id any, fromCode any, 
  * @param {strng} params.toCode the unified currency code that was converted into
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func (this *Coinbase) FetchConvertTradeAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchConvertTradeAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchConvertTradeBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Coinbase) fetchConvertTradeBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)

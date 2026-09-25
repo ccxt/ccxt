@@ -2788,12 +2788,12 @@ func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Coinbaseexchange) CreateDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseexchange) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2814,7 +2814,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 	var currencyId *string = SafeStringPtr(currency["id"])
 	var account any = this.SafeDict(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
 	if IsEqual(account, nil) {
-		panic(InvalidAddress(Add(Add(Add(Add(this.Id+" createDepositAddress() could not find currency code ", code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))
+		panic(InvalidAddress(this.Id + " createDepositAddress() could not find currency code " + code + " with id = " + *currencyId + " in this.options['coinbaseAccountsByCurrencyId']"))
 	}
 	var request map[string]any = map[string]any{
 		"id": GetValue(account, "id"),

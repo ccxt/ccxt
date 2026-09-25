@@ -2664,12 +2664,12 @@ func (this *Bitstamp) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitstamp) FetchOrderStatusAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) FetchOrderStatusAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderStatusBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Bitstamp) fetchOrderStatusBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3632,18 +3632,18 @@ func (this *Bitstamp) IsFiat(code any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bitstamp) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Bitstamp) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if EvalTruthy(this.IsFiat(code)) {
-		panic(NotSupported(Add(Add(this.Id+" fiat fetchDepositAddress() for ", code), " is not supported!")))
+		panic(NotSupported(this.Id + " fiat fetchDepositAddress() for " + code + " is not supported!"))
 	}
 	var name any = this.GetCurrencyName(code)
 	// the per-currency implicit methods (privatePostBtcAddress etc.) all route

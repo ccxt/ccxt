@@ -2407,12 +2407,12 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bigone) FetchDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
+func (this *Bigone) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Bigone) fetchDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

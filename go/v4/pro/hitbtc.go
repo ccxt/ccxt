@@ -1378,12 +1378,12 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol string, typeVar string
  * @param {bool} [params.margin] true for canceling a margin order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Hitbtc) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
