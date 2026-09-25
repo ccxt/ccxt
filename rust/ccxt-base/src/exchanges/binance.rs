@@ -7614,6 +7614,7 @@ impl BinanceCore {
         let mut fees: Value = self.fees.clone();
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
+        let mut subType: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut strike: Value = Value::Null;
         if contract.as_bool() == Some(true) {
@@ -7628,6 +7629,11 @@ impl BinanceCore {
             contractSize = self.safe_number2(market.clone(), Value::Str("contractSize".into()), Value::Str("unit".into()), &[self.parse_number(Value::Str("1".into()), &[])]);
             linear = Value::Bool(settle.as_str() == quote.as_str());
             inverse = Value::Bool(settle.as_str() == base.as_str());
+            if (linear.as_bool() == Some(true)) {
+                subType = Value::Str("linear".into());
+            }  else if (inverse.as_bool() == Some(true)) {
+                subType = Value::Str("inverse".into());
+            }
             let mut feesType: Value = (if linear.as_bool() == Some(true) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
             fees = self.safe_dict(self.fees.clone(), feesType, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7711,6 +7717,7 @@ impl BinanceCore {
                 m.insert("contract".to_string(), contract);
                 m.insert("linear".to_string(), linear);
                 m.insert("inverse".to_string(), inverse);
+                m.insert("subType".to_string(), subType);
                 m.insert("taker".to_string(), crate::value::get_value_k(&fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), "taker"));
                 m.insert("maker".to_string(), crate::value::get_value_k(&fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), "maker"));
                 m.insert("contractSize".to_string(), contractSize);
