@@ -5718,6 +5718,16 @@ public class Bingx extends BingxApi
                 response = (this.contractV1PrivateGetAllOrders(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(type, "spot"))
             {
+                if (!java.util.Objects.equals(since, null))
+                {
+                    ((Map<String, Object>)request).put("startTime", since);
+                }
+                Long until = (Long) this.safeInteger2(parameters, "until", "till");
+                if (!java.util.Objects.equals(until, null))
+                {
+                    ((Map<String, Object>)request).put("endTime", until);
+                }
+                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")));
                 if (!java.util.Objects.equals(limit, null))
                 {
                     ((Map<String, Object>)request).put("pageSize", limit);
