@@ -10741,7 +10741,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -17850,4 +17850,68 @@ function statementDefinitelyWritesNonNullString (statement, csharp, scope, decla
         }
     }
     return false;
+}
+
+// ===== integer-literal locals consumed only by integer arithmetic =====
+//
+// `let x = <integer literal>` prints `object x = N` (an Int32 / UInt32 / Int64 box). When every
+// read is an operand of `-` / `+` / `*` / `/` or an ordered comparison whose other operand is an
+// int / uint / Int64 / Int64? value, and every write is an integer literal or `x++` / `x--`, the
+// consuming helpers normalise the box to Int64 first (normalizeIntIfNeeded), so `Int64 x` hands
+// them the same value and selects either the same (object, object) overload or its Int64 twin.
+const INTEGER_LITERAL_LOCAL_CONSUMERS = [
+    ts.SyntaxKind.MinusToken, ts.SyntaxKind.PlusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken,
+    ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken,
+];
+const INTEGER_LITERAL_LOCAL_SIBLINGS = [ 'int', 'uint', 'Int64', 'Int64?' ];
+
+function integerLiteralArithmeticLiteral (node) {
+    if (node?.kind !== ts.SyntaxKind.NumericLiteral) {
+        return false;
+    }
+    const kind = integerOperandKind (node.text, false);
+    return (kind === 'int') || (kind === 'uint') || (kind === 'long');
+}
+
+function integerLiteralArithmeticLocal (csharp, declaration, context) {
+    if (!integerLiteralArithmeticLiteral (declaration.initializer) || !isBlockScopedDeclaration (declaration)
+            || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined || typeNameIsShadowed (csharp, scope, declaration, 'Int64')) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    let reads = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken))) {
+            continue;
+        }
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+            if (!integerLiteralArithmeticLiteral (parent.right)) {
+                return undefined;
+            }
+            continue;
+        }
+        let operand = n;
+        while (operand.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            operand = operand.parent;
+        }
+        const consumer = operand.parent;
+        if ((consumer?.kind !== ts.SyntaxKind.BinaryExpression) || !INTEGER_LITERAL_LOCAL_CONSUMERS.includes (consumer.operatorToken.kind)) {
+            return undefined;
+        }
+        const sibling = (consumer.left === operand) ? consumer.right : consumer.left;
+        if (!INTEGER_LITERAL_LOCAL_SIBLINGS.includes (nativeArithmeticOperandKind (csharp, sibling))) {
+            return undefined;
+        }
+        reads++;
+    }
+    return (reads > 0) ? { type: 'Int64' } : undefined;
 }
