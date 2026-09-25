@@ -282,7 +282,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
         });
 
     }

@@ -1735,7 +1735,7 @@ public class Gemini extends GeminiApi
             Double maker = this.parseNumber(makerString);
             Double taker = this.parseNumber(takerString);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<String> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));

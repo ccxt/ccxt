@@ -544,7 +544,7 @@ public class Deepcoin extends DeepcoinApi
         }});
     }
 
-    public Object handleMarketTypeAndParams(Object methodName, Map<String, Object> market, Map<String, Object> parameters, Object defaultValue)
+    public io.github.ccxt.base.Pair<String, Map<String, Object>> handleMarketTypeAndParams(Object methodName, Map<String, Object> market, Map<String, Object> parameters, String defaultValue)
     {
         String instType = this.safeString(parameters, "instType");
         Map<String, Object> paramsOmitted = this.omit(parameters, "instType");
@@ -872,9 +872,9 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long maxLimit = 300L;
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
@@ -981,9 +981,9 @@ public class Deepcoin extends DeepcoinApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
@@ -1205,9 +1205,9 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> marketType = null;
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, Helpers.toStringArg(marketType));
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Deepcoin.this.convertToInstrumentType(marketTypeOption) );
             }};
@@ -1275,9 +1275,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "code", (String) null, 1L, 50L)).join();
@@ -1336,9 +1336,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "code", (String) null, 1L, 50L)).join();
@@ -1603,9 +1603,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, parameters, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, parameters, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
@@ -1735,9 +1735,9 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> userIdOptionparamsUserIdVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "transfer", "userId", (String) null);
-            String userIdOption = (String) ((List<Object>) userIdOptionparamsUserIdVariable).get(0);
-            Map<String, Object> paramsUserId = (Map<String, Object>) ((List<Object>) userIdOptionparamsUserIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> userIdOptionparamsUserIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "transfer", "userId", (String) null);
+            String userIdOption = userIdOptionparamsUserIdVariable.first();
+            Map<String, Object> paramsUserId = userIdOptionparamsUserIdVariable.second();
             String userId = null;
             if (!java.util.Objects.equals(userIdOption, null) && !java.util.Objects.equals(userIdOption, ""))
             {
@@ -2025,13 +2025,13 @@ public class Deepcoin extends DeepcoinApi
         {
             request.put("sz", this.amountToPrecision(symbol, amount));
             Object paramsOmitted = this.omit(paramsOrderType, keysToOmit);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsOmitted), "cross");
-            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsOmitted), "cross");
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             request.put("tdMode", marginMode);
-            List<Object> mrgPositionparamsMrgPositionVariable = (List<Object>) this.handleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge");
-            String mrgPosition = (String) ((List<Object>) mrgPositionparamsMrgPositionVariable).get(0);
-            var paramsMrgPosition = ((List<Object>) mrgPositionparamsMrgPositionVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> mrgPositionparamsMrgPositionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarginMode), "createOrder", "mrgPosition", "merge");
+            String mrgPosition = mrgPositionparamsMrgPositionVariable.first();
+            Map<String, Object> paramsMrgPosition = mrgPositionparamsMrgPositionVariable.second();
             paramsRequest = paramsMrgPosition;
             request.put("mrgPosition", mrgPosition);
             String posSide = null;
@@ -2113,9 +2113,9 @@ public class Deepcoin extends DeepcoinApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
         }
         String marginMode = "cross";
-        List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
-        String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
-        Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, marginMode);
+        String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
         Integer isCrossMargin = 1;
         if (java.util.Objects.equals(marginModeOption, "isolated"))
         {
@@ -2148,9 +2148,9 @@ public class Deepcoin extends DeepcoinApi
             }
         }
         String mrgPosition = "merge";
-        List<Object> mrgPositionOptionparamsMrgPositionVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "createOrder", "mrgPosition", mrgPosition);
-        String mrgPositionOption = (String) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(0);
-        Map<String, Object> paramsMrgPosition = (Map<String, Object>) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "mrgPosition", mrgPosition);
+        String mrgPositionOption = mrgPositionOptionparamsMrgPositionVariable.first();
+        Map<String, Object> paramsMrgPosition = mrgPositionOptionparamsMrgPositionVariable.second();
         request.put("mrgPosition", mrgPositionOption);
         return (Map<String, Object>) (this.extend(request, paramsMrgPosition));
     }
@@ -2391,9 +2391,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
@@ -2409,9 +2409,9 @@ public class Deepcoin extends DeepcoinApi
                 market = this.market(symbol);
                 request.put("instId", market.get("id"));
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, paramsMethodName, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, paramsMethodName, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             request.put("instType", this.convertToInstrumentType(marketType));
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2784,9 +2784,9 @@ public class Deepcoin extends DeepcoinApi
             String marginMode = this.safeString(parameters, "marginMode");
             Integer encodedMarginMode = (((java.util.Objects.equals(marginMode, "isolated")))) ? 0 : 1;
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(marginMode, null)))) ? this.omit(parameters, "marginMode") : parameters;
-            List<Object> mergedparamsMergedVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true);
-            Boolean merged = (Boolean) ((List<Object>) mergedparamsMergedVariable).get(0);
-            var paramsMerged = ((List<Object>) mergedparamsMergedVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> mergedparamsMergedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "cancelAllOrders", "merged", true);
+            Boolean merged = mergedparamsMergedVariable.first();
+            Map<String, Object> paramsMerged = mergedparamsMergedVariable.second();
             Integer isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "InstrumentID", market.get("id") );
@@ -3142,9 +3142,9 @@ public class Deepcoin extends DeepcoinApi
                 String firstSymbol = this.safeString(symbolsNormalized, 0);
                 market = this.market(firstSymbol);
             }
-            List<Object> marketTypeOptionparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
-            String marketTypeOption = (String) ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeOptionparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
+            String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             String instrumentType = this.convertToInstrumentType(marketTypeOption);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", instrumentType );
@@ -3268,17 +3268,17 @@ public class Deepcoin extends DeepcoinApi
             }
             Map<String, Object> market = this.market(symbol);
             String marginMode = "cross";
-            List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
-            String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
+            String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
             if ((!java.util.Objects.equals(marginModeOption, "cross")) && (!java.util.Objects.equals(marginModeOption, "isolated")))
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             String mrgPosition = "merge";
-            List<Object> mrgPositionOptionparamsMrgPositionVariable = (List<Object>) this.handleOptionStringAndParams(paramsMarginMode, "setLeverage", "mrgPosition", mrgPosition);
-            String mrgPositionOption = (String) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(0);
-            Map<String, Object> paramsMrgPosition = (Map<String, Object>) ((List<Object>) mrgPositionOptionparamsMrgPositionVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarginMode), "setLeverage", "mrgPosition", mrgPosition);
+            String mrgPositionOption = mrgPositionOptionparamsMrgPositionVariable.first();
+            Map<String, Object> paramsMrgPosition = mrgPositionOptionparamsMrgPositionVariable.second();
             if (!java.util.Objects.equals(mrgPositionOption, "merge") && !java.util.Objects.equals(mrgPositionOption, "split"))
             {
                 throw new BadRequest((this.id + " setLeverage() mrgPosition parameter must be either merge or split")) ;
@@ -3336,9 +3336,9 @@ public class Deepcoin extends DeepcoinApi
                 String firstSymbol = this.safeString(symbolsNormalized, 0);
                 firstMarket = this.market(firstSymbol);
             }
-            List<Object> subTypeOptionparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
             String subTypeOption = (String) ((List<Object>) subTypeOptionparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeOptionparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
             String instType = "SwapU";
             if (java.util.Objects.equals(subTypeOption, "inverse"))
             {
@@ -3566,9 +3566,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
@@ -3578,9 +3578,9 @@ public class Deepcoin extends DeepcoinApi
             {
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, "spot");
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, "spot");
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};

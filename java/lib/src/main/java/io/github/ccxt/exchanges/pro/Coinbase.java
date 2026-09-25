@@ -423,7 +423,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<String> symbolsResolved = symbols;
             if (java.util.Objects.equals(symbols, null))
             {
-                symbolsResolved = Helpers.toStringListArg(this.symbols);
+                symbolsResolved = this.symbols;
             }
             String name = "ticker_batch";
             Object ticker = (this.subscribeMultiple(name, false, symbolsResolved, parameters)).join();
@@ -459,7 +459,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             if (java.util.Objects.equals(symbols, null))
             {
-                return (this.unSubscribeMultiple("ticker", "ticker_batch", false, Helpers.toStringListArg(this.symbols), new HashMap<String, Object>() {{}})).join();
+                return (this.unSubscribeMultiple("ticker", "ticker_batch", false, this.symbols, new HashMap<String, Object>() {{}})).join();
             }
             return (this.unSubscribeMultiple("ticker", "ticker_batch", false, symbols, new HashMap<String, Object>() {{}})).join();
         });

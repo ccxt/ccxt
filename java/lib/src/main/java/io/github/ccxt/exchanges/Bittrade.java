@@ -684,7 +684,7 @@ public class Bittrade extends BittradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<String> symbolsResolved = (((java.util.Objects.equals(symbols, null)))) ? Helpers.toStringListArg(this.symbols) : symbols;
+            List<String> symbolsResolved = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
             if (java.util.Objects.equals(symbolsResolved, null))
             {
                 throw new ExchangeError((this.id + " markets not loaded")) ;
@@ -2047,9 +2047,9 @@ public class Bittrade extends BittradeApi
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
             {
                 String quoteAmount = null;
-                List<Object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(0);
-                var paramsRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
+                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
+                Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
                 paramsOrder = this.omit(paramsRequiresPrice, "cost");
                 if (!java.util.Objects.equals(cost, null))

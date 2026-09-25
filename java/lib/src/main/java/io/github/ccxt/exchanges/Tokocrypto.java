@@ -2113,9 +2113,9 @@ public class Tokocrypto extends TokocryptoApi
                     Object precision = ((Map<String, Object>)market.get("precision")).get("price");
                     Object quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
-                    List<Object> createMarketBuyOrderRequiresPriceparamsRequestVariable = (List<Object>) this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                    createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequestVariable).get(0);
-                    paramsRequest = ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequestVariable).get(1);
+                    io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.first();
+                    paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.second();
                     Double cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty", (Object) null);
                     paramsRequest = this.omit(paramsRequest, new ArrayList<Object>(Arrays.asList("cost", "quoteOrderQty")));
                     if (!java.util.Objects.equals(cost, null))

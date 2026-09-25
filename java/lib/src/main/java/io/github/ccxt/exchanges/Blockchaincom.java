@@ -884,7 +884,7 @@ public class Blockchaincom extends BlockchaincomApi
             Double makerFee = this.safeNumber(response, "makerRate", (Object) null);
             Double takerFee = this.safeNumber(response, "takerRate", (Object) null);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<String> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));

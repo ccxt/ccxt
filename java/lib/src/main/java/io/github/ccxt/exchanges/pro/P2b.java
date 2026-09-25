@@ -173,7 +173,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             }
             Map<String, Object> watchTickerOptions = (Map<String, Object>) this.safeDict(this.options, "watchTicker", (Object) null);
             String name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            List<Object> nameOptionparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
             var paramsName = ((List<Object>) nameOptionparamsNameVariable).get(1);
             Map<String, Object> market = this.market(symbol);
@@ -209,9 +209,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             Map<String, Object> watchTickerOptions = (Map<String, Object>) this.safeDict(this.options, "watchTicker", (Object) null);
             String name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            List<Object> nameOptionparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
-            String nameOption = (String) ((List<Object>) nameOptionparamsNameVariable).get(0);
-            Map<String, Object> paramsName = (Map<String, Object>) ((List<Object>) nameOptionparamsNameVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "name", name);
+            String nameOption = nameOptionparamsNameVariable.first();
+            Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)

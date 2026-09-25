@@ -719,7 +719,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 
         return BaseExchange.supplyAsync(() -> {
 
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(tickers, symbol);
         }).thenApply(Ticker::new);
 

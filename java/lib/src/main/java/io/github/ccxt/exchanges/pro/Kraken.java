@@ -801,7 +801,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
+            Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return Helpers.GetValue(tickers, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -1023,7 +1023,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             if ((java.util.Objects.equals(marketsByWsName, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
                 marketsByWsName = new HashMap<String, Object>() {{}};
-                List<String> symbols = Helpers.toStringListArg(this.symbols); // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+                List<String> symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)

@@ -1160,7 +1160,7 @@ public class Bithumb extends BithumbApi
                 // Bithumb v2 ticker payloads are inconsistent for all-market calls,
                 // so we aggregate 300 markets per request only when symbols are not provided.
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
-                List<String> symbolsForMarketIds = (((java.util.Objects.equals(symbols, null)))) ? Helpers.toStringListArg(this.symbols) : symbols;
+                List<String> symbolsForMarketIds = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
                 Integer symbolsForMarketIdsLength = ((List<?>)symbolsForMarketIds).size();
                 for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
                 {
@@ -1979,9 +1979,9 @@ public class Bithumb extends BithumbApi
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
                 String cost = this.safeString(paramsOrder, "cost");
-                List<Object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (List<Object>) this.handleOptionBoolAndParams(this.omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(0);
-                var paramsRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
+                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (this.omit(paramsOrder, "cost")), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
+                Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 paramsOrder = paramsRequiresPrice;
                 if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {

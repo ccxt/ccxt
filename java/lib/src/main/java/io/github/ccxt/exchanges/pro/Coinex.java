@@ -294,9 +294,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, "spot");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             (this.authenticate(type)).join();
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
@@ -501,9 +501,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             (this.authenticate(type)).join();
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
@@ -757,7 +757,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(tickers, market.get("symbol"));
         }).thenApply(Ticker::new);
 
@@ -799,9 +799,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 marketIds = new ArrayList<String>(Arrays.asList());
                 messageHashes.add("tickers");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -889,9 +889,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 messageHashes.add("trades");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, paramsCallerMethodName, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(callerMethodName, market, paramsCallerMethodName, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -968,9 +968,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 messageHashes.add(("orderbook:" + market.get("symbol")));
                 watchOrderBookSubscriptions.put((String)symbol, new ArrayList<Object>(Arrays.asList(market.get("id"), limitResolved, aggregation, true)));
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, paramsOmitted, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(callerMethodName, market, paramsOmitted, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "depth.subscribe" );
@@ -1135,9 +1135,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             (this.authenticate(type)).join();
             if (!java.util.Objects.equals(symbolResolved, null))
             {
@@ -1510,9 +1510,9 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 messageHashes.add("bidsasks");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", market, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", market, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
             {

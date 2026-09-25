@@ -1357,7 +1357,7 @@ public class Whitebit extends WhitebitApi
             //      }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<String> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
@@ -1981,12 +1981,12 @@ public class Whitebit extends WhitebitApi
             {
                 onlyContractSymbols = false;
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> methodOptionparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsMarketType, "fetchTickers", "method", (String) null);
-            String methodOption = (String) ((List<Object>) methodOptionparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodOptionparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchTickers", "method", (String) null);
+            String methodOption = methodOptionparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodOptionparamsMethodVariable.second();
             String method = methodOption;
             if (java.util.Objects.equals(method, null))
             {
@@ -2602,9 +2602,9 @@ public class Whitebit extends WhitebitApi
             {
                 throw new NotSupported((this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
-            String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
-            Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);
@@ -2838,16 +2838,16 @@ public class Whitebit extends WhitebitApi
                 market = this.market(symbol);
                 request.put("market", market.get("id"));
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             List<String> requestType = new ArrayList<String>(Arrays.asList());
             Object requestParams = paramsMarketType;
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                List<Object> isMarginparamsIsMarginVariable = (List<Object>) this.handleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false);
-                Boolean isMargin = (Boolean) ((List<Object>) isMarginparamsIsMarginVariable).get(0);
-                Map<String, Object> paramsIsMargin = (Map<String, Object>) ((List<Object>) isMarginparamsIsMarginVariable).get(1);
+                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isMarginparamsIsMarginVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "cancelAllOrders", "isMargin", false);
+                Boolean isMargin = isMarginparamsIsMarginVariable.first();
+                Map<String, Object> paramsIsMargin = isMarginparamsIsMarginVariable.second();
                 requestParams = paramsIsMargin;
                 if (Boolean.TRUE.equals(isMargin))
                 {
@@ -3017,9 +3017,9 @@ public class Whitebit extends WhitebitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -4258,7 +4258,7 @@ public class Whitebit extends WhitebitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            FundingRates response = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
+            FundingRates response = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return this.safeValue(response, symbolValue);
         }).thenApply(FundingRate::new);
 
@@ -4433,9 +4433,9 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -4708,9 +4708,9 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v4PrivatePostConvertHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -4836,9 +4836,9 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("limit", since);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
@@ -5074,9 +5074,9 @@ public class Whitebit extends WhitebitApi
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             Long maxLimit = 100L;
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit)).join();
@@ -5093,9 +5093,9 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("startDate", Math.round(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)requestUntil).put("limit", limit);
@@ -5166,9 +5166,9 @@ public class Whitebit extends WhitebitApi
             String nonce = String.valueOf(this.incrementingNonce());
             Object secret = this.encode(this.secret);
             String request = (Helpers.add((("/" + "api") + "/"), version) + pathWithParams);
-            List<Object> nonceWindowrequestParamsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
-            Boolean nonceWindow = (Boolean) ((List<Object>) nonceWindowrequestParamsVariable).get(0);
-            Map<String, Object> requestParams = (Map<String, Object>) ((List<Object>) nonceWindowrequestParamsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> nonceWindowrequestParamsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "sign", "nonceWindow", false);
+            Boolean nonceWindow = nonceWindowrequestParamsVariable.first();
+            Map<String, Object> requestParams = nonceWindowrequestParamsVariable.second();
             privateBody = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "request", request );
                 put( "nonce", nonce );

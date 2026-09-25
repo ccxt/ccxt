@@ -900,7 +900,7 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "market"))
             {
-                List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (paramsCost), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Object paramsMarket = paramsCost;
                 if (Boolean.TRUE.equals(sideBuy))
                 {
@@ -1331,7 +1331,7 @@ public class Cryptomus extends CryptomusApi
             List<Object> feeTiers = (List<Object>) this.safeList(data, "tariff_steps", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> tiers = this.parseFeeTiers(feeTiers, (Map<String, Object>) null);
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<String> symbols = this.symbols;
             if (java.util.Objects.equals(symbols, null))
             {
                 return result;

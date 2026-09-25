@@ -227,7 +227,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
         });
 
     }
@@ -629,12 +629,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String depth = "100";
-            List<Object> depthOptionparamsDepthVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-            String depthOption = (String) ((List<Object>) depthOptionparamsDepthVariable).get(0);
-            Map<String, Object> paramsDepth = (Map<String, Object>) ((List<Object>) depthOptionparamsDepthVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "depth", depth);
+            String depthOption = depthOptionparamsDepthVariable.first();
+            Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             String frequency = "100ms";
-            List<Object> frequencyOptionparamsFrequencyVariable = (List<Object>) this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
-            String frequencyOption = (String) ((List<Object>) frequencyOptionparamsFrequencyVariable).get(0);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
+            String frequencyOption = frequencyOptionparamsFrequencyVariable.first();
             var paramsFrequency = ((List<Object>) frequencyOptionparamsFrequencyVariable).get(1);
             String channelSuffix = "";
             if (java.util.Objects.equals(frequencyOption, "100ms"))
@@ -677,13 +677,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String depth = "100";
-            List<Object> depthOptionparamsDepthVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-            String depthOption = (String) ((List<Object>) depthOptionparamsDepthVariable).get(0);
-            Map<String, Object> paramsDepth = (Map<String, Object>) ((List<Object>) depthOptionparamsDepthVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "depth", depth);
+            String depthOption = depthOptionparamsDepthVariable.first();
+            Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             String frequency = "100ms";
-            List<Object> frequencyOptionparamsFrequencyVariable = (List<Object>) this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
-            String frequencyOption = (String) ((List<Object>) frequencyOptionparamsFrequencyVariable).get(0);
-            Map<String, Object> paramsFrequency = (Map<String, Object>) ((List<Object>) frequencyOptionparamsFrequencyVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
+            String frequencyOption = frequencyOptionparamsFrequencyVariable.first();
+            Map<String, Object> paramsFrequency = frequencyOptionparamsFrequencyVariable.second();
             String channelSuffix = "";
             if (java.util.Objects.equals(frequencyOption, "100ms"))
             {

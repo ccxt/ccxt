@@ -160,7 +160,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              */
             if (!java.util.Objects.equals(this.has.get("fetchPositionsHistory"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsHistory"), false))
             {
-                Object positions = (this.fetchPositionsHistory(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), since, limit, parameters)).join();
+                Object positions = (this.fetchPositionsHistory(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
                 return positions;
             } else
             {
@@ -260,7 +260,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                Tickers tickers = (this.fetchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
+                Tickers tickers = (this.fetchMarkPrices(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(ticker, null))
                 {
@@ -894,7 +894,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                Tickers tickers = (this.fetchTickersWs(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
+                Tickers tickers = (this.fetchTickersWs(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(ticker, null))
                 {
@@ -1004,7 +1004,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
             if (!java.util.Objects.equals(this.has.get("fetchOpenInterests"), null) && !java.util.Objects.equals(this.has.get("fetchOpenInterests"), false))
             {
-                OpenInterests openInterests = (this.fetchOpenInterests(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+                OpenInterests openInterests = (this.fetchOpenInterests(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
                 return this.safeDict(openInterests, symbol, (Object) null);
             } else
             {
@@ -1132,7 +1132,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
+                Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
                 if (java.util.Objects.equals(ticker, null))
                 {

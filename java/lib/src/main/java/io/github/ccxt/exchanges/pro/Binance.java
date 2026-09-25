@@ -887,13 +887,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 streamHash = (streamHash + ("::" + String.join(",", (List<String>)symbolsNormalized)));
             }
-            List<Object> watchOrderBookRateOptionparamsRateVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
-            String watchOrderBookRateOption = (String) ((List<Object>) watchOrderBookRateOptionparamsRateVariable).get(0);
-            Map<String, Object> paramsRate = (Map<String, Object>) ((List<Object>) watchOrderBookRateOptionparamsRateVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> watchOrderBookRateOptionparamsRateVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "watchOrderBookRate", "100");
+            String watchOrderBookRateOption = watchOrderBookRateOptionparamsRateVariable.first();
+            Map<String, Object> paramsRate = watchOrderBookRateOptionparamsRateVariable.second();
             String watchOrderBookRate = watchOrderBookRateOption;
-            List<Object> rpiparamsRpiVariable = (List<Object>) this.handleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false);
-            Boolean rpi = (Boolean) ((List<Object>) rpiparamsRpiVariable).get(0);
-            Map<String, Object> paramsRpi = (Map<String, Object>) ((List<Object>) rpiparamsRpiVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> rpiparamsRpiVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRate), "watchOrderBookForSymbols", "rpi", false);
+            Boolean rpi = rpiparamsRpiVariable.first();
+            Map<String, Object> paramsRpi = rpiparamsRpiVariable.second();
             if (Boolean.TRUE.equals(rpi) && java.util.Objects.equals(type, "future"))
             {
                 name = "rpiDepth";
@@ -1080,9 +1080,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrderBookWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             payload.put("returnRateLimits", returnRateLimits);
             Map<String, Object> paramsOmitted = this.omit(paramsReturnRateLimits, "test");
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -1475,9 +1475,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 streamHash = (streamHash + ("::" + String.join(",", (List<String>)symbolsNormalized)));
             }
-            List<Object> nameparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "name", "trade");
-            String name = (String) ((List<Object>) nameparamsNameVariable).get(0);
-            Map<String, Object> paramsName = (Map<String, Object>) ((List<Object>) nameparamsNameVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> nameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "name", "trade");
+            String name = nameparamsNameVariable.first();
+            Map<String, Object> paramsName = nameparamsNameVariable.second();
             Map<String, Object> paramsOmitted = this.omit(paramsName, "callerMethodName");
             Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) firstMarket.get("type");
@@ -1579,9 +1579,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 streamHash = (streamHash + ("::" + String.join(",", (List<String>)symbolsNormalized)));
             }
-            List<Object> nameparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "name", "trade");
-            String name = (String) ((List<Object>) nameparamsNameVariable).get(0);
-            Map<String, Object> paramsName = (Map<String, Object>) ((List<Object>) nameparamsNameVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> nameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "name", "trade");
+            String name = nameparamsNameVariable.first();
+            Map<String, Object> paramsName = nameparamsNameVariable.second();
             Map<String, Object> paramsOmitted = this.omit(paramsName, "callerMethodName");
             Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) firstMarket.get("type");
@@ -1982,8 +1982,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
-            Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCVForSymbols", "stock", false);
+            Boolean stock = stockparamsStockVariable.first();
             var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
@@ -2331,14 +2331,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleTickerWs");
             }};
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTickerWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTickerWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             payload.put("returnRateLimits", returnRateLimits);
             Map<String, Object> paramsOmitted = this.omit(paramsReturnRateLimits, "test");
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "fetchTickerWs", "method", "ticker.book");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchTickerWs", "method", "ticker.book");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", method );
@@ -2388,9 +2388,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCVWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (symbol)) );
                 put( "returnRateLimits", returnRateLimits );
@@ -2490,7 +2490,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), this.extend(parameters, new HashMap<String, Object>() {{
+            Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchTicker" );
             }}))).join();
             return Helpers.GetValue(tickers, symbolValue);
@@ -2518,7 +2518,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.watchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), this.extend(parameters, new HashMap<String, Object>() {{
+            Tickers tickers = (this.watchMarkPrices(new ArrayList<String>(Arrays.asList(symbolValue)), this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchMarkPrice" );
             }}))).join();
             return Helpers.GetValue(tickers, symbolValue);
@@ -2544,7 +2544,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // for now watchmarkPrice uses the same messageHash as watchTicker
             // so it's impossible to watch both at the same time
             // refactor this to use different messageHashes
-            List<Object> channelNameparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "name", "markPrice");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
             var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
             Object newTickers = (this.watchMultiTickerHelper("watchMarkPrices", (String) (channelName), symbols, Helpers.toMapArg(paramsName), false)).join();
@@ -2578,8 +2578,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTickers", "stock", false);
-            Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTickers", "stock", false);
+            Boolean stock = stockparamsStockVariable.first();
             var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
             List<String> symbolsNormalized = symbols;
             if (Boolean.TRUE.equals(stock))
@@ -2596,7 +2596,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
             }
-            List<Object> channelNameparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(paramsStock, "watchTickers", "name", "miniTicker");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsStock), "watchTickers", "name", "miniTicker");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
             var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
             if (java.util.Objects.equals(channelName, "bookTicker"))
@@ -2632,7 +2632,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> channelNameparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTickers", "name", "ticker");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "name", "ticker");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
             var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
             if (java.util.Objects.equals(channelName, "bookTicker"))
@@ -2658,7 +2658,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> channelNameparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+            io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "name", "markPrice");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
             var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
@@ -2684,7 +2684,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchMarkPrices(new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
         });
 
     }
@@ -2732,7 +2732,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
         });
 
     }
@@ -2763,8 +2763,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "stock", false);
-            Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBidsAsks", "stock", false);
+            Boolean stock = stockparamsStockVariable.first();
             var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
             if (Boolean.TRUE.equals(stock))
             {
@@ -2824,12 +2824,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 defaultMarket = "swap";
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(methodName, firstMarket, paramsMarketType, (Object) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams(methodName, firstMarket, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
             Boolean isOptionMarkPrice = (Boolean.TRUE.equals(isMarkPrice) && java.util.Objects.equals(marketType, "option"));
             String rawMarketType = null;
@@ -3628,18 +3628,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> resolvedAuth = this.resolveAuthType("authenticate", (Map<String, Object>) null, parameters);
             String type = (String) ((List<Object>)resolvedAuth).get(0);
             Object paramsAuth = ((List<Object>)resolvedAuth).get(2);
-            List<Object> isPortfolioMarginparamsPortfolioMarginVariable = (List<Object>) this.handleOptionBoolAndParams2(paramsAuth, "authenticate", "papi", "portfolioMargin", false);
-            Boolean isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(0);
-            Map<String, Object> paramsPortfolioMargin = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsAuth), "authenticate", "papi", "portfolioMargin", false);
+            Boolean isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.first();
+            Map<String, Object> paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.second();
             // For spot use WebSocket API signature subscription
             if (java.util.Objects.equals(type, "spot"))
             {
                 (this.ensureUserDataStreamWsSubscribeSignature("spot")).join();
                 return null;
             }
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("authenticate", paramsPortfolioMargin, (String) null);
-            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("authenticate", paramsPortfolioMargin, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Boolean isIsolatedMargin = (java.util.Objects.equals(marginMode, "isolated"));
             String symbol = this.safeString(paramsMarginMode, "symbol");
             // For margin use WebSocket API listenToken subscription
@@ -3763,9 +3763,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
             String type = this.safeString2(this.options, "defaultType", "authenticate", "spot");
             type = this.safeString(parameters, "type", type);
-            List<Object> isPortfolioMarginparamsPortfolioMarginVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
-            Boolean isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(0);
-            Map<String, Object> paramsPortfolioMargin = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPortfolioMarginVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "keepAliveListenKey", "papi", "portfolioMargin", false);
+            Boolean isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.first();
+            Map<String, Object> paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.second();
             String subType = (String) ((List<Object>)this.handleSubTypeAndParams("keepAliveListenKey", (Map<String, Object>) null, paramsPortfolioMargin, (Object) null)).get(0);
             if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
             {
@@ -3991,15 +3991,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBalanceWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "returnRateLimits", returnRateLimits );
             }};
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsReturnRateLimits, "fetchBalanceWs", "method", "account.status");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsReturnRateLimits), "fetchBalanceWs", "method", "account.status");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> message = Helpers.newMap(
                 "id", messageHash,
                 "method", method,
@@ -4100,7 +4100,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchPositionsWs(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            return (this.fetchPositionsWs(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4156,13 +4156,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositionsWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             payload.put("returnRateLimits", returnRateLimits);
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsReturnRateLimits, "fetchPositionsWs", "method", "account.position");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsReturnRateLimits), "fetchPositionsWs", "method", "account.position");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", method );
@@ -4253,7 +4253,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 "type", type,
                 "subType", subType
             ), paramsValue))).join();
-            Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2(paramsValue, "watchBalance", "papi", "portfolioMargin", false)).get(0);
+            Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2((Map<String, Object>) (paramsValue), "watchBalance", "papi", "portfolioMargin", false)).get(0);
             Object url = "";
             String urlType = type;
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -4449,12 +4449,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // sites used to carry seven inline copies of this dance, and the
         // unguarded copies were the bug class behind the option keepalive and
         // stock keepalive fixes
-        List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, (Object) null);
-        String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-        Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(methodName, market, paramsMarketType, (Object) null);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
+        String marketType = marketTypeparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+        io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams(methodName, market, paramsMarketType, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-        Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+        Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         String type = marketType;
         if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
         {
@@ -4475,9 +4475,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         String type = null;
         Object paramsMarketType = new HashMap<String, Object>() {{}};
-        List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (Object) null);
-        type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-        paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (String) null);
+        type = typeparamsMarketTypeVariable.first();
+        paramsMarketType = typeparamsMarketTypeVariable.second();
         String subType = (String) ((List<Object>)this.handleSubTypeAndParams(method, Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null)).get(0);
         if (this.isLinear(type, subType))
         {
@@ -4542,9 +4542,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             Boolean isConditional = Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit);
             Map<String, Object> payload = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(paramsOmitted, "createOrderWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "createOrderWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             payload.put("returnRateLimits", returnRateLimits);
             Boolean test = (Boolean) this.safeBool(paramsReturnRateLimits, "test", false);
             Map<String, Object> paramsOmitted2 = this.omit(paramsReturnRateLimits, "test");
@@ -4726,9 +4726,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 payload = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             }
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "editOrderWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "editOrderWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             Map<String, Object> message = Helpers.newMap(
                 "id", messageHash,
@@ -4894,9 +4894,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelOrderWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = Helpers.newMap(
                 "symbol", this.marketId((String) (symbol)),
                 "returnRateLimits", returnRateLimits
@@ -4976,9 +4976,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelAllOrdersWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = Helpers.newMap(
                 "symbol", this.marketId((String) (symbol)),
                 "returnRateLimits", returnRateLimits
@@ -5034,9 +5034,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrderWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = Helpers.newMap(
                 "symbol", this.marketId((String) (symbol)),
                 "returnRateLimits", returnRateLimits
@@ -5103,9 +5103,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrdersWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = Helpers.newMap(
                 "symbol", this.marketId((String) (symbol)),
                 "returnRateLimits", returnRateLimits
@@ -5188,9 +5188,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrdersWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "returnRateLimits", returnRateLimits );
             }};
@@ -5239,9 +5239,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrders", "stock", false);
-            Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
-            Map<String, Object> paramsStock = (Map<String, Object>) ((List<Object>) stockparamsStockVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "stock", false);
+            Boolean stock = stockparamsStockVariable.first();
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
             if (Boolean.TRUE.equals(stock))
             {
                 // literal on top: a stray type in the caller params must not override
@@ -5298,15 +5298,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 "subType", subType
             )); // needed inside authenticate for isolated margin
             (this.authenticate(Helpers.toMapArg(paramsExtended))).join();
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("watchOrders", Helpers.toMapArg(paramsExtended), (String) null);
-            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", Helpers.toMapArg(paramsExtended), (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String urlType = type;
             if ((java.util.Objects.equals(type, "margin")) || ((java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(marginMode, null))))
             {
                 urlType = "spot"; // spot-margin shares the same stream as regular spot
             }
-            Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2(paramsMarginMode, "watchOrders", "papi", "portfolioMargin", false)).get(0);
+            Boolean isPortfolioMargin = (Boolean) ((List<Object>)this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarginMode), "watchOrders", "papi", "portfolioMargin", false)).get(0);
             Object url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
@@ -5975,7 +5975,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             marketTypeObject.put("subType", subType);
             (this.authenticate(this.extend(marketTypeObject, paramsAuth))).join();
             messageHash = ((type + ":positions") + messageHash);
-            List<Object> portfolioMarginAndParams = (List<Object>) this.handleOptionBoolAndParams2(paramsAuth, "watchPositions", "papi", "portfolioMargin", false);
+            List<Object> portfolioMarginAndParams = (List<Object>) this.handleOptionBoolAndParams2((Map<String, Object>) (paramsAuth), "watchPositions", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)portfolioMarginAndParams).get(0);
             String urlType = type;
             if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -6300,9 +6300,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTradesWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = Helpers.newMap(
                 "symbol", this.marketId((String) (symbol)),
                 "returnRateLimits", returnRateLimits
@@ -6370,9 +6370,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
-            Boolean returnRateLimits = (Boolean) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(0);
-            Map<String, Object> paramsReturnRateLimits = (Map<String, Object>) ((List<Object>) returnRateLimitsparamsReturnRateLimitsVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTradesWs", "returnRateLimits", false);
+            Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
+            Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (symbol)) );
                 put( "returnRateLimits", returnRateLimits );
@@ -6498,7 +6498,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 urlType = "spot"; // spot-margin shares the same stream as regular spot
             }
-            List<Object> portfolioMarginAndParams = (List<Object>) this.handleOptionBoolAndParams2(paramsSymbol, "watchMyTrades", "papi", "portfolioMargin", false);
+            List<Object> portfolioMarginAndParams = (List<Object>) this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSymbol), "watchMyTrades", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = (Boolean) ((List<Object>)portfolioMarginAndParams).get(0);
             Object url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))

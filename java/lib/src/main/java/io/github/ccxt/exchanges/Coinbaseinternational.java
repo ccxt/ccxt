@@ -485,9 +485,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> portfolioparamsPortfolioVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "portfolio", (String) null);
-            String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> portfolioparamsPortfolioVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "portfolio", (String) null);
+            String portfolio = portfolioparamsPortfolioVariable.first();
+            Map<String, Object> paramsPortfolio = portfolioparamsPortfolioVariable.second();
             if ((!java.util.Objects.equals(portfolio, null)) && (!java.util.Objects.equals(portfolio, "")))
             {
                 return new ArrayList<Object>(Arrays.asList(portfolio, paramsPortfolio));
@@ -519,9 +519,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> networkIdOptionparamsNetworkArnIdVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "network_arn_id", (String) null);
-            String networkIdOption = (String) ((List<Object>) networkIdOptionparamsNetworkArnIdVariable).get(0);
-            Map<String, Object> paramsNetworkArnId = (Map<String, Object>) ((List<Object>) networkIdOptionparamsNetworkArnIdVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> networkIdOptionparamsNetworkArnIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "network_arn_id", (String) null);
+            String networkIdOption = networkIdOptionparamsNetworkArnIdVariable.first();
+            Map<String, Object> paramsNetworkArnId = networkIdOptionparamsNetworkArnIdVariable.second();
             Object networkId = networkIdOption;
             if (java.util.Objects.equals(networkId, null))
             {
@@ -635,9 +635,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 10000L)).join();
@@ -721,9 +721,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             Long maxEntriesPerRequest = 100L;
             List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
             Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
@@ -833,9 +833,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 market = this.market(symbol);
             }
-            List<Object> portfoliosparamsPortfoliosVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchFundingHistory", "portfolios", (String) null);
-            String portfolios = (String) ((List<Object>) portfoliosparamsPortfoliosVariable).get(0);
-            Map<String, Object> paramsPortfolios = (Map<String, Object>) ((List<Object>) portfoliosparamsPortfoliosVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> portfoliosparamsPortfoliosVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "portfolios", (String) null);
+            String portfolios = portfoliosparamsPortfoliosVariable.first();
+            Map<String, Object> paramsPortfolios = portfoliosparamsPortfoliosVariable.second();
             if (!java.util.Objects.equals(portfolios, null))
             {
                 request.put("portfolios", portfolios);
@@ -928,9 +928,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 currency = this.currency((String) (code));
             }
-            List<Object> portfoliosparamsPortfoliosVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTransfers", "portfolios", (String) null);
-            String portfolios = (String) ((List<Object>) portfoliosparamsPortfoliosVariable).get(0);
-            Map<String, Object> paramsPortfolios = (Map<String, Object>) ((List<Object>) portfoliosparamsPortfoliosVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> portfoliosparamsPortfoliosVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchTransfers", "portfolios", (String) null);
+            String portfolios = portfoliosparamsPortfoliosVariable.first();
+            Map<String, Object> paramsPortfolios = portfoliosparamsPortfoliosVariable.second();
             if (!java.util.Objects.equals(portfolios, null))
             {
                 request.put("portfolios", portfolios);
@@ -1030,9 +1030,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("createDepositAddress", paramsMethod)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
             Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
@@ -1250,9 +1250,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDepositsWithdrawals", "paginate", (Object) null);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDepositsWithdrawals", "paginate", (Object) null);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             Long maxEntriesPerRequest = 100L;
             List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
             Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
@@ -1276,9 +1276,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 Object newLimit = Math.min(limit, 100);
                 request.put("result_limit", newLimit);
             }
-            List<Object> portfoliosparamsPortfoliosVariable = (List<Object>) this.handleOptionStringAndParams(paramsMaxEntriesPerRequest, "fetchDepositsWithdrawals", "portfolios", (String) null);
-            String portfolios = (String) ((List<Object>) portfoliosparamsPortfoliosVariable).get(0);
-            Map<String, Object> paramsPortfolios = (Map<String, Object>) ((List<Object>) portfoliosparamsPortfoliosVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> portfoliosparamsPortfoliosVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMaxEntriesPerRequest), "fetchDepositsWithdrawals", "portfolios", (String) null);
+            String portfolios = portfoliosparamsPortfoliosVariable.first();
+            Map<String, Object> paramsPortfolios = portfoliosparamsPortfoliosVariable.second();
             if (!java.util.Objects.equals(portfolios, null))
             {
                 request.put("portfolios", portfolios);
@@ -2597,9 +2597,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("fetchOpenOrders", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
             Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPortfolio, "fetchOpenOrders", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPortfolio), "fetchOpenOrders", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             Long maxEntriesPerRequest = 100L;
             List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
             Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
@@ -2696,9 +2696,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             String pageKey = "ccxtPageKey";
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100L);
             Long maxEntriesPerRequest = (Long) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(0);
@@ -2814,9 +2814,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("withdraw", paramsWithdrawTag)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
             Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPortfolio, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
-            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPortfolio), "withdraw", "method", "v1PrivatePostTransfersWithdraw");
+            String method = methodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             List<Object> networkIdparamsNetworkIdVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "withdraw", paramsMethod)).join();
             var networkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(0);
             var paramsNetworkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(1);

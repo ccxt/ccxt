@@ -903,7 +903,7 @@ public class Coincheck extends CoincheckApi
             //
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "exchange_fees", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<String> symbols = this.symbols;
             if (java.util.Objects.equals(symbols, null))
             {
                 return result;

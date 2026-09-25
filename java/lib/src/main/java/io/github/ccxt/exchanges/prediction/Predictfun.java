@@ -2167,9 +2167,9 @@ public class Predictfun extends PredictfunApi
             // read through the extractor rather than off the instance, so one call can opt in without
             // reconfiguring the exchange - and so the key is taken out of params instead of riding
             // along into the request body
-            List<Object> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
-            Boolean warnOnMarketOrderWithoutPrice = (Boolean) ((List<Object>) warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable).get(0);
-            Map<String, Object> paramsWarnOnMarketOrderWithoutPrice = (Map<String, Object>) ((List<Object>) warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "warnOnMarketOrderWithoutPrice", true);
+            Boolean warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.first();
+            Map<String, Object> paramsWarnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.second();
             if (java.util.Objects.equals(price, null))
             {
                 // a priceless limit order already threw above, so this is a market order

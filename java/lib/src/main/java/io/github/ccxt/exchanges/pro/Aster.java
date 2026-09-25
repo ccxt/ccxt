@@ -144,7 +144,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
+            Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return Helpers.GetValue(tickers, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -172,7 +172,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> {
 
             parameters.put("callerMethodName", "unWatchTicker");
-            return (this.unWatchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         });
 
     }
@@ -320,7 +320,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
-            Tickers tickers = (this.watchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
+            Tickers tickers = (this.watchMarkPrices(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return Helpers.GetValue(tickers, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -343,7 +343,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> {
 
             parameters.put("callerMethodName", "unWatchMarkPrice");
-            return (this.unWatchMarkPrices(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            return (this.unWatchMarkPrices(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         });
 
     }
@@ -1728,7 +1728,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> type = null;
-            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, type);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, Helpers.toStringArg(type));
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(type, null))
@@ -2147,7 +2147,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String messageHash = "orders";
             List<String> type = null;
-            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, Helpers.toStringArg(type));
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(type, null))
@@ -2204,7 +2204,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String messageHash = "myTrades";
             List<String> type = null;
-            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, Helpers.toStringArg(type));
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
             if (java.util.Objects.equals(type, null))

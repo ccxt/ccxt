@@ -1767,9 +1767,9 @@ public class Coinex extends CoinexApi
                 String symbol = this.safeString(symbolsNormalized, 0);
                 market = this.market(symbol);
             }
-            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypequeryVariable).get(0);
-            Map<String, Object> query = (Map<String, Object>) ((List<Object>) marketTypequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+            String marketType = marketTypequeryVariable.first();
+            Map<String, Object> query = marketTypequeryVariable.second();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -2099,9 +2099,9 @@ public class Coinex extends CoinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTradingFees", (Map<String, Object>) null, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
@@ -2446,12 +2446,12 @@ public class Coinex extends CoinexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", paramsMarketType, (String) null);
-            var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -2887,9 +2887,9 @@ public class Coinex extends CoinexApi
             }
         } else
         {
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, (String) null);
-            var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (!java.util.Objects.equals(marginMode, null))
             {
                 request.put("market_type", "MARGIN");
@@ -2898,7 +2898,7 @@ public class Coinex extends CoinexApi
                 request.put("market_type", "SPOT");
             }
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
-            List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams(paramsMarginMode, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "createOrder", "createMarketBuyOrderRequiresPrice", true);
             Double cost = this.safeNumber(((List<Object>)requiresPriceAndParams).get(1), "cost", (Object) null);
             Object paramsSpot = paramsMarginMode;
             if (Boolean.TRUE.equals(isMarketBuy))
@@ -3284,9 +3284,9 @@ public class Coinex extends CoinexApi
             {
                 request.put("order_id", this.parseToNumeric(id));
             }
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", paramsOmitted, (String) null);
-            var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("editOrder", paramsOmitted, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 if (!java.util.Objects.equals(marginMode, null))
@@ -3355,9 +3355,9 @@ public class Coinex extends CoinexApi
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginMode = null;
-                List<Object> marginModeorderParamsVariable = (List<Object>) this.handleMarginModeAndParams("editOrders", Helpers.toMapArg(orderParams), (String) null);
-                marginMode = ((List<Object>) marginModeorderParamsVariable).get(0);
-                orderParams = ((List<Object>) marginModeorderParamsVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeorderParamsVariable = this.handleMarginModeAndParams("editOrders", Helpers.toMapArg(orderParams), (String) null);
+                marginMode = marginModeorderParamsVariable.first();
+                orderParams = marginModeorderParamsVariable.second();
                 String market_type = "SPOT";
                 if (java.util.Objects.equals(market.get("swap"), true))
                 {
@@ -3456,9 +3456,9 @@ public class Coinex extends CoinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
             }};
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters, (String) null);
-            var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", parameters, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(swap, true))
             {
                 request.put("market_type", "FUTURES");
@@ -3570,9 +3570,9 @@ public class Coinex extends CoinexApi
                 response = (this.v2PrivatePostFuturesCancelAllOrder(this.extend(request, parameters))).join();
             } else
             {
-                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters, (String) null);
-                var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-                var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters, (String) null);
+                String marginMode = marginModeparamsMarginModeVariable.first();
+                Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     request.put("market_type", "MARGIN");
@@ -3671,9 +3671,9 @@ public class Coinex extends CoinexApi
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, paramsOmitted, (Object) null);
-            String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, paramsOmitted, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> response = null;
             Boolean isClosed = (java.util.Objects.equals(status, "finished")) || (java.util.Objects.equals(status, "closed"));
             Boolean isOpen = (java.util.Objects.equals(status, "pending")) || (java.util.Objects.equals(status, "open"));
@@ -3701,9 +3701,9 @@ public class Coinex extends CoinexApi
                 }
             } else
             {
-                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", paramsMarketType, (String) null);
-                var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-                var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsMarketType, (String) null);
+                String marginMode = marginModeparamsMarginModeVariable.first();
+                Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     request.put("market_type", "MARGIN");
@@ -3958,9 +3958,9 @@ public class Coinex extends CoinexApi
             {
                 request.put("start_time", since);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("swap"), true))
             {
@@ -3968,9 +3968,9 @@ public class Coinex extends CoinexApi
                 response = (this.v2PrivateGetFuturesUserDeals(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", paramsUntil, (String) null);
-                var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-                var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsUntil, (String) null);
+                String marginMode = marginModeparamsMarginModeVariable.first();
+                Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     ((Map<String, Object>)requestUntil).put("market_type", "MARGIN");
@@ -4006,9 +4006,9 @@ public class Coinex extends CoinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> defaultMethodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
-            String defaultMethod = (String) ((List<Object>) defaultMethodparamsMethodVariable).get(0);
-            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) defaultMethodparamsMethodVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> defaultMethodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
+            String defaultMethod = defaultMethodparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = defaultMethodparamsMethodVariable.second();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_type", "FUTURES" );
@@ -4322,9 +4322,9 @@ public class Coinex extends CoinexApi
             {
                 throw new BadSymbol((this.id + " setLeverage() supports swap contracts only")) ;
             }
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-            var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Long minLeverage = this.safeInteger(((Map<String, Object>)market.get("limits")).get("leverage"), "min", 1);
             Long maxLeverage = this.safeInteger(((Map<String, Object>)market.get("limits")).get("leverage"), "max", 100);
             if ((Helpers.isLessThan(leverage, minLeverage)) || (Helpers.isGreaterThan(leverage, maxLeverage)))
@@ -4650,9 +4650,9 @@ public class Coinex extends CoinexApi
                 put( "market", market.get("id") );
                 put( "market_type", "FUTURES" );
             }};
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)requestUntil).put("start_time", since);
@@ -5009,9 +5009,9 @@ public class Coinex extends CoinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000L)).join();
@@ -5028,9 +5028,9 @@ public class Coinex extends CoinexApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v2PublicGetFuturesFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -5320,9 +5320,9 @@ public class Coinex extends CoinexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ccy", currency.get("id") );
             }};
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchTransfers", parameters, (String) null);
-            var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchTransfers", parameters, (String) null);
+            String marginMode = marginModeparamsMarginModeVariable.first();
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (!java.util.Objects.equals(marginMode, null))
             {
                 request.put("transfer_type", "MARGIN");
@@ -5338,9 +5338,9 @@ public class Coinex extends CoinexApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarginMode), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarginMode), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v2PrivateGetAssetsTransferHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -6151,9 +6151,9 @@ public class Coinex extends CoinexApi
             {
                 request.put("start_time", since);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v2PrivateGetFuturesFinishedPosition(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -6276,7 +6276,7 @@ public class Coinex extends CoinexApi
 
     }
 
-    public Object handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
+    public io.github.ccxt.base.Pair<String, Map<String, Object>> handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
          * @ignore
@@ -6287,18 +6287,14 @@ public class Coinex extends CoinexApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        List<Object> marginModeValueparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        var marginModeValue = ((List<Object>) marginModeValueparamsMarginModeVariable).get(0);
-        var paramsMarginMode = ((List<Object>) marginModeValueparamsMarginModeVariable).get(1);
-        Object marginMode = marginModeValue;
-        if (java.util.Objects.equals(marginMode, null))
+        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        String marginMode = marginModeparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+        if ((java.util.Objects.equals(marginMode, null)) && ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true))))
         {
-            if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
-            {
-                marginMode = "isolated";
-            }
+            return new io.github.ccxt.base.Pair<>("isolated", paramsMarginMode);
         }
-        return new ArrayList<Object>(Arrays.asList(marginMode, paramsMarginMode));
+        return new io.github.ccxt.base.Pair<>(marginMode, paramsMarginMode);
     }
 
     public Long nonce()
@@ -6501,9 +6497,9 @@ public class Coinex extends CoinexApi
                 "market_type", "FUTURES",
                 "position_id", positionId
             );
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)requestUntil).put("start_time", since);

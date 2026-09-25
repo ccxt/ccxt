@@ -976,7 +976,7 @@ public class Bitopro extends BitoproApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Double maker = this.safeNumber(first, "makerFee", (Object) null);
             Double taker = this.safeNumber(first, "takerFee", (Object) null);
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<String> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));

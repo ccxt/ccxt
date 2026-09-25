@@ -5222,7 +5222,7 @@ public Object describe()
 
             if (!java.util.Objects.equals(this.has.get("fetchMarginModes"), null) && !java.util.Objects.equals(this.has.get("fetchMarginModes"), false))
             {
-                MarginModes marginModes = (this.fetchMarginModes(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+                MarginModes marginModes = (this.fetchMarginModes(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
                 return this.safeDict(marginModes, symbol, (Object) null);
             } else
             {
@@ -5540,7 +5540,7 @@ public Object describe()
 
             if (!java.util.Objects.equals(this.has.get("fetchLeverages"), null) && !java.util.Objects.equals(this.has.get("fetchLeverages"), false))
             {
-                Leverages leverages = (this.fetchLeverages(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+                Leverages leverages = (this.fetchLeverages(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
                 return this.safeDict(leverages, symbol, (Object) null);
             } else
             {
@@ -9536,7 +9536,7 @@ public Object describe()
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                List<ADL> ranks = (this.fetchPositionsADLRank(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
+                List<ADL> ranks = (this.fetchPositionsADLRank(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
                 Map<String, Object> rank = (Map<String, Object>) this.safeDict(ranks, 0, (Object) null);
                 if (java.util.Objects.equals(rank, null))
                 {
@@ -10276,7 +10276,7 @@ public Object describe()
                 {
                     throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
                 }
-                LeverageTiers tiers = (this.fetchLeverageTiers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}})).join();
+                LeverageTiers tiers = (this.fetchLeverageTiers(new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}})).join();
                 return this.safeValue(tiers, symbol);
             } else
             {
@@ -10789,7 +10789,7 @@ public Object describe()
                 {
                     throw new BadSymbol((this.id + " fetchFundingRate() supports contract markets only")) ;
                 }
-                FundingRates rates = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
+                FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
                 Object rate = this.safeValue(rates, symbolResolved);
                 if (java.util.Objects.equals(rate, null))
                 {
@@ -10820,7 +10820,7 @@ public Object describe()
                 {
                     throw new BadSymbol((this.id + " fetchFundingInterval() supports contract markets only")) ;
                 }
-                FundingRates rates = (this.fetchFundingIntervals(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolResolved))), parameters)).join();
+                FundingRates rates = (this.fetchFundingIntervals(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
                 Object rate = this.safeValue(rates, symbolResolved);
                 if (java.util.Objects.equals(rate, null))
                 {

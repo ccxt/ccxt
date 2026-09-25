@@ -2016,12 +2016,12 @@ public class Phemex extends PhemexApi
                 String first = this.safeString(symbols, 0);
                 market = this.market(first);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> query = this.omit(paramsSubType, "type");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
@@ -2546,9 +2546,9 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String code = this.safeString(paramsMarketType, "code");
             Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("code")));
             Map<String, Object> response = null;
@@ -2559,9 +2559,9 @@ public class Phemex extends PhemexApi
             }
             if (java.util.Objects.equals(type, "swap"))
             {
-                List<Object> settleparamsSettleVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "fetchBalance", "settle", "USDT");
-                String settle = (String) ((List<Object>) settleparamsSettleVariable).get(0);
-                Map<String, Object> paramsSettle = (Map<String, Object>) ((List<Object>) settleparamsSettleVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchBalance", "settle", "USDT");
+                String settle = settleparamsSettleVariable.first();
+                Map<String, Object> paramsSettle = settleparamsSettleVariable.second();
                 if (!java.util.Objects.equals(code, null) || !java.util.Objects.equals(settle, null))
                 {
                     String coin = null;
@@ -4009,9 +4009,9 @@ public class Phemex extends PhemexApi
             {
                 market = this.market(symbol);
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
-            String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(200, limit);
             if (!java.util.Objects.equals(limitResolved, null))
@@ -4514,13 +4514,13 @@ public class Phemex extends PhemexApi
                 code = market.get("settle");
             } else
             {
-                List<Object> settleparamsSettleVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "fetchPositions", "settle", Helpers.toStringArg(code));
-                settle = (String) ((List<Object>) settleparamsSettleVariable).get(0);
-                paramsSettle = ((List<Object>) settleparamsSettleVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchPositions", "settle", Helpers.toStringArg(code));
+                settle = settleparamsSettleVariable.first();
+                paramsSettle = settleparamsSettleVariable.second();
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", market, Helpers.toMapArg(paramsSettle), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", market, Helpers.toMapArg(paramsSettle), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
@@ -4539,9 +4539,9 @@ public class Phemex extends PhemexApi
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
-                List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsSubType, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
-                String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-                Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubType), "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+                String method = methodparamsMethodVariable.first();
+                Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
                 if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
                 {
                     response = (this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod))).join();
@@ -4701,7 +4701,7 @@ public class Phemex extends PhemexApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePositions(data, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), new HashMap<String, Object>() {{}});
+            Object positions = this.parsePositions(data, new ArrayList<String>(Arrays.asList(symbolValue)), new HashMap<String, Object>() {{}});
             return this.filterBySymbolSinceLimit(positions, symbolValue, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -5861,9 +5861,9 @@ public class Phemex extends PhemexApi
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100L)).join();
@@ -5887,9 +5887,9 @@ public class Phemex extends PhemexApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUsdtSettled))
             {
@@ -6260,9 +6260,9 @@ public class Phemex extends PhemexApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetAssetsConvert(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
@@ -6406,13 +6406,13 @@ public class Phemex extends PhemexApi
                 code = market.get("settle");
             } else
             {
-                List<Object> settleparamsSettleVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, "fetchPositionsADLRank", "settle", Helpers.toStringArg(code));
-                settle = (String) ((List<Object>) settleparamsSettleVariable).get(0);
-                paramsSettle = ((List<Object>) settleparamsSettleVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> settleparamsSettleVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchPositionsADLRank", "settle", Helpers.toStringArg(code));
+                settle = settleparamsSettleVariable.first();
+                paramsSettle = settleparamsSettleVariable.second();
             }
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, Helpers.toMapArg(paramsSettle), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, Helpers.toMapArg(paramsSettle), (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(settle, "USDT");
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
@@ -6431,9 +6431,9 @@ public class Phemex extends PhemexApi
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
-                List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsSubType, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
-                String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-                Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubType), "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+                String method = methodparamsMethodVariable.first();
+                Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
                 if (java.util.Objects.equals(method, "privateGetGAccountsAccountPositions"))
                 {
                     response = (this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod))).join();

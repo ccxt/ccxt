@@ -724,7 +724,7 @@ public class Revolutx extends RevolutxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol, (Object) null);
             if (java.util.Objects.equals(ticker, null))
             {

@@ -663,7 +663,7 @@ public class Btcturk extends BtcturkApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
             return this.safeDict(tickers, symbol, (Object) null);
         }).thenApply(Ticker::new);
 

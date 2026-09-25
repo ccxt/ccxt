@@ -194,7 +194,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "price_points_mode", "INLINE" );
     }})) );
             }};
-            return (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
+            return (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -398,7 +398,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         "depth", depth
     )))
             );
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

@@ -177,7 +177,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 throw new ArgumentsRequired((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
             }
-            List<String> symbolsResolved = (((java.util.Objects.equals(symbolsNormalized, null)))) ? Helpers.toStringListArg(this.symbols) : symbolsNormalized;
+            List<String> symbolsResolved = (((java.util.Objects.equals(symbolsNormalized, null)))) ? this.symbols : symbolsNormalized;
             Integer symbolsLengthDefined = ((List<?>)symbolsResolved).size();
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());

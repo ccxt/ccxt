@@ -1035,7 +1035,7 @@ public class Upbit extends UpbitApi
             {
                 // ticker/all returns every market of the requested quote currencies with a single request
                 List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
-                List<String> marketSymbols = Helpers.toStringListArg(this.symbols);
+                List<String> marketSymbols = this.symbols;
                 for (var i = 0; i < ((List<?>)marketSymbols).size(); i++)
                 {
                     Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
@@ -1151,7 +1151,7 @@ public class Upbit extends UpbitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
             return this.safeDict(tickers, symbol, (Object) null);
         }).thenApply(Ticker::new);
 
@@ -2479,9 +2479,9 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
@@ -2550,9 +2550,9 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
