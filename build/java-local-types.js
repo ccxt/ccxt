@@ -13630,3 +13630,62 @@ export function patchJavaWsListStreamLocals (transpiler) {
         return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, `${JAVA_ARRAY_TYPE} `) + `(${JAVA_ARRAY_TYPE}) ` + rhs;
     };
 }
+
+// ===== 35. equality of a declared numeric box against a numeric literal =====
+// `x === 0` where x prints as a declared Long/Double/Integer the printer's own rule cannot see
+// (a default-valued Long parameter, a typed handle* tuple binding): the operator unboxes and
+// compares by value like Helpers.isEqual; the helper answers false for null, hence the guard.
+const JAVA_EQUALITY_BOX_TYPES = new Set ([ 'Long', 'Double', 'Integer' ]);
+
+function javaEqualityDeclaredBox (printer, node) {
+    if (node === undefined || !ts.isIdentifier (node) || printer.printNode (node, 0) !== node.text) {
+        return undefined;
+    }
+    if (printer.javaLongParameterRead (node)) {
+        return 'Long';
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    if (declaration === undefined || !ts.isBindingElement (declaration) || declaration.name?.text !== node.text) {
+        return undefined;
+    }
+    const type = HANDLE_TYPED_BINDINGS.get (declaration);
+    return JAVA_EQUALITY_BOX_TYPES.has (type) ? type : undefined;
+}
+
+export function patchJavaDeclaredBoxLiteralEquality (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printNativeEqualityIfProvable !== 'function' || printer._javaBoxLiteralEqualityPatched) {
+        return;
+    }
+    printer._javaBoxLiteralEqualityPatched = true;
+    const upstream = printer.printNativeEqualityIfProvable.bind (printer);
+    printer.printNativeEqualityIfProvable = function (node, leftText, rightText) {
+        const printed = upstream (node, leftText, rightText);
+        if (printed !== undefined) {
+            return printed;
+        }
+        const op = node.operatorToken.kind;
+        const negated = op === ts.SyntaxKind.ExclamationEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken;
+        if (!negated && op !== ts.SyntaxKind.EqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsEqualsToken) {
+            return undefined;
+        }
+        let box, boxText;
+        try {
+            if (printer.javaEqualityLiteralKind (node.right) !== undefined) {
+                box = node.left; boxText = leftText;
+            } else if (printer.javaEqualityLiteralKind (node.left) !== undefined) {
+                box = node.right; boxText = rightText;
+            }
+            if (box === undefined || javaEqualityDeclaredBox (printer, box) === undefined) {
+                return undefined;
+            }
+            const compare = `${leftText} ${negated ? '!=' : '=='} ${rightText}`;
+            if (printer.javaNullGuardAdmitsRead (box)) {
+                return `(${compare})`;
+            }
+            return negated ? `(${boxText} == null || ${compare})` : `(${boxText} != null && ${compare})`;
+        } catch (e) {
+            return undefined;
+        }
+    };
+}
