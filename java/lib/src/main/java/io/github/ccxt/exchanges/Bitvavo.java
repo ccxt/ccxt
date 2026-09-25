@@ -1480,7 +1480,7 @@ public class Bitvavo extends BitvavoApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Object subaccountId = this.safeString(parameters, "subaccountId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "subaccountId");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "subaccountId");
             String direction = null;
             if ((java.util.Objects.equals(fromAccount, "master")) && (java.util.Objects.equals(toAccount, "master")))
             {
@@ -1758,7 +1758,7 @@ public class Bitvavo extends BitvavoApi
         Boolean postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         String stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
         Object paramsCost = paramsOmitted;
         if (Boolean.TRUE.equals(isMarketOrder))
         {
@@ -1934,7 +1934,7 @@ public class Bitvavo extends BitvavoApi
         Map<String, Object> market = this.market(symbol);
         Double amountRemaining = this.safeNumber(parameters, "amountRemaining", (Object) null);
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
         if (!java.util.Objects.equals(price, null))
         {
             request.put("price", this.priceToPrecision(symbol, price));

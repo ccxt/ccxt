@@ -1530,7 +1530,7 @@ public class Extended extends ExtendedApi
                 }
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price", "until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price", "until")));
             Map<String, Object> request = Helpers.newMap(
                 "market", market.get("id"),
                 "candleType", candleType,
@@ -1615,7 +1615,7 @@ public class Extended extends ExtendedApi
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limitResolved, 60), 60), 1000))) : since;
             Map<String, Object> request = Helpers.newMap(
                 "market", market.get("id"),
@@ -1711,7 +1711,7 @@ public class Extended extends ExtendedApi
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Long endTime = this.safeInteger(parameters, "endTime", until);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(limitResolved, this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))), 1000))) : since;
             Map<String, Object> request = Helpers.newMap(
                 "market", market.get("id"),
@@ -2209,7 +2209,7 @@ public class Extended extends ExtendedApi
                 "asset", currency.get("id"),
                 "settlement", settlement
             );
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
             Map<String, Object> response = (this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -2348,7 +2348,7 @@ public class Extended extends ExtendedApi
                 "transferredAsset", currency.get("id"),
                 "settlement", settlement
             );
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
             Map<String, Object> response = (this.v1PrivatePostUserTransfer(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3535,7 +3535,7 @@ public class Extended extends ExtendedApi
             }
             Map<String, Object> response = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 Map<String, Object> request = Helpers.newMap(
@@ -3593,7 +3593,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "externalOrderIds", "external_order_ids")), (Object) null);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean hasOrderIds = !java.util.Objects.equals(ids, null);
             if (Boolean.TRUE.equals(hasOrderIds))
@@ -3724,7 +3724,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> response = null;
             Map<String, Object> order = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 Map<String, Object> request = Helpers.newMap(

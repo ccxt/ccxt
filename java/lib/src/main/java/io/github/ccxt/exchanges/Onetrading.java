@@ -709,7 +709,7 @@ public class Onetrading extends OnetradingApi
         return BaseExchange.supplyAsync(() -> {
 
             String method = this.safeString(parameters, "method");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             if (java.util.Objects.equals(method, null))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTradingFees", new HashMap<String, Object>() {{}});
@@ -1605,7 +1605,7 @@ public class Onetrading extends OnetradingApi
             }
             List<Object> triggerKeys = (((!java.util.Objects.equals(triggerPrice, null)))) ? new ArrayList<Object>(Arrays.asList("triggerPrice", "trigger_price", "stopPrice")) : new ArrayList<Object>(Arrays.asList());
             List<Object> clientOrderIdKeys = (((!java.util.Objects.equals(clientOrderId, null)))) ? new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")) : new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, this.arrayConcat(this.arrayConcat(triggerKeys, clientOrderIdKeys), new ArrayList<Object>(Arrays.asList("timeInForce"))));
+            Map<String, Object> paramsOmitted = this.omit(parameters, this.arrayConcat(this.arrayConcat(triggerKeys, clientOrderIdKeys), new ArrayList<Object>(Arrays.asList("timeInForce"))));
             String timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED");
             request.put("time_in_force", timeInForce);
             Map<String, Object> response = (this.privatePostAccountOrders(this.extend(request, paramsOmitted))).join();
@@ -1650,7 +1650,7 @@ public class Onetrading extends OnetradingApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             String method = "privateDeleteAccountOrdersOrderId";
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -1852,7 +1852,7 @@ public class Onetrading extends OnetradingApi
                 request.put("from", this.iso8601(since));
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to", this.iso8601(until));
@@ -2075,7 +2075,7 @@ public class Onetrading extends OnetradingApi
                 request.put("from", this.iso8601(since));
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to", this.iso8601(until));

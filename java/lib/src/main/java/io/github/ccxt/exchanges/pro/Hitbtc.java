@@ -435,7 +435,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String name = (String) this.implodeParams(method, new HashMap<String, Object>() {{
                 put( "speed", speed );
             }});
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             if (java.util.Objects.equals(symbolsNormalized, null))
             {
@@ -614,7 +614,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String name = (String) this.implodeParams(method, new HashMap<String, Object>() {{
                 put( "speed", speed );
             }});
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "speed")));
             List<String> marketIds = this.marketIds(symbolsNormalized);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{
@@ -1272,7 +1272,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "future", "futures_balance_subscribe" );
             }}));
             String mode = this.safeString(paramsMarketType, "mode", "batches");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, "mode");
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "mode");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "mode", mode );
             }};

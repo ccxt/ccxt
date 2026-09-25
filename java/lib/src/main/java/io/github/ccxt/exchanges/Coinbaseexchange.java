@@ -1427,7 +1427,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("end_date", this.iso8601(until));
             }
-            Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             List<Object> response = (this.privateGetFills(this.extend(request, paramsUntil))).join();
             return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1582,7 +1582,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request.put("granularity", java.util.Objects.requireNonNullElse(timeframe, "1m"));
             }
             Object until = this.safeValue2(paramsPaginate, "until", "end");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             // https://docs.pro.coinbase.com/#get-historic-rates max = 300
             Object cappedLimit = (((java.util.Objects.equals(limit, null)))) ? 300 : Math.min(300, limit);
             Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
@@ -1761,7 +1761,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             } else
             {
                 request.put("client_oid", clientOrderId);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid")));
+                Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid")));
                 response = (this.privateGetOrdersClientClientOid(this.extend(request, paramsOmitted))).join();
             }
             return this.parseOrder(response, (Map<String, Object>) null);
@@ -1877,7 +1877,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("end_date", this.iso8601(until));
             }
-            Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             List<Object> response = (this.privateGetOrders(this.extend(request, paramsUntil))).join();
             return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1957,7 +1957,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("post_only", true);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice")));
             Double costParam = this.safeNumber2(paramsOmitted, "cost", "funds", (Object) null);
             Boolean omitCost = (java.util.Objects.equals(type, "market")) && (!java.util.Objects.equals(costParam, null));
             Object paramsCost = paramsOmitted;
@@ -2040,7 +2040,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("client_oid", clientOrderId);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid"))) : parameters;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2301,7 +2301,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 request.put("end_date", this.iso8601(until));
             }
-            Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
             List<Object> response = (this.privateGetAccountsIdLedger(this.extend(request, paramsUntil))).join();
             List<Object> entries = this.toArray(response);
             for (var i = 0; i < ((List<?>)entries).size(); i++)

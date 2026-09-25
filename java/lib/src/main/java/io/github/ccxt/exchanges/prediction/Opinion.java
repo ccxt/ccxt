@@ -230,7 +230,7 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Long userLimit = this.safeInteger(parameters, "limit");
             Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 20);
             Long maxPages = this.safeInteger(this.options, "maxMarketsPages", 50);
@@ -1283,7 +1283,7 @@ public class Opinion extends OpinionApi
             Integer sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
             String salt = this.numberToString(this.milliseconds());
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
             String maker = (this.loadMultiSignAddress()).join();
             // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
             // against a differently-cased walletAddress with strict equality would pick the wrong

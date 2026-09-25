@@ -1188,7 +1188,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("price_kind", price);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "price")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "price")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_at", since);
@@ -2270,7 +2270,7 @@ public class Paradex extends ParadexApi
         {
             request.put("flags", new ArrayList<Object>(Arrays.asList("REDUCE_ONLY")));
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -2626,7 +2626,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && ((ids instanceof List));
             Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && ((clientOrderIds instanceof List));
             if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
@@ -2761,7 +2761,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -4192,7 +4192,7 @@ public class Paradex extends ParadexApi
                 request.put("start_at", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_at", until);

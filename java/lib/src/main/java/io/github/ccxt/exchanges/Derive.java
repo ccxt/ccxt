@@ -1345,7 +1345,7 @@ public class Derive extends DeriveApi
                 request.put("from_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to_timestamp", until);
@@ -1497,7 +1497,7 @@ public class Derive extends DeriveApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to_timestamp", until);
@@ -2230,7 +2230,7 @@ public class Derive extends DeriveApi
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500L)).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsPaginate, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrders", (Map<String, Object>) (paramsOmitted));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
             var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);

@@ -1946,7 +1946,7 @@ public class Bithumb extends BithumbApi
         request.put("side", sideRequest);
         String timeInForceRaw = this.safeString2(parameters, "timeInForce", "time_in_force");
         String timeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? "GTC" : timeInForceRaw;
-        Object paramsTimeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? parameters : this.omit(parameters, "timeInForce");
+        Map<String, Object> paramsTimeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? parameters : this.omit(parameters, "timeInForce");
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
@@ -2227,7 +2227,7 @@ public class Bithumb extends BithumbApi
                 market = this.market(symbol);
             }
             Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "twap");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Map<String, Object> data = null;
@@ -2270,7 +2270,7 @@ public class Bithumb extends BithumbApi
                 } else
                 {
                     String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
-                    Object paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : paramsOmitted;
+                    Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : paramsOmitted;
                     if (!java.util.Objects.equals(clientOrderId, null))
                     {
                         request.put("client_order_id", clientOrderId);
@@ -2714,7 +2714,7 @@ public class Bithumb extends BithumbApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "twap");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
             List<Object> clientOrderIds = null;
             if (Boolean.TRUE.equals(twap))
             {
@@ -2723,7 +2723,7 @@ public class Bithumb extends BithumbApi
             {
                 clientOrderIds = (List<Object>) this.safeList2(paramsOmitted, "client_order_ids", "clientOrderIds", (Object) null);
             }
-            Object paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsOmitted;
+            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsOmitted;
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 request.put("client_order_ids", clientOrderIds);
@@ -2890,7 +2890,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "twap");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
             String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
             Boolean useClientOrderId = !Boolean.TRUE.equals(twap) && (Helpers.isEqual(generation, 2)) && (!java.util.Objects.equals(clientOrderId, null));
             Object paramsRequest = paramsOmitted;
@@ -2995,7 +2995,7 @@ public class Bithumb extends BithumbApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsGeneration, "client_order_ids", "clientOrderIds", (Object) null);
-            Object paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsGeneration;
+            Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderIds, null)))) ? this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : paramsGeneration;
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 request.put("client_order_ids", clientOrderIds);
@@ -3077,7 +3077,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
             String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
-            Map<String, Object> paramsNetwork = (Map<String, Object>) this.omit(paramsWithdrawTag, "network");
+            Map<String, Object> paramsNetwork = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -3615,7 +3615,7 @@ public class Bithumb extends BithumbApi
                 put( "currency", currency.get("id") );
             }};
             String network = this.safeString2(paramsGeneration, "network", "net_type");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "network");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
@@ -3667,7 +3667,7 @@ public class Bithumb extends BithumbApi
                 put( "currency", currency.get("id") );
             }};
             String network = this.safeString2(paramsGeneration, "network", "net_type");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "network");
+            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "network");
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;

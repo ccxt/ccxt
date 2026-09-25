@@ -2121,7 +2121,7 @@ public class Blofin extends BlofinApi
                     request.put("algoId", String.valueOf(id));
                 }
             }
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
             if (java.util.Objects.equals(isTpsl, true))
             {
                 List<Order> tpslResponse = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
@@ -2227,7 +2227,7 @@ public class Blofin extends BlofinApi
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
-            Map<String, Object> query = (Map<String, Object>) this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
+            Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTpSl, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
             {
@@ -3548,7 +3548,7 @@ public class Blofin extends BlofinApi
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
-            Map<String, Object> query = (Map<String, Object>) this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
+            Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
             {

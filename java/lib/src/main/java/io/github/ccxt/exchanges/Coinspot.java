@@ -1120,7 +1120,7 @@ public class Coinspot extends CoinspotApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "side");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "side");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};

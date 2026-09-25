@@ -578,7 +578,7 @@ public class Nado extends NadoApi
             Object signature = this.signOrder((Map<String, Object>) (order), productId, chainId);
             placeOrder.put("order", order);
             placeOrder.put("signature", signature);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
+            Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }};
@@ -706,7 +706,7 @@ public class Nado extends NadoApi
             Long requestId = this.safeInteger(paramsRecvWindow, "id");
             Boolean spotLeverage = (Boolean) this.safeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage", (Object) null);
             Object placeRequiresUnfilled = this.safeBool2(paramsRecvWindow, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
+            Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Map<String, Object> cancelTx = new HashMap<String, Object>() {{
                 put( "sender", sender );
@@ -807,7 +807,7 @@ public class Nado extends NadoApi
                 market = this.market(symbol);
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, paramsOmitted)).join();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
@@ -873,7 +873,7 @@ public class Nado extends NadoApi
             }
             Object signature = this.signCancellationProducts((Map<String, Object>) (tx), chainId, endpointAddress);
             Long requestId = this.safeInteger(paramsRecvWindow, "id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("id")));
+            Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("id")));
             Map<String, Object> cancelProductOrders = new HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
@@ -917,7 +917,7 @@ public class Nado extends NadoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, paramsOmitted)).join();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
@@ -988,7 +988,7 @@ public class Nado extends NadoApi
             Long requestId = this.safeInteger(paramsRecvWindow, "id");
             String requiredUnfilledAmountRaw = this.safeString(paramsRecvWindow, "required_unfilled_amount");
             String requiredUnfilledAmount = this.safeString(paramsRecvWindow, "requiredUnfilledAmount");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount")));
+            Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount")));
             Map<String, Object> cancelOrders = new HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
@@ -1095,7 +1095,7 @@ public class Nado extends NadoApi
             Map<String, Object> paramsSubaccount = (Map<String, Object>) ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
             Boolean trigger = (Boolean) this.safeBool2(paramsSubaccount, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubaccount, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsSubaccount, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(trigger, true))
             {
                 throw new NotSupported((this.id + " fetchOrders only support trigger")) ;
@@ -2506,7 +2506,7 @@ public class Nado extends NadoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "candlesticks", new HashMap<String, Object>() {{
                     put( "product_id", Nado.this.parseToInt(market.get("id")) );

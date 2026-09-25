@@ -1085,7 +1085,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String accessType = "private";
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -1942,7 +1942,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
             this.checkRequiredCredentials(true);
             String access = this.safeString(parameters, "access", "private");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("access")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("access")));
             String url = this.getUrl("users", access);
             String messageHash = "authenticated";
             Client client = this.client(url);
@@ -2154,7 +2154,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String typeOption = (String) ((List<Object>) typeOptionparamsTypeVariable).get(0);
             Map<String, Object> paramsType = (Map<String, Object>) ((List<Object>) typeOptionparamsTypeVariable).get(1);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = this.omit(paramsType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2396,7 +2396,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String typeOption = (String) ((List<Object>) typeOptionparamsTypeVariable).get(0);
             Map<String, Object> paramsType = (Map<String, Object>) ((List<Object>) typeOptionparamsTypeVariable).get(1);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "stop", "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2831,7 +2831,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String url = this.getUrl("private", "private");
             String messageHash = this.requestId();
             String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
             Map<String, Object> market = this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             Map<String, Object> arg = new HashMap<String, Object>() {{

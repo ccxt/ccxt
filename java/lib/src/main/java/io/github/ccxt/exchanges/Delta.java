@@ -1906,7 +1906,7 @@ public class Delta extends DeltaApi
             {
                 request.put("symbol", market.get("id"));
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
             Map<String, Object> response = (this.publicGetHistoryCandles(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -2316,7 +2316,7 @@ public class Delta extends DeltaApi
                 request.put("limit_price", this.priceToPrecision(market.get("symbol"), price));
             }
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("client_order_id", clientOrderId);
@@ -2326,7 +2326,7 @@ public class Delta extends DeltaApi
             {
                 request.put("reduce_only", reduceOnly);
             }
-            Object paramsOmitted2 = (((java.util.Objects.equals(reduceOnly, true)))) ? this.omit(paramsOmitted, "reduceOnly") : paramsOmitted;
+            Map<String, Object> paramsOmitted2 = (((java.util.Objects.equals(reduceOnly, true)))) ? this.omit(paramsOmitted, "reduceOnly") : paramsOmitted;
             Map<String, Object> response = (this.privatePostOrders(this.extend(request, paramsOmitted2))).join();
             //
             //     {
@@ -2561,7 +2561,7 @@ public class Delta extends DeltaApi
                 market = this.market(symbol);
             }
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid", "clientOid")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid", "clientOid")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_oid", "clientOid")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -2941,7 +2941,7 @@ public class Delta extends DeltaApi
             {
                 request.put("network", this.networkCodeToId(networkCode, code));
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(networkCode, null)))) ? this.omit(parameters, "network") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(networkCode, null)))) ? this.omit(parameters, "network") : parameters;
             Map<String, Object> response = (this.privateGetDepositsAddress(this.extend(request, paramsOmitted))).join();
             //
             //    {

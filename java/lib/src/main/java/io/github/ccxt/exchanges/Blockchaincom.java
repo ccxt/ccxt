@@ -739,7 +739,7 @@ public class Blockchaincom extends BlockchaincomApi
             String orderType = this.safeString(parameters, "ordType", type);
             String uppercaseOrderType = orderType.toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "clientOrderId", "clOrdId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "clientOrderId", "clOrdId")));
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> request = Helpers.newMap(
                 "ordType", uppercaseOrderType,
@@ -749,7 +749,7 @@ public class Blockchaincom extends BlockchaincomApi
                 "clOrdId", clientOrderId
             );
             Object triggerPrice = this.safeValueN(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             if (java.util.Objects.equals(uppercaseOrderType, "STOP") || java.util.Objects.equals(uppercaseOrderType, "STOPLIMIT"))
             {
                 if (java.util.Objects.equals(triggerPrice, null))
@@ -1406,7 +1406,7 @@ public class Blockchaincom extends BlockchaincomApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String accountName = this.safeString(parameters, "account", "primary");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "account");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "account");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", accountName );
             }};

@@ -2005,7 +2005,7 @@ public class Digifinex extends DigifinexApi
                         }
                     }
                 }
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+                Map<String, Object> paramsOmitted = this.omit(parameters, "until");
                 response = (this.publicSpotGetKline(this.extend(request, paramsOmitted))).join();
             }
             //
@@ -2576,7 +2576,7 @@ public class Digifinex extends DigifinexApi
             }
             String defaultType = this.safeString(this.options, "defaultType", "spot");
             String orderType = this.safeString(parameters, "type", defaultType);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", orderType );
                 put( "order_id", String.join(",", (List<String>)ids) );
@@ -4796,7 +4796,7 @@ public class Digifinex extends DigifinexApi
             {
                 ((List<Object>)omitKeys).add("side");
             }
-            Map<String, Object> paramsRequest = (Map<String, Object>) this.omit(parameters, omitKeys);
+            Map<String, Object> paramsRequest = this.omit(parameters, omitKeys);
             return (this.privateSwapPostAccountLeverage(this.extend(request, paramsRequest))).join();
         });
 

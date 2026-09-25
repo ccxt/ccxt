@@ -1956,7 +1956,7 @@ public class Xt extends XtApi
                 request.put("limit", 1000);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -3283,7 +3283,7 @@ public class Xt extends XtApi
             {
                 timeInForce = "GTX";
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
             if ((java.util.Objects.equals(side, "sell")) || (java.util.Objects.equals(type, "limit")))
             {
                 request.put("quantity", this.amountToPrecision(symbol, amount));
@@ -3328,7 +3328,7 @@ public class Xt extends XtApi
             {
                 timeInForce = "GTX";
             }
-            Map<String, Object> paramsOmitted4 = (Map<String, Object>) this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
+            Map<String, Object> paramsOmitted4 = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")));
             if (!java.util.Objects.equals(timeInForce, null))
             {
                 request.put("timeInForce", timeInForce);
@@ -3398,7 +3398,7 @@ public class Xt extends XtApi
                 {
                     request.put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
-                Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("trailingPercent", "trailingAmount", "trailingTriggerPrice")));
+                Map<String, Object> paramsOmitted3 = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("trailingPercent", "trailingAmount", "trailingTriggerPrice")));
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, paramsOmitted3))).join();
@@ -3418,7 +3418,7 @@ public class Xt extends XtApi
                     entrustType = "STOP_MARKET";
                 }
                 request.put("entrustType", entrustType);
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted4, "triggerPrice");
+                Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted4, "triggerPrice");
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCreatePlan(this.extend(request, paramsOmitted2))).join();
@@ -3435,7 +3435,7 @@ public class Xt extends XtApi
                 {
                     request.put("triggerProfitPrice", this.priceToPrecision(symbol, takeProfit));
                 }
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsOmitted4, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
+                Map<String, Object> paramsOmitted = this.omit(paramsOmitted4, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     response = (this.privateLinearPostFutureTradeV1EntrustCreateProfit(this.extend(request, paramsOmitted))).join();
@@ -3533,7 +3533,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                Map<String, Object> paramsOmitted3 = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustPlanDetail(this.extend(request, paramsOmitted3))).join();
@@ -3543,7 +3543,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsSubType, "stopLossTakeProfit");
+                Map<String, Object> paramsOmitted2 = this.omit(paramsSubType, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustProfitDetail(this.extend(request, paramsOmitted2))).join();
@@ -3553,7 +3553,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "trailing");
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, paramsOmitted))).join();
@@ -3753,7 +3753,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                Map<String, Object> paramsOmitted2 = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustPlanListHistory(this.extend(request, paramsOmitted2))).join();
@@ -3763,7 +3763,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "trailing");
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, paramsOmitted))).join();
@@ -3996,7 +3996,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+                Map<String, Object> paramsOmitted3 = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustPlanList(this.extend(request, paramsOmitted3))).join();
@@ -4006,7 +4006,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsSubType, "stopLossTakeProfit");
+                Map<String, Object> paramsOmitted2 = this.omit(paramsSubType, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInverseGetFutureTradeV1EntrustProfitList(this.extend(request, paramsOmitted2))).join();
@@ -4016,7 +4016,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "trailing");
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "trailing");
                 if (java.util.Objects.equals(status, "open"))
                 {
                     if (java.util.Objects.equals(subType, "inverse"))
@@ -4423,7 +4423,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                Map<String, Object> paramsOmitted3 = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelPlan(this.extend(request, paramsOmitted3))).join();
@@ -4433,7 +4433,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsSubType, "stopLossTakeProfit");
+                Map<String, Object> paramsOmitted2 = this.omit(paramsSubType, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelProfitStop(this.extend(request, paramsOmitted2))).join();
@@ -4443,7 +4443,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "trailing");
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, paramsOmitted))).join();
@@ -4541,7 +4541,7 @@ public class Xt extends XtApi
             }
             if (java.util.Objects.equals(trigger, true))
             {
-                Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+                Map<String, Object> paramsOmitted3 = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelAllPlan(this.extend(request, paramsOmitted3))).join();
@@ -4551,7 +4551,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(stopLossTakeProfit, true))
             {
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsSubType, "stopLossTakeProfit");
+                Map<String, Object> paramsOmitted2 = this.omit(paramsSubType, "stopLossTakeProfit");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, paramsOmitted2))).join();
@@ -4561,7 +4561,7 @@ public class Xt extends XtApi
                 }
             } else if (java.util.Objects.equals(trailing, true))
             {
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "trailing");
+                Map<String, Object> paramsOmitted = this.omit(paramsSubType, "trailing");
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, paramsOmitted))).join();
@@ -6803,7 +6803,7 @@ public class Xt extends XtApi
             String positionType = (((java.util.Objects.equals(marginModeLower, "cross")))) ? "CROSSED" : "ISOLATED";
             String posSide = this.safeStringUpper(parameters, "positionSide");
             this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new ArrayList<Object>(Arrays.asList("LONG", "SHORT")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "positionSide");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "positionSide");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "positionType", positionType );
                 put( "positionSide", posSide );
@@ -6871,7 +6871,7 @@ public class Xt extends XtApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice", (Object) null);
             Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
             Boolean isStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean isTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))

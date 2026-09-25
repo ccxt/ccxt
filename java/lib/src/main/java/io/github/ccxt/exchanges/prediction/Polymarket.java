@@ -616,7 +616,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Integer queriesLength = ((List<?>)queries).size();
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
             if ((queriesLength != null && queriesLength > 0))
@@ -691,7 +691,7 @@ public class Polymarket extends PolymarketApi
             {
                 eventsStatus = null;
             }
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages")));
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
             for (var qi = 0; qi < ((List<?>)queries).size(); qi++)
@@ -852,7 +852,7 @@ public class Polymarket extends PolymarketApi
             {
                 order = "startDate";
             }
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags")));
             Map<String, Object> baseRequest = Helpers.newMap(
                 "limit", pageSize,
                 "order", order,
@@ -2198,7 +2198,7 @@ public class Polymarket extends PolymarketApi
             (this.loadApiCredentials()).join();
             // the collateral balance is tied to the signature type / funder that holds the USDC
             Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_type", "COLLATERAL" );
                 put( "signature_type", signatureType );
@@ -2705,7 +2705,7 @@ public class Polymarket extends PolymarketApi
         String expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         Double cost = this.safeNumber(parameters, "cost", (Object) null);
-        Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
         Map<String, Object> amounts = this.polymarketOrderRawAmounts(sideStr, amount, priceResolved, (String) (tickSize), cost);
         String makerAmount = this.safeString(amounts, "makerAmount");
         String takerAmount = this.safeString(amounts, "takerAmount");

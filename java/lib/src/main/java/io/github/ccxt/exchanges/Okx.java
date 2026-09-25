@@ -2431,7 +2431,7 @@ public class Okx extends OkxApi
     public Object handleMarketTypeAndParams(Object methodName, Map<String, Object> market, Map<String, Object> parameters, Object defaultValue)
     {
         String instType = this.safeString(parameters, "instType");
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "instType");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "instType");
         String type = this.safeString(paramsOmitted, "type");
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
         {
@@ -3814,7 +3814,7 @@ public class Okx extends OkxApi
             }
             String priceType = this.safeString(paramsPaginate, "price");
             boolean isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
-            Map<String, Object> paramsPrice = (Map<String, Object>) this.omit(paramsPaginate, "price");
+            Map<String, Object> paramsPrice = this.omit(paramsPaginate, "price");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (java.util.Objects.equals(limit, null));
@@ -3862,10 +3862,10 @@ public class Okx extends OkxApi
             {
                 request.put("after", until);
             }
-            Object paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPrice, "until") : paramsPrice;
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPrice, "until") : paramsPrice;
             defaultType = this.safeString(options, "type", defaultType); // Candles or HistoryCandles
             String type = this.safeString(paramsUntil, "type", defaultType);
-            Object paramsType = this.omit(paramsUntil, "type");
+            Map<String, Object> paramsType = this.omit(paramsUntil, "type");
             Boolean isHistoryCandles = (java.util.Objects.equals(type, "HistoryCandles"));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(priceType, "mark"))
@@ -5002,7 +5002,7 @@ public class Okx extends OkxApi
                 request.put("newPx", this.priceToPrecision(symbol, price));
             }
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -5132,7 +5132,7 @@ public class Okx extends OkxApi
             {
                 request.put("ordId", id);
             }
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId")));
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId")));
             Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -5288,7 +5288,7 @@ public class Okx extends OkxApi
             List<Object> ordersData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
             // request would otherwise come back as a list under the unified string field
-            Map<String, Object> orderParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
+            Map<String, Object> orderParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
             return this.parseOrders(ordersData, market, (Long) null, (Long) null, orderParams);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -5810,7 +5810,7 @@ public class Okx extends OkxApi
                     request.put("ordId", id);
                 }
             }
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrderAlgo"))
             {
@@ -5986,7 +5986,7 @@ public class Okx extends OkxApi
             {
                 request.put("ordType", "trigger");
             }
-            Map<String, Object> query = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
+            Map<String, Object> query = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "trailing")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoPending"))
             {
@@ -6639,7 +6639,7 @@ public class Okx extends OkxApi
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchLedger", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method");
             method = this.safeString(paramsPaginate, "method", method);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "method");
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "method");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchLedger", paramsOmitted, (String) null);
             String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
@@ -6998,7 +6998,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String rawNetwork = this.safeString(parameters, "network"); // some networks are like "Dora Vota Mainnet"
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             String codeValue = ((String)this.safeCurrencyCode((String) (code), (Map<String, Object>) null));
             String network = this.networkIdToCode(rawNetwork, codeValue);
             Object responseRaw = (this.fetchDepositAddressesByNetwork(codeValue, paramsOmitted)).join();
@@ -7089,7 +7089,7 @@ public class Okx extends OkxApi
                 }
             }
             request.put("fee", this.numberToString(fee)); // withdrawals to OKCoin or OKX are fee-free, please set 0
-            Map<String, Object> query = (Map<String, Object>) this.omit(paramsWithdrawTag, omitKeys);
+            Map<String, Object> query = this.omit(paramsWithdrawTag, omitKeys);
             Map<String, Object> response = (this.privatePostAssetWithdrawal(this.extend(request, query))).join();
             //
             //     {
@@ -8936,7 +8936,7 @@ public class Okx extends OkxApi
             {
                 throw new BadRequest((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
             Map<String, Object> request = Helpers.newMap(
                 "lever", lever,
                 "mgnMode", marginModeValue,
@@ -9228,7 +9228,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = this.market(symbol);
             String posSide = this.safeString(parameters, "posSide", "net");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("posSide")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("posSide")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", market.get("id") );
                 put( "amt", amount );
@@ -9659,7 +9659,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String id = this.safeString2(parameters, "id", "ordId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "id");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "id");
             if (java.util.Objects.equals(id, null))
             {
                 throw new ArgumentsRequired((this.id + " repayCrossMargin() requires an id parameter")) ;
@@ -10464,7 +10464,7 @@ public class Okx extends OkxApi
                     request.put("expTime", this.safeString(optionParts, 2));
                 }
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("uly", "instFamily")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("uly", "instFamily")));
             Map<String, Object> response = (this.publicGetPublicOptSummary(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -11281,7 +11281,7 @@ public class Okx extends OkxApi
                 "mgnMode", "isolated"
             );
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -11387,7 +11387,7 @@ public class Okx extends OkxApi
             }
             String marginMode = this.safeString(parameters, "marginMode");
             String instType = this.safeStringUpper(parameters, "instType");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "marginMode", "instType")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "marginMode", "instType")));
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", limitResolved );
@@ -11481,7 +11481,7 @@ public class Okx extends OkxApi
                 put( "instId", market.get("id") );
             }};
             String until = this.safeString2(parameters, "until", "end");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end", until);

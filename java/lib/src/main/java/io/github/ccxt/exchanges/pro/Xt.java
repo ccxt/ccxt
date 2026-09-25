@@ -669,7 +669,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> market = this.market(symbol);
             String levels = this.safeString(parameters, "levels");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "levels");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "levels");
             Object name = ("depth_update@" + market.get("id"));
             if (!java.util.Objects.equals(levels, null))
             {
@@ -705,7 +705,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> market = this.market(symbol);
             String levels = this.safeString(parameters, "levels");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "levels");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "levels");
             Object name = ("depth_update@" + market.get("id"));
             if (!java.util.Objects.equals(levels, null))
             {

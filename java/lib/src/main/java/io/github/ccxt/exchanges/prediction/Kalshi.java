@@ -402,7 +402,7 @@ public class Kalshi extends KalshiApi
             // markets — then flatten those markets.
             if ((queriesLength != null && queriesLength > 0))
             {
-                Map<String, Object> eventParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+                Map<String, Object> eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
                 Integer eventsLength = ((List<?>)events).size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
@@ -417,7 +417,7 @@ public class Kalshi extends KalshiApi
                 }
                 return queryMarkets;
             }
-            Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
             // no query: page the markets listing directly. Cap the total collected so an unscoped
             // loadMarkets cannot run away through every kalshi market via the cursor.
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
@@ -2517,7 +2517,7 @@ public class Kalshi extends KalshiApi
             // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
             // `time_in_force` param (handled below) still overrides
             String unifiedTif = this.safeStringUpper(parameters, "timeInForce");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "timeInForce");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "timeInForce");
             String defaultTif = "good_till_canceled";
             if (Boolean.TRUE.equals(isMarket))
             {

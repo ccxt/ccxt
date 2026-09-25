@@ -1680,7 +1680,7 @@ public class Bitstamp extends BitstampApi
         {
             return currencyId;
         }
-        Map<String, Object> transactionOmitted = (Map<String, Object>) this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
+        Map<String, Object> transactionOmitted = this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
         List<String> ids = new ArrayList<String>(transactionOmitted.keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
@@ -1699,7 +1699,7 @@ public class Bitstamp extends BitstampApi
 
     public Object getMarketFromTrade(Map<String, Object> trade)
     {
-        Map<String, Object> tradeOmitted = (Map<String, Object>) this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
+        Map<String, Object> tradeOmitted = this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
         List<Object> currencyIds = new ArrayList<Object>(tradeOmitted.keySet());
         Integer numCurrencyIds = ((List<?>)currencyIds).size();
         if ((numCurrencyIds != null && numCurrencyIds > 2))
@@ -2035,7 +2035,7 @@ public class Bitstamp extends BitstampApi
                 }
                 request.put("limit", Helpers.mathMin(limitResolved, 1000)); // min 1, max 1000
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> response = (this.publicGetOhlcPair(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -2401,7 +2401,7 @@ public class Bitstamp extends BitstampApi
             {
                 request.put("client_order_id", clientOrderId);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
             Object response = null;
             String capitalizedSide = this.capitalize(side);
             if (java.util.Objects.equals(type, "market"))
@@ -2480,7 +2480,7 @@ public class Bitstamp extends BitstampApi
             {
                 request.put("id", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
             Map<String, Object> response = (this.privatePostReplaceOrder(this.extend(request, paramsOmitted))).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             order.put("type", type);
@@ -2608,7 +2608,7 @@ public class Bitstamp extends BitstampApi
             {
                 request.put("id", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId"))) : parameters;
             Map<String, Object> response = (this.privatePostOrderStatus(this.extend(request, paramsOmitted))).join();
             return this.parseOrderStatus(this.safeString(response, "status"));
         }).thenApply(res -> (String) res);
@@ -2648,7 +2648,7 @@ public class Bitstamp extends BitstampApi
             {
                 request.put("id", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId"))) : parameters;
             Map<String, Object> response = (this.privatePostOrderStatus(this.extend(request, paramsOmitted))).join();
             //
             //      {

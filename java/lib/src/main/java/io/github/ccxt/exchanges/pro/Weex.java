@@ -751,7 +751,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "callerMethodName");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
@@ -840,7 +840,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "callerMethodName");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
@@ -1019,7 +1019,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "callerMethodName");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             String depth = "200";
             List<Object> depthOptionparamsDepthVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
             String depthOption = (String) ((List<Object>) depthOptionparamsDepthVariable).get(0);
@@ -1090,7 +1090,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "callerMethodName");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             String depth = "200";
             List<Object> depthOptionparamsDepthVariable = (List<Object>) this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
             String depthOption = (String) ((List<Object>) depthOptionparamsDepthVariable).get(0);

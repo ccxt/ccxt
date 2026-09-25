@@ -4673,7 +4673,7 @@ public class Binance extends BinanceApi
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
             Helpers.addElementToObject(this.urls, "api", this.urls.get("apiBackupDemoTrading"));
-            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackupDemoTrading");
+            Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -4697,7 +4697,7 @@ public class Binance extends BinanceApi
 
             String defaultType = this.safeString2(this.options, "fetchTime", "defaultType", "spot");
             String type = this.safeString(parameters, "type", defaultType);
-            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> query = this.omit(parameters, "type");
             String subType = (String) ((List<Object>)this.handleSubTypeAndParams("fetchTime", (Map<String, Object>) null, parameters, (Object) null)).get(0);
             Map<String, Object> response = null;
             if (this.isLinear(type, subType))
@@ -6123,7 +6123,7 @@ public class Binance extends BinanceApi
             } else if (java.util.Objects.equals(market.get("linear"), true))
             {
                 Boolean rpi = (Boolean) this.safeBool(parameters, "rpi", false);
-                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "rpi");
+                Map<String, Object> paramsOmitted = this.omit(parameters, "rpi");
                 if (java.util.Objects.equals(rpi, true))
                 {
                     // rpi limit only supports 1000
@@ -6469,7 +6469,7 @@ public class Binance extends BinanceApi
                 } else
                 {
                     Boolean rolling = (Boolean) this.safeBool(parameters, "rolling", false);
-                    Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "rolling");
+                    Map<String, Object> paramsOmitted = this.omit(parameters, "rolling");
                     if (java.util.Objects.equals(rolling, true))
                     {
                         response = (this.publicGetTicker(this.extend(request, paramsOmitted))).join();
@@ -6975,7 +6975,7 @@ public class Binance extends BinanceApi
             Integer maxLimit = 1000;
             String price = this.safeString(paramsPaginate, "price");
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("price", "until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("price", "until")));
             Object limitRequested = limit;
             if (!java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null) && java.util.Objects.equals(limit, null))
             {
@@ -7471,7 +7471,7 @@ public class Binance extends BinanceApi
                 Integer maxLimitForContractHistorical = ((Boolean.TRUE.equals(isHistoricalEndpoint))) ? 500 : 1000;
                 request.put("limit", (((java.util.Objects.equals(isFutureOrSwap, true)))) ? Helpers.mathMin(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
             if (java.util.Objects.equals(method, null))
             {
                 if (java.util.Objects.equals(market.get("option"), true))
@@ -9024,7 +9024,7 @@ public class Binance extends BinanceApi
             Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             Boolean stock = (Boolean) this.safeBool(market, "stock", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("sor", "SOR", "test")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("sor", "SOR", "test")));
             // if (isPortfolioMargin) {
             //     params['portfolioMargin'] = isPortfolioMargin;
             // }
@@ -9613,7 +9613,7 @@ public class Binance extends BinanceApi
                 request.put("icebergQty", this.amountToPrecision(symbol, icebergAmount));
             }
         }
-        Map<String, Object> requestParams = (Map<String, Object>) this.omit(paramsStp, omitKeys);
+        Map<String, Object> requestParams = this.omit(paramsStp, omitKeys);
         return (Map<String, Object>) (this.extend(request, requestParams));
     }
 
@@ -10454,7 +10454,7 @@ public class Binance extends BinanceApi
             Boolean isPortfolioMargin = (Boolean) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(0);
             Map<String, Object> paramsPapi = (Map<String, Object>) ((List<Object>) isPortfolioMarginparamsPapiVariable).get(1);
             Boolean isConditional = (Boolean) this.safeBoolN(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPapi, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isPortfolioMarginConditional = (Boolean.TRUE.equals(isPortfolioMargin) && Boolean.TRUE.equals(isConditional));
             String orderIdRequest = "orderId";
             if (java.util.Objects.equals(isPortfolioMarginConditional, true))
@@ -11194,7 +11194,7 @@ public class Binance extends BinanceApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> origClientOrderIdList = (List<Object>) this.safeList2(parameters, "origClientOrderIdList", "clientOrderIds", (Object) null);
-            Object paramsOmitted = (((!java.util.Objects.equals(origClientOrderIdList, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(origClientOrderIdList, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds"))) : parameters;
             if (!java.util.Objects.equals(origClientOrderIdList, null))
             {
                 request.put("origClientOrderIdList", origClientOrderIdList);
@@ -11280,7 +11280,7 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> market = this.market(symbol);
             String type = this.safeString(parameters, "type", market.get("type"));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             if (!java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((this.id + " fetchOrderTrades() supports spot markets only")) ;
@@ -11665,7 +11665,7 @@ public class Binance extends BinanceApi
                 request.put("endTime", this.sum(since, 7776000000L));
             }
             String accountType = this.safeStringUpper(parameters, "type");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             if (!java.util.Objects.equals(accountType, null))
             {
                 request.put("accountType", accountType);
@@ -11832,9 +11832,9 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> legalMoney = (Map<String, Object>) this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
             Boolean fiatOnly = (Boolean) this.safeBool(paramsPaginate, "fiat", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "fiatOnly");
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "fiatOnly");
             Long until = this.safeInteger(paramsOmitted, "until");
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, "until");
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, "until");
             if ((java.util.Objects.equals(fiatOnly, true)) || ((!java.util.Objects.equals(code, null)) && (legalMoney.containsKey(code))))
             {
                 if (!java.util.Objects.equals(code, null))
@@ -12347,7 +12347,7 @@ public class Binance extends BinanceApi
                 put( "amount", Binance.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             request.put("type", this.safeString(parameters, "type"));
-            Object paramsOmitted = this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             if (java.util.Objects.equals(request.get("type"), null))
             {
                 String symbol = this.safeString(paramsOmitted, "symbol");
@@ -13441,14 +13441,14 @@ public class Binance extends BinanceApi
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, paramsPaginate, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "type");
+            Map<String, Object> paramsOmitted = this.omit(paramsSubType, "type");
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
             }
             Long until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsOmitted, "endTime", until); // exchange-specific in milliseconds
-            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -13525,7 +13525,7 @@ public class Binance extends BinanceApi
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingRates", (Map<String, Object>) null, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Map<String, Object> query = (Map<String, Object>) this.omit(paramsSubType, "type");
+            Map<String, Object> query = this.omit(paramsSubType, "type");
             List<Object> response = null;
             if (this.isLinear(type, subType))
             {
@@ -14197,7 +14197,7 @@ public class Binance extends BinanceApi
             {
                 String defaultType = this.safeString(this.options, "defaultType", "future");
                 String type = this.safeString(parameters, "type", defaultType);
-                Map<String, Object> query = (Map<String, Object>) this.omit(parameters, "type");
+                Map<String, Object> query = this.omit(parameters, "type");
                 String subType = null;
                 Map<String, Object> paramsSubType = null;
                 List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("loadLeverageBrackets", (Map<String, Object>) null, parameters, "linear");
@@ -14684,7 +14684,7 @@ public class Binance extends BinanceApi
             (this.loadLeverageBrackets(false, parameters)).join();
             String defaultType = this.safeString(this.options, "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchAccountPositions", (Map<String, Object>) null, paramsOmitted, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
@@ -14973,7 +14973,7 @@ public class Binance extends BinanceApi
             }
             String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
             String type = this.safeString(paramsUntil, "type", defaultType);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "type");
+            Map<String, Object> paramsOmitted = this.omit(paramsUntil, "type");
             List<Object> response = null;
             if (this.isLinear(type, subType))
             {
@@ -16498,7 +16498,7 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String symbol = this.safeString(parameters, "symbol");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "symbol");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
@@ -17161,7 +17161,7 @@ public class Binance extends BinanceApi
             }
             Long until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until); // exchange-specific in milliseconds
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if ((!java.util.Objects.equals(endTime, null)) && ((endTime == null || endTime != 0)))
             {
                 request.put("endTime", endTime);
@@ -18075,7 +18075,7 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> market = this.market(symbol);
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -18408,7 +18408,7 @@ public class Binance extends BinanceApi
             {
                 request.put("endTime", now);
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Map<String, Object> response = null;
             String responseQuery = null;
             String fromCurrencyKey = null;

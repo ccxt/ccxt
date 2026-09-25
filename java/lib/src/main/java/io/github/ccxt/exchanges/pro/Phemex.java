@@ -1768,7 +1768,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.seconds();
             Boolean settleIsUSDT = (java.util.Objects.equals(this.safeString(parameters, "settle", ""), "USDT"));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "settle");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "settle");
             String channel = "aop.subscribe";
             if (java.util.Objects.equals(type, "spot"))
             {

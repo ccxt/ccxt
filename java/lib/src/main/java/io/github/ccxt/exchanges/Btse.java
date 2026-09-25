@@ -1478,7 +1478,7 @@ public class Btse extends BtseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(paramsOmitted)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
@@ -2753,13 +2753,13 @@ public class Btse extends BtseApi
             {
                 request.put("orderId", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsOmitted), "spot");
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted, "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Object response = null;
@@ -2821,13 +2821,13 @@ public class Btse extends BtseApi
             {
                 request.put("orderId", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             String triggerPrice = this.safeString(paramsOmitted, "triggerPrice");
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Object query = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsOmitted, "triggerPrice") : paramsOmitted;
+            Map<String, Object> query = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsOmitted, "triggerPrice") : paramsOmitted;
             if (!java.util.Objects.equals(amount, null))
             {
                 request.put("orderSize", this.amountToPrecision(symbol, amount));
@@ -2911,7 +2911,7 @@ public class Btse extends BtseApi
             {
                 request.put("orderId", id);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             List<Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
@@ -3332,7 +3332,7 @@ public class Btse extends BtseApi
             // the endpoint applies a server side history type filter sent as a
             // json encoded array in the query string, verified live
             request.put("historyTypes", this.json(typesList));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "walletType");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "walletType");
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -3590,7 +3590,7 @@ public class Btse extends BtseApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String walletType = this.safeString(parameters, "walletType", "SPOT");
             request.put("walletType", walletType);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "walletType");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "walletType");
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -4136,7 +4136,7 @@ public class Btse extends BtseApi
             {
                 positionMode = "ISOLATED";
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "hedged");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "hedged");
             Map<String, Object> request = Helpers.newMap(
                 "symbol", this.futuresRequestId(market),
                 "positionMode", positionMode
@@ -4189,7 +4189,7 @@ public class Btse extends BtseApi
                 }
                 request.put("orderPrice", this.priceToPrecision(symbol, price));
             }
-            Object paramsOmitted = (((java.util.Objects.equals(typeUpper, "LIMIT")))) ? this.omit(paramsOrderType, "price") : paramsOrderType;
+            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(typeUpper, "LIMIT")))) ? this.omit(paramsOrderType, "price") : paramsOrderType;
             Object response = (this.privateDeleteFuturesApiV3TradePositions(this.extend(request, paramsOmitted))).join();
             Object order = this.safeDict(response, 0, (Object) null);
             if (java.util.Objects.equals(order, null))

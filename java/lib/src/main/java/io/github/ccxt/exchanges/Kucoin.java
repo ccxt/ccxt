@@ -2829,7 +2829,7 @@ public class Kucoin extends KucoinApi
             }
         }
         Object hf = this.safeBool(parameters, "hf", loadedHf);
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "hf");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "hf");
         return new ArrayList<Object>(Arrays.asList(hf, paramsOmitted));
     }
 
@@ -4837,7 +4837,7 @@ public class Kucoin extends KucoinApi
             }
             Map<String, Object> market = this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "test");
             List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(paramsOmitted);
             Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
             Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
@@ -5071,7 +5071,7 @@ public class Kucoin extends KucoinApi
             }
             Map<String, Object> market = this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "test");
             Boolean hasTpOrSlOrder = (!java.util.Objects.equals(this.safeValue(paramsOmitted, "stopLoss"), null)) || (!java.util.Objects.equals(this.safeValue(paramsOmitted, "takeProfit"), null));
             Object orderRequest = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
             Map<String, Object> response = null;
@@ -5115,7 +5115,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> market = this.market(symbol);
         // required param, cannot be used twice
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
-        Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOid", "clientOrderId")));
+        Map<String, Object> paramsOmitted2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOid", "clientOrderId")));
         Map<String, Object> request = Helpers.newMap(
             "clientOid", clientOrderId,
             "side", side,
@@ -6022,7 +6022,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             Object response = null;
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("clientOid", "clientOrderId", "stop", "trigger", "tradeType")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("clientOid", "clientOrderId", "stop", "trigger", "tradeType")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clientOid", clientOrderId);
@@ -6142,7 +6142,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -6340,7 +6340,7 @@ public class Kucoin extends KucoinApi
             List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(parameters);
             Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
             Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsHf, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsHf, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", paramsOmitted, (String) null);
             String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
@@ -6419,7 +6419,7 @@ public class Kucoin extends KucoinApi
                 request.put("symbol", this.marketId((String) (symbol)));
             }
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> response = null;
             if ((!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false)))
             {
@@ -6642,7 +6642,7 @@ public class Kucoin extends KucoinApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsHf, new ArrayList<Object>(Arrays.asList("stop", "trigger", "till", "until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsHf, new ArrayList<Object>(Arrays.asList("stop", "trigger", "till", "until")));
             List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", paramsOmitted, (String) null);
             String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
@@ -6759,7 +6759,7 @@ public class Kucoin extends KucoinApi
             }
             Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", (Object) null);
             Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "until", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "until", "trigger")));
             Map<String, Object> statuses = new HashMap<String, Object>() {{
                 put( "closed", "done" );
                 put( "open", "active" );
@@ -6906,7 +6906,7 @@ public class Kucoin extends KucoinApi
             {
                 marketType = this.safeString(paramsAccountMode, "marketType");
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsAccountMode, "marketType");
+            Map<String, Object> paramsOmitted = this.omit(paramsAccountMode, "marketType");
             Boolean isContract = (!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"));
             if (!Boolean.TRUE.equals(isContract) && (java.util.Objects.equals(symbol, null)))
             {
@@ -7221,7 +7221,7 @@ public class Kucoin extends KucoinApi
                     request.put("symbol", this.safeString(market, "id"));
                 }
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "clientOid", "clientOrderId", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "clientOid", "clientOrderId", "trigger")));
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -9693,7 +9693,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) requestedTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String type = this.safeString(accountsByType, requestedType, requestedType);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarketType, "type");
+            Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "type");
             if (java.util.Objects.equals(type, "contract"))
             {
                 return (this.fetchContractBalance(paramsOmitted)).join();
@@ -12096,7 +12096,7 @@ public class Kucoin extends KucoinApi
             List<Object> utaOptionparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "uta", uta);
             Boolean utaOption = (Boolean) ((List<Object>) utaOptionparamsUtaVariable).get(0);
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUta, "until");
+            Map<String, Object> paramsOmitted = this.omit(paramsUta, "until");
             Object start = since;
             Long end = until;
             if (java.util.Objects.equals(since, null))
@@ -13331,7 +13331,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("test", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("test", "clientOrderId")));
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 clientOrderId = this.numberToString(this.nonce());

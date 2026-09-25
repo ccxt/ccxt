@@ -1937,7 +1937,7 @@ public class Woofipro extends WoofiproApi
                 request.put("start_t", since);
             }
             Long until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_t", until);
@@ -2442,7 +2442,7 @@ public class Woofipro extends WoofiproApi
             }};
             request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
@@ -2614,7 +2614,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
             }
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
             Map<String, Object> response = null;
             this.checkRequiredArgument("editOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             if (Boolean.TRUE.equals(isConditional))
@@ -2642,7 +2642,7 @@ public class Woofipro extends WoofiproApi
                     request.put("order_type", orderType);
                 }
                 String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-                Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
+                Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
                     request.put("client_order_id", clientOrderId);
@@ -2688,7 +2688,7 @@ public class Woofipro extends WoofiproApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if ((!java.util.Objects.equals(trigger, true)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
@@ -2714,7 +2714,7 @@ public class Woofipro extends WoofiproApi
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     request.put("client_order_id", clientOrderIdExchangeSpecific);
-                    Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+                    Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                     response = (this.v1PrivateDeleteAlgoClientOrder(this.extend(request, paramsOmitted2))).join();
                 } else
                 {
@@ -2726,7 +2726,7 @@ public class Woofipro extends WoofiproApi
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     request.put("client_order_id", clientOrderIdExchangeSpecific);
-                    Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+                    Map<String, Object> paramsOmitted3 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
                     response = (this.v1PrivateDeleteClientOrder(this.extend(request, paramsOmitted3))).join();
                 } else
                 {
@@ -2792,7 +2792,7 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderIds, null))
@@ -2841,7 +2841,7 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2910,7 +2910,7 @@ public class Woofipro extends WoofiproApi
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
@@ -3006,7 +3006,7 @@ public class Woofipro extends WoofiproApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -3738,7 +3738,7 @@ public class Woofipro extends WoofiproApi
                 put( "verifyingContract", verifyingContractAddress );
                 put( "message", withdrawRequest );
             }};
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "chainId");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "chainId");
             Map<String, Object> response = (this.v1PrivatePostWithdrawRequest(this.extend(request, paramsOmitted))).join();
             //
             //     {

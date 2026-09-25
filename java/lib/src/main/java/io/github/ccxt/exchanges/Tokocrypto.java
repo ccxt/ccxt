@@ -1647,7 +1647,7 @@ public class Tokocrypto extends TokocryptoApi
             Integer maxLimit = 1500;
             String price = this.safeString(parameters, "price");
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : Helpers.mathMin(limit, maxLimit);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "interval", Tokocrypto.this.safeString(Tokocrypto.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -2487,7 +2487,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 request.put("startTime", since);
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(endTime, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until"))) : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(endTime, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until"))) : parameters;
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -2554,7 +2554,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-            Object paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             if (!java.util.Objects.equals(network, null))
             {
                 request.put("network", network);

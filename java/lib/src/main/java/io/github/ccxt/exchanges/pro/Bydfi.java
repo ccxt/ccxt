@@ -133,7 +133,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             Boolean unsubscribe = (Boolean) this.safeBool(parameters, "unsubscribe", false);
             String method = "SUBSCRIBE";
-            Object paramsOmitted = (((java.util.Objects.equals(unsubscribe, true)))) ? this.omit(parameters, "unsubscribe") : parameters;
+            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(unsubscribe, true)))) ? this.omit(parameters, "unsubscribe") : parameters;
             if (java.util.Objects.equals(unsubscribe, true))
             {
                 method = "UNSUBSCRIBE";
