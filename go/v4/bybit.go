@@ -5489,7 +5489,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol string, typeVar string, s
 	ch <- this.ParseOrder(order, market)
 	return nil
 }
-func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6199,7 +6199,7 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	ch <- this.ParseOrders(data)
 	return nil
 }
-func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
+func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6267,7 +6267,7 @@ func (this *Bybit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var requestExtended any = this.CancelOrderRequest(id, symbol, params)
+	var requestExtended map[string]any = this.CancelOrderRequest(id, symbol, params)
 
 	response := (<-this.PrivatePostV5OrderCancel(requestExtended))
 	PanicOnError(response)

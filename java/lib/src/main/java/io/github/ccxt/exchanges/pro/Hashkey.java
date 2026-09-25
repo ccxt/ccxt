@@ -141,7 +141,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object ohlcv = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -315,7 +315,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String symbolValue = (String) market.get("symbol");
             String topic = "trade";
             String messageHash = ("trades:" + symbolValue);
-            Object trades = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -480,7 +480,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 messageHash = ((messageHash + ":") + symbolResolved);
             }
-            Object orders = (this.watchPrivate(messageHash)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -623,7 +623,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object trades = (this.watchPrivate(messageHash)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

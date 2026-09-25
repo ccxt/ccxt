@@ -1032,7 +1032,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol string, optionalA
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
 	var response map[string]any = nil
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Raw))
 	} else {
@@ -1280,7 +1280,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	// not by the quote currency: type 1 markets are served by the binance host
 	// with the underscore-less id, every other type by open/v1 with the raw id
 	request["symbol"] = this.GetMarketIdByType(market)
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 		if limit != nil {
 			request["limit"] = limit
 		}
@@ -1513,7 +1513,7 @@ func (this *Tokocrypto) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} market a unified market structure
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
-func (this *Tokocrypto) IsNativeMarket(market any) any {
+func (this *Tokocrypto) IsNativeMarket(market any) bool {
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var symbolType *string = this.SafeString(marketInfo, "type")
 	// a market with an unknown symbol type falls back to the binance backed
@@ -1532,7 +1532,7 @@ func (this *Tokocrypto) IsNativeMarket(market any) any {
  * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
  */
 func (this *Tokocrypto) GetMarketIdByType(market any) any {
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 		return this.SafeString(market, "id")
 	}
 	return *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
@@ -1562,7 +1562,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol string, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 		panic(NotSupported(this.Id + " fetchTicker() does not support " + symbol + " yet, the venue serves 24hr ticker statistics only for its binance backed markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -1718,7 +1718,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol string, optionalArgs 
 		request["endTime"] = until
 	}
 	var response any = nil
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 
 		response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, paramsOmitted))).Raw
 		PanicOnError(response)

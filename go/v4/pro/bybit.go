@@ -1672,7 +1672,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          nil,
 	}, marketResolved)
 }
-func (this *Bybit) GetPrivateType(url any) any {
+func (this *Bybit) GetPrivateType(url any) string {
 	if ccxt.GetIndexOf(url, "spot") >= 0 {
 		return "spot"
 	} else if ccxt.GetIndexOf(url, "v5/private") >= 0 {

@@ -1113,7 +1113,7 @@ func (this *Bitstamp) HandleSubject(client any, message any) {
 		}
 	}
 }
-func (this *Bitstamp) HandleErrorMessage(client any, message any) any {
+func (this *Bitstamp) HandleErrorMessage(client any, message any) bool {
 	// {
 	//     "event": "bts:error",
 	//     "channel": '',

@@ -1950,12 +1950,12 @@ public class Bitso extends BitsoApi
     }});
                 }
             }
-            Object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new ArrayList<Object>(Arrays.asList()));
-            List<Object> currencyIds = Helpers.objectKeys(withdrawalFees);
+            Map<String, Object> withdrawalFees = (Map<String, Object>) this.safeDict(payload, "withdrawal_fees", new HashMap<String, Object>() {{}});
+            List<String> currencyIds = new ArrayList<String>(withdrawalFees.keySet());
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
-                Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-                String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
                 {
                     continue;
@@ -2089,7 +2089,7 @@ public class Bitso extends BitsoApi
         //
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<Object> depositResponse = (List<Object>) this.safeList(response, "deposit_fees", new ArrayList<Object>(Arrays.asList()));
-        Object withdrawalResponse = this.safeValue(response, "withdrawal_fees", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> withdrawalResponse = (Map<String, Object>) this.safeDict(response, "withdrawal_fees", new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)depositResponse).size(); i++)
         {
             Object entry = (depositResponse == null || i < 0 || i >= depositResponse.size() ? null : depositResponse.get(i));
@@ -2114,14 +2114,14 @@ public class Bitso extends BitsoApi
                 }
             }
         }
-        List<Object> withdrawalKeys = Helpers.objectKeys(withdrawalResponse);
+        List<String> withdrawalKeys = new ArrayList<String>(withdrawalResponse.keySet());
         for (var i = 0; i < ((List<?>)withdrawalKeys).size(); i++)
         {
-            Object currencyId = (withdrawalKeys == null || i < 0 || i >= withdrawalKeys.size() ? null : withdrawalKeys.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String currencyId = (withdrawalKeys == null || i < 0 || i >= withdrawalKeys.size() ? null : withdrawalKeys.get(i));
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || (Helpers.inOp(codes, code))))
             {
-                Double withdrawFee = this.parseNumber(Helpers.GetValue(withdrawalResponse, currencyId));
+                Double withdrawFee = this.parseNumber((withdrawalResponse == null || currencyId == null ? null : withdrawalResponse.get(currencyId)));
                 Map<String, Object> resultValue = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                 if (java.util.Objects.equals(resultValue, null))
                 {

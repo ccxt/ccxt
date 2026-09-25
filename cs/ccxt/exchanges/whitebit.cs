@@ -4883,7 +4883,7 @@ public partial class whitebit : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object version = this.safeValue(api, 0);
-        object accessibility = this.safeValue(api, 1);
+        string? accessibility = this.safeString(api, 1);
         object publicHeaders = ((headers == null)) ? new Dictionary<string, object>() {} : headers;
         ((IDictionary<string,object>)publicHeaders)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
         string pathWithParams = ("/" + this.implodeParams(path, parameters));
@@ -4893,7 +4893,7 @@ public partial class whitebit : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + pathWithParams);
-        if (isEqual(accessibility, "public"))
+        if (accessibility == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -4902,7 +4902,7 @@ public partial class whitebit : Exchange
         }
         string? privateBody = null;
         Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {};
-        if (isEqual(accessibility, "private"))
+        if (accessibility == "private")
         {
             this.checkRequiredCredentials();
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
@@ -4926,7 +4926,7 @@ public partial class whitebit : Exchange
                 { "X-TXC-SIGNATURE", signature },
             };
         }
-        bool isPrivate = (isEqual(accessibility, "private"));
+        bool isPrivate = (accessibility == "private");
         object requestBody = body;
         if (isPrivate)
         {

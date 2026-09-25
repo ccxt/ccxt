@@ -964,7 +964,7 @@ public partial class ndax : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitValue = ((limit == null)) ? 100 : limit; // default 100
+        Int64? limitValue = ((limit == null)) ? 100 : limit; // default 100
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },

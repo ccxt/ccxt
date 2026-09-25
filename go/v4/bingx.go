@@ -3774,7 +3774,7 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan any, symbol string,
 	ch <- BoxAbsent(retRes313715)
 	return nil
 }
-func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

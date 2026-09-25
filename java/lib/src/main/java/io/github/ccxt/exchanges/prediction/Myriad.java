@@ -4062,7 +4062,7 @@ public class Myriad extends MyriadApi
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String channel = ((("trades:" + networkId) + ":") + marketId);
             String messageHash = ("trades::" + sym);
-            Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -4096,7 +4096,7 @@ public class Myriad extends MyriadApi
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String channel = ((("trades:" + networkId) + ":") + marketId);
             String messageHash = "myTrades";
-            Object trades = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -4423,7 +4423,7 @@ public class Myriad extends MyriadApi
             }
             String channel = ((("orders:" + networkId) + ":") + trader);
             String messageHash = "orders";
-            Object orders = (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
             return this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
@@ -4521,7 +4521,7 @@ public class Myriad extends MyriadApi
                 }} );
                 put( "id", requestId );
             }};
-            Object positions = (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
+            List<Object> positions = (List<Object>) (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
             if (this.newUpdates)
             {
                 return positions;

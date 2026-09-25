@@ -798,7 +798,7 @@ func (this *Lighter) HashMessage(message any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Lighter) SignHash(hash any, privateKey any) any {
+func (this *Lighter) SignHash(hash any, privateKey any) string {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
@@ -806,9 +806,9 @@ func (this *Lighter) SignHash(hash any, privateKey any) any {
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey any) any {
+func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey any) string {
 	var hashMessage any = this.HashMessage(message)
-	var signature any = this.SignHash(hashMessage, privateKey)
+	var signature string = this.SignHash(hashMessage, privateKey)
 	var decTxInfo any = this.ParseJson(txInfo)
 	AddElementToObject(decTxInfo, "L1Sig", signature)
 	return this.Json(decTxInfo)
@@ -896,7 +896,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan any, builder any, takerFeeRat
 	txType := GetValue(txTypetxInfomessageToSignVariable, 0)
 	txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
 	messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
-	var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
+	var newTxInfo string = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": newTxInfo,
@@ -946,7 +946,7 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 	txType := GetValue(txTypetxInfomessageToSignVariable, 0)
 	txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
 	messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
-	var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
+	var newTxInfo string = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": newTxInfo,
@@ -1161,7 +1161,7 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 	if (IsEqual(accountIndex, nil)) || (IsEqual(apiKeyIndex, nil)) {
 		panic(ArgumentsRequired(this.Id + " fetchNonce() requires accountIndex and apiKeyIndex."))
 	}
-	if InOp(params, "nonce") {
+	if _, ok := params["nonce"]; ok {
 
 		ch <- this.SafeInteger(params, "nonce")
 		return nil

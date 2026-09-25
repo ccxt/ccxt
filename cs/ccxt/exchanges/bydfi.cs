@@ -1017,7 +1017,7 @@ public partial class bydfi : Exchange
         until = untilparamsUntilVariable[0];
         paramsUntil = untilparamsUntilVariable[1];
         Int64 now = this.milliseconds();
-        Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         object timeDelta = multiply(duration, numberOfCandles);
         if ((startTime == null) && (until == null))
         {
@@ -3084,7 +3084,7 @@ public partial class bydfi : Exchange
         Int64? until = (Int64?)untilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         // exchange requires endTime, and startTime but allows any value
-        object sinceResolved = ((since == null)) ? 1 : since;
+        Int64? sinceResolved = ((since == null)) ? 1 : since;
         request["startTime"] = sinceResolved;
         request["endTime"] = ((until == null)) ? this.milliseconds() : until;
         if ((limit != null))

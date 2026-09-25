@@ -1275,7 +1275,7 @@ func (this *Myriad) createOrderbookOrderBody(ch chan any, outcome any, typeVar a
  * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
  * @returns {object} a dict with the signed order, signature, timeInForce and networkId
  */
-func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	price := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1348,7 +1348,7 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 		"nonce":         nonce,
 		"expiration":    expiration,
 	}
-	var signature any = this.SignClobOrder(order, networkId)
+	var signature string = this.SignClobOrder(order, networkId)
 	return map[string]any{
 		"order":       order,
 		"signature":   signature,
@@ -1582,7 +1582,7 @@ func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan any, outcome string
  * @description EIP-712 signs an order-book typed-data message with the wallet private key (returns a 65-byte 0x signature)
  * @returns {string} the hex signature
  */
-func (this *Myriad) SignOrderbookTypedData(types any, message any, networkId any) any {
+func (this *Myriad) SignOrderbookTypedData(types any, message any, networkId any) string {
 	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
 	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, networkId)
 	var exchangeAddress *string = this.SafeString(chainConfig, "obExchangeAddress")
@@ -1616,7 +1616,7 @@ func (this *Myriad) SignOrderbookTypedData(types any, message any, networkId any
  * @description EIP-712 signs the order-book ccxt.Order struct
  * @returns {string} the hex signature
  */
-func (this *Myriad) SignClobOrder(message any, networkId any) any {
+func (this *Myriad) SignClobOrder(message any, networkId any) string {
 	var orderStruct []any = []any{map[string]any{
 		"name": "trader",
 		"type": "address",
@@ -1657,7 +1657,7 @@ func (this *Myriad) SignClobOrder(message any, networkId any) any {
  * @description EIP-712 signs the order-book CancelAll struct
  * @returns {string} the hex signature
  */
-func (this *Myriad) SignCancelAll(message any, networkId any) any {
+func (this *Myriad) SignCancelAll(message any, networkId any) string {
 	var cancelStruct []any = []any{map[string]any{
 		"name": "trader",
 		"type": "address",
@@ -1680,7 +1680,7 @@ func (this *Myriad) SignCancelAll(message any, networkId any) any {
  * @description normalises a fetched order-book order into a typed-data message (uint256 fields as strings, uint8 fields as ints)
  * @returns {object} the typed-data message
  */
-func (this *Myriad) ClobOrderMessage(rawOrder any) any {
+func (this *Myriad) ClobOrderMessage(rawOrder any) map[string]any {
 	var signer any = ccxt.DerefScalar(this.SafeString2(rawOrder, "trader", "user"))
 	if !ccxt.IsEqual(this.PrivateKey, nil) {
 		signer = this.EthGetAddressFromPrivateKey(this.PrivateKey)
@@ -2122,8 +2122,8 @@ func (this *Myriad) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if networkId == nil {
 		networkId = this.SafeString(this.Options, "defaultNetworkId", "56")
 	}
-	var message any = this.ClobOrderMessage(rawOrder)
-	var signature any = this.SignClobOrder(message, networkId)
+	var message map[string]any = this.ClobOrderMessage(rawOrder)
+	var signature string = this.SignClobOrder(message, networkId)
 	var request map[string]any = map[string]any{
 		"hash":       id,
 		"order":      message,
@@ -2195,7 +2195,7 @@ func (this *Myriad) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"marketId":  marketId,
 		"timestamp": timestamp,
 	}
-	var signature any = this.SignCancelAll(message, networkId)
+	var signature string = this.SignCancelAll(message, networkId)
 	var request map[string]any = map[string]any{
 		"trader":     trader,
 		"market_id":  this.ParseToInt(marketId),
@@ -2283,8 +2283,8 @@ func (this *Myriad) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		if fetchedNetworkId != nil {
 			networkId = fetchedNetworkId
 		}
-		var message any = this.ClobOrderMessage(rawOrder)
-		var signature any = this.SignClobOrder(message, networkId)
+		var message map[string]any = this.ClobOrderMessage(rawOrder)
+		var signature string = this.SignClobOrder(message, networkId)
 		signedOrders = append(signedOrders, map[string]any{
 			"order":     message,
 			"signature": signature,
@@ -2695,7 +2695,7 @@ func (this *Myriad) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency *string = this.SafeString(params, "currency", this.SafeString(chainConfig, "collateralCurrency", "USD1"))
 	var decimals *int64 = this.SafeInteger(params, "decimals", this.SafeInteger(chainConfig, "collateralDecimals", 18))
-	var owner any = this.WalletAddressFromKeys()
+	var owner string = this.WalletAddressFromKeys()
 	// ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
 	var callData *string = ccxt.SafeStringPtr(ccxt.Add("0x70a08231", this.PadHexAddress(owner)))
 	var callParams []any = []any{map[string]any{
@@ -4901,7 +4901,7 @@ func (this *Myriad) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var trader any = this.WalletAddressFromKeys()
+	var trader string = this.WalletAddressFromKeys()
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
 	var outcomeResolved any = outcome
 	if outcomeResolved != nil {
@@ -4912,7 +4912,7 @@ func (this *Myriad) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		networkId = this.SafeString(info, "networkId", networkId)
 		outcomeResolved = this.SafeOutcomeSymbol(outcomeResolved, outcomeObj)
 	}
-	var channel *string = ccxt.SafeStringPtr(ccxt.Add("orders:"+*networkId+":", trader))
+	var channel string = "orders:" + *networkId + ":" + trader
 	var messageHash string = "orders"
 
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))))
@@ -5004,9 +5004,9 @@ func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadOutcomesAsync(outcomes)))
 	}
-	var trader any = this.WalletAddressFromKeys()
+	var trader string = this.WalletAddressFromKeys()
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
-	var channel *string = ccxt.SafeStringPtr(ccxt.Add("positions:"+*networkId+":", trader))
+	var channel string = "positions:" + *networkId + ":" + trader
 	var messageHash string = "positions"
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 
@@ -5038,12 +5038,12 @@ func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByOutcomesSinceLimit(positions, outcomes, since, limit, true)
 	return nil
 }
-func (this *Myriad) SeedPositionBalancesAsync(trader any) <-chan any {
+func (this *Myriad) SeedPositionBalancesAsync(trader string) <-chan any {
 	ch := make(chan any, 1)
 	go this.seedPositionBalancesBody(ch, trader)
 	return ch
 }
-func (this *Myriad) seedPositionBalancesBody(ch chan any, trader any) any {
+func (this *Myriad) seedPositionBalancesBody(ch chan any, trader string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -5127,7 +5127,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "positions")
 }
-func (this *Myriad) WalletAddressFromKeys() any {
+func (this *Myriad) WalletAddressFromKeys() string {
 	// the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
 	// are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
 	// check length too: an unset walletAddress is an empty string (not undefined) in some languages

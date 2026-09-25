@@ -1905,7 +1905,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	ch <- this.ParseOrders(data, market)
 	return nil
 }
-func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2051,7 +2051,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol string, typeVar string,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createOrder", "generation", 2)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
 	if IsEqual(generation, 2) {
@@ -2059,18 +2059,18 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol string, typeVar string,
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostV2Orders(request)).Raw))
 	} else {
-		AddElementToObject(request, "order_currency", market["base"])
-		AddElementToObject(request, "payment_currency", market["quote"])
-		AddElementToObject(request, "units", this.AmountToPrecision(symbol, amount))
+		request["order_currency"] = market["base"]
+		request["payment_currency"] = market["quote"]
+		request["units"] = this.AmountToPrecision(symbol, amount)
 		if typeVar == "limit" {
-			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+			request["price"] = this.PriceToPrecision(symbol, price)
 			var typeRequest string
 			if side == "buy" {
 				typeRequest = "bid"
 			} else {
 				typeRequest = "ask"
 			}
-			AddElementToObject(request, "type", typeRequest)
+			request["type"] = typeRequest
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostTradePlace(this.Extend(request, paramsGeneration))).Raw))
 		} else if side == "buy" {

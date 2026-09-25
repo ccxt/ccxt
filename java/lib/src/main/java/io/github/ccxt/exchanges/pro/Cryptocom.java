@@ -464,7 +464,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 String currentTopic = (("trade" + ".") + market.get("id"));
                 ((List<Object>)topics).add(currentTopic);
             }
-            Object trades = (this.watchPublicMultiple(topics, topics, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPublicMultiple(topics, topics, parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -596,7 +596,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }
             Object messageHash = "user.trade";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
-            Object trades = (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -937,7 +937,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             String symbolValue = (String) market.get("symbol");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = (((("candlestick" + ".") + interval) + ".") + market.get("id"));
-            Object ohlcv = (this.watchPublic(messageHash, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1047,7 +1047,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }
             Object messageHash = "user.order";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
-            Object orders = (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1163,7 +1163,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            Object newPositions = (this.watch(url, messageHash, this.extend(request, parameters), null, null)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, this.extend(request, parameters), null, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;

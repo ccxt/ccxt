@@ -6070,6 +6070,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaListHelperLocalTypes (transpiler);
     // (19) locals of the List<String>-returning base methods (section 31)
     patchJavaStringListReturnLocals (transpiler);
+    // (20) awaited ws list-stream locals read only as a cache (section 40)
+    patchJavaWsListStreamLocals (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -13538,5 +13540,93 @@ export function patchJavaFreshMapElementWrites (transpiler) {
             return printed;
         }
         return `${receiver.text}.put(${printed.slice (head.length)}`;
+    };
+}
+
+// ===== 40. awaited ws list-stream locals =====
+// In a method declared Promise<T[]>, `const x = await this.<m> (...)` read only as a cache (getLimit,
+// filterBy*, positional safeDict/safeList/safeValue, or returned) holds an ArrayCache or a plain list.
+const JAVA_WS_LIST_POSITIONAL_READS = new Set ([ 'safeDict', 'safeList', 'safeValue' ]);
+
+function javaWsListStreamRead (n) {
+    const parent = n.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === n) {
+        return parent.name.text === 'getLimit' && parent.parent !== undefined
+            && ts.isCallExpression (parent.parent) && parent.parent.expression === parent;
+    }
+    if (ts.isReturnStatement (parent) && parent.expression === n) {
+        return true;
+    }
+    if (!ts.isCallExpression (parent) || parent.arguments[0] !== n || !isThisCall (parent)) {
+        return false;
+    }
+    const name = String (parent.expression.name.text);
+    if (/^filterBy\w*$/.test (name)) {
+        return true;
+    }
+    return JAVA_WS_LIST_POSITIONAL_READS.has (name) && parent.arguments.length === 2
+        && parent.arguments[1].kind === ts.SyntaxKind.NumericLiteral;
+}
+
+function javaWsListStreamLocal (declaration) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const value = unwrapParens (declaration.initializer);
+    if (value === undefined || value.kind !== ts.SyntaxKind.AwaitExpression || !isThisCall (unwrapParens (value.expression))) {
+        return false;
+    }
+    const fileName = declaration.getSourceFile ().fileName;
+    if (!/[\\/]ts[\\/]src[\\/](pro|prediction)[\\/]/.test (fileName) || /[\\/]test[\\/]/.test (fileName)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || !ts.isMethodDeclaration (scope) || !/^Promise<\s*\w+\[\]\s*>$/.test (scope.type?.getText () ?? '')) {
+        return false;
+    }
+    const name = String (declaration.name.text);
+    const index = identifierIndex (scope);
+    if (index.has ('java') || index.has ('List')) {
+        return false;
+    }
+    const uses = (index.get (name) ?? []).filter ((n) => n !== declaration.name);
+    return uses.length > 0 && uses.every ((n) => !(ts.isVariableDeclaration (n.parent) && n.parent.name === n)
+        && enclosingFunction (n) === scope && javaWsListStreamRead (n));
+}
+
+// additive patcher: rewrites only a declaration still printing `Object <name> = (this.<m>(...)).join();`
+export function patchJavaWsListStreamLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaWsListStreamPatched) {
+        return;
+    }
+    printer._javaWsListStreamPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || declaration.initializer === undefined) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = javaWsListStreamLocal (declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.lastIndexOf (marker);
+        const rhs = at === -1 ? '' : printed.slice (at + marker.length);
+        if (at === -1 || !rhs.startsWith ('(this.') || !rhs.trimEnd ().replace (/;$/, '').endsWith (').join()')) {
+            return printed;
+        }
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, `${JAVA_ARRAY_TYPE} `) + `(${JAVA_ARRAY_TYPE}) ` + rhs;
     };
 }

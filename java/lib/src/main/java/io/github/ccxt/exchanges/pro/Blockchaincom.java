@@ -406,7 +406,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                 put( "symbol", market.get("id") );
             }};
             request = this.deepExtend(request, parameters);
-            Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

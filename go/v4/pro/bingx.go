@@ -193,7 +193,7 @@ func (this *Bingx) watchTickerBody(ch chan any, symbol string, optionalArgs ...a
 		url = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType)
 	}
 	var dataType any = ccxt.Add(market["id"], "@ticker")
-	var messageHash any = this.GetMessageHash("ticker", market["symbol"])
+	var messageHash string = this.GetMessageHash("ticker", market["symbol"])
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -238,8 +238,8 @@ func (this *Bingx) unWatchTickerBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var dataType any = ccxt.Add(market["id"], "@ticker")
-	var subMessageHash any = this.GetMessageHash("ticker", market["symbol"])
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subMessageHash))
+	var subMessageHash string = this.GetMessageHash("ticker", market["symbol"])
+	var messageHash string = "unsubscribe::" + subMessageHash
 	var topic string = "ticker"
 	var methodName string = "unWatchTicker"
 
@@ -404,7 +404,7 @@ func (this *Bingx) GetOrderBookLimitByMarketType(marketType any, optionalArgs ..
 	}
 	return limit
 }
-func (this *Bingx) GetMessageHash(unifiedChannel string, optionalArgs ...any) any {
+func (this *Bingx) GetMessageHash(unifiedChannel string, optionalArgs ...any) string {
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var extra *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
@@ -523,8 +523,8 @@ func (this *Bingx) unWatchTradesBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var dataType any = ccxt.Add(market["id"], "@trade")
-	var subMessageHash any = this.GetMessageHash("trade", market["symbol"])
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subMessageHash))
+	var subMessageHash string = this.GetMessageHash("trade", market["symbol"])
+	var messageHash string = "unsubscribe::" + subMessageHash
 	var topic string = "trades"
 	var methodName string = "unWatchTrades"
 
@@ -682,7 +682,7 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var depth *int64 = this.SafeInteger(options, "depth", 100)
 	var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@"), "depth"), this.NumberToString(depth))
-	var messageHash any = this.GetMessageHash("orderbook", market["symbol"])
+	var messageHash string = this.GetMessageHash("orderbook", market["symbol"])
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -858,11 +858,11 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	var nonce *int64 = this.SafeInteger(data, "lastUpdateId")
 	ccxt.AddElementToObject(snapshot, "nonce", nonce)
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = this.GetMessageHash("orderbook", symbol)
+	var messageHash string = this.GetMessageHash("orderbook", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	// resolve for "all"
 	if isAllEndpoint {
-		var messageHashForAll any = this.GetMessageHash("orderbook")
+		var messageHashForAll string = this.GetMessageHash("orderbook")
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHashForAll)
 	}
 }
@@ -1007,11 +1007,11 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash any = this.GetMessageHash("ohlcv", symbol, unifiedTimeframe)
+	var messageHash string = this.GetMessageHash("ohlcv", symbol, unifiedTimeframe)
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 	// resolve for "all"
 	if isAllEndpoint {
-		var messageHashForAll any = this.GetMessageHash("ohlcv", nil, unifiedTimeframe)
+		var messageHashForAll string = this.GetMessageHash("ohlcv", nil, unifiedTimeframe)
 		client.(ccxt.ClientInterface).Resolve(resolveData, messageHashForAll)
 	}
 }
@@ -1065,7 +1065,7 @@ func (this *Bingx) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
 	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash any = this.GetMessageHash("ohlcv", market["symbol"], timeframe)
+	var messageHash string = this.GetMessageHash("ohlcv", market["symbol"], timeframe)
 	var subscriptionHash any = ccxt.Add(ccxt.Add(market["id"], "@kline_"), rawTimeframe)
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
@@ -1715,7 +1715,7 @@ func (this *Bingx) HandlePositions(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "swap:positions")
 }
-func (this *Bingx) HandleErrorMessage(client any, message any) any {
+func (this *Bingx) HandleErrorMessage(client any, message any) bool {
 	//
 	// { code: 100400, msg: '', timestamp: 1696245808833 }
 	//
@@ -2220,7 +2220,7 @@ func (this *Bingx) HandleMessage(client any, message any) {
 		}
 		return
 	}
-	if !ccxt.EvalTruthy(this.HandleErrorMessage(client, message)) {
+	if !this.HandleErrorMessage(client, message) {
 		return
 	}
 	// public subscriptions

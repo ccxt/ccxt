@@ -4521,7 +4521,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan any, symbol string, amount 
 		"type":   strings.ToUpper(typeVar),
 	}
 	// todo: hedged handling, tricky
-	if !(InOp(params, "posMode")) {
+	if _, ok := params["posMode"]; !ok {
 		request["posMode"] = "BOTH"
 	}
 

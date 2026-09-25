@@ -681,10 +681,10 @@ public partial class bitbank : Exchange
         // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object windowLimit = ((limit == null)) ? 1000 : limit;
-        object limitResolved = ((since == null)) ? windowLimit : limit;
+        Int64? windowLimit = ((limit == null)) ? 1000 : limit;
+        Int64? limitResolved = ((since == null)) ? windowLimit : limit;
         int duration = this.parseTimeframe(timeframeVar);
-        object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), multiply(multiply(duration, 1000), windowLimit)) : since;
+        object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), ((duration * 1000L) * windowLimit)) : since;
         if ((this.markets == null))
         {
             await this.loadMarkets();

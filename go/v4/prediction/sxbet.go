@@ -579,7 +579,7 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		var filtered []any = []any{}
 		var preFilterLength int = ccxt.GetArrayLength(rawMarkets)
 		for i := 0; i < preFilterLength; i++ {
-			if ccxt.EvalTruthy(this.MatchesEventQuery(ccxt.GetValue(rawMarkets, i), queries)) {
+			if this.MatchesEventQuery(ccxt.GetValue(rawMarkets, i), queries) {
 				filtered = append(filtered, ccxt.GetValue(rawMarkets, i))
 			}
 		}
@@ -698,7 +698,7 @@ func (this *Sxbet) fetchEventBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {string[]} queries lowercase-insensitive free-text queries
  * @returns {boolean} whether any query matches any of the market's team/league/outcome names
  */
-func (this *Sxbet) MatchesEventQuery(raw any, queries any) any {
+func (this *Sxbet) MatchesEventQuery(raw any, queries any) bool {
 	var fields []any = []any{this.SafeString(raw, "teamOneName"), this.SafeString(raw, "teamTwoName"), this.SafeString(raw, "leagueLabel"), this.SafeString(raw, "sportLabel"), this.SafeString(raw, "outcomeOneName"), this.SafeString(raw, "outcomeTwoName")}
 	var queriesLength int = ccxt.GetArrayLength(queries)
 	for qi := 0; qi < queriesLength; qi++ {
@@ -840,7 +840,7 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan any) any {
  * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata/obv3 (e.g. '125')
  * @returns {string} the probability rounded to the nearest ladder step, in decimal-string form
  */
-func (this *Sxbet) RoundOddsToLadder(probability any, oddsLadderStepSize any) any {
+func (this *Sxbet) RoundOddsToLadder(probability any, oddsLadderStepSize any) string {
 	var tickSize *string = ccxt.Precise.StringDiv(oddsLadderStepSize, "100000", 10)
 	return this.DecimalToPrecision(probability, ccxt.ROUND, tickSize, ccxt.TICK_SIZE)
 }
@@ -866,7 +866,7 @@ func (this *Sxbet) HashEip712Digest(encoded any) any {
  * @param {string} privateKey the signer's private key
  * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
  */
-func (this *Sxbet) SignDigest(digest any, privateKey any) any {
+func (this *Sxbet) SignDigest(digest any, privateKey any) string {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(digest, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign to bare locals before padStart — the php transpiler's str_pad regex only
 	// matches a simple identifier, an expression form leaks a raw padStart() call
@@ -1080,7 +1080,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var digest any = this.HashEip712Digest(encoded)
-	var signature any = this.SignDigest(digest, this.PrivateKey)
+	var signature string = this.SignDigest(digest, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"owner":        owner,
 		"spender":      spender,
@@ -1180,7 +1180,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome string, typeVar string, 
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var baseToken *string = this.SafeString(activeAsset, "baseToken")
 	var oddsLadderStepSize *string = this.NumberToString(this.SafeInteger(obv3, "oddsLadderStepSize", 125))
-	var roundedProbability any = this.RoundOddsToLadder(probability, oddsLadderStepSize)
+	var roundedProbability string = this.RoundOddsToLadder(probability, oddsLadderStepSize)
 	var percentageOdds string = this.DecimalToPrecision(ccxt.Precise.StringMul(roundedProbability, "100000000000000000000"), ccxt.ROUND, 0, ccxt.DECIMAL_PLACES)
 	var amountStr *string = this.NumberToString(amount)
 	var totalBetSize string = this.DecimalToPrecision(ccxt.Precise.StringMul(amountStr, "1000000"), ccxt.ROUND, 0, ccxt.DECIMAL_PLACES)
@@ -1244,7 +1244,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome string, typeVar string, 
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var digest any = this.HashEip712Digest(encoded)
-	var orderSignature any = this.SignDigest(digest, this.PrivateKey)
+	var orderSignature string = this.SignDigest(digest, this.PrivateKey)
 	var orderItem map[string]any = map[string]any{
 		"marketHash":               marketHash,
 		"maker":                    maker,

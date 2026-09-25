@@ -571,7 +571,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String symbolValue = (String) market.get("symbol");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(options, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object ohlcv = (this.subscribe(interval, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribe(interval, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -668,7 +668,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Object trades = (this.subscribeMultiple("MATCH", symbolsNormalized, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple("MATCH", symbolsNormalized, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

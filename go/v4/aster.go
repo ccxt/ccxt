@@ -3497,7 +3497,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	ch <- this.ParseOrders(response)
 	return nil
 }
-func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5133,10 +5133,10 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 func (this *Aster) KeccakMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Aster) SignMessage(message any, privateKey any) any {
+func (this *Aster) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.KeccakMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
-func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) any {
+func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) string {
 	var chainId *int64 = this.SafeInteger(withdrawPayload, "chainId")
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
@@ -5182,7 +5182,7 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) any {
 		"aster chain":       "Mainnet",
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, request)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature string = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
 
@@ -5365,7 +5365,7 @@ func (this *Aster) HashMessage(binaryMessage any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Aster) SignHash(hash any, privateKey string) any {
+func (this *Aster) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
@@ -5430,7 +5430,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 			"user":   walletAddress,
 			"signer": signerAddress,
 		}, params)
-		var paramString any = nil
+		var paramString string
 		var paramsToEncode any = nil
 		var isApproveBuilder bool = (strings.Index(path, "/approveBuilder") >= 0)
 		if isApproveBuilder {
@@ -5466,7 +5466,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var encodedMessage any = this.EthEncodeStructuredData(domain, messageTypes, paramsToEncode)
-		var signature any = this.SignMessage(encodedMessage, this.PrivateKey)
+		var signature string = this.SignMessage(encodedMessage, this.PrivateKey)
 		var queryString any = Add(Add(Add(paramString, "&"), "signature="), signature)
 		if method == "GET" {
 			url = Add(url, Add("?", queryString))
@@ -5489,7 +5489,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Aster) EncodeValuesWithJson(values any) any {
+func (this *Aster) EncodeValuesWithJson(values any) string {
 	var encodedString string = ""
 	var keys []string = ObjectKeys(values)
 	for i := 0; i < len(keys); i++ {

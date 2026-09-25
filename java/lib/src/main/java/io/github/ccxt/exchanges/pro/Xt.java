@@ -541,7 +541,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> market = this.market(symbol);
             String name = ((("kline@" + market.get("id")) + ",") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object ohlcv = (this.subscribe(name, "public", "watchOHLCV", market, (List<String>) null, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribe(name, "public", "watchOHLCV", market, (List<String>) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -606,7 +606,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> market = this.market(symbol);
             Object name = ("trade@" + market.get("id"));
-            Object trades = (this.subscribe(name, "public", "watchTrades", market, (List<String>) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe(name, "public", "watchTrades", market, (List<String>) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -744,7 +744,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 market = this.market(symbol);
             }
-            Object orders = (this.subscribe(name, "private", "watchOrders", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribe(name, "private", "watchOrders", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -782,7 +782,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 market = this.market(symbol);
             }
-            Object trades = (this.subscribe(name, "private", "watchMyTrades", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe(name, "private", "watchMyTrades", Helpers.toMapArg(market), (List<String>) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -849,7 +849,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
             String name = "position";
-            Object newPositions = (this.subscribe(name, "private", "watchPositions", (Map<String, Object>) null, (List<String>) null, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribe(name, "private", "watchPositions", (Map<String, Object>) null, (List<String>) null, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;

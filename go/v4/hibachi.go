@@ -1026,7 +1026,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	var message []byte = this.BinaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
 	return message
 }
-func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1064,7 +1064,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 		priceInternal = DerefScalar(this.PriceToPrecision(symbol, price))
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
-	var signature any = this.SignMessage(message, this.PrivateKey)
+	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"symbol":         this.SafeString(market, "id"),
 		"nonce":          nonce,
@@ -1205,7 +1205,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	ch <- ret
 	return nil
 }
-func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -1235,7 +1235,7 @@ func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any
 	}()
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
-	var signature any = this.SignMessage(message, this.PrivateKey)
+	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"orderId":         id,
 		"nonce":           nonce,
@@ -1280,8 +1280,8 @@ func (this *Hibachi) editOrderBody(ch chan any, id string, symbol any, typeVar a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var nonce any = this.IncrementingNonce()
-	var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
-	AddElementToObject(request, "accountId", this.GetAccountId())
+	var request map[string]any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
+	request["accountId"] = this.GetAccountId()
 
 	PanicOnError((<-this.PrivatePutTradeOrder(request)).Raw)
 
@@ -1330,8 +1330,8 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
-		AddElementToObject(orderRequest, "action", "modify")
+		var orderRequest map[string]any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
+		orderRequest["action"] = "modify"
 		requestOrders = append(requestOrders, orderRequest)
 	}
 	var request map[string]any = map[string]any{
@@ -1367,7 +1367,7 @@ func (this *Hibachi) CancelOrderRequest(id any) any {
 	var idbase16 string = this.IntToBase16(bigid)
 	var idPadded string = PadStart(idbase16, 16, "0")
 	var message []byte = this.Base16ToBinary(idPadded)
-	var signature any = this.SignMessage(message, this.PrivateKey)
+	var signature string = this.SignMessage(message, this.PrivateKey)
 	return map[string]any{
 		"orderId":   id,
 		"signature": signature,
@@ -1500,7 +1500,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var nonce16 string = this.IntToBase16(nonce)
 	var noncePadded string = PadStart(nonce16, 16, "0")
 	var message []byte = this.Base16ToBinary(noncePadded)
-	var signature any = this.SignMessage(message, this.PrivateKey)
+	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 		"nonce":     nonce,
@@ -1591,7 +1591,7 @@ func (this *Hibachi) withdrawBody(ch chan any, code string, amount any, address 
 	var maxFees *float64 = this.SafeNumber(feeConfig, "withdrawalFees")
 	// Generate the signature
 	var message any = this.EncodeWithdrawMessage(amount, maxFees, withdrawAddress)
-	var signature any = this.SignMessage(message, this.PrivateKey)
+	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"accountId":       this.GetAccountId(),
 		"coin":            "USDT",
@@ -1639,7 +1639,7 @@ func (this *Hibachi) withdrawBody(ch chan any, code string, amount any, address 
 func (this *Hibachi) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Hibachi) SignMessage(message any, privateKey any) any {
+func (this *Hibachi) SignMessage(message any, privateKey any) string {
 	if GetLength(privateKey) == 44 {
 		// For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
 		return this.Hmac(message, this.Encode(privateKey), sha256, "hex")

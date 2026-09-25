@@ -2814,7 +2814,7 @@ public partial class htx : Exchange
 
     public virtual object tryGetSymbolFromFutureMarkets(object symbolOrMarketId)
     {
-        if (((this.markets != null)) && (inOp(this.markets, symbolOrMarketId)))
+        if (((this.markets != null)) && ((this.markets != null && symbolOrMarketId is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
         {
             return symbolOrMarketId;
         }
@@ -2827,7 +2827,7 @@ public partial class htx : Exchange
             this.options["futureMarketIdsForSymbols"] = new Dictionary<string, object>() {};
         }
         IDictionary<string, object> futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new Dictionary<string, object>() {});
-        if (inOp(futureMarketIdsForSymbols, symbolOrMarketId))
+        if ((futureMarketIdsForSymbols != null && symbolOrMarketId is string inOpKey1 && futureMarketIdsForSymbols.ContainsKey(inOpKey1)))
         {
             return getValue(futureMarketIdsForSymbols, symbolOrMarketId);
         }
@@ -3970,7 +3970,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         Int64? untilSeconds = (!(until == null)) ? this.parseToInt(((double?)until / 1000)) : null;
         bool isContract = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true));
-        object contractLimit = ((limit != null)) ? limit : 2000; // only used for from/to calculation
+        Int64? contractLimit = ((limit != null)) ? limit : 2000; // only used for from/to calculation
         object rangeLimit = limit;
         if (isContract)
         {
@@ -4399,7 +4399,7 @@ public partial class htx : Exchange
             throw new ExchangeError ((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
         IDictionary<string, object> uniqueNetworkIds = this.safeDict((this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null), currencyCode, new Dictionary<string, object>() {});
-        if (inOp(uniqueNetworkIds, networkCode))
+        if ((uniqueNetworkIds != null && networkCode is string inOpKey2 && uniqueNetworkIds.ContainsKey(inOpKey2)))
         {
             return ((string?)((object)(getValue(uniqueNetworkIds, networkCode))));
         } else
@@ -4957,7 +4957,7 @@ public partial class htx : Exchange
     public virtual object parseMarginBalanceHelper(object balance, string? code, IDictionary<string, object> result)
     {
         object account = null;
-        if (inOp(result, code))
+        if ((result != null && code != null && result.ContainsKey(code)))
         {
             account = getValue(result, code);
         } else

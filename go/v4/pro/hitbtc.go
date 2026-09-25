@@ -349,7 +349,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
 		if typeVar == "snapshot" {
@@ -358,8 +358,8 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		} else {
 			var asks []any = ccxt.SafeListTypedDefault(item, "a", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(item, "b", []any{})
-			this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-			this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+			this.HandleDeltas(orderbook.GetAsks(), asks)
+			this.HandleDeltas(orderbook.GetBids(), bids)
 		}
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))

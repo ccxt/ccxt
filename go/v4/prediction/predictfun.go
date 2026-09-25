@@ -2028,7 +2028,7 @@ func (this *Predictfun) HashMessage(message any) any {
  * @param {string} privateKey the wallet private key
  * @returns {string} the 65 byte signature, 0x prefixed
  */
-func (this *Predictfun) SignHash(hash any, privateKey any) any {
+func (this *Predictfun) SignHash(hash any, privateKey any) string {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the php str_pad regex matches, it only handles a bare identifier
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
@@ -2085,7 +2085,7 @@ func (this *Predictfun) authenticateBody(ch chan any, optionalArgs ...any) any {
 	if message == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() got an auth reply without the \"message\" field to sign"))
 	}
-	var signature any = this.SignHash(this.HashMessage(message), this.PrivateKey)
+	var signature string = this.SignHash(this.HashMessage(message), this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"signer":    this.WalletAddress,
 		"message":   message,
@@ -2121,7 +2121,7 @@ func (this *Predictfun) authenticateBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {object} a dictionary with the order hash and the signature
  */
-func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBearing any) any {
+func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBearing any) map[string]any {
 	// chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
 	// inside the domain literal to a local var, which would corrupt the domain type hash
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)

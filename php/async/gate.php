@@ -3555,7 +3555,7 @@ class gate extends Exchange {
         $data = $response;
         if (is_array($data) && array_key_exists('balances' ?? '', $data)) { // True for cross_margin and unified
             $flatBalances = array();
-            $balances = $this->safe_value($data, 'balances', array());
+            $balances = $this->safe_dict($data, 'balances', array());
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             $keys = is_array($balances) ? array_keys($balances) : array();

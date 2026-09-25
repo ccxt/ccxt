@@ -721,7 +721,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 request.put("limit", limit);
             }
             String name = "trades";
-            Object trades = (this.subscribePublic(name, "trades", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic(name, "trades", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -870,7 +870,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 Helpers.addElementToObject(request.get("params"), "limit", limit);
             }
-            Object ohlcv = (this.subscribePublic(name, "candles", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribePublic(name, "candles", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1002,7 +1002,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "swap", "futures_subscribe" );
                 put( "future", "futures_subscribe" );
             }}));
-            Object orders = (this.subscribePrivate(name, symbol, Helpers.toMapArg(paramsMarketType))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(name, symbol, Helpers.toMapArg(paramsMarketType))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

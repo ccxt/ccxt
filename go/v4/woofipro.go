@@ -2411,7 +2411,7 @@ func (this *Woofipro) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeStringLower(types, typeVar, typeVar)
 }
-func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3898,14 +3898,14 @@ func (this *Woofipro) HashMessage(message any) any {
 	var hashed any = this.Hash(message, keccak, "hex")
 	return Add("0x", hashed)
 }
-func (this *Woofipro) SignHash(hash any, privateKey string) any {
+func (this *Woofipro) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Woofipro) SignMessage(message any, privateKey any) any {
+func (this *Woofipro) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 
@@ -3994,7 +3994,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code string, amount any, address
 		"timestamp":     nonce,
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature string = this.SignMessage(msg, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"signature":         signature,
 		"userAddress":       address,

@@ -1837,7 +1837,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	ch <- this.ParseOrder(order, market)
 	return nil
 }
-func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2034,7 +2034,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var contigency *string = this.SafeString(params, "contingency_type", "LIST")
@@ -2100,7 +2100,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	ch <- this.ParseOrders(result)
 	return nil
 }
-func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2258,7 +2258,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id string, symbol any, typeVar
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = this.EditOrderRequest(id, symbol, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(id, symbol, amount, price, params)
 
 	response := (<-this.V1PrivatePostPrivateAmendOrder(request))
 	PanicOnError(response)
@@ -2267,7 +2267,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id string, symbol any, typeVar
 	ch <- this.ParseOrder(result)
 	return nil
 }
-func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})

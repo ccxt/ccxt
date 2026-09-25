@@ -6609,7 +6609,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	ch <- this.Extend(request, paramsOmitted)
 	return nil
 }
-func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6894,7 +6894,7 @@ func (this *Htx) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		response = (<-this.SpotPrivatePostV1OrderOrdersPlace(spotRequest))
 		PanicOnError(response)
 	} else {
-		var contractRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
+		var contractRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 		if market["linear"] == true {
 			if isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder {
 

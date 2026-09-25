@@ -1941,10 +1941,10 @@ public partial class lighter : Exchange
             int defaultLimit = 100;
             if ((limit != null))
             {
-                startTs = subtract(endTs, (multiply(this.parseTimeframe(timeframeVar), 1000) * limit));
+                startTs = subtract(endTs, ((this.parseTimeframe(timeframeVar) * 1000L) * limit));
             } else
             {
-                startTs = subtract(endTs, (multiply(this.parseTimeframe(timeframeVar), 1000) * defaultLimit));
+                startTs = subtract(endTs, ((this.parseTimeframe(timeframeVar) * 1000L) * defaultLimit));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

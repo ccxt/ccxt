@@ -1339,7 +1339,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 String messageHash = ("trade:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object trades = (this.watchTopics(url, messageHashes, topics, Helpers.toMapArg(paramsValue))).join();
+            List<Object> trades = (List<Object>) (this.watchTopics(url, messageHashes, topics, Helpers.toMapArg(paramsValue))).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1601,7 +1601,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 topic = "execution.fast";
             }
-            Object trades = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), Helpers.toMapArg(paramsExecutionFast))).join();
+            List<Object> trades = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), Helpers.toMapArg(paramsExecutionFast))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1866,7 +1866,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
             List<String> topics = new ArrayList<String>(Arrays.asList("position"));
-            Object newPositions = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2083,7 +2083,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
             String messageHash = ("liquidations::" + symbolValue);
             String topic = ((method + ".") + market.get("id"));
-            Object newLiquidation = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), Helpers.toMapArg(paramsMethod))).join();
+            List<Object> newLiquidation = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), Helpers.toMapArg(paramsMethod))).join();
             if (this.newUpdates)
             {
                 return newLiquidation;
@@ -2234,7 +2234,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "usdc", new ArrayList<Object>(Arrays.asList("user.openapi.perp.order")) );
             }};
             List<Object> topics = (List<Object>) this.safeList(topicsByMarket, this.getPrivateType(url), (Object) null);
-            Object orders = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

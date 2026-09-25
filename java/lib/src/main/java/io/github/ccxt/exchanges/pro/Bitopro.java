@@ -192,7 +192,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("TRADE" + ":") + symbolValue);
-            Object trades = (this.watchPublic("trades", messageHash, (String) (market.get("id")))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic("trades", messageHash, (String) (market.get("id")))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
