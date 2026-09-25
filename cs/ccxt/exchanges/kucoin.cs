@@ -2709,7 +2709,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    public async virtual Task<object> loadMigrationStatus(object force = null)
+    public async virtual Task<bool> loadMigrationStatus(object force = null)
     {
         force ??= false;
         if (!(this.options.ContainsKey("hf")) || (isEqual((this.options.ContainsKey("hf") ? this.options["hf"] : null), null)) || isTrue(force))
@@ -2941,7 +2941,7 @@ public partial class kucoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object account = data[i];
+            IDictionary<string, object> account = ((IDictionary<string, object>)data[i]);
             string? accountId = this.safeString(account, "id");
             string? currencyId = this.safeString(account, "currency");
             string? code = this.safeCurrencyCode(currencyId);
@@ -7862,7 +7862,7 @@ public partial class kucoin : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object method = (this.options.ContainsKey("fetchMyTradesMethod") ? this.options["fetchMyTradesMethod"] : null);
+        string? method = this.safeString(this.options, "fetchMyTradesMethod");
         bool parseResponseData = false;
         Dictionary<string, object> response = null;
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endAt", request, parameters);
@@ -7887,7 +7887,7 @@ public partial class kucoin : Exchange
             {
                 response = await this.privateGetHfFills(this.extend(request, parameters));
             }
-        } else if (isEqual(method, "private_get_fills"))
+        } else if (method == "private_get_fills")
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if ((since != null))
@@ -7896,7 +7896,7 @@ public partial class kucoin : Exchange
                 request["startAt"] = since;
             }
             response = await this.privateGetFills(this.extend(request, parameters));
-        } else if (isEqual(method, "private_get_limit_fills"))
+        } else if (method == "private_get_limit_fills")
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
@@ -9512,7 +9512,7 @@ public partial class kucoin : Exchange
             List<object> accounts = this.safeList(data, "accounts", new List<object>() {});
             for (int i = 0; i < accounts.Count; i++)
             {
-                object balance = accounts[i];
+                IDictionary<string, object> balance = ((IDictionary<string, object>)accounts[i]);
                 string? currencyId = this.safeString(balance, "currency");
                 string? codeInner = this.safeCurrencyCode(currencyId);
                 if ((codeInner != null))

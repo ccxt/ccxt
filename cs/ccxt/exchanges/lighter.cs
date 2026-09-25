@@ -796,7 +796,7 @@ public partial class lighter : Exchange
         return this.json(decTxInfo);
     }
 
-    public async virtual Task<object> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
+    public async virtual Task<bool> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
     {
         bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if ((buildFee != true))
@@ -2805,7 +2805,7 @@ public partial class lighter : Exchange
 
     public virtual string? parseOrderTypeInteger(object typeInteger)
     {
-        if ((typeInteger == null))
+        if (isEqual(typeInteger, null))
         {
             return null;
         }

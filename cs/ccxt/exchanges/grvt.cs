@@ -2251,7 +2251,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public async virtual Task<object> loadAccountInfos()
+    public async virtual Task<bool> loadAccountInfos()
     {
         if ((this.safeString(this.options, "userMainAccountId") != null))
         {

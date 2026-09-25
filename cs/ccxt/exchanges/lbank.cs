@@ -1491,7 +1491,7 @@ public partial class lbank : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         // from spotPrivatePostUserInfo
         object toBtc = this.safeValue(data, "toBtc");
         if ((toBtc != null))
@@ -1536,7 +1536,7 @@ public partial class lbank : Exchange
         bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if ((isArray == true))
         {
-            for (int i = 0; i < getArrayLength(data); i++)
+            for (int i = 0; i < data.Count; i++)
             {
                 IDictionary<string, object> item = this.safeDict(data, i);
                 string? currencyId = this.safeString(item, "coin");

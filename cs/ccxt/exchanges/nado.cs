@@ -1246,7 +1246,7 @@ public partial class nado : Exchange
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < orders.Count; i++)
         {
-            object order = orders[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
             if (this.isArchiveOrderClosed(order))
             {
                 closedOrders.Add(this.extend(new Dictionary<string, object>() {
@@ -1628,7 +1628,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            object position = positions[i];
+            IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             IDictionary<string, object> balance = this.safeDict(position, "balance", new Dictionary<string, object>() {});
             string? amount = this.safeString(balance, "amount");
             if (((amount == null)) || Precise.stringEquals(amount, "0"))

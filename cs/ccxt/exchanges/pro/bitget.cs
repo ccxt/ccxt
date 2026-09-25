@@ -778,7 +778,7 @@ public partial class bitget : ccxt.bitget
         {
             return;
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1348,7 +1348,7 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object index = subtract(subtract(length, i), 1);
-            object rawTrade = getValue(data, index);
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -1664,7 +1664,7 @@ public partial class bitget : ccxt.bitget
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             string? marketId = this.safeString2(rawPosition, "instId", "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
@@ -2610,7 +2610,7 @@ public partial class bitget : ccxt.bitget
         string? instType = this.safeStringLower(arg, "instType");
         for (int i = 0; i < length; i++)
         {
-            object trade = (data != null && i < data.Count ? data[i] : null);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)(data != null && i < data.Count ? data[i] : null));
             IDictionary<string, object> market = null;
             if (instType == "uta")
             {

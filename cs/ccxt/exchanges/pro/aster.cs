@@ -1869,7 +1869,7 @@ public partial class aster : ccxt.aster
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             Dictionary<string, object> position = this.parseWsPosition(rawPosition);
             Int64? timestamp = this.safeInteger(message, "E");
             position["timestamp"] = timestamp;
@@ -1882,8 +1882,8 @@ public partial class aster : ccxt.aster
         {
             for (int i = 0; i < (newPositions?.Count ?? 0); i++)
             {
-                object position = newPositions[i];
-                object symbol = getValue(position, "symbol");
+                IDictionary<string, object> position = ((IDictionary<string, object>)newPositions[i]);
+                object symbol = (position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null);
                 string symbolMessageHash = ((messageHash + "::") + (symbol));
                 client.resolve(position, symbolMessageHash);
             }

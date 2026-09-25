@@ -581,7 +581,7 @@ public partial class bigone : Exchange
         string? currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = chains[j];
+            IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "gateway_name");
             string? networkCode = this.networkIdToCode(networkId, code);
             bool? deposit = this.safeBool(chain, "is_deposit_enabled");

@@ -2720,7 +2720,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = chains[j];
+            IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "chain");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -3771,8 +3771,7 @@ public partial class bybit : Exchange
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-            Int64? rounded = (this.parseToInt((since / duration)) * duration);
-            request["start"] = ((rounded == since)) ? since : this.sum(rounded, duration);
+            request["start"] = (this.parseToInt(Math.Ceiling(Convert.ToDouble((since / duration)))) * duration);
         }
         if ((limitVar != null))
         {

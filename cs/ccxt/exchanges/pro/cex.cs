@@ -265,7 +265,7 @@ public partial class cex : ccxt.cex
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object index = subtract((dataLength - 1), i);
-            object rawTrade = getValue(data, index);
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
             Dictionary<string, object> parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -1023,7 +1023,7 @@ public partial class cex : ccxt.cex
         }
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            object rawOrder = rawOrders[i];
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
             Dictionary<string, object> market = this.safeMarket(symbol);
             Dictionary<string, object> order = this.parseOrder(rawOrder, market);
             order["status"] = "open";

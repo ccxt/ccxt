@@ -882,7 +882,7 @@ public partial class cryptocom : Exchange
         List<object> chains = this.safeList(currency, "network_list", new List<object>() {});
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = chains[j];
+            IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "network_id");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))

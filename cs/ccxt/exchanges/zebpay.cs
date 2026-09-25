@@ -507,7 +507,7 @@ public partial class zebpay : Exchange
         bool withdraw = false;
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = chains[j];
+            IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "chainId");
             string? networkCode = this.networkIdToCode(networkId, code);
             bool depositAllowed = (this.safeBool(chain, "isDepositEnabled") == true);

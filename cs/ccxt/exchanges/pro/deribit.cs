@@ -481,7 +481,7 @@ public partial class deribit : ccxt.deribit
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         for (int i = 0; i < trades.Count; i++)
         {
-            object trade = trades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             Dictionary<string, object> parsed = this.parseTrade(trade, market);
             stored.append(parsed);
         }

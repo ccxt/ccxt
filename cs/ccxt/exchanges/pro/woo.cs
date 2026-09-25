@@ -284,7 +284,7 @@ public partial class woo : ccxt.woo
             if (!(inOp(this.orderbooks, symbol)))
             {
                 Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-                object subscription = this.safeValue(client.subscriptions, topic);
+                IDictionary<string, object> subscription = this.safeDict(client.subscriptions, topic);
                 Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
@@ -321,7 +321,7 @@ public partial class woo : ccxt.woo
         {
             Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
-            object parameters = this.safeValue(subscription, "params");
+            IDictionary<string, object> parameters = this.safeDict(subscription, "params");
             Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
             if ((this.safeDict(this.orderbooks, symbol) == null))
             {
@@ -1389,7 +1389,7 @@ public partial class woo : ccxt.woo
                 {
                     parsed["fee"] = fee;
                 }
-                object fees = this.safeValue(order, "fees");
+                List<object> fees = this.safeList(order, "fees");
                 if ((fees != null))
                 {
                     parsed["fees"] = fees;

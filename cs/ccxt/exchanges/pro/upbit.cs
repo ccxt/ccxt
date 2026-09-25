@@ -691,7 +691,7 @@ public partial class upbit : ccxt.upbit
             {
                 parsed["fee"] = fee;
             }
-            object fees = this.safeValue(order, "fees");
+            List<object> fees = this.safeList(order, "fees");
             if ((fees != null))
             {
                 parsed["fees"] = fees;

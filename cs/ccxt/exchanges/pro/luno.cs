@@ -111,7 +111,7 @@ public partial class luno : ccxt.luno
         }
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            object rawTrade = rawTrades[i];
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)rawTrades[i]);
             Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
             stored.append(trade);
         }

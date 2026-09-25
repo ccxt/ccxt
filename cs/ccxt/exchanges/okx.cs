@@ -8446,7 +8446,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = data[i];
             Int64? timestamp = this.safeInteger(entry, "ts");
@@ -10061,7 +10061,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = data[i];
             string? entryMarketId = this.safeString(entry, "instId");
@@ -10782,7 +10782,7 @@ public partial class okx : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = data[i];
             string? id = this.safeString(entry, "ccy");

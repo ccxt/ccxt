@@ -469,7 +469,7 @@ public partial class htx : ccxt.htx
         string? interval = this.safeString(parts, 3);
         string? timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -690,7 +690,7 @@ public partial class htx : ccxt.htx
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
         Int64? timestamp = this.safeInteger(message, "ts");
-        object parameters = this.safeValue(subscription, "params");
+        IDictionary<string, object> parameters = this.safeDict(subscription, "params");
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
         object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
@@ -3039,7 +3039,7 @@ public partial class htx : ccxt.htx
                 Dictionary<string, object> market = this.market(marketId);
                 for (int i = 0; i < rawTrades.Count; i++)
                 {
-                    object trade = rawTrades[i];
+                    IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
                     Dictionary<string, object> parsedTrade = this.parseTrade(trade, market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);

@@ -714,7 +714,7 @@ public partial class luno : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < wallets.Count; i++)
         {
-            object account = wallets[i];
+            IDictionary<string, object> account = ((IDictionary<string, object>)wallets[i]);
             string? accountId = this.safeString(account, "account_id");
             string? currencyId = this.safeString(account, "asset");
             string? code = this.safeCurrencyCode(currencyId);

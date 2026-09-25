@@ -2397,7 +2397,7 @@ public partial class deribit : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", priceString },
-            { "triggerPrice", this.safeValue(order, "stop_price") },
+            { "triggerPrice", this.safeNumber(order, "stop_price") },
             { "amount", amount },
             { "cost", cost },
             { "average", averageString },

@@ -4155,7 +4155,7 @@ public partial class htx : Exchange
         //
         string? typeId = this.safeString(account, "type");
         IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
-        object type = this.safeValue(accountsById, typeId, typeId);
+        string? type = this.safeString(accountsById, typeId, typeId);
         return new Dictionary<string, object>() {
             { "info", account },
             { "id", this.safeString(account, "id") },
@@ -4374,7 +4374,7 @@ public partial class htx : Exchange
         {
             throw new ExchangeError ((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
-        object networkTitle = this.safeValue((this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null), networkId, networkId);
+        string? networkTitle = this.safeString((this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null), networkId, networkId);
         return ((string?)((object)(base.networkIdToCode(networkTitle, currencyCode))));
     }
 
@@ -4401,7 +4401,7 @@ public partial class htx : Exchange
         } else
         {
             object networkTitle = base.networkCodeToId(networkCode, currencyCode);
-            return ((string?)((object)(this.safeValue(uniqueNetworkIds, networkTitle, networkTitle))));
+            return ((string?)((object)(this.safeString(uniqueNetworkIds, networkTitle, networkTitle))));
         }
     }
 
@@ -4691,7 +4691,7 @@ public partial class htx : Exchange
                 List<object> balances = this.safeList(data, "list", new List<object>() {});
                 for (int i = 0; i < balances.Count; i++)
                 {
-                    object balance = balances[i];
+                    IDictionary<string, object> balance = ((IDictionary<string, object>)balances[i]);
                     string? currencyId = this.safeString(balance, "currency");
                     string? code = this.safeCurrencyCode(currencyId);
                     if ((code != null))
@@ -7513,7 +7513,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object order = data[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)data[i]);
             result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(order, "order_id") },
@@ -9643,7 +9643,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object position = data[i];
+            IDictionary<string, object> position = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> parsed = this.parsePosition(position);
             result.Add(this.extend(parsed, new Dictionary<string, object>() {
                 { "timestamp", timestamp },

@@ -1061,7 +1061,7 @@ public partial class onetrading : ccxt.onetrading
         List<object> balanceKeys = new List<object>() {"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"};
         for (int i = 0; i < (balanceKeys?.Count ?? 0); i++)
         {
-            object newBalance = this.safeValue(update, balanceKeys[i]);
+            IDictionary<string, object> newBalance = this.safeDict(update, balanceKeys[i]);
             if ((newBalance != null))
             {
                 this.updateBalance(newBalance);

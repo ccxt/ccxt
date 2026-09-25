@@ -712,7 +712,7 @@ public partial class pacifica : Exchange
         });
     }
 
-    public async virtual Task<object> initializeClient()
+    public async virtual Task<bool> initializeClient()
     {
         try
         {
@@ -724,7 +724,7 @@ public partial class pacifica : Exchange
         return true;
     }
 
-    public async virtual Task<object> handleBuilderFeeApproval()
+    public async virtual Task<bool> handleBuilderFeeApproval()
     {
         if (this.isSandboxModeEnabled)
         {
@@ -1924,13 +1924,7 @@ public partial class pacifica : Exchange
         {
             operationType = "create_order";
             sigPayload["reduce_only"] = reduceOnly;
-            if ((timeInForce == null))
-            {
-                sigPayload["tif"] = "GTC";
-            } else
-            {
-                sigPayload["tif"] = timeInForce;
-            }
+            sigPayload["tif"] = timeInForce;
         }
         if (isTakeProfitOrder)
         {
@@ -2094,7 +2088,7 @@ public partial class pacifica : Exchange
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; i++)
         {
-            object order = results[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)results[i]);
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
@@ -2166,7 +2160,7 @@ public partial class pacifica : Exchange
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; i++)
         {
-            object order = results[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)results[i]);
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
@@ -2942,7 +2936,7 @@ public partial class pacifica : Exchange
         {
             tif = ((string)tifRaw).ToUpper();
         }
-        return this.safeString(tifMap, tif);
+        return this.safeString(tifMap, tif, "GTC");
     }
 
     public virtual string? mapSide(object sideRaw)

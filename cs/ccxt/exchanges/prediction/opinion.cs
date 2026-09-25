@@ -1506,7 +1506,7 @@ public partial class opinion : PredictionExchange
         int tradesLength = trades.Count;
         for (int i = 0; i < tradesLength; i++)
         {
-            object trade = (trades != null && i < trades.Count ? trades[i] : null);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)(trades != null && i < trades.Count ? trades[i] : null));
             string? tokenId = this.safeString(trade, "tokenId");
             Int64? marketId = this.safeInteger(trade, "marketId");
             if (((tokenId == null)) && ((marketId != null)))
@@ -1514,7 +1514,7 @@ public partial class opinion : PredictionExchange
                 object tradeMarket = await this.loadTradeMarket(marketId);
                 IDictionary<string, object> info = this.safeDict(tradeMarket, "info", new Dictionary<string, object>() {});
                 bool isYes = ((this.safeStringLower(trade, "outcomeSideEnum") == "yes"));
-                ((IDictionary<string,object>)trade)["tokenId"] = isYes ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
+                trade["tokenId"] = isYes ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
             }
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));

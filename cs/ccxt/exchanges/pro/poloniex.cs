@@ -377,7 +377,7 @@ public partial class poloniex : ccxt.poloniex
         List<object> orders = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object order = data[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
             orders.Add(parsedOrder);
         }
@@ -702,7 +702,7 @@ public partial class poloniex : ccxt.poloniex
         string? messageHash = ((string)add(add(channel, "::"), symbol));
         List<object> parsed = this.parseWsOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = ((timeframe == null)) ? null : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        object stored = ((timeframe == null)) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if ((symbol != null))
         {
             if ((stored == null))

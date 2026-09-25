@@ -6152,8 +6152,8 @@ public partial class coinbase : Exchange
                 }
             }
         }
-        object advancedTrade = (this.options.ContainsKey("advanced") ? this.options["advanced"] : null);
-        if (!(inOp(response, "data")) && (!isEqual(advancedTrade, true)))
+        bool? advancedTrade = this.safeBool(this.options, "advanced");
+        if (!(inOp(response, "data")) && ((advancedTrade != true)))
         {
             throw new ExchangeError (((this.id + " failed due to a malformed response ") + this.json(response))) ;
         }

@@ -1397,7 +1397,7 @@ public partial class dydx : Exchange
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "dYdX Chain Onboarding" },
         };
-        object chainId = (this.options.ContainsKey("chainId") ? this.options["chainId"] : null);
+        Int64? chainId = this.safeInteger(this.options, "chainId");
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "chainId", chainId },
             { "name", "dYdX Chain" },
@@ -1742,7 +1742,7 @@ public partial class dydx : Exchange
         List<object> orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
         object orderId = (orderRequestRes != null && 0 < orderRequestRes.Count ? orderRequestRes[0] : null);
         object orderRequest = (orderRequestRes != null && 1 < orderRequestRes.Count ? orderRequestRes[1] : null);
-        string? chainName = ((string)(this.options.ContainsKey("chainName") ? this.options["chainName"] : null));
+        string? chainName = this.safeString(this.options, "chainName");
         string? signedTx = this.signDydxTx((credentials != null && ((IDictionary<string, object>)credentials).ContainsKey("privateKey") ? ((IDictionary<string, object>)credentials)["privateKey"] : null), orderRequest, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -1861,7 +1861,7 @@ public partial class dydx : Exchange
             { "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" },
             { "value", cancelPayload },
         };
-        string? chainName = ((string)(this.options.ContainsKey("chainName") ? this.options["chainName"] : null));
+        string? chainName = this.safeString(this.options, "chainName");
         string? signedTx = this.signDydxTx((credentials != null && ((IDictionary<string, object>)credentials).ContainsKey("privateKey") ? ((IDictionary<string, object>)credentials)["privateKey"] : null), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -1938,7 +1938,7 @@ public partial class dydx : Exchange
             { "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" },
             { "value", cancelPayload },
         };
-        string? chainName = ((string)(this.options.ContainsKey("chainName") ? this.options["chainName"] : null));
+        string? chainName = this.safeString(this.options, "chainName");
         string? signedTx = this.signDydxTx((credentials != null && ((IDictionary<string, object>)credentials).ContainsKey("privateKey") ? ((IDictionary<string, object>)credentials)["privateKey"] : null), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2246,7 +2246,7 @@ public partial class dydx : Exchange
             };
         }
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, "", account);
-        string? chainName = ((string)(this.options.ContainsKey("chainName") ? this.options["chainName"] : null));
+        string? chainName = this.safeString(this.options, "chainName");
         string? signedTx = this.signDydxTx((credentials != null && ((IDictionary<string, object>)credentials).ContainsKey("privateKey") ? ((IDictionary<string, object>)credentials)["privateKey"] : null), signingPayload, "", chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2446,7 +2446,7 @@ public partial class dydx : Exchange
             { "value", payload },
         };
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, tag, account);
-        string? chainName = ((string)(this.options.ContainsKey("chainName") ? this.options["chainName"] : null));
+        string? chainName = this.safeString(this.options, "chainName");
         string? signedTx = this.signDydxTx((credentials != null && ((IDictionary<string, object>)credentials).ContainsKey("privateKey") ? ((IDictionary<string, object>)credentials)["privateKey"] : null), signingPayload, tag, chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2674,7 +2674,7 @@ public partial class dydx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object account = rows[i];
+            IDictionary<string, object> account = ((IDictionary<string, object>)rows[i]);
             string? accountId = this.safeString(account, "subaccountNumber");
             result.Add(new Dictionary<string, object>() {
                 { "id", accountId },

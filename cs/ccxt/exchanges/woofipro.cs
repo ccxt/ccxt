@@ -1056,7 +1056,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object networkEntry = networks[j];
+            IDictionary<string, object> networkEntry = ((IDictionary<string, object>)networks[j]);
             string? networkId = this.safeString(networkEntry, "chain_id");
             IDictionary<string, object> networkRow = this.safeDict(indexedChains, networkId);
             string? networkName = this.safeString(networkRow, "name", networkId);
