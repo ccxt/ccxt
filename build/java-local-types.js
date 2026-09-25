@@ -13189,8 +13189,10 @@ function longLimitRetypeMember (lines, from, to) {
     // a Long-declared name needs no toLongOrNull conversion
     for (let j = from; j < to; j++) {
         if (!lines[j].includes ('Helpers.toLongOrNull(')) continue;
+        // BaseExchange declares `Long milliseconds()` / `Long seconds()`
         const next = lines[j].replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (whole, n) =>
-            (longLimitIsLong (lines, from, to, n) ? n : whole));
+            (longLimitIsLong (lines, from, to, n) ? n : whole))
+            .replace (/Helpers\.toLongOrNull\((this\.(?:milliseconds|seconds)\(\))\)/g, '$1');
         if (next !== lines[j]) { lines[j] = next; changed = true; }
     }
     return changed;
