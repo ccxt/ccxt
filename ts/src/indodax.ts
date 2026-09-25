@@ -1533,7 +1533,7 @@ export default class indodax extends Exchange {
         if (isPublic) {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
-            url = url + requestPath;
+            url += requestPath;
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat (query);
             }

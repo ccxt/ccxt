@@ -7961,7 +7961,7 @@ function selfTernaryStringWriteType (csharp, context, declaration, value) {
 // and stays unprovable, as does every other right-operand shape.
 const CSHARP_THIS_STRING_MEMBER_TYPES = [
     'apiKey', 'secret', 'password', 'uid', 'accountId', 'login', 'privateKey', 'walletAddress',
-    'twofa', 'proxy', 'hostname', 'userAgent', 'id',
+    'twofa', 'proxy', 'hostname', 'userAgent', 'id', 'version',
 ];
 
 function thisStringMemberRead (node) {

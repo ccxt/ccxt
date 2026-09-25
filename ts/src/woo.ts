@@ -3496,8 +3496,8 @@ export default class woo extends Exchange {
     override sign (path: string, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const version = section[0];
-        const access = section[1];
+        const version = this.safeString (section, 0);
+        const access = this.safeString (section, 1);
         const pathWithParams = this.implodeParams (path, params);
         const baseApiUrl = this.safeString (this.urls['api'], access);
         if (baseApiUrl === undefined) {
@@ -3507,7 +3507,7 @@ export default class woo extends Exchange {
         url += '/' + version + '/';
         const paramsSorted: Dict = this.keysort (this.omit (params, this.extractParams (path)));
         if (access === 'public') {
-            url += access + '/' + pathWithParams;
+            url += 'public/' + pathWithParams;
             if (Object.keys (paramsSorted).length > 0) {
                 url += '?' + this.urlencode (paramsSorted);
             }

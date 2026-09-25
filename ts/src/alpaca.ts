@@ -2258,7 +2258,7 @@ export default class alpaca extends Exchange {
                 headersValue['Content-Type'] = 'application/json';
             }
         }
-        url = url + endpoint;
+        url += endpoint;
         const bodyResolved: Str = (bodyJson === undefined) ? body : bodyJson;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }

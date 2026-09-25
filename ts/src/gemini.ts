@@ -2083,13 +2083,13 @@ export default class gemini extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        url = apiUrl + url;
+        const fullUrl = apiUrl + url;
         const headersResolved = (api === 'private') ? headersSigned : headers;
         let bodyResolved = body;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json (query);
         }
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

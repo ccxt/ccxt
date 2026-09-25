@@ -3588,7 +3588,6 @@ export default class extended extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname (baseApiUrl);
         if (accessibility === 'private') {
             // this.checkRequiredCredentials ();
             if (this.apiKey === undefined) {
@@ -3602,7 +3601,7 @@ export default class extended extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        url = url + '/api/' + version + endpoint;
+        let url = this.implodeHostname (baseApiUrl) + '/api/' + version + endpoint;
         if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys (query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }
