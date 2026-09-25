@@ -1322,9 +1322,18 @@ export default class dydx extends Exchange {
     }
 
     createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): any[] {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const orderSide = side.toUpperCase ();
         const subaccountId = 0;
         const [ subaccountIdOption, paramsSubAccountId ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'subAccountId', subaccountId);

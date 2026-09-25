@@ -1551,6 +1551,12 @@ export default class deepcoin extends Exchange {
          * @name deepcoin#createOrderRequest
          * @description helper function to build request
          */
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         const triggerPrice = this.safeString (params, 'triggerPrice');
         // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;

@@ -1854,7 +1854,9 @@ export default class bullish extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        request['type'] = type.toUpperCase ();
+        if (type !== undefined) {
+            request['type'] = type.toUpperCase ();
+        }
         const postOnly = this.safeBool (params, 'postOnly', false);
         if (postOnly === true) {
             request['type'] = 'POST_ONLY';

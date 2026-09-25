@@ -229,6 +229,9 @@ export default class poloniex extends poloniexRest {
         await this.authenticate ();
         const market = this.market (symbol);
         let uppercaseType = type.toUpperCase ();
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderWs() side is required');
+        }
         const uppercaseSide = side.toUpperCase ();
         const isPostOnly = this.isPostOnly (uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
         if (isPostOnly) {
