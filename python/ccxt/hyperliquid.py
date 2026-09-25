@@ -4584,7 +4584,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             records.append(record)
         return records
 
-    def format_vault_address(self, address: Str = None):
+    def format_vault_address(self, address: Str = None) -> Str:
         if address is None:
             return None
         if address.startswith('0x'):
@@ -4600,7 +4600,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             return [self.walletAddress, paramsAddress]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set')
 
-    def coin_to_market_id(self, coin: Str):
+    def coin_to_market_id(self, coin: Str) -> Str:
         # handle also hip3 tokens like flx:CRCL
         if coin is None:
             return None
