@@ -1035,7 +1035,7 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> typeparamsTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
         string? type = (string)typeparamsTypeVariable[0];
-        var paramsType = typeparamsTypeVariable[1];
+        IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable[1]);
         Dictionary<string, object> response = await this.sapiPrivateGetBalancePaymentOptions(paramsType);
         //
         // {
@@ -1196,7 +1196,7 @@ public partial class binance : PredictionExchange
         paramsPaginate = paginateparamsPaginateVariable[1];
         IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100);
         Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
@@ -1289,7 +1289,7 @@ public partial class binance : PredictionExchange
         paramsPaginate = paginateparamsPaginateVariable[1];
         IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100);
         Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
@@ -1317,7 +1317,7 @@ public partial class binance : PredictionExchange
             request["startDate"] = this.yyyymmdd(since);
         }
         Int64? until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
-        object paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
         if ((until != null))
         {
             request["endDate"] = this.yyyymmdd(until);
@@ -1580,7 +1580,7 @@ public partial class binance : PredictionExchange
         paramsPaginate = paginateparamsPaginateVariable[1];
         IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100);
         Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
@@ -1610,7 +1610,7 @@ public partial class binance : PredictionExchange
             request["startDate"] = this.yyyymmdd(since);
         }
         Int64? until = this.safeInteger(paramsMaxEntriesPerRequest, "until");
-        object paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "until");
         if ((until != null))
         {
             request["endDate"] = this.yyyymmdd(until);

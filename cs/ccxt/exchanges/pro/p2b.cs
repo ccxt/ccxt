@@ -143,7 +143,7 @@ public partial class p2b : ccxt.p2b
         string? name = this.safeString(watchTickerOptions, "name", "state"); // or price
         IList<object> nameOptionparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
         var nameOption = nameOptionparamsNameVariable[0];
-        var paramsName = nameOptionparamsNameVariable[1];
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable[1]);
         Dictionary<string, object> market = this.market(symbol);
         ((IDictionary<string,object>)(this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null))[(string)((string)(market.ContainsKey("id") ? market["id"] : null))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         object tickerSubs = (this.options.ContainsKey("tickerSubs") ? this.options["tickerSubs"] : null);
@@ -175,7 +175,7 @@ public partial class p2b : ccxt.p2b
         string? name = this.safeString(watchTickerOptions, "name", "state"); // or price
         IList<object> nameOptionparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
         var nameOption = nameOptionparamsNameVariable[0];
-        var paramsName = nameOptionparamsNameVariable[1];
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable[1]);
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)

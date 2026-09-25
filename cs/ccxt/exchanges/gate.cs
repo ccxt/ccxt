@@ -2828,7 +2828,7 @@ public partial class gate : Exchange
         }
         IList<object> isUnifiedAccountparamsUnifiedAccountVariable = (IList<object>)this.handleOptionBoolAndParams(paramsOmitted, "getMarginMode", "unifiedAccount", false);
         bool? isUnifiedAccount = (bool?)isUnifiedAccountparamsUnifiedAccountVariable[0];
-        var paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable[1];
+        IDictionary<string, object> paramsUnifiedAccount = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedAccountVariable[1]);
         if (isTrue(isUnifiedAccount))
         {
             marginMode = "unified";
@@ -4150,7 +4150,7 @@ public partial class gate : Exchange
         object paramsOmitted = this.omit(parameters, "symbol");
         IList<object> isUnifiedAccountparamsUnifiedAccountVariable = (IList<object>)this.handleOptionBoolAndParams(paramsOmitted, "fetchBalance", "unifiedAccount", false);
         bool? isUnifiedAccount = (bool?)isUnifiedAccountparamsUnifiedAccountVariable[0];
-        var paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable[1];
+        IDictionary<string, object> paramsUnifiedAccount = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedAccountVariable[1]);
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsUnifiedAccount);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
@@ -4468,7 +4468,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -4586,7 +4586,7 @@ public partial class gate : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -4697,7 +4697,7 @@ public partial class gate : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
@@ -4884,7 +4884,7 @@ public partial class gate : Exchange
         await this.loadUnifiedStatus();
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -4894,7 +4894,7 @@ public partial class gate : Exchange
         object query = null;
         Dictionary<string, object> market = ((symbol != null)) ? this.market(symbol) : null;
         Int64? until = this.safeInteger(paramsPaginate, "until");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, paramsOmitted);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
@@ -5217,7 +5217,7 @@ public partial class gate : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate));
@@ -5268,7 +5268,7 @@ public partial class gate : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsPaginate));
@@ -6072,7 +6072,7 @@ public partial class gate : Exchange
         string? account = this.convertTypeToAccount(marketType);
         IList<object> isUnifiedAccountparamsUnifiedAccountVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "editOrder", "unifiedAccount", false);
         bool? isUnifiedAccount = (bool?)isUnifiedAccountparamsUnifiedAccountVariable[0];
-        var paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable[1];
+        IDictionary<string, object> paramsUnifiedAccount = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedAccountVariable[1]);
         if (isTrue(isUnifiedAccount))
         {
             account = "unified";
@@ -6739,7 +6739,7 @@ public partial class gate : Exchange
         await this.loadUnifiedStatus();
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             // see https://github.com/ccxt/ccxt/issues/22825
@@ -6755,7 +6755,7 @@ public partial class gate : Exchange
         string? type = ((string)getValue(this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate), 0));
         IList<object> useHistoricalparamsHistoricalVariable = (IList<object>)this.handleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false);
         bool? useHistorical = (bool?)useHistoricalparamsHistoricalVariable[0];
-        var paramsHistorical = useHistoricalparamsHistoricalVariable[1];
+        IDictionary<string, object> paramsHistorical = ((IDictionary<string, object>)useHistoricalparamsHistoricalVariable[1]);
         if (!isTrue(useHistorical) && (((since == null) && (until == null)) || (type != "swap")))
         {
             return await this.FetchOrdersByStatus("finished", symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsHistorical);
@@ -8321,7 +8321,7 @@ public partial class gate : Exchange
         };
         IList<object> isUnifiedAccountparamsUnifiedAccountVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "repayCrossMargin", "unifiedAccount", false);
         bool? isUnifiedAccount = (bool?)isUnifiedAccountparamsUnifiedAccountVariable[0];
-        var paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable[1];
+        IDictionary<string, object> paramsUnifiedAccount = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedAccountVariable[1]);
         object response = null;
         if (isTrue(isUnifiedAccount))
         {
@@ -8413,7 +8413,7 @@ public partial class gate : Exchange
         };
         IList<object> isUnifiedAccountparamsUnifiedAccountVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "borrowCrossMargin", "unifiedAccount", false);
         bool? isUnifiedAccount = (bool?)isUnifiedAccountparamsUnifiedAccountVariable[0];
-        var paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable[1];
+        IDictionary<string, object> paramsUnifiedAccount = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedAccountVariable[1]);
         Dictionary<string, object> response = null;
         if (isTrue(isUnifiedAccount))
         {
@@ -8509,7 +8509,7 @@ public partial class gate : Exchange
         await this.loadUnifiedStatus();
         IList<object> isUnifiedAccountparamsUnifiedAccountVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "unifiedAccount", false);
         bool? isUnifiedAccount = (bool?)isUnifiedAccountparamsUnifiedAccountVariable[0];
-        var paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable[1];
+        IDictionary<string, object> paramsUnifiedAccount = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedAccountVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsUnifiedAccount);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -8853,7 +8853,7 @@ public partial class gate : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit,timeframeVar, paramsPaginate, 100));
@@ -9214,7 +9214,7 @@ public partial class gate : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate));

@@ -2192,7 +2192,7 @@ public partial class mexc : Exchange
         int maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -6023,7 +6023,7 @@ public partial class mexc : Exchange
         }
         IList<object> fromAccountTypeparamsFromAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "fetchTransfers", "fromAccountType");
         string? fromAccountType = (string)fromAccountTypeparamsFromAccountTypeVariable[0];
-        var paramsFromAccountType = fromAccountTypeparamsFromAccountTypeVariable[1];
+        IDictionary<string, object> paramsFromAccountType = ((IDictionary<string, object>)fromAccountTypeparamsFromAccountTypeVariable[1]);
         Dictionary<string, object> accountTypes = new Dictionary<string, object>() {
             { "spot", "SPOT" },
             { "swap", "FUTURES" },
@@ -6040,7 +6040,7 @@ public partial class mexc : Exchange
         }
         IList<object> toAccountTypeparamsToAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsFromAccountType, "fetchTransfers", "toAccountType");
         string? toAccountType = (string)toAccountTypeparamsToAccountTypeVariable[0];
-        var paramsToAccountType = toAccountTypeparamsToAccountTypeVariable[1];
+        IDictionary<string, object> paramsToAccountType = ((IDictionary<string, object>)toAccountTypeparamsToAccountTypeVariable[1]);
         if ((toAccountType != null))
         {
             request["toAccountType"] = this.safeString(accountTypes, toAccountType, toAccountType);

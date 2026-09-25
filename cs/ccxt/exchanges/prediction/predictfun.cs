@@ -2102,7 +2102,7 @@ public partial class predictfun : PredictionExchange
         // along into the request body
         IList<object> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
         bool? warnOnMarketOrderWithoutPrice = (bool?)warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable[0];
-        var paramsWarnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable[1];
+        IDictionary<string, object> paramsWarnOnMarketOrderWithoutPrice = ((IDictionary<string, object>)warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable[1]);
         if ((price == null))
         {
             // a priceless limit order already threw above, so this is a market order
@@ -2170,7 +2170,7 @@ public partial class predictfun : PredictionExchange
         string taker = "0x0000000000000000000000000000000000000000";
         IList<object> takerOptionparamsTakerVariable = (IList<object>)this.handleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker);
         var takerOption = takerOptionparamsTakerVariable[0];
-        var paramsTaker = takerOptionparamsTakerVariable[1];
+        IDictionary<string, object> paramsTaker = ((IDictionary<string, object>)takerOptionparamsTakerVariable[1]);
         Dictionary<string, object> contractOrder = new Dictionary<string, object>() {
             { "salt", salt },
             { "maker", this.walletAddress },

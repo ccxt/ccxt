@@ -451,7 +451,7 @@ public partial class coinbaseinternational : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> portfolioparamsPortfolioVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "portfolio");
         string? portfolio = (string)portfolioparamsPortfolioVariable[0];
-        var paramsPortfolio = portfolioparamsPortfolioVariable[1];
+        IDictionary<string, object> paramsPortfolio = ((IDictionary<string, object>)portfolioparamsPortfolioVariable[1]);
         if (((portfolio != null)) && (!(portfolio == "")))
         {
             return new List<object>() {portfolio, paramsPortfolio};
@@ -481,7 +481,7 @@ public partial class coinbaseinternational : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> networkIdOptionparamsNetworkArnIdVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "network_arn_id");
         string? networkIdOption = (string)networkIdOptionparamsNetworkArnIdVariable[0];
-        var paramsNetworkArnId = networkIdOptionparamsNetworkArnIdVariable[1];
+        IDictionary<string, object> paramsNetworkArnId = ((IDictionary<string, object>)networkIdOptionparamsNetworkArnIdVariable[1]);
         object networkId = networkIdOption;
         if ((networkId == null))
         {
@@ -593,7 +593,7 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, paramsPaginate, 10000));
@@ -675,11 +675,11 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int maxEntriesPerRequest = 100;
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
         Int64? maxEntriesPerRequestOption = (Int64?)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
         string pageKey = "ccxtPageKey";
         if (isTrue(paginate))
         {
@@ -783,7 +783,7 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> portfoliosparamsPortfoliosVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingHistory", "portfolios");
         string? portfolios = (string)portfoliosparamsPortfoliosVariable[0];
-        var paramsPortfolios = portfoliosparamsPortfoliosVariable[1];
+        IDictionary<string, object> paramsPortfolios = ((IDictionary<string, object>)portfoliosparamsPortfoliosVariable[1]);
         if ((portfolios != null))
         {
             request["portfolios"] = portfolios;
@@ -874,7 +874,7 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> portfoliosparamsPortfoliosVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchTransfers", "portfolios");
         string? portfolios = (string)portfoliosparamsPortfoliosVariable[0];
-        var paramsPortfolios = portfoliosparamsPortfoliosVariable[1];
+        IDictionary<string, object> paramsPortfolios = ((IDictionary<string, object>)portfoliosparamsPortfoliosVariable[1]);
         if ((portfolios != null))
         {
             request["portfolios"] = portfolios;
@@ -972,7 +972,7 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         var portfolioparamsPortfolioVariable = await this.handlePortfolioAndParams("createDepositAddress", paramsMethod);
         var portfolio = ((IList<object>) portfolioparamsPortfolioVariable)[0];
         var paramsPortfolio = ((IList<object>) portfolioparamsPortfolioVariable)[1];
@@ -1176,11 +1176,11 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int maxEntriesPerRequest = 100;
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
         Int64? maxEntriesPerRequestOption = (Int64?)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
         string pageKey = "ccxtPageKey";
         if (isEqual(paginate, true))
         {
@@ -1202,14 +1202,14 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> portfoliosparamsPortfoliosVariable = (IList<object>)this.handleOptionStringAndParams(paramsMaxEntriesPerRequest, "fetchDepositsWithdrawals", "portfolios");
         string? portfolios = (string)portfoliosparamsPortfoliosVariable[0];
-        var paramsPortfolios = portfoliosparamsPortfoliosVariable[1];
+        IDictionary<string, object> paramsPortfolios = ((IDictionary<string, object>)portfoliosparamsPortfoliosVariable[1]);
         if ((portfolios != null))
         {
             request["portfolios"] = portfolios;
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPortfolios, "fetchDepositsWithdrawals", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if (!(until == null))
         {
             request["time_to"] = this.iso8601(until);
@@ -2445,11 +2445,11 @@ public partial class coinbaseinternational : Exchange
         var paramsPortfolio = ((IList<object>) portfolioparamsPortfolioVariable)[1];
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsPortfolio, "fetchOpenOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int maxEntriesPerRequest = 100;
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
         Int64? maxEntriesPerRequestOption = (Int64?)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
         string pageKey = "ccxtPageKey";
         if (isTrue(paginate))
         {
@@ -2540,11 +2540,11 @@ public partial class coinbaseinternational : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         string pageKey = "ccxtPageKey";
         IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100);
         Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
@@ -2654,7 +2654,7 @@ public partial class coinbaseinternational : Exchange
         var paramsPortfolio = ((IList<object>) portfolioparamsPortfolioVariable)[1];
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPortfolio, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         var networkIdparamsNetworkIdVariable = await this.handleNetworkIdAndParams(code, "withdraw", paramsMethod);
         var networkId = ((IList<object>) networkIdparamsNetworkIdVariable)[0];
         var paramsNetworkId = ((IList<object>) networkIdparamsNetworkIdVariable)[1];

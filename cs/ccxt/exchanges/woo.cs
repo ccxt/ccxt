@@ -2250,7 +2250,7 @@ public partial class woo : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500));
@@ -2258,7 +2258,7 @@ public partial class woo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         bool? trigger = this.safeBool2(paramsPaginate, "stop", "trigger");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"stop", "trigger"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"stop", "trigger"});
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -2269,7 +2269,7 @@ public partial class woo : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
-        object paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"until"});
         if ((until != null))
         {
             request["endTime"] = until;
@@ -2929,7 +2929,7 @@ public partial class woo : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500));
@@ -2946,7 +2946,7 @@ public partial class woo : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((until != null))
         {
             request["endTime"] = until;
@@ -4041,7 +4041,7 @@ public partial class woo : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500));
@@ -4058,7 +4058,7 @@ public partial class woo : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until"); // unified in milliseconds
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((until != null))
         {
             request["endTime"] = until;
@@ -4282,7 +4282,7 @@ public partial class woo : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "page", 25));

@@ -3630,7 +3630,7 @@ public partial class htx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -3954,7 +3954,7 @@ public partial class htx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -3964,7 +3964,7 @@ public partial class htx : Exchange
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         string? priceType = this.safeString2(paramsPaginate, "priceType", "price");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"priceType", "price"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"priceType", "price"});
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleParamInteger(paramsOmitted, "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
@@ -4433,7 +4433,7 @@ public partial class htx : Exchange
         }
         IList<object> isUnifiedAccountparamsUnifiedVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
         bool? isUnifiedAccount = (bool?)isUnifiedAccountparamsUnifiedVariable[0];
-        var paramsUnified = isUnifiedAccountparamsUnifiedVariable[1];
+        IDictionary<string, object> paramsUnified = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedVariable[1]);
         if (isTrue(isUnifiedAccount))
         {
             throw new NotSupported ((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
@@ -4443,11 +4443,11 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable[1]);
         IList<object> subTypeOptionparamsSubTypeVariable = (IList<object>)this.handleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType");
         string? subTypeOption = (string)subTypeOptionparamsSubTypeVariable[0];
-        var paramsSubType = subTypeOptionparamsSubTypeVariable[1];
+        IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeOptionparamsSubTypeVariable[1]);
         string? subType = ((subTypeOption == null)) ? "linear" : subTypeOption;
         IList<object> isMultiAssetModeparamsMultiAssetVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false);
         bool? isMultiAssetMode = (bool?)isMultiAssetModeparamsMultiAssetVariable[0];
-        var paramsMultiAsset = isMultiAssetModeparamsMultiAssetVariable[1];
+        IDictionary<string, object> paramsMultiAsset = ((IDictionary<string, object>)isMultiAssetModeparamsMultiAssetVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool spot = ((type == "spot"));
         bool future = ((type == "future"));
@@ -5292,7 +5292,7 @@ public partial class htx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, paramsPaginate, 100));
@@ -5365,7 +5365,7 @@ public partial class htx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, 100));
@@ -8547,7 +8547,7 @@ public partial class htx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "current_page", "page_index", 1, 50));
@@ -8765,7 +8765,7 @@ public partial class htx : Exchange
         string defaultSubType = "linear";
         IList<object> subTypeOptionparamsSubTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
         string? subTypeOption = (string)subTypeOptionparamsSubTypeVariable[0];
-        var paramsSubType = subTypeOptionparamsSubTypeVariable[1];
+        IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeOptionparamsSubTypeVariable[1]);
         string? subType = subTypeOption;
         if ((symbolsNormalized != null))
         {
@@ -9815,7 +9815,7 @@ public partial class htx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 500));

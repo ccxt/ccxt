@@ -1448,7 +1448,7 @@ public partial class grvt : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1545,7 +1545,7 @@ public partial class grvt : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -2043,7 +2043,7 @@ public partial class grvt : Exchange
         int maxLimit = 1000;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, paramsPaginate, maxLimit));
@@ -2146,10 +2146,10 @@ public partial class grvt : Exchange
         {
             IList<object> tradingAccountIdparamsTradingAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
             string? tradingAccountId = (string)tradingAccountIdparamsTradingAccountIdVariable[0];
-            var paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable[1];
+            IDictionary<string, object> paramsTradingAccountId = ((IDictionary<string, object>)tradingAccountIdparamsTradingAccountIdVariable[1]);
             IList<object> fundingAccountIdparamsFundingVariable = (IList<object>)this.handleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId");
             string? fundingAccountId = (string)fundingAccountIdparamsFundingVariable[0];
-            var paramsFunding = fundingAccountIdparamsFundingVariable[1];
+            IDictionary<string, object> paramsFunding = ((IDictionary<string, object>)fundingAccountIdparamsFundingVariable[1]);
             if ((tradingAccountId == null) || (fundingAccountId == null))
             {
                 throw new ArgumentsRequired ((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
@@ -2681,7 +2681,7 @@ public partial class grvt : Exchange
         await this.loadMarketsAndSignIn();
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -3039,7 +3039,7 @@ public partial class grvt : Exchange
         await this.loadMarketsAndSignIn();
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000));

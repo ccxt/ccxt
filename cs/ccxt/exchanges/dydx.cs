@@ -989,10 +989,10 @@ public partial class dydx : Exchange
     {
         IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "user");
         string? userAux = (string)userAuxparamsUserVariable[0];
-        var paramsUser = userAuxparamsUserVariable[1];
+        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable[1]);
         IList<object> userparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
         string? user = (string)userparamsAddressVariable[0];
-        var paramsAddress = userparamsAddressVariable[1];
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable[1]);
         if (((user != null)) && (!(user == "")))
         {
             return new List<object>() {user, paramsAddress};
@@ -1520,7 +1520,7 @@ public partial class dydx : Exchange
         int subaccountId = 0;
         IList<object> subaccountIdOptionparamsSubAccountIdVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         Int64? subaccountIdOption = (Int64?)subaccountIdOptionparamsSubAccountIdVariable[0];
-        var paramsSubAccountId = subaccountIdOptionparamsSubAccountIdVariable[1];
+        IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subaccountIdOptionparamsSubAccountIdVariable[1]);
         string? triggerPrice = this.safeString2(paramsSubAccountId, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeValue(paramsSubAccountId, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeValue(paramsSubAccountId, "takeProfitPrice");
@@ -1602,7 +1602,7 @@ public partial class dydx : Exchange
         int goodTillBlockTimeInSeconds = 2592000;
         IList<object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Int64? goodTillBlockTimeInSecondsOption = (Int64?)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0];
-        var paramsGoodTillBlockTimeInSeconds = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]; // default is 30 days
+        IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]); // default is 30 days
         if ((orderFlag == 0))
         {
             if ((goodTillBlock == null))
@@ -1653,7 +1653,7 @@ public partial class dydx : Exchange
             { "typeUrl", "/dydxprotocol.clob.MsgPlaceOrder" },
             { "value", orderPayload },
         };
-        object paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, new List<object>() {"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, new List<object>() {"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"});
         string? walletAddress = this.getWalletAddress();
         Int64? clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
         Int64? subaccountIdValue = ((subaccountIdOption == null)) ? 0 : subaccountIdOption;
@@ -1808,7 +1808,7 @@ public partial class dydx : Exchange
         int goodTillBlockTimeInSeconds = 2592000;
         IList<object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Int64? goodTillBlockTimeInSecondsOption = (Int64?)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0];
-        var paramsGoodTillBlockTimeInSeconds = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]; // default is 30 days
+        IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]); // default is 30 days
         object goodTillBlockTime = null;
         int defaultOrderFlags = ((isTrigger == true)) ? 32 : 64;
         Int64? orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
@@ -1907,7 +1907,7 @@ public partial class dydx : Exchange
         int subAccountId = 0;
         IList<object> subAccountIdOptionparamsSubAccountIdVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
         Int64? subAccountIdOption = (Int64?)subAccountIdOptionparamsSubAccountIdVariable[0];
-        var paramsSubAccountId = subAccountIdOptionparamsSubAccountIdVariable[1];
+        IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subAccountIdOptionparamsSubAccountIdVariable[1]);
         Int64? goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
         if ((goodTillBlock == null))
         {

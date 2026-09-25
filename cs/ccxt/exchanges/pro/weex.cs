@@ -933,7 +933,7 @@ public partial class weex : ccxt.weex
         string depth = "200";
         IList<object> depthOptionparamsDepthVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = (string)depthOptionparamsDepthVariable[0];
-        var paramsDepth = depthOptionparamsDepthVariable[1];
+        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable[1]);
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)

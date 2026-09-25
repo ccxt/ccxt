@@ -85,13 +85,13 @@ public partial class bithumb : ccxt.bithumb
         }
         IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2);
         Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        var paramsGeneration = generationparamsGenerationVariable[1];
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
         bool isGenerationTwo = ((generation == 2));
         object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
-        object paramsOmitted = this.omit(paramsGeneration, "tickTypes");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
         object request = new Dictionary<string, object>() {
             { "type", "ticker" },
             { "symbols", new List<object>() {add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null))} },
@@ -132,7 +132,7 @@ public partial class bithumb : ccxt.bithumb
         }
         IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2);
         Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        var paramsGeneration = generationparamsGenerationVariable[1];
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
         bool isGenerationTwo = ((generation == 2));
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         int symbolsLength = ((symbolsNormalized == null)) ? 0 : (symbolsNormalized?.Count ?? 0);
@@ -161,7 +161,7 @@ public partial class bithumb : ccxt.bithumb
             messageHashes.Add(("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
         string? tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
-        object paramsOmitted = this.omit(paramsGeneration, "tickTypes");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
         object message = new Dictionary<string, object>() {
             { "type", "ticker" },
             { "symbols", streamMarketIds },
@@ -408,7 +408,7 @@ public partial class bithumb : ccxt.bithumb
         }
         IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2);
         Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        var paramsGeneration = generationparamsGenerationVariable[1];
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
         bool isGenerationTwo = ((generation == 2));
         object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
@@ -616,7 +616,7 @@ public partial class bithumb : ccxt.bithumb
         }
         IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2);
         Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        var paramsGeneration = generationparamsGenerationVariable[1];
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
         bool isGenerationTwo = ((generation == 2));
         object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);

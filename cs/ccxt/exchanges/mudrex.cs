@@ -1517,7 +1517,7 @@ public partial class mudrex : Exchange
         }
         IList<object> maxCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
         Int64? maxCalls = (Int64?)maxCallsparamsPaginationCallsVariable[0];
-        var paramsPaginationCalls = maxCallsparamsPaginationCallsVariable[1];
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsparamsPaginationCallsVariable[1]);
         object pageSize = 0;
         if ((limit != null))
         {

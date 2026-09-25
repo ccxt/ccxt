@@ -637,7 +637,7 @@ public partial class cryptomus : Exchange
         int level = 0;
         IList<object> levelOptionparamsLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "level", level);
         Int64? levelOption = (Int64?)levelOptionparamsLevelVariable[0];
-        var paramsLevel = levelOptionparamsLevelVariable[1];
+        IDictionary<string, object> paramsLevel = ((IDictionary<string, object>)levelOptionparamsLevelVariable[1]);
         request["level"] = levelOption;
         Dictionary<string, object> response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, paramsLevel));
         //

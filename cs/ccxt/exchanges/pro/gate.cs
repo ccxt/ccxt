@@ -254,9 +254,9 @@ public partial class gate : ccxt.gate
         string? channel = ((string)add(messageType, ".order_cancel_cp"));
         IList<object> channelOptionparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
         string? channelOption = (string)channelOptionparamsChannelVariable[0];
-        var paramsChannel = channelOptionparamsChannelVariable[1];
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelOptionparamsChannelVariable[1]);
         string? url = this.getUrlByMarket(market);
-        object paramsOmitted = this.omit(paramsChannel, new List<object>() {"stop", "trigger"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsChannel, new List<object>() {"stop", "trigger"});
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
@@ -499,7 +499,7 @@ public partial class gate : ccxt.gate
         }
         IList<object> intervalqueryVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         string? interval = (string)intervalqueryVariable[0];
-        var query = intervalqueryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)intervalqueryVariable[1]);
         object messageType = this.getTypeByMarket(market);
         string messageHash = (("orderbook" + ":") + symbolValue);
         // max 100 atm, max 50 for options
@@ -574,7 +574,7 @@ public partial class gate : ccxt.gate
         string interval = intervalDefault;
         IList<object> intervalOptionparamsIntervalVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "interval", interval);
         string? intervalOption = (string)intervalOptionparamsIntervalVariable[0];
-        var paramsInterval = intervalOptionparamsIntervalVariable[1];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalOptionparamsIntervalVariable[1]);
         object messageType = this.getTypeByMarket(market);
         object limit = this.safeInteger(paramsInterval, "limit");
         if (isEqual(limit, null))

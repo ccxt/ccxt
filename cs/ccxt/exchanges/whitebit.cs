@@ -1902,7 +1902,7 @@ public partial class whitebit : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> methodOptionparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "fetchTickers", "method");
         string? methodOption = (string)methodOptionparamsMethodVariable[0];
-        var paramsMethod = methodOptionparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable[1]);
         string? method = methodOption;
         if ((method == null))
         {
@@ -2711,7 +2711,7 @@ public partial class whitebit : Exchange
         {
             IList<object> isMarginparamsIsMarginVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false);
             bool? isMargin = (bool?)isMarginparamsIsMarginVariable[0];
-            var paramsIsMargin = isMarginparamsIsMarginVariable[1];
+            IDictionary<string, object> paramsIsMargin = ((IDictionary<string, object>)isMarginparamsIsMarginVariable[1]);
             requestParams = paramsIsMargin;
             if (isTrue(isMargin))
             {
@@ -4818,7 +4818,7 @@ public partial class whitebit : Exchange
         int maxLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit));
@@ -4911,7 +4911,7 @@ public partial class whitebit : Exchange
             string request = (((("/" + "api") + "/") + (version)) + pathWithParams);
             IList<object> nonceWindowrequestParamsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
             bool? nonceWindow = (bool?)nonceWindowrequestParamsVariable[0];
-            var requestParams = nonceWindowrequestParamsVariable[1];
+            IDictionary<string, object> requestParams = ((IDictionary<string, object>)nonceWindowrequestParamsVariable[1]);
             privateBody = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
                 { "nonce", nonce },

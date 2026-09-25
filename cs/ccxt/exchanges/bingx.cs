@@ -1647,7 +1647,7 @@ public partial class bingx : Exchange
         int maxLimit = ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) ? 1000 : 1440;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -2361,7 +2361,7 @@ public partial class bingx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -2453,7 +2453,7 @@ public partial class bingx : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate));
@@ -3033,7 +3033,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> response = null;
         IList<object> standardparamsStandardVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
         bool? standard = (bool?)standardparamsStandardVariable[0];
-        var paramsStandard = standardparamsStandardVariable[1];
+        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, paramsStandard);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -3287,7 +3287,7 @@ public partial class bingx : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> standardparamsStandardVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
         bool? standard = (bool?)standardparamsStandardVariable[0];
-        var paramsStandard = standardparamsStandardVariable[1];
+        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
         Dictionary<string, object> response = null;
         if (isTrue(standard))
         {
@@ -5397,7 +5397,7 @@ public partial class bingx : Exchange
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         IList<object> standardparamsStandardVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
         bool? standard = (bool?)standardparamsStandardVariable[0];
-        var paramsStandard = standardparamsStandardVariable[1];
+        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
         if (isTrue(standard))
         {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, paramsStandard));
@@ -5411,14 +5411,14 @@ public partial class bingx : Exchange
         } else
         {
             bool? isTwapOrder = this.safeBool(paramsStandard, "twap", false);
-            object paramsOmitted = this.omit(paramsStandard, "twap");
+            Dictionary<string, object> paramsOmitted = this.omit(paramsStandard, "twap");
             if ((isTwapOrder == true))
             {
                 request["pageIndex"] = 1;
                 request["pageSize"] = ((limit == null)) ? 100 : limit;
                 request["startTime"] = ((since == null)) ? 1 : since;
                 Int64? until = this.safeInteger(paramsOmitted, "until", this.milliseconds());
-                object paramsUntil = this.omit(paramsOmitted, "until");
+                Dictionary<string, object> paramsUntil = this.omit(paramsOmitted, "until");
                 request["endTime"] = until;
                 response = await this.swapV1PrivateGetTwapHistoryOrders(this.extend(request, paramsUntil));
             } else if ((subType == "inverse"))
@@ -5552,12 +5552,12 @@ public partial class bingx : Exchange
         int maxLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit));
         }
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"fromAccount", "toAccount"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"fromAccount", "toAccount"});
         if ((since != null))
         {
             request["startTime"] = since;

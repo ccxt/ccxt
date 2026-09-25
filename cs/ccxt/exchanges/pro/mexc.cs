@@ -820,7 +820,7 @@ public partial class mexc : ccxt.mexc
         {
             IList<object> frequencyparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = (string)frequencyparamsFrequencyVariable[0];
-            var paramsFrequency = frequencyparamsFrequencyVariable[1];
+            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable[1]);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             orderbook = await this.watchSpotPublic(channel, messageHash, paramsFrequency);
         } else
@@ -2061,7 +2061,7 @@ public partial class mexc : ccxt.mexc
             url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
             IList<object> frequencyparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = (string)frequencyparamsFrequencyVariable[0];
-            var paramsFrequency = frequencyparamsFrequencyVariable[1];
+            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable[1]);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             ((IDictionary<string,object>)paramsFrequency)["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, paramsFrequency});

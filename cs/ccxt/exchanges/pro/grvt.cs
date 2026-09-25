@@ -178,11 +178,11 @@ public partial class grvt : ccxt.grvt
         }
         IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
         string? channel = (string)channelparamsChannelVariable[0];
-        var paramsChannel = channelparamsChannelVariable[1];
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
         int interval = 500;
         IList<object> intervalOptionparamsIntervalVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", interval);
         Int64? intervalOption = (Int64?)intervalOptionparamsIntervalVariable[0];
-        var paramsInterval = intervalOptionparamsIntervalVariable[1];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalOptionparamsIntervalVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -585,7 +585,7 @@ public partial class grvt : ccxt.grvt
         }
         IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
         string? channel = (string)channelparamsChannelVariable[0];
-        var paramsChannel = channelparamsChannelVariable[1];
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
         bool isSnapshot = (channel == "v1.book.s");
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
@@ -594,7 +594,7 @@ public partial class grvt : ccxt.grvt
         }
         IList<object> limitOptionparamsLimitOptionVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100);
         Int64? limitOption = (Int64?)limitOptionparamsLimitOptionVariable[0];
-        var paramsLimitOption = limitOptionparamsLimitOptionVariable[1];
+        IDictionary<string, object> paramsLimitOption = ((IDictionary<string, object>)limitOptionparamsLimitOptionVariable[1]);
         Int64? limitResolved = limitOption;
         object paramsLimit = paramsLimitOption;
         if ((limit != null))
@@ -604,7 +604,7 @@ public partial class grvt : ccxt.grvt
         }
         IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500);
         Int64? interval = (Int64?)intervalparamsIntervalVariable[0];
-        var paramsInterval = intervalparamsIntervalVariable[1];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? extraPart = null;
         if (isSnapshot)

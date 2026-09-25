@@ -1593,7 +1593,7 @@ public partial class weex : Exchange
         }
         IList<object> priceTypeparamsPriceTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
         string? priceType = (string)priceTypeparamsPriceTypeVariable[0];
-        var paramsPriceType = priceTypeparamsPriceTypeVariable[1]; // the endpoint defaults to INDEX
+        IDictionary<string, object> paramsPriceType = ((IDictionary<string, object>)priceTypeparamsPriceTypeVariable[1]); // the endpoint defaults to INDEX
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "priceType", priceType },
@@ -1808,7 +1808,7 @@ public partial class weex : Exchange
         int maxHistoricalLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             Dictionary<string, object> paramsExtended = this.extend(paramsPaginate, new Dictionary<string, object>() {
@@ -1819,7 +1819,7 @@ public partial class weex : Exchange
         Int64? until = this.safeInteger(paramsPaginate, "until");
         IList<object> historicalparamsHistoricalVariable = (IList<object>)this.handleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false);
         bool? historical = (bool?)historicalparamsHistoricalVariable[0];
-        var paramsHistorical = historicalparamsHistoricalVariable[1];
+        IDictionary<string, object> paramsHistorical = ((IDictionary<string, object>)historicalparamsHistoricalVariable[1]);
         IDictionary<string, object> timeframeOption = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> contractTimeframes = this.safeDict(timeframeOption, "contract", new Dictionary<string, object>() {});
         Dictionary<string, object> market = this.market(symbol);
@@ -1828,7 +1828,7 @@ public partial class weex : Exchange
             { "interval", this.safeString(contractTimeframes, timeframeVar, timeframeVar) },
         };
         string? priceType = this.safeStringUpper(paramsHistorical, "price");
-        object paramsOmitted = this.omit(paramsHistorical, new List<object>() {"historical", "until", "price"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsHistorical, new List<object>() {"historical", "until", "price"});
         List<object> response = null;
         // hardcap threshold
         object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
@@ -2401,7 +2401,7 @@ public partial class weex : Exchange
         int maxLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit));
@@ -3169,7 +3169,7 @@ public partial class weex : Exchange
         bool isSpot = ((marketType == "spot"));
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "fetchOpenOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int maxLimit = 100;
         if (isTrue(paginate))
         {
@@ -3414,7 +3414,7 @@ public partial class weex : Exchange
         int maxLimit = 1000;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate, maxLimit));
@@ -3493,7 +3493,7 @@ public partial class weex : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "fetchCanceledAndClosedOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int maxLimit = 1000;
         if (isTrue(paginate))
         {
@@ -3832,7 +3832,7 @@ public partial class weex : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int maxLimit = 100;
         if (isTrue(paginate))
         {
@@ -3930,7 +3930,7 @@ public partial class weex : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int maxLimit = 100;
         if (isTrue(paginate))
         {
@@ -4133,7 +4133,7 @@ public partial class weex : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, paramsPaginate, 100));

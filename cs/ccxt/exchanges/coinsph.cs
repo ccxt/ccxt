@@ -1646,7 +1646,7 @@ public partial class coinsph : Exchange
                 string? quoteAmount = null;
                 IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-                var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
+                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
                 double? cost = this.safeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty");
                 paramsQuote = this.omit(paramsRequiresPrice, "cost");
                 if ((cost != null))

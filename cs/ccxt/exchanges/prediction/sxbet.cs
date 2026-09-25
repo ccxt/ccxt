@@ -905,7 +905,7 @@ public partial class sxbet : PredictionExchange
         }
         IList<object> spenderparamsSpenderVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
         string? spender = (string)spenderparamsSpenderVariable[0];
-        var paramsSpender = spenderparamsSpenderVariable[1];
+        IDictionary<string, object> paramsSpender = ((IDictionary<string, object>)spenderparamsSpenderVariable[1]);
         if ((spender == null))
         {
             throw new BadRequest ((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
@@ -971,7 +971,7 @@ public partial class sxbet : PredictionExchange
             { "deadline", this.numberToString(deadline) },
             { "signature", signature },
         };
-        object rest = this.omit(paramsSpender, new List<object>() {"amount", "tokenAddress", "deadline", "rpcUrl"});
+        Dictionary<string, object> rest = this.omit(paramsSpender, new List<object>() {"amount", "tokenAddress", "deadline", "rpcUrl"});
         Dictionary<string, object> response = await this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
@@ -1060,7 +1060,7 @@ public partial class sxbet : PredictionExchange
         }
         IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
         string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1];
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -1139,7 +1139,7 @@ public partial class sxbet : PredictionExchange
             orderItem["externalUserId"] = externalUserId;
         }
         bool? waitForOutcome = this.safeBool(paramsTimeInForce, "waitForOutcome", true);
-        object rest = this.omit(paramsTimeInForce, new List<object>() {"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"});
+        Dictionary<string, object> rest = this.omit(paramsTimeInForce, new List<object>() {"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orders", new List<object>() {orderItem} },
             { "waitForOutcome", waitForOutcome },

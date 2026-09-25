@@ -253,7 +253,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "LEVEL1");
         string? channel = (string)channelparamsChannelVariable[0];
-        var paramsChannel = channelparamsChannelVariable[1];
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
         return ccxt.BaseExchange.ToTicker(await this.subscribe(channel, new List<object>() {symbol}, paramsChannel));
     }
 
@@ -292,7 +292,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "LEVEL1");
         string? channel = (string)channelparamsChannelVariable[0];
-        var paramsChannel = channelparamsChannelVariable[1];
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
         object ticker = await this.subscribe(channel, symbols, paramsChannel);
         if (this.newUpdates)
         {

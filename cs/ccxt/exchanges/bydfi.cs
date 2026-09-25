@@ -844,7 +844,7 @@ public partial class bydfi : Exchange
         }
         IList<object> contractTypeparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchMyTrades", "contractType", "FUTURE");
         string? contractType = (string)contractTypeparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeparamsContractTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractType },
         };
@@ -994,7 +994,7 @@ public partial class bydfi : Exchange
         int maxLimit = 500; // docs says max 1500, but in practice only 500 works
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1304,7 +1304,7 @@ public partial class bydfi : Exchange
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if (!(until == null))
         {
             request["endTime"] = until;
@@ -1608,7 +1608,7 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "wallet", walletOption },
             { "orders", ordersRequests },
@@ -1688,7 +1688,7 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "editOrder", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "wallet", walletOption },
             { "editOrders", ordersRequests },
@@ -1752,7 +1752,7 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "cancelAllOrders", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "wallet", walletOption },
@@ -1823,7 +1823,7 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "wallet", walletOption },
@@ -1832,7 +1832,7 @@ public partial class bydfi : Exchange
         bool trigger = false;
         IList<object> triggerOptionparamsTriggerVariable = (IList<object>)this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrders", "trigger", trigger);
         bool? triggerOption = (bool?)triggerOptionparamsTriggerVariable[0];
-        var paramsTrigger = triggerOptionparamsTriggerVariable[1];
+        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)triggerOptionparamsTriggerVariable[1]);
         if (!isTrue(triggerOption))
         {
             //
@@ -1916,13 +1916,13 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOpenOrder", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         request["wallet"] = walletOption;
         Dictionary<string, object> response = null;
         bool trigger = false;
         IList<object> triggerOptionparamsTriggerVariable = (IList<object>)this.handleOptionBoolAndParams(paramsWallet, "fetchOpenOrder", "trigger", trigger);
         bool? triggerOption = (bool?)triggerOptionparamsTriggerVariable[0];
-        var paramsTrigger = triggerOptionparamsTriggerVariable[1];
+        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)triggerOptionparamsTriggerVariable[1]);
         if (!isTrue(triggerOption))
         {
             response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, paramsTrigger));
@@ -1969,7 +1969,7 @@ public partial class bydfi : Exchange
         }
         IList<object> contractTypeparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchCanceledAndClosedOrders", "contractType", "FUTURE");
         string? contractType = (string)contractTypeparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeparamsContractTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractType },
         };
@@ -2260,7 +2260,7 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "setLeverage", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", leverage },
@@ -2296,7 +2296,7 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchLeverage", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "wallet", walletOption },
@@ -2351,7 +2351,7 @@ public partial class bydfi : Exchange
         string contractType = "FUTURE";
         IList<object> contractTypeOptionparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "contractType", contractType);
         string? contractTypeOption = (string)contractTypeOptionparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeOptionparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeOptionparamsContractTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractTypeOption },
         };
@@ -2404,7 +2404,7 @@ public partial class bydfi : Exchange
         string contractType = "FUTURE";
         IList<object> contractTypeOptionparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "contractType", contractType);
         string? contractTypeOption = (string)contractTypeOptionparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeOptionparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeOptionparamsContractTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractTypeOption },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2558,7 +2558,7 @@ public partial class bydfi : Exchange
         string contractType = "FUTURE";
         IList<object> contractTypeOptionparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
         string? contractTypeOption = (string)contractTypeOptionparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeOptionparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeOptionparamsContractTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "contractType", contractTypeOption },
@@ -2600,7 +2600,7 @@ public partial class bydfi : Exchange
         string contractType = "FUTURE";
         IList<object> contractTypeOptionparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
         string? contractTypeOption = (string)contractTypeOptionparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeOptionparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeOptionparamsContractTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractTypeOption },
         };
@@ -2679,11 +2679,11 @@ public partial class bydfi : Exchange
         string contractType = "FUTURE";
         IList<object> contractTypeOptionparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchMarginMode", "contractType", contractType);
         string? contractTypeOption = (string)contractTypeOptionparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeOptionparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeOptionparamsContractTypeVariable[1]);
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(paramsContractType, "fetchMarginMode", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractTypeOption },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2748,11 +2748,11 @@ public partial class bydfi : Exchange
         string contractType = "FUTURE";
         IList<object> contractTypeOptionparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "setMarginMode", "contractType", contractType);
         string? contractTypeOption = (string)contractTypeOptionparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeOptionparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeOptionparamsContractTypeVariable[1]);
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(paramsContractType, "setMarginMode", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractTypeOption },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2794,15 +2794,15 @@ public partial class bydfi : Exchange
         string wallet = "W001";
         IList<object> walletOptionparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "setPositionMode", "wallet", wallet);
         string? walletOption = (string)walletOptionparamsWalletVariable[0];
-        var paramsWallet = walletOptionparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletOptionparamsWalletVariable[1]);
         string contractType = "FUTURE";
         IList<object> contractTypeOptionparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsWallet, "setPositionMode", "contractType", contractType);
         string? contractTypeOption = (string)contractTypeOptionparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeOptionparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeOptionparamsContractTypeVariable[1]);
         string settleCoin = "USDT";
         IList<object> settleCoinOptionparamsSettleCoinVariable = (IList<object>)this.handleOptionStringAndParams(paramsContractType, "setPositionMode", "settleCoin", settleCoin);
         string? settleCoinOption = (string)settleCoinOptionparamsSettleCoinVariable[0];
-        var paramsSettleCoin = settleCoinOptionparamsSettleCoinVariable[1];
+        IDictionary<string, object> paramsSettleCoin = ((IDictionary<string, object>)settleCoinOptionparamsSettleCoinVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractType", contractTypeOption },
             { "wallet", walletOption },
@@ -2840,10 +2840,10 @@ public partial class bydfi : Exchange
         }
         IList<object> walletparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositionMode", "wallet", "W001");
         string? wallet = (string)walletparamsWalletVariable[0];
-        var paramsWallet = walletparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletparamsWalletVariable[1]);
         IList<object> contractTypeparamsContractTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsWallet, "fetchPositionMode", "contractType", "FUTURE");
         string? contractType = (string)contractTypeparamsContractTypeVariable[0];
-        var paramsContractType = contractTypeparamsContractTypeVariable[1];
+        IDictionary<string, object> paramsContractType = ((IDictionary<string, object>)contractTypeparamsContractTypeVariable[1]);
         object settleCoin = "USDT";
         object query = paramsContractType;
         if ((symbol == null))
@@ -2908,7 +2908,7 @@ public partial class bydfi : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         IList<object> walletparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet");
         string? wallet = (string)walletparamsWalletVariable[0];
-        var paramsWallet = walletparamsWalletVariable[1];
+        IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletparamsWalletVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         if ((wallet == null))
@@ -3082,7 +3082,7 @@ public partial class bydfi : Exchange
         };
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         // exchange requires endTime, and startTime but allows any value
         object sinceResolved = ((since == null)) ? 1 : since;
         request["startTime"] = sinceResolved;

@@ -1341,7 +1341,7 @@ public partial class bingx : ccxt.bingx
         this.setBalanceCache(client, type, subType, subscriptionHash, paramsSubType);
         IList<object> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchBalanceSnapshot = (bool?)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable[0];
-        var paramsFetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable[1];
+        IDictionary<string, object> paramsFetchBalanceSnapshot = ((IDictionary<string, object>)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable[1]);
         bool? awaitBalanceSnapshot = ((bool?)getValue(this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false), 0));
         if (isTrue(fetchBalanceSnapshot) && (awaitBalanceSnapshot == true))
         {
@@ -1442,7 +1442,7 @@ public partial class bingx : ccxt.bingx
         this.setPositionsCache(client, type, symbolsNormalized);
         IList<object> fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchPositionsSnapshot = (bool?)fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable[0];
-        var paramsFetchPositionsSnapshot = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable[1];
+        IDictionary<string, object> paramsFetchPositionsSnapshot = ((IDictionary<string, object>)fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable[1]);
         bool? awaitPositionsSnapshot = ((bool?)getValue(this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false), 0));
         string uuid = this.uuid();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {

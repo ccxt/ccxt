@@ -1140,7 +1140,7 @@ public partial class bullish : Exchange
         int maxLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             object paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
@@ -1212,7 +1212,7 @@ public partial class bullish : Exchange
         {
             IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
             bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-            var paramsPaginate = paginateparamsPaginateVariable[1];
+            IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
             if (isTrue(paginate))
             {
                 object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
@@ -1510,13 +1510,13 @@ public partial class bullish : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> maxRetriesparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", 3);
         Int64? maxRetries = (Int64?)maxRetriesparamsMaxRetriesVariable[0];
-        var paramsMaxRetries = maxRetriesparamsMaxRetriesVariable[1];
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesparamsMaxRetriesVariable[1]);
         if ((!isEqual(method, "fetchOHLCV")) && (!isEqual(method, "fetchFundingRateHistory")) && (!isEqual(method, "fetchTrades")))
         {
             throw new NotSupported ((((this.id + " safeDeterministicCall() does not support the ") + (method)) + " method")) ;
         }
         object errors = 0;
-        object paramsOmitted = this.omit(paramsMaxRetries, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMaxRetries, "until");
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while (isLessThanOrEqual(errors, maxRetries))
@@ -1576,7 +1576,7 @@ public partial class bullish : Exchange
         int maxLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1656,7 +1656,7 @@ public partial class bullish : Exchange
         int maxLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
@@ -2060,7 +2060,7 @@ public partial class bullish : Exchange
         }
         IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC");
         string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1]; // is mandatory
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]); // is mandatory
         ((IDictionary<string,object>)paramsTimeInForce)["timeInForce"] = timeInForce.ToUpper();
         if (!isMarketOrder)
         {
@@ -3003,7 +3003,7 @@ public partial class bullish : Exchange
         int maxLimit = 100;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             object paramsPagination = this.handlePaginationParams("fetchTransfers", since, paramsPaginate);

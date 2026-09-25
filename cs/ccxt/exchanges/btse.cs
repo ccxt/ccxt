@@ -909,7 +909,7 @@ public partial class btse : Exchange
         int maxLimit = 300;
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -935,7 +935,7 @@ public partial class btse : Exchange
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if (!(until == null))
         {
             if ((since != null))
@@ -1091,7 +1091,7 @@ public partial class btse : Exchange
         };
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPeriod, "fetchFundingRateHistory", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, paramsUntil));
         //
         //     {
@@ -1189,7 +1189,7 @@ public partial class btse : Exchange
         {
             IList<object> walletparamsWalletVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@");
             string? wallet = (string)walletparamsWalletVariable[0];
-            var paramsWallet = walletparamsWalletVariable[1];
+            IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletparamsWalletVariable[1]);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "wallet", wallet },
             };
@@ -1747,7 +1747,7 @@ public partial class btse : Exchange
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Trades(this.extend(request, paramsUntil));
         //
         //     {
@@ -3202,7 +3202,7 @@ public partial class btse : Exchange
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsOmitted, methodName, "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if (!(until == null))
         {
             request["endTime"] = until;
@@ -3444,7 +3444,7 @@ public partial class btse : Exchange
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsOmitted, "fetchLedger", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if (!(until == null))
         {
             request["endTime"] = until;
@@ -3969,7 +3969,7 @@ public partial class btse : Exchange
         };
         IList<object> orderTypeparamsOrderTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
         string? orderType = (string)orderTypeparamsOrderTypeVariable[0];
-        var paramsOrderType = orderTypeparamsOrderTypeVariable[1];
+        IDictionary<string, object> paramsOrderType = ((IDictionary<string, object>)orderTypeparamsOrderTypeVariable[1]);
         string typeUpper = orderType.ToUpper();
         request["orderType"] = typeUpper;
         if (typeUpper == "LIMIT")

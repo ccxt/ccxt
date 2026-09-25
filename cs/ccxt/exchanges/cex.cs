@@ -865,7 +865,7 @@ public partial class cex : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> dataTypeparamsDataTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType");
         string? dataType = (string)dataTypeparamsDataTypeVariable[0];
-        var paramsDataType = dataTypeparamsDataTypeVariable[1];
+        IDictionary<string, object> paramsDataType = ((IDictionary<string, object>)dataTypeparamsDataTypeVariable[1]);
         if ((dataType == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
@@ -886,7 +886,7 @@ public partial class cex : Exchange
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleParamInteger2(paramsDataType, "until", "till");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if (!(until == null))
         {
             request["toISO"] = this.iso8601(until);
@@ -1431,7 +1431,7 @@ public partial class cex : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
         string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        var paramsAccountId = accountIdparamsAccountIdVariable[1];
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
         if ((accountId == null))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -1454,7 +1454,7 @@ public partial class cex : Exchange
         };
         IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
         string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1];
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]);
         if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
@@ -1462,7 +1462,7 @@ public partial class cex : Exchange
         }
         IList<object> triggerPriceparamsTriggerPriceVariable = (IList<object>)this.handleParamString(paramsTimeInForce, "triggerPrice");
         string? triggerPrice = (string)triggerPriceparamsTriggerPriceVariable[0];
-        var paramsTriggerPrice = triggerPriceparamsTriggerPriceVariable[1];
+        IDictionary<string, object> paramsTriggerPrice = ((IDictionary<string, object>)triggerPriceparamsTriggerPriceVariable[1]);
         if ((triggerPrice != null))
         {
             request["type"] = "Stop Limit";
@@ -1969,7 +1969,7 @@ public partial class cex : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
         string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        var paramsAccountId = accountIdparamsAccountIdVariable[1];
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
         if ((accountId == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -1980,7 +1980,7 @@ public partial class cex : Exchange
         }
         IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsAccountId);
         string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        var paramsNetworkCode = networkCodeparamsNetworkCodeVariable[1];
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },

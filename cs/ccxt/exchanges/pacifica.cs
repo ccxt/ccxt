@@ -1300,7 +1300,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> aggLevelparamsAggLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
         Int64? aggLevel = (Int64?)aggLevelparamsAggLevelVariable[0];
-        var paramsAggLevel = aggLevelparamsAggLevelVariable[1];
+        IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "agg_level", aggLevel },
@@ -1471,7 +1471,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, defaultMaxLimit));
@@ -1622,7 +1622,7 @@ public partial class pacifica : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchMyTrades", paramsPaginate);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
@@ -2450,7 +2450,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int defaultLimit = 100; // Default max limit
         if (isTrue(paginate))
         {
@@ -2743,7 +2743,7 @@ public partial class pacifica : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         int defaultLimit = 100; // max default 100
         if (isTrue(paginate))
         {
@@ -3512,7 +3512,7 @@ public partial class pacifica : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchLedger", paramsPaginate);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
@@ -3632,7 +3632,7 @@ public partial class pacifica : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchFundingHistory", paramsPaginate);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
@@ -3797,7 +3797,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
         IList<object> agentAddressparamsAgentAddressVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createSubAccount", "agentAddress");
         string? agentAddress = (string)agentAddressparamsAgentAddressVariable[0];
-        var paramsAgentAddress = agentAddressparamsAgentAddressVariable[1];
+        IDictionary<string, object> paramsAgentAddress = ((IDictionary<string, object>)agentAddressparamsAgentAddressVariable[1]);
         IList<object> originAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("createSubAccount", paramsAgentAddress);
         string? originAddress = (string)originAddressparamsOriginAndSingleAddressVariable[0];
         var paramsOriginAndSingleAddress = originAddressparamsOriginAndSingleAddressVariable[1];
@@ -4137,7 +4137,7 @@ public partial class pacifica : Exchange
         }
         IList<object> expiryWindowparamsExpiryWindowVariable = (IList<object>)this.handleOptionIntegerAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
         Int64? expiryWindow = (Int64?)expiryWindowparamsExpiryWindowVariable[0];
-        var paramsExpiryWindow = expiryWindowparamsExpiryWindowVariable[1];
+        IDictionary<string, object> paramsExpiryWindow = ((IDictionary<string, object>)expiryWindowparamsExpiryWindowVariable[1]);
         Int64? timestamp = this.safeInteger(paramsExpiryWindow, "timestamp", this.milliseconds());
         Dictionary<string, object> signatureHeader = new Dictionary<string, object>() {
             { "timestamp", timestamp },
@@ -4148,7 +4148,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
         IList<object> agentAddressparamsAgentAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsExpiryWindow, "postActionRequest", "agentAddress");
         string? agentAddress = (string)agentAddressparamsAgentAddressVariable[0];
-        var paramsAgentAddress = agentAddressparamsAgentAddressVariable[1];
+        IDictionary<string, object> paramsAgentAddress = ((IDictionary<string, object>)agentAddressparamsAgentAddressVariable[1]);
         string? originAddress = ((string)getValue(this.handleOriginAndSingleAddress("postActionRequest", paramsAgentAddress), 0));
         if ((originAddress == null))
         {

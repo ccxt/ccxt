@@ -478,7 +478,7 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> market = this.market(symbol);
         IList<object> aggLevelparamsAggLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         Int64? aggLevel = (Int64?)aggLevelparamsAggLevelVariable[0];
-        var paramsAggLevel = aggLevelparamsAggLevelVariable[1];
+        IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable[1]);
         string messageHash = ("orderbook:" + symbol);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
@@ -520,7 +520,7 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> market = this.market(symbol);
         IList<object> aggLevelparamsAggLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
         Int64? aggLevel = (Int64?)aggLevelparamsAggLevelVariable[0];
-        var paramsAggLevel = aggLevelparamsAggLevelVariable[1];
+        IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable[1]);
         string subMessageHash = ("orderbook:" + (symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;

@@ -1510,7 +1510,7 @@ public partial class hashkey : Exchange
         }
         IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
         string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        var paramsAccountId = accountIdparamsAccountIdVariable[1];
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
         List<object> response = null;
         if ((marketType == "spot"))
         {
@@ -1685,7 +1685,7 @@ public partial class hashkey : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -1706,7 +1706,7 @@ public partial class hashkey : Exchange
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionAndParams(paramsPaginate, methodName, "until");
         var until = untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if ((until != null))
         {
             request["endTime"] = until;
@@ -2606,14 +2606,14 @@ public partial class hashkey : Exchange
         request["endTime"] = until;
         IList<object> flowTypeparamsFlowTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsUntil, methodName, "flowType");
         string? flowType = (string)flowTypeparamsFlowTypeVariable[0];
-        var paramsFlowType = flowTypeparamsFlowTypeVariable[1];
+        IDictionary<string, object> paramsFlowType = ((IDictionary<string, object>)flowTypeparamsFlowTypeVariable[1]);
         if ((flowType != null))
         {
             request["flowType"] = this.encodeFlowType(flowType);
         }
         IList<object> accountTypeparamsAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsFlowType, methodName, "accountType");
         string? accountType = (string)accountTypeparamsAccountTypeVariable[0];
-        var paramsAccountType = accountTypeparamsAccountTypeVariable[1];
+        IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeparamsAccountTypeVariable[1]);
         if ((accountType != null))
         {
             request["accountType"] = this.encodeAccountType(accountType);
@@ -3557,7 +3557,7 @@ public partial class hashkey : Exchange
         }
         IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
         string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        var paramsAccountId = accountIdparamsAccountIdVariable[1];
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {

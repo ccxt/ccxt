@@ -804,7 +804,7 @@ public partial class cryptocom : Exchange
         }
         IList<object> skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
         bool? skipFetchCurrencies = (bool?)skipFetchCurrenciesparamsSkipFetchCurrenciesVariable[0];
-        var paramsSkipFetchCurrencies = skipFetchCurrenciesparamsSkipFetchCurrenciesVariable[1];
+        IDictionary<string, object> paramsSkipFetchCurrencies = ((IDictionary<string, object>)skipFetchCurrenciesparamsSkipFetchCurrenciesVariable[1]);
         if (isTrue(skipFetchCurrencies))
         {
             // sub-accounts can't access this endpoint
@@ -1240,7 +1240,7 @@ public partial class cryptocom : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate));
@@ -1261,7 +1261,7 @@ public partial class cryptocom : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((until != null))
         {
             request["end_time"] = until;
@@ -1333,7 +1333,7 @@ public partial class cryptocom : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
@@ -1351,7 +1351,7 @@ public partial class cryptocom : Exchange
             request["count"] = limit;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((until != null))
         {
             request["end_ts"] = until;
@@ -1407,7 +1407,7 @@ public partial class cryptocom : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 300));
@@ -1429,7 +1429,7 @@ public partial class cryptocom : Exchange
         Int64 now = this.microseconds();
         int duration = this.parseTimeframe(timeframeVar);
         Int64? until = this.safeInteger(paramsPaginate, "until", now);
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((since != null))
         {
             request["start_ts"] = subtract(since, multiply(duration, 1000));
@@ -2076,7 +2076,7 @@ public partial class cryptocom : Exchange
             string? quoteAmount = null;
             IList<object> createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable[0];
-            var paramsCreateMarketBuy = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable[1];
+            IDictionary<string, object> paramsCreateMarketBuy = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable[1]);
             double? cost = this.safeNumber2(paramsCreateMarketBuy, "cost", "notional");
             paramsMarketBuy = this.omit(paramsCreateMarketBuy, "cost");
             if ((cost != null))
@@ -2401,7 +2401,7 @@ public partial class cryptocom : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, 100));
@@ -2422,7 +2422,7 @@ public partial class cryptocom : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((until != null))
         {
             request["end_time"] = until;
@@ -3748,7 +3748,7 @@ public partial class cryptocom : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -3771,7 +3771,7 @@ public partial class cryptocom : Exchange
             request["count"] = limit;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         if ((until != null))
         {
             request["end_ts"] = until;

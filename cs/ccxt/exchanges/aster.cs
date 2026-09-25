@@ -3389,7 +3389,7 @@ public partial class aster : Exchange
         }
         IList<object> tifOptionparamsTifOptionVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
         string? tifOption = (string)tifOptionparamsTifOptionVariable[0];
-        var paramsTifOption = tifOptionparamsTifOptionVariable[1];
+        IDictionary<string, object> paramsTifOption = ((IDictionary<string, object>)tifOptionparamsTifOptionVariable[1]);
         bool tifIsMissing = timeInForceIsRequired && ((this.safeString(parameters, "timeInForce") == null)) && ((this.safeString(request, "timeInForce") == null));
         List<object> omitKeys = new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"};
         object requestParams = null;
@@ -4335,7 +4335,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> methodOptionparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
         string? methodOption = (string)methodOptionparamsMethodVariable[0];
-        var paramsMethod = methodOptionparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable[1]);
         string? defaultMethod = methodOption;
         if ((defaultMethod == null))
         {

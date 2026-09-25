@@ -2500,7 +2500,7 @@ public partial class phemex : Exchange
         {
             IList<object> settleparamsSettleVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "fetchBalance", "settle", "USDT");
             string? settle = (string)settleparamsSettleVariable[0];
-            var paramsSettle = settleparamsSettleVariable[1];
+            IDictionary<string, object> paramsSettle = ((IDictionary<string, object>)settleparamsSettleVariable[1]);
             if ((code != null) || (settle != null))
             {
                 string? coin = null;
@@ -4420,7 +4420,7 @@ public partial class phemex : Exchange
         {
             IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsSubType, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
             string? method = (string)methodparamsMethodVariable[0];
-            var paramsMethod = methodparamsMethodVariable[1];
+            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
             if ((method == "privateGetGAccountsAccountPositions"))
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod));
@@ -5699,7 +5699,7 @@ public partial class phemex : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100));
@@ -6245,7 +6245,7 @@ public partial class phemex : Exchange
         {
             IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsSubType, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
             string? method = (string)methodparamsMethodVariable[0];
-            var paramsMethod = methodparamsMethodVariable[1];
+            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
             if ((method == "privateGetGAccountsAccountPositions"))
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod));

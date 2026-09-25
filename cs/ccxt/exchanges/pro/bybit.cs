@@ -1474,7 +1474,7 @@ public partial class bybit : ccxt.bybit
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
         IList<object> executionFastparamsExecutionFastVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = (bool?)executionFastparamsExecutionFastVariable[0];
-        var paramsExecutionFast = executionFastparamsExecutionFastVariable[1];
+        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable[1]);
         if (isTrue(executionFast))
         {
             topic = "execution.fast";
@@ -1524,7 +1524,7 @@ public partial class bybit : ccxt.bybit
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
         IList<object> executionFastparamsExecutionFastVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = (bool?)executionFastparamsExecutionFastVariable[0];
-        var paramsExecutionFast = executionFastparamsExecutionFastVariable[1];
+        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable[1]);
         if (isTrue(executionFast))
         {
             topic = "execution.fast";
@@ -1936,7 +1936,7 @@ public partial class bybit : ccxt.bybit
         string? url = await this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters);
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(this.cleanParams(parameters), "watchLiquidations", "method", "allLiquidation");
         var method = methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         string messageHash = ("liquidations::" + symbolValue);
         object topic = add(add(method, "."), (market.ContainsKey("id") ? market["id"] : null));
         object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, paramsMethod);

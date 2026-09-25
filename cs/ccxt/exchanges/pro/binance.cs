@@ -837,11 +837,11 @@ public partial class binance : ccxt.binance
         }
         IList<object> watchOrderBookRateOptionparamsRateVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
         string? watchOrderBookRateOption = (string)watchOrderBookRateOptionparamsRateVariable[0];
-        var paramsRate = watchOrderBookRateOptionparamsRateVariable[1];
+        IDictionary<string, object> paramsRate = ((IDictionary<string, object>)watchOrderBookRateOptionparamsRateVariable[1]);
         string? watchOrderBookRate = watchOrderBookRateOption;
         IList<object> rpiparamsRpiVariable = (IList<object>)this.handleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false);
         bool? rpi = (bool?)rpiparamsRpiVariable[0];
-        var paramsRpi = rpiparamsRpiVariable[1];
+        IDictionary<string, object> paramsRpi = ((IDictionary<string, object>)rpiparamsRpiVariable[1]);
         if (isTrue(rpi) && type == "future")
         {
             name = "rpiDepth";
@@ -1010,9 +1010,9 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         payload["returnRateLimits"] = returnRateLimits;
-        object paramsOmitted = this.omit(paramsReturnRateLimits, "test");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsReturnRateLimits, "test");
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
             { "method", "depth" },
@@ -1395,8 +1395,8 @@ public partial class binance : ccxt.binance
         }
         IList<object> nameparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "name", "trade");
         string? name = (string)nameparamsNameVariable[0];
-        var paramsName = nameparamsNameVariable[1];
-        object paramsOmitted = this.omit(paramsName, "callerMethodName");
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameparamsNameVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsName, "callerMethodName");
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         bool? isOption = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null));
@@ -1439,7 +1439,7 @@ public partial class binance : ccxt.binance
                 subParams.Add(rawHash);
             }
         }
-        object query = this.omit(paramsOmitted, "type");
+        Dictionary<string, object> query = this.omit(paramsOmitted, "type");
         int subParamsLength = (subParams?.Count ?? 0);
         string? url = ((string)add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength)));
         Int64 requestId = this.requestId(url);
@@ -1495,8 +1495,8 @@ public partial class binance : ccxt.binance
         }
         IList<object> nameparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "name", "trade");
         string? name = (string)nameparamsNameVariable[0];
-        var paramsName = nameparamsNameVariable[1];
-        object paramsOmitted = this.omit(paramsName, "callerMethodName");
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameparamsNameVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsName, "callerMethodName");
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string? type = ((string)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("type") ? ((IDictionary<string, object>)firstMarket)["type"] : null));
         bool? isOption = ((bool?)(firstMarket != null && ((IDictionary<string, object>)firstMarket).ContainsKey("option") ? ((IDictionary<string, object>)firstMarket)["option"] : null));
@@ -1542,7 +1542,7 @@ public partial class binance : ccxt.binance
                 subParams.Add(rawHash);
             }
         }
-        object query = this.omit(paramsOmitted, "type");
+        Dictionary<string, object> query = this.omit(paramsOmitted, "type");
         int subParamsLength = (subParams?.Count ?? 0);
         string? url = ((string)add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength)));
         Int64 requestId = this.requestId(url);
@@ -1880,7 +1880,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
         bool? stock = (bool?)stockparamsStockVariable[0];
-        var paramsStock = stockparamsStockVariable[1];
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
         if (isTrue(stock))
         {
             List<object> stockStreams = new List<object>() {};
@@ -1916,7 +1916,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> klineTypeparamsChannelVariable = (IList<object>)this.handleParamString2(paramsStock, "channel", "name", "kline");
         string? klineType = (string)klineTypeparamsChannelVariable[0];
-        var paramsChannel = klineTypeparamsChannelVariable[1];
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)klineTypeparamsChannelVariable[1]);
         List<object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         IList<object> marketSymbols = this.marketSymbols(symbols, null, false, false, true);
         Dictionary<string, object> firstMarket = this.market((marketSymbols != null && 0 < marketSymbols.Count ? marketSymbols[0] : null));
@@ -2215,12 +2215,12 @@ public partial class binance : ccxt.binance
         };
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTickerWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         payload["returnRateLimits"] = returnRateLimits;
-        object paramsOmitted = this.omit(paramsReturnRateLimits, "test");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsReturnRateLimits, "test");
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "fetchTickerWs", "method", "ticker.book");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
             { "method", method },
@@ -2266,14 +2266,14 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
             { "interval", getValue(this.timeframes, timeframeVar) },
         };
         Int64? until = this.safeInteger(paramsReturnRateLimits, "until");
-        object paramsOmitted = this.omit(paramsReturnRateLimits, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsReturnRateLimits, "until");
         if ((since != null))
         {
             payload["startTime"] = since;
@@ -2406,7 +2406,7 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         IList<object> channelNameparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchMarkPrices", "name", "markPrice");
         string? channelName = (string)channelNameparamsNameVariable[0];
-        var paramsName = channelNameparamsNameVariable[1];
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)channelNameparamsNameVariable[1]);
         object newTickers = await this.watchMultiTickerHelper("watchMarkPrices", channelName, symbols, paramsName);
         if (this.newUpdates)
         {
@@ -2436,7 +2436,7 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchTickers", "stock", false);
         bool? stock = (bool?)stockparamsStockVariable[0];
-        var paramsStock = stockparamsStockVariable[1];
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
         object symbolsNormalized = symbols;
         if (isTrue(stock))
         {
@@ -2454,7 +2454,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> channelNameparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(paramsStock, "watchTickers", "name", "miniTicker");
         string? channelName = (string)channelNameparamsNameVariable[0];
-        var paramsName = channelNameparamsNameVariable[1];
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)channelNameparamsNameVariable[1]);
         if ((channelName == "bookTicker"))
         {
             throw new BadRequest ((this.id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
@@ -2486,7 +2486,7 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         IList<object> channelNameparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "name", "ticker");
         string? channelName = (string)channelNameparamsNameVariable[0];
-        var paramsName = channelNameparamsNameVariable[1];
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)channelNameparamsNameVariable[1]);
         if ((channelName == "bookTicker"))
         {
             throw new BadRequest ((this.id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
@@ -2508,7 +2508,7 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         IList<object> channelNameparamsNameVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchMarkPrices", "name", "markPrice");
         string? channelName = (string)channelNameparamsNameVariable[0];
-        var paramsName = channelNameparamsNameVariable[1];
+        IDictionary<string, object> paramsName = ((IDictionary<string, object>)channelNameparamsNameVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2589,7 +2589,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "stock", false);
         bool? stock = (bool?)stockparamsStockVariable[0];
-        var paramsStock = stockparamsStockVariable[1];
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
         if (isTrue(stock))
         {
             if ((symbols == null))
@@ -3428,7 +3428,7 @@ public partial class binance : ccxt.binance
         object paramsAuth = (resolvedAuth != null && 2 < resolvedAuth.Count ? resolvedAuth[2] : null);
         IList<object> isPortfolioMarginparamsPortfolioMarginVariable = (IList<object>)this.handleOptionBoolAndParams2(paramsAuth, "authenticate", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = (bool?)isPortfolioMarginparamsPortfolioMarginVariable[0];
-        var paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable[1];
+        IDictionary<string, object> paramsPortfolioMargin = ((IDictionary<string, object>)isPortfolioMarginparamsPortfolioMarginVariable[1]);
         // For spot use WebSocket API signature subscription
         if (type == "spot")
         {
@@ -3558,7 +3558,7 @@ public partial class binance : ccxt.binance
         type = this.safeString(parameters, "type", type);
         IList<object> isPortfolioMarginparamsPortfolioMarginVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = (bool?)isPortfolioMarginparamsPortfolioMarginVariable[0];
-        var paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable[1];
+        IDictionary<string, object> paramsPortfolioMargin = ((IDictionary<string, object>)isPortfolioMarginparamsPortfolioMarginVariable[1]);
         string? subType = ((string)getValue(this.handleSubTypeAndParams("keepAliveListenKey", null, paramsPortfolioMargin), 0));
         if (type != "option" && type != "stock")
         {
@@ -3594,7 +3594,7 @@ public partial class binance : ccxt.binance
             return;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object paramsOmitted = this.omit(paramsPortfolioMargin, new List<object>() {"type", "symbol"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPortfolioMargin, new List<object>() {"type", "symbol"});
         Int64 time = this.milliseconds();
         try
         {
@@ -3668,7 +3668,7 @@ public partial class binance : ccxt.binance
             refreshRateKey = "stockListenKeyRefreshRate";
         }
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
-        object delayParams = paramsOmitted;
+        Dictionary<string, object> delayParams = paramsOmitted;
         if (isStock)
         {
             // params had type omitted above - restore it so the next cycle routes back here
@@ -3772,13 +3772,13 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "returnRateLimits", returnRateLimits },
         };
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsReturnRateLimits, "fetchBalanceWs", "method", "account.status");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
             { "method", method },
@@ -3926,11 +3926,11 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         payload["returnRateLimits"] = returnRateLimits;
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsReturnRateLimits, "fetchPositionsWs", "method", "account.position");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
             { "method", method },
@@ -4302,10 +4302,10 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> payload = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(paramsOmitted, "createOrderWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         payload["returnRateLimits"] = returnRateLimits;
         bool? test = this.safeBool(paramsReturnRateLimits, "test", false);
-        object paramsOmitted2 = this.omit(paramsReturnRateLimits, "test");
+        Dictionary<string, object> paramsOmitted2 = this.omit(paramsReturnRateLimits, "test");
         if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && isConditional)
         {
             payload["algoType"] = "CONDITIONAL";
@@ -4478,7 +4478,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "editOrderWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         payload["returnRateLimits"] = returnRateLimits;
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
@@ -4638,7 +4638,7 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -4665,7 +4665,7 @@ public partial class binance : ccxt.binance
                 payload["orderId"] = this.numberToString(id);
             }
         }
-        object paramsOmitted = this.omit(paramsReturnRateLimits, new List<object>() {"origClientOrderId", "clientOrderId", "stop", "trigger", "conditional"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsReturnRateLimits, new List<object>() {"origClientOrderId", "clientOrderId", "stop", "trigger", "conditional"});
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
             { "method", "order.cancel" },
@@ -4712,7 +4712,7 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -4762,7 +4762,7 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -4823,7 +4823,7 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -4896,7 +4896,7 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "returnRateLimits", returnRateLimits },
         };
@@ -4943,7 +4943,7 @@ public partial class binance : ccxt.binance
         }
         IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOrders", "stock", false);
         bool? stock = (bool?)stockparamsStockVariable[0];
-        var paramsStock = stockparamsStockVariable[1];
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
         if (isTrue(stock))
         {
             // literal on top: a stray type in the caller params must not override
@@ -4970,7 +4970,7 @@ public partial class binance : ccxt.binance
                 { "params", new List<object>() {stockStreamName} },
                 { "id", stockRequestId },
             };
-            object stockQuery = this.omit(paramsStock, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+            Dictionary<string, object> stockQuery = this.omit(paramsStock, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
             Dictionary<string, object> stockSubscribe = new Dictionary<string, object>() {
                 { "id", stockRequestId },
             };
@@ -5987,7 +5987,7 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
@@ -6049,7 +6049,7 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         IList<object> returnRateLimitsparamsReturnRateLimitsVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
         bool? returnRateLimits = (bool?)returnRateLimitsparamsReturnRateLimitsVariable[0];
-        var paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable[1];
+        IDictionary<string, object> paramsReturnRateLimits = ((IDictionary<string, object>)returnRateLimitsparamsReturnRateLimitsVariable[1]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },

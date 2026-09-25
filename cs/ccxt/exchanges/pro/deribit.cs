@@ -425,7 +425,7 @@ public partial class deribit : ccxt.deribit
         parameters ??= new Dictionary<string, object>();
         IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
         string? interval = (string)intervalparamsIntervalVariable[0];
-        var paramsInterval = intervalparamsIntervalVariable[1];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
         if ((interval == "raw"))
         {
             await this.authenticate();
@@ -615,7 +615,7 @@ public partial class deribit : ccxt.deribit
         parameters ??= new Dictionary<string, object>();
         IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
         string? interval = (string)intervalparamsIntervalVariable[0];
-        var paramsInterval = intervalparamsIntervalVariable[1];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
         if ((interval == "raw"))
         {
             await this.authenticate();
@@ -623,13 +623,13 @@ public partial class deribit : ccxt.deribit
         // for more info on useDepthEndpoint, see comment in .options
         IList<object> useDepthEndpointparamsUseDepthEndpointVariable = (IList<object>)this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
         bool? useDepthEndpoint = (bool?)useDepthEndpointparamsUseDepthEndpointVariable[0];
-        var paramsUseDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable[1];
+        IDictionary<string, object> paramsUseDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsUseDepthEndpointVariable[1]);
         IList<object> depthparamsDepthVariable = (IList<object>)this.handleOptionStringAndParams(paramsUseDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
         string? depth = (string)depthparamsDepthVariable[0];
-        var paramsDepth = depthparamsDepthVariable[1];
+        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable[1]);
         IList<object> groupparamsGroupVariable = (IList<object>)this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
         var group = groupparamsGroupVariable[0];
-        var paramsGroup = groupparamsGroupVariable[1];
+        IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupparamsGroupVariable[1]);
         object descriptor = interval;
         if (isTrue(useDepthEndpoint))
         {

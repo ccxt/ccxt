@@ -2557,10 +2557,10 @@ public partial class hyperliquid : PredictionExchange
     {
         IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = (string)userAuxparamsUserVariable[0];
-        var paramsUser = userAuxparamsUserVariable[1];
+        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable[1]);
         IList<object> userparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
         string? user = (string)userparamsAddressVariable[0];
-        var paramsAddress = userparamsAddressVariable[1];
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable[1]);
         if ((user != null) && !(user == ""))
         {
             return new List<object>() {user, paramsAddress};

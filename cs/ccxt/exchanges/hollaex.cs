@@ -1040,7 +1040,7 @@ public partial class hollaex : Exchange
         int maxLimit = 500;
         IList<object> paginateOptionparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
         bool? paginateOption = (bool?)paginateOptionparamsPaginateVariable[0];
-        var paramsPaginate = paginateOptionparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateOptionparamsPaginateVariable[1]);
         if (isTrue(paginateOption))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1059,7 +1059,7 @@ public partial class hollaex : Exchange
         }
         request["from"] = this.parseToInt(divide(start, 1000)); // convert to seconds
         request["to"] = this.parseToInt(((double?)until / 1000)); // convert to seconds
-        object paramsOmitted = this.omit(paramsPaginate, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, "until");
         List<object> response = await this.publicGetChart(this.extend(request, paramsOmitted));
         //
         //     [

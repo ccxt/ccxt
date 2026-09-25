@@ -1350,7 +1350,7 @@ public partial class hyperliquid : Exchange
         object paramsOmitted = this.omit(parameters, "type");
         IList<object> hip3OptionparamsHip3Variable = (IList<object>)this.handleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false);
         bool? hip3Option = (bool?)hip3OptionparamsHip3Variable[0];
-        var paramsHip3 = hip3OptionparamsHip3Variable[1];
+        IDictionary<string, object> paramsHip3 = ((IDictionary<string, object>)hip3OptionparamsHip3Variable[1]);
         bool? hip3 = hip3Option;
         if ((symbolsNormalized != null))
         {
@@ -2128,7 +2128,7 @@ public partial class hyperliquid : Exchange
         object paramsAddress = ((address != null)) ? parameters : paramsPublicAddress;
         IList<object> enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable = (IList<object>)this.handleOptionBoolAndParams(paramsAddress, method, "enableUnifiedMargin");
         bool? enableUnifiedMarginOption = (bool?)enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable[0];
-        var paramsEnableUnifiedMargin = enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable[1];
+        IDictionary<string, object> paramsEnableUnifiedMargin = ((IDictionary<string, object>)enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable[1]);
         bool? enableUnifiedMargin = enableUnifiedMarginOption;
         if ((enableUnifiedMargin == null) || isTrue(shouldRefresh))
         {
@@ -2359,7 +2359,7 @@ public partial class hyperliquid : Exchange
         object paramsOmitted = this.omit(parameters, "randomize");
         IList<object> vaultAddressOptionparamsVaultVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress");
         string? vaultAddressOption = (string)vaultAddressOptionparamsVaultVariable[0];
-        var paramsVault = vaultAddressOptionparamsVaultVariable[1];
+        IDictionary<string, object> paramsVault = ((IDictionary<string, object>)vaultAddressOptionparamsVaultVariable[1]);
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         double durationMins = (Math.Floor(Double.Parse((divide(divide(duration, 1000), 60)).ToString()))); // convert from ms to minutes
         Dictionary<string, object> orderObj = new Dictionary<string, object>() {
@@ -5539,10 +5539,10 @@ public partial class hyperliquid : Exchange
     {
         IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = (string)userAuxparamsUserVariable[0];
-        var paramsUser = userAuxparamsUserVariable[1];
+        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable[1]);
         IList<object> userparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
         string? user = (string)userparamsAddressVariable[0];
-        var paramsAddress = userparamsAddressVariable[1];
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable[1]);
         if (((user != null)) && (!(user == "")))
         {
             return new List<object>() {user, paramsAddress};

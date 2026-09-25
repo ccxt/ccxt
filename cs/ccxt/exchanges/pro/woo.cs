@@ -152,7 +152,7 @@ public partial class woo : ccxt.woo
         }
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         Dictionary<string, object> market = this.market(symbol);
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string urlUid = "";
@@ -201,7 +201,7 @@ public partial class woo : ccxt.woo
         }
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         Dictionary<string, object> market = this.market(symbol);
         string? subHash = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string topic = "orderbook";
@@ -429,7 +429,7 @@ public partial class woo : ccxt.woo
         }
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         Dictionary<string, object> market = this.market(symbol);
         string? subHash = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string topic = "ticker";

@@ -728,7 +728,7 @@ public partial class coinbase : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchAccounts", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToAccountList(await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, paramsPaginate, "next_starting_after", "starting_after", null, 100));
@@ -805,7 +805,7 @@ public partial class coinbase : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchAccounts", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToAccountList(await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, paramsPaginate, "cursor", "cursor", null, 250));
@@ -1129,7 +1129,7 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> currencyTypeparamsCurrencyTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchWithdrawals", "currencyType");
         string? currencyType = (string)currencyTypeparamsCurrencyTypeVariable[0];
-        var paramsCurrencyType = currencyTypeparamsCurrencyTypeVariable[1];
+        IDictionary<string, object> paramsCurrencyType = ((IDictionary<string, object>)currencyTypeparamsCurrencyTypeVariable[1]);
         if ((currencyType == "crypto"))
         {
             List<object> results = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions",code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsCurrencyType));
@@ -1156,7 +1156,7 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> currencyTypeparamsCurrencyTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchDeposits", "currencyType");
         string? currencyType = (string)currencyTypeparamsCurrencyTypeVariable[0];
-        var paramsCurrencyType = currencyTypeparamsCurrencyTypeVariable[1];
+        IDictionary<string, object> paramsCurrencyType = ((IDictionary<string, object>)currencyTypeparamsCurrencyTypeVariable[1]);
         if ((currencyType == "crypto"))
         {
             List<object> results = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions",code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsCurrencyType));
@@ -1686,7 +1686,7 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMarkets", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
-        var paramsUsePrivate = usePrivateparamsUsePrivateVariable[1];
+        IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         List<object> spotUnresolvedPromises = new List<object>() {};
         if (isTrue(usePrivate))
         {
@@ -2433,7 +2433,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> response = null;
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarketType, "fetchTickers", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
-        var paramsUsePrivate = usePrivateparamsUsePrivateVariable[1];
+        IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         if (isTrue(usePrivate))
         {
             response = await this.v3PrivateGetBrokerageProducts(this.extend(request, paramsUsePrivate));
@@ -2562,7 +2562,7 @@ public partial class coinbase : Exchange
         };
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTicker", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
-        var paramsUsePrivate = usePrivateparamsUsePrivateVariable[1];
+        IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         Dictionary<string, object> response = null;
         if (isTrue(usePrivate))
         {
@@ -2940,7 +2940,7 @@ public partial class coinbase : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsPaginate, "next_starting_after", "starting_after", null, 100));
@@ -3588,7 +3588,7 @@ public partial class coinbase : Exchange
                 string? total = null;
                 IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-                var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
+                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
                 double? cost = this.safeNumber(paramsRequiresPrice, "cost");
                 paramsMarketBuy = this.omit(paramsRequiresPrice, "cost");
                 if ((cost != null))
@@ -4101,7 +4101,7 @@ public partial class coinbase : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limitVar, paramsPaginate, "cursor", "cursor", null, 1000));
@@ -4291,7 +4291,7 @@ public partial class coinbase : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", null, 100));
@@ -4321,7 +4321,7 @@ public partial class coinbase : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, paramsPaginate, "cursor", "cursor", null, 1000));
@@ -4375,7 +4375,7 @@ public partial class coinbase : Exchange
         object limitValue = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitValue,timeframeVar, paramsPaginate, subtract(maxLimit, 1)));
@@ -4386,7 +4386,7 @@ public partial class coinbase : Exchange
             { "granularity", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? until = this.safeInteger2(paramsPaginate, "until", "end");
-        object paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         int duration = this.parseTimeframe(timeframeVar);
         object requestedDuration = multiply(limitValue, duration);
         string? sinceString = null;
@@ -4410,7 +4410,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> response = null;
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
-        var paramsUsePrivate = usePrivateparamsUsePrivateVariable[1];
+        IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         if (isTrue(usePrivate))
         {
             response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, paramsUsePrivate));
@@ -4487,7 +4487,7 @@ public partial class coinbase : Exchange
         }
         IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
         Int64? until = (Int64?)untilparamsUntilVariable[0];
-        var paramsUntil = untilparamsUntilVariable[1];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
         if (!(until == null))
         {
             request["end"] = this.numberToString(this.parseToInt(((double?)until / 1000)));
@@ -4498,7 +4498,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> response = null;
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsUntil, "fetchTrades", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
-        var paramsUsePrivate = usePrivateparamsUsePrivateVariable[1];
+        IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         if (isTrue(usePrivate))
         {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, paramsUsePrivate));
@@ -4548,7 +4548,7 @@ public partial class coinbase : Exchange
         }
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        var paramsPaginate = paginateparamsPaginateVariable[1];
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "cursor", "cursor", null, 250));
@@ -4642,7 +4642,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> response = null;
         IList<object> usePrivateparamsUsePrivateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "usePrivate", false);
         bool? usePrivate = (bool?)usePrivateparamsUsePrivateVariable[0];
-        var paramsUsePrivate = usePrivateparamsUsePrivateVariable[1];
+        IDictionary<string, object> paramsUsePrivate = ((IDictionary<string, object>)usePrivateparamsUsePrivateVariable[1]);
         if (isTrue(usePrivate))
         {
             response = await this.v3PrivateGetBrokerageProductBook(this.extend(request, paramsUsePrivate));
@@ -5513,7 +5513,7 @@ public partial class coinbase : Exchange
         {
             IList<object> portfolioparamsPortfolioVariable = (IList<object>)this.handleOptionStringAndParams(paramsMarketType, "fetchPositions", "portfolio");
             string? portfolio = (string)portfolioparamsPortfolioVariable[0];
-            var paramsPortfolio = portfolioparamsPortfolioVariable[1];
+            IDictionary<string, object> paramsPortfolio = ((IDictionary<string, object>)portfolioparamsPortfolioVariable[1]);
             if ((portfolio == null))
             {
                 throw new ArgumentsRequired ((this.id + " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
@@ -5563,7 +5563,7 @@ public partial class coinbase : Exchange
         {
             IList<object> portfolioparamsPortfolioVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "portfolio");
             string? portfolio = (string)portfolioparamsPortfolioVariable[0];
-            var paramsPortfolio = portfolioparamsPortfolioVariable[1];
+            IDictionary<string, object> paramsPortfolio = ((IDictionary<string, object>)portfolioparamsPortfolioVariable[1]);
             if ((portfolio == null))
             {
                 throw new ArgumentsRequired ((this.id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;

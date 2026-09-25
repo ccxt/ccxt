@@ -6916,7 +6916,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxEntriesPerRequest");
         Int64? newMaxEntriesPerRequest = (Int64?)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        var paramsMaxEntriesPerRequest = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1];
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
         object maxEntriesPerRequestOption = (!(newMaxEntriesPerRequest == null)) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
         object maxEntriesPerRequestResolved = (isEqual(maxEntriesPerRequestOption, null)) ? 1000 : maxEntriesPerRequestOption; // default to 1000
         return new List<object>() {maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest};
@@ -6929,18 +6929,18 @@ public partial class BaseExchange
         int maxCalls = 10;
         IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        var paramsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable[1];
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
         int maxRetries = 3;
         IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
         Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        var paramsMaxRetries = maxRetriesOptionparamsMaxRetriesVariable[1];
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
         IList<object> paginationDirectionparamsPaginationDirectionVariable = (IList<object>)this.handleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward");
         var paginationDirection = paginationDirectionparamsPaginationDirectionVariable[0];
-        var paramsPaginationDirection = paginationDirectionparamsPaginationDirectionVariable[1];
+        IDictionary<string, object> paramsPaginationDirection = ((IDictionary<string, object>)paginationDirectionparamsPaginationDirectionVariable[1]);
         object paginationTimestamp = null;
         IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", removeRepeated);
         var removeRepeatedOption = removeRepeatedOptionparamsRemoveRepeatedVariable[0];
-        var paramsRemoveRepeated = removeRepeatedOptionparamsRemoveRepeatedVariable[1];
+        IDictionary<string, object> paramsRemoveRepeated = ((IDictionary<string, object>)removeRepeatedOptionparamsRemoveRepeatedVariable[1]);
         object calls = 0;
         List<object> result = new List<object>() {};
         object errors = 0;
@@ -7054,7 +7054,7 @@ public partial class BaseExchange
         int maxRetries = 3;
         IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "maxRetries", maxRetries);
         Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        var paramsMaxRetries = maxRetriesOptionparamsMaxRetriesVariable[1];
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
         object errors = 0;
         while (isLessThanOrEqual(errors, maxRetriesOption))
         {
@@ -7089,7 +7089,7 @@ public partial class BaseExchange
         int maxCalls = 10;
         IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        var paramsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable[1];
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
@@ -7165,11 +7165,11 @@ public partial class BaseExchange
         int maxCalls = 10;
         IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        var paramsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable[1];
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
         int maxRetries = 3;
         IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
         Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        var paramsMaxRetries = maxRetriesOptionparamsMaxRetriesVariable[1];
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
@@ -7283,11 +7283,11 @@ public partial class BaseExchange
         int maxCalls = 10;
         IList<object> maxCallsPaginationCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         Int64? maxCallsPaginationCalls = (Int64?)maxCallsPaginationCallsparamsPaginationCallsVariable[0];
-        var paramsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable[1];
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable[1]);
         int maxRetries = 3;
         IList<object> maxRetriesOptionparamsMaxRetriesVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
         Int64? maxRetriesOption = (Int64?)maxRetriesOptionparamsMaxRetriesVariable[0];
-        var paramsMaxRetries = maxRetriesOptionparamsMaxRetriesVariable[1];
+        IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable[1]);
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);

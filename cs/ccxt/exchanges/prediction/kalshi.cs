@@ -2424,10 +2424,10 @@ public partial class kalshi : PredictionExchange
         }
         IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
         string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        var paramsTimeInForce = timeInForceparamsTimeInForceVariable[1];
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]);
         IList<object> stpparamsSelfTradePreventionTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
         string? stp = (string)stpparamsSelfTradePreventionTypeVariable[0];
-        var paramsSelfTradePreventionType = stpparamsSelfTradePreventionTypeVariable[1];
+        IDictionary<string, object> paramsSelfTradePreventionType = ((IDictionary<string, object>)stpparamsSelfTradePreventionTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
             { "side", bookSide },

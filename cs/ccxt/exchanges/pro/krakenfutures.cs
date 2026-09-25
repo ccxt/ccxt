@@ -490,7 +490,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         IList<object> verboseparamsVerboseVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
         bool? verbose = (bool?)verboseparamsVerboseVariable[0];
-        var paramsVerbose = verboseparamsVerboseVariable[1];
+        IDictionary<string, object> paramsVerbose = ((IDictionary<string, object>)verboseparamsVerboseVariable[1]);
         string? name = "open_orders";
         string messageHash = "orders";
         if (isTrue(verbose))
@@ -576,7 +576,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         string messageHash = name;
         IList<object> accountparamsAccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchBalance", "account");
         string? account = (string)accountparamsAccountVariable[0];
-        var paramsAccount = accountparamsAccountVariable[1];
+        IDictionary<string, object> paramsAccount = ((IDictionary<string, object>)accountparamsAccountVariable[1]);
         if ((account != null))
         {
             if (!(account == "futures") && !(account == "flex_futures"))

@@ -2197,7 +2197,7 @@ public partial class bitrue : Exchange
             request["contractName"] = (market.ContainsKey("id") ? market["id"] : null);
             IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-            var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
+            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
             bool isMarketBuyWithPrice = isMarket && ((side == "buy")) && isTrue(createMarketBuyOrderRequiresPrice);
             object paramsNoCost = paramsRequiresPrice;
             if (isMarketBuyWithPrice)
