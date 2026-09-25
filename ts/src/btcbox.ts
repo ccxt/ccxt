@@ -866,7 +866,7 @@ export default class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    override async request (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: any = {}) {
+    override async request (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
         let response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
