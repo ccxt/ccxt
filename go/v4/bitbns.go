@@ -407,6 +407,9 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quote")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var marketPrecision map[string]any = SafeMapTyped(market, "precision")
 		var marketLimits map[string]any = SafeMapTyped(market, "limits")
 		var amountLimits map[string]any = SafeMapTyped(marketLimits, "amount")
@@ -421,7 +424,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		result = append(result, map[string]any{
 			"id":             id,
 			"uppercaseId":    uppercaseId,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -857,9 +860,7 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var targetRate *string = this.SafeString(params, "target_rate")
 	var trailRate *string = this.SafeString(params, "trail_rate")
 	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"}))
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"side":     ToUpper(side),
 		"symbol":   market["uppercaseId"],

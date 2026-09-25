@@ -569,6 +569,8 @@ class alpaca(Exchange, ImplicitAPI):
         # We can safely coerce us_equity quote to USD
         if quote is None and assetClass == 'us_equity':
             quote = 'USD'
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         status = self.safe_string(asset, 'status')
         active = (status == 'active')
@@ -1746,7 +1748,7 @@ class alpaca(Exchange, ImplicitAPI):
         super(alpaca, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    async def fetch_transactions_helper(self, type: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
+    async def fetch_transactions_helper(self, type: str, code: Str, since: object, limit: object, params: object) -> list[Transaction]:
         if self.markets is None:
             await self.load_markets()
         currency = None

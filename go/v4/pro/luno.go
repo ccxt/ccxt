@@ -81,7 +81,11 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(wsUrl, subscriptionHash))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,
@@ -211,7 +215,11 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(wsUrl, subscriptionHash))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,

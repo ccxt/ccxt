@@ -548,6 +548,9 @@ export default class extended extends Exchange {
         if (quoteId === 'USD') {
             quote = 'USDC';
         }
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const status = this.safeString (market, 'status');
         const active = (status === 'ACTIVE');
         const amountPrecision = this.safeNumber (tradingConfig, 'minOrderSizeChange');

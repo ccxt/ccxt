@@ -136,7 +136,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
-		var topic *string = ccxt.SafeStringPtr(ccxt.Add("recentlyTrade.H.", market["id2"]))
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add("recentlyTrade.H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
 		var messageHash string = "trade:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -303,7 +303,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		if limit == nil {
 			limit = 25
 		}
-		var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", market["id2"]))
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
 		var messageHash string = "orderbook:" + *symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -358,7 +358,7 @@ func (this *Apex) GetWsPublicUrl() any {
 	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPublicUrl"))
 	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
 		this.Options.Store("wsPublicUrl", url)
 	}
 	return url
@@ -367,7 +367,7 @@ func (this *Apex) GetWsPrivateUrl() any {
 	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPrivateUrl"))
 	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
 		this.Options.Store("wsPrivateUrl", url)
 	}
 	return url
@@ -469,7 +469,7 @@ func (this *Apex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	symbol = market["symbol"]
 	var url any = this.GetWsPublicUrl()
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
-	var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", market["id2"]))
+	var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", this.SafeString(market, "id2")))
 	var topics []any = []any{topic}
 
 	ch <- ccxt.PanicOnError((<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)))
@@ -508,7 +508,7 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		var market map[string]any = this.Market(symbol)
-		var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", market["id2"]))
+		var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
 		var messageHash string = "ticker:" + *symbol
 		messageHashes = append(messageHashes, messageHash)

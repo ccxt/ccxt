@@ -563,6 +563,9 @@ class extended extends Exchange {
         if ($quoteId === 'USD') {
             $quote = 'USDC';
         }
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $status = $this->safe_string($market, 'status');
         $active = ($status === 'ACTIVE');
         $amountPrecision = $this->safe_number($tradingConfig, 'minOrderSizeChange');

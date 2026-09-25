@@ -2975,7 +2975,7 @@ public partial class myriad : PredictionExchange
         double? ask = null;
         if ((price != null))
         {
-            if (isGreaterThan(price, 0.001))
+            if ((price > 0.001))
             {
                 bid = this.parseNumber(Precise.stringSub(this.numberToString(price), "0.001"));
             }

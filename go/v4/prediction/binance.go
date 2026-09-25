@@ -1949,12 +1949,12 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a wallet
  */
-func (this *Binance) FetchWalletAsync(methodName any, optionalArgs ...any) <-chan any {
+func (this *Binance) FetchWalletAsync(methodName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchWalletBody(ch, methodName, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs ...any) any {
+func (this *Binance) fetchWalletBody(ch chan any, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

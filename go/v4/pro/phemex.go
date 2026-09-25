@@ -1387,7 +1387,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		}
 	} else {
 		var messageLength int = ccxt.GetArrayLength(message)
-		if ccxt.IsEqual(messageLength, 0) {
+		if messageLength == 0 {
 			return
 		}
 		for i := 0; i < ccxt.GetArrayLength(message); i++ {

@@ -1152,21 +1152,16 @@ public class Coinspot extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         final String type3 = type2;
-        final String side3 = side2;
         return BaseExchange.supplyAsync(() -> {
             String type = type3;
-            String side = side3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             String sideUpper = ((String)side).toUpperCase();
             if (java.util.Objects.equals(type, "market"))
             {
@@ -1308,7 +1303,12 @@ public class Coinspot extends CoinspotApi
         {
             fullPath = (Helpers.add("/", version) + endpoint);
         }
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), accessType), fullPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), accessType);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + fullPath);
         if (java.util.Objects.equals(accessType, "private"))
         {
             this.checkRequiredCredentials();

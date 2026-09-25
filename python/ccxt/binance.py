@@ -2917,7 +2917,7 @@ class binance(Exchange, ImplicitAPI):
             if (self.markets is not None) and (symbol in self.markets):
                 market = self.markets[symbol]
                 # begin diff
-                if isLegacy and (market['spot'] is True):
+                if isLegacy and (self.safe_bool(market, 'spot') is True):
                     settle = market['quote'] if isLegacyLinear else market['base']
                     futuresSymbol = symbol + ':' + settle
                     if (self.markets is not None) and (futuresSymbol in self.markets):
@@ -2962,7 +2962,10 @@ class binance(Exchange, ImplicitAPI):
         return super(binance, self).safe_market(marketId, market, delimiter, marketType)
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        timeDifference = self.safe_integer(self.options, 'timeDifference')
+        if timeDifference is None:
+            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
+        return self.milliseconds() - timeDifference
 
     def mint_tokenized_asset(self, underlyingAsset: str, underlyingAssetAmount: str, params: dict = {}) -> object:
         """
@@ -3694,11 +3697,13 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             self.load_time_difference()
         result = []
         for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
+            parsed = self.parse_market(markets[i])
+            if parsed is not None:
+                result.append(parsed)
         return result
 
     def parse_market(self, market: dict) -> Market:
@@ -3720,6 +3725,8 @@ class binance(Exchange, ImplicitAPI):
             stock = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         contractType = self.safe_string(market, 'contractType')
         contract = ('contractType' in market)
         expiry = self.safe_integer_2(market, 'deliveryDate', 'expiryDate')
@@ -5322,7 +5329,7 @@ class binance(Exchange, ImplicitAPI):
             side = self.safe_string_lower(trade, 'side')
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer'] is True) else 'sell'  # this is a true side
+                side = 'buy' if (self.safe_bool(trade, 'isBuyer') is True) else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -5330,9 +5337,9 @@ class binance(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         if 'isMaker' in trade:
-            takerOrMaker = 'maker' if (trade['isMaker'] is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker') is True) else 'taker'
         if 'maker' in trade:
-            takerOrMaker = 'maker' if (trade['maker'] is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker') is True) else 'taker'
         if ('optionSide' in trade) or (market['option'] is True):
             settle = self.safe_currency_code(self.safe_string(trade, 'quoteAsset', 'USDT'))
             takerOrMaker = self.safe_string_lower(trade, 'liquidity')
@@ -10171,7 +10178,7 @@ class binance(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
-                if market['linear'] is True:
+                if self.safe_bool(market, 'linear') is True:
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -10203,7 +10210,7 @@ class binance(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
-                if market['inverse'] is True:
+                if self.safe_bool(market, 'inverse') is True:
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -10215,7 +10222,7 @@ class binance(Exchange, ImplicitAPI):
             return result
         raise NotSupported(self.id + ' fetchTradingFees() is not supported for ' + type + ' markets')
 
-    def futures_transfer(self, code: str, amount: object, type: object, params: dict = {}) -> TransferEntry:
+    def futures_transfer(self, code: str, amount: object, type: float, params: dict = {}) -> TransferEntry:
         """
  @ignore
         transfer between futures account
@@ -12478,7 +12485,7 @@ class binance(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and (self.options['hasAlreadyAuthenticatedSuccessfully'] is True):
+            if (error == '-2015') and (self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully') is True):
                 raise DDoSProtection(self.id + ' ' + body)
             feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':

@@ -1331,8 +1331,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             List<Object> asks = (List<Object>) this.safeList2(rawOrderBook, "asks", "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList2(rawOrderBook, "bids", "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(storedOrderBook, "bids"), bids);
+            this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
+            this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
             Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
             Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
@@ -1342,8 +1342,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Long responseChecksum = this.safeInteger(rawOrderBook, "checksum");
             if (!Boolean.TRUE.equals(isSnapshot) && (java.util.Objects.equals(checksum, true)) && (!java.util.Objects.equals(responseChecksum, null)))
             {
-                io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(storedOrderBook, "asks");
-                io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(storedOrderBook, "bids");
+                io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (storedOrderBook == null ? null : storedOrderBook.get("asks"));
+                io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (storedOrderBook == null ? null : storedOrderBook.get("bids"));
                 Integer asksLength = ((List<?>)storedAsks).size();
                 Integer bidsLength = ((List<?>)storedBids).size();
                 Object payloadArray = new ArrayList<Object>(Arrays.asList());
@@ -1681,7 +1681,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer length = ((List<?>)data).size();
         // fix chronological order by reversing
-        for (var i = 0; Helpers.isLessThan(i, length); i++)
+        for (var i = 0; (length != null && i < length); i++)
         {
             Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
             Object rawTrade = Helpers.GetValue(data, index);
@@ -2044,7 +2044,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
@@ -2113,7 +2113,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //
         String marketId = this.safeString2(position, "instId", "symbol");
         String marginModeId = this.safeString(position, "marginMode");
-        Object marginMode = this.getSupportedMapping(marginModeId, new HashMap<String, Object>() {{
+        Object marginMode = this.getSupportedMapping((String) (marginModeId), new HashMap<String, Object>() {{
             put( "crossed", "cross" );
             put( "isolated", "isolated" );
         }});
@@ -3054,7 +3054,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String messageHash = "myTrades";
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String instType = this.safeStringLower(arg, "instType");
-        for (var i = 0; Helpers.isLessThan(i, length); i++)
+        for (var i = 0; (length != null && i < length); i++)
         {
             Object trade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> market = null;

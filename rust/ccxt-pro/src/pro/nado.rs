@@ -1849,7 +1849,7 @@ impl NadoCore {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, tx);
-        let mut hash: Value = add(&Value::Str("0x".into()), &self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut hash: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
         return self.parent.sign_hash(hash, self.privateKey.clone()).as_str().map(str::to_owned);
 }
 
@@ -2706,7 +2706,7 @@ impl NadoCore {
 
     pub fn ping(&mut self, mut client: Value) -> Value {
         let mut gatewayUrl: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "gateway");
-        if is_equal(&client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), &gatewayUrl) {
+        if (client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null).as_str() == gatewayUrl.as_str()) {
             return Value::Null;
         }
         return Value::Map({

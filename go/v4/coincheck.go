@@ -1298,7 +1298,11 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {

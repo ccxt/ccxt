@@ -189,22 +189,22 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Boolean isTrailingLimitAmountOrder = !java.util.Objects.equals(trailingLimitAmount, null);
         Boolean isTrailingLimitPercentOrder = !java.util.Objects.equals(trailingLimitPercent, null);
         String offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
-        Object trailingAmountString = null;
+        String trailingAmountString = null;
         if (!java.util.Objects.equals(trailingAmount, null))
         {
             trailingAmountString = (offset + this.numberToString(trailingAmount));
         }
-        Object trailingPercentString = null;
+        String trailingPercentString = null;
         if (!java.util.Objects.equals(trailingPercent, null))
         {
             trailingPercentString = (offset + this.numberToString(trailingPercent));
         }
-        Object trailingLimitAmountString = null;
+        String trailingLimitAmountString = null;
         if (!java.util.Objects.equals(trailingLimitAmount, null))
         {
             trailingLimitAmountString = (offset + this.numberToString(trailingLimitAmount));
         }
-        Object trailingLimitPercentString = null;
+        String trailingLimitPercentString = null;
         if (!java.util.Objects.equals(trailingLimitPercent, null))
         {
             trailingLimitPercentString = (offset + this.numberToString(trailingLimitPercent));
@@ -838,7 +838,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         Integer ohlcvsLength = ((List<?>)data).size();
-        for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
+        for (var i = 0; (ohlcvsLength != null && i < ohlcvsLength); i++)
         {
             Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i);
             String datetime = this.safeString(candle, "interval_begin");
@@ -1380,7 +1380,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Object bookside = Helpers.GetValue(orderbook, key);
                 List<Object> deltas = (List<Object>) this.safeList(first, key, new ArrayList<Object>(Arrays.asList()));
                 Integer deltasLength = ((List<?>)deltas).size();
-                if (Helpers.isGreaterThan(deltasLength, 0))
+                if ((deltasLength != null && deltasLength > 0))
                 {
                     this.customHandleDeltas(bookside, deltas);
                 }
@@ -1683,7 +1683,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //
         List<Object> allTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer allTradesLength = ((List<?>)allTrades).size();
-        if (Helpers.isGreaterThan(allTradesLength, 0))
+        if ((allTradesLength != null && allTradesLength > 0))
         {
             if (java.util.Objects.equals(this.myTrades, null))
             {
@@ -1856,7 +1856,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //
         List<Object> allOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer allOrdersLength = ((List<?>)allOrders).size();
-        if (Helpers.isGreaterThan(allOrdersLength, 0))
+        if ((allOrdersLength != null && allOrdersLength > 0))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             if (java.util.Objects.equals(this.orders, null))
@@ -2202,7 +2202,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             String requestId = this.safeString2(message, "reqid", "req_id");
             Object broad = Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "broad");
-            Object broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
+            Object broadKey = this.findBroadlyMatchedKey(broad, (String) (errorMessage));
             Object exception = null;
             if (java.util.Objects.equals(broadKey, null))
             {

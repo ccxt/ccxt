@@ -369,7 +369,7 @@ public class Indodax extends IndodaxApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -459,14 +459,19 @@ public class Indodax extends IndodaxApi
                 String quoteId = this.safeString(market, "base_currency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 Long isMaintenance = this.safeInteger(market, "is_maintenance");
                 Boolean inMaintenance = (!java.util.Objects.equals(isMaintenance, null)) && ((isMaintenance == null || isMaintenance != 0));
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -2001,7 +2006,7 @@ public class Indodax extends IndodaxApi
                             List<Object> networkIds = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote(","))));
                             for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                             {
-                                String _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);
+                                String _netIdTmp = this.networkIdToCode((networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j)), code);
                                 if (!java.util.Objects.equals(_netIdTmp, null))
                                 {
                                     ((List<Object>)network).add(_netIdTmp.toUpperCase());
@@ -2051,15 +2056,20 @@ public class Indodax extends IndodaxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = apiUrl;
         if (java.util.Objects.equals(api, "public"))
         {
             Object query = this.omit(parameters, this.extractParams(path));
             String requestPath = ("/" + this.implodeParams(path, parameters));
-            url = Helpers.add(url, requestPath);
+            url = (url + requestPath);
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
-                url = Helpers.add(url, ("?" + this.urlencodeWithArrayRepeat(query)));
+                url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         } else
         {

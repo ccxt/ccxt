@@ -1039,8 +1039,12 @@ public partial class cryptocom : Exchange
             string? baseId = this.safeString(market, "base_ccy");
             string? quoteId = this.safeString(market, "quote_ccy");
             string? settleId = spot ? null : quoteId;
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = spot ? null : this.safeCurrencyCode(settleId);
             string? optionType = this.safeStringLower(market, "put_call");
             string? strike = this.safeString(market, "strike");
@@ -1048,7 +1052,7 @@ public partial class cryptocom : Exchange
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             string? expiryString = ((string)this.omitZero(this.safeString(market, "expiry_timestamp_ms")));
             Int64? expiry = ((expiryString != null)) ? parseInt(expiryString) : null;
-            object symbol = add(add(bs, "/"), quote);
+            object symbol = ((bs + "/") + quote);
             string? type = null;
             bool? contract = null;
             if (inst_type == "CCY_PAIR")
@@ -1421,7 +1425,7 @@ public partial class cryptocom : Exchange
         };
         if ((limitVar != null))
         {
-            if (isGreaterThan(limitVar, 300))
+            if ((limitVar > 300))
             {
                 limitVar = ((Int64?)300);
             }
@@ -3013,8 +3017,8 @@ public partial class cryptocom : Exchange
             postOnly = false;
             for (int i = 0; i < execInst.Count; i++)
             {
-                object inst = execInst[i];
-                if (isEqual(inst, "POST_ONLY"))
+                string? inst = this.safeString(execInst, i);
+                if (inst == "POST_ONLY")
                 {
                     postOnly = true;
                     break;
@@ -4232,13 +4236,18 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type), "/"), path);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + (path));
         object query = this.omit(parameters, this.extractParams(path));
         if (access == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else
         {

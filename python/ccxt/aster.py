@@ -1000,6 +1000,8 @@ class aster(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteAsset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         active = self.safe_string(market, 'status') == 'TRADING'
         spot = None
         symbol = None
@@ -2488,7 +2490,7 @@ class aster(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if symbol is None:
-            if self.options['fetchOpenOrders']['warnIfNoSymbol'] is True:
+            if self.safe_bool(self.options['fetchOpenOrders'], 'warnIfNoSymbol') is True:
                 raise ExchangeError(self.id + ' fetchOpenOrders(): WARNING - self method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge self warning, set ' + self.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = False to suppress self warning message.')
         else:
             market = self.market(symbol)

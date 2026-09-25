@@ -253,7 +253,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)parts).size(); i++)
         {
-            String part = (String) Helpers.GetValue(parts, i);
+            String part = (String) (parts == null || i < 0 || i >= parts.size() ? null : parts.get(i));
             Object colonIndex = ((String)part).indexOf(":");
             if (Helpers.isGreaterThan(colonIndex, -1))
             {
@@ -361,7 +361,7 @@ public class Hyperliquid extends HyperliquidApi
                     List<Object> thresholds = new ArrayList<Object>(Arrays.asList());
                     for (var i = 0; i < ((List<?>)thresholdParts).size(); i++)
                     {
-                        String trimmed = ((String)Helpers.GetValue(thresholdParts, i)).trim();
+                        String trimmed = ((String)(thresholdParts == null || i < 0 || i >= thresholdParts.size() ? null : thresholdParts.get(i))).trim();
                         if (trimmed.length() > 0)
                         {
                             ((List<Object>)thresholds).add(trimmed);
@@ -369,13 +369,13 @@ public class Hyperliquid extends HyperliquidApi
                     }
                     Integer thresholdsLength = ((List<?>)thresholds).size();
                     Long index = this.parseToInt(indexStr);
-                    if (Helpers.isGreaterThan(thresholdsLength, 0))
+                    if ((thresholdsLength != null && thresholdsLength > 0))
                     {
                         String bucketLabel = null;
-                        if (Helpers.isLessThanOrEqual(index, 0))
+                        if ((index == null || index <= 0))
                         {
                             bucketLabel = ("BELOW_" + (thresholds == null || 0 >= ((List<?>)thresholds).size() ? null : ((List<?>)thresholds).get(0)));
-                        } else if (Helpers.isGreaterThanOrEqual(index, thresholdsLength))
+                        } else if ((thresholdsLength == null || (index != null && index >= thresholdsLength)))
                         {
                             Long lastIdx = (((long) thresholdsLength) - 1L);
                             bucketLabel = ("ABOVE_" + Helpers.GetValue(thresholds, lastIdx));
@@ -605,13 +605,13 @@ public class Hyperliquid extends HyperliquidApi
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             List<Object> expParts = new ArrayList<Object>(Arrays.asList(((String)expiry).split(java.util.regex.Pattern.quote("-"))));
             Integer expPartsLength = ((List<?>)expParts).size();
-            if (Helpers.isGreaterThanOrEqual(expPartsLength, 1) && (((String)Helpers.GetValue(expParts, 0)).length() == 8))
+            if (((expPartsLength != null && expPartsLength >= 1)) && (((String)(expParts == null || 0 >= expParts.size() ? null : expParts.get(0))).length() == 8))
             {
-                String ymd = (String) Helpers.GetValue(expParts, 0);
+                String ymd = (String) (expParts == null || 0 >= expParts.size() ? null : expParts.get(0));
                 Object hm = "0000";
-                if (Helpers.isGreaterThanOrEqual(expPartsLength, 2))
+                if (((expPartsLength != null && expPartsLength >= 2)))
                 {
-                    hm = Helpers.GetValue(expParts, 1);
+                    hm = (expParts == null || 1 >= expParts.size() ? null : expParts.get(1));
                 }
                 String isoStr = ((((((((((ymd == null ? null : ((String)ymd).substring(0, Math.min(4, ((String)ymd).length()))) + "-") + (ymd == null ? null : ((String)ymd).substring(Math.min(4, ((String)ymd).length()), Math.min(6, ((String)ymd).length())))) + "-") + (ymd == null ? null : ((String)ymd).substring(Math.min(6, ((String)ymd).length()), Math.min(8, ((String)ymd).length())))) + "T") + (hm == null ? null : ((String)hm).substring(0, Math.min(2, ((String)hm).length())))) + ":") + (hm == null ? null : ((String)hm).substring(Math.min(2, ((String)hm).length()), Math.min(4, ((String)hm).length())))) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
@@ -766,7 +766,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         String midStr = this.numberToString(midPx);
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)midStr).split(java.util.regex.Pattern.quote("."))));
-        String intPart = (String) Helpers.GetValue(parts, 0);
+        String intPart = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
         Object significantDigits = Math.max(5, intPart.length());
         Object maxDecimals = Helpers.subtract(8, szDecimals);
         Object pricePrecisionDecimals = Helpers.mathMax(1, Helpers.mathMin(maxDecimals, Helpers.subtract(significantDigits, intPart.length())));
@@ -1567,7 +1567,7 @@ public class Hyperliquid extends HyperliquidApi
         String digitChars = "0123456789";
         Object inputChars = this.stringToCharsArray(outcomeInput);
         Integer inputCharsLength = ((List<?>)inputChars).size();
-        Boolean isNumericInput = Helpers.isGreaterThan(inputCharsLength, 0);
+        Boolean isNumericInput = (inputCharsLength != null && inputCharsLength > 0);
         for (var di = 0; di < ((List<?>)inputChars).size(); di++)
         {
             if (Helpers.getIndexOf(digitChars, (inputChars == null || di < 0 || di >= ((List<?>)inputChars).size() ? null : ((List<?>)inputChars).get(di))) < 0)
@@ -2128,7 +2128,7 @@ public class Hyperliquid extends HyperliquidApi
                     {
                         Long existingTs = this.safeInteger((deduped == null || oid == null ? null : deduped.get(oid)), "statusTimestamp");
                         Long currentTs = this.safeInteger(raw, "statusTimestamp");
-                        if (!java.util.Objects.equals(currentTs, null) && (java.util.Objects.equals(existingTs, null) || Helpers.isGreaterThan(currentTs, existingTs)))
+                        if (!java.util.Objects.equals(currentTs, null) && (java.util.Objects.equals(existingTs, null) || (currentTs != null && (existingTs == null || currentTs > existingTs))))
                         {
                             deduped.put((String)oid, raw);
                         }
@@ -2691,7 +2691,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(mkt, "info", new HashMap<String, Object>() {{}});
                 String parentSymbol = this.safeString(info, "parentSymbol", this.safeString2(mkt, "market", "symbol"));
                 // Apply query filter
-                if (Helpers.isGreaterThan(lowerQueriesLength, 0))
+                if ((lowerQueriesLength != null && lowerQueriesLength > 0))
                 {
                     String description = this.safeString(info, "description", "").toLowerCase();
                     String parentSymbolOrEmpty = (((!java.util.Objects.equals(parentSymbol, null)))) ? parentSymbol : "";
@@ -2705,9 +2705,9 @@ public class Hyperliquid extends HyperliquidApi
                         List<Object> words = new ArrayList<Object>(Arrays.asList(((String)(lowerQueries == null || qi < 0 || qi >= lowerQueries.size() ? null : lowerQueries.get(qi))).split(java.util.regex.Pattern.quote(" "))));
                         Integer wordsLength = ((List<?>)words).size();
                         Boolean allWords = true;
-                        for (var wi = 0; Helpers.isLessThan(wi, wordsLength); wi++)
+                        for (var wi = 0; (wordsLength != null && wi < wordsLength); wi++)
                         {
-                            String word = (String) Helpers.GetValue(words, wi);
+                            String word = (String) (words == null || wi < 0 || wi >= words.size() ? null : words.get(wi));
                             // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                             if ((!java.util.Objects.equals(word, "")) && (((String)haystack).indexOf(word) < 0))
                             {
@@ -2793,7 +2793,7 @@ public class Hyperliquid extends HyperliquidApi
         Object markets = (List<Object>)(this.safeList(raw, "markets", new ArrayList<Object>(Arrays.asList())));
         // Extract info from first market
         Integer marketsLength = ((List<?>)markets).size();
-        Object firstMarket = (((Helpers.isGreaterThan(marketsLength, 0)))) ? (markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)) : new HashMap<String, Object>() {{}};
+        Object firstMarket = ((((marketsLength != null && marketsLength > 0)))) ? (markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)) : new HashMap<String, Object>() {{}};
         Map<String, Object> firstInfo = (Map<String, Object>) this.safeDict(firstMarket, "info", new HashMap<String, Object>() {{}});
         Map<String, Object> desc = (Map<String, Object>) this.safeDict(firstInfo, "parsedDescription", new HashMap<String, Object>() {{}});
         String underlying = this.safeString(desc, "underlying");
@@ -2805,13 +2805,13 @@ public class Hyperliquid extends HyperliquidApi
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)expiryRaw).split(java.util.regex.Pattern.quote("-"))));
             Integer partsLength = ((List<?>)parts).size();
-            if (Helpers.isGreaterThanOrEqual(partsLength, 1) && (((String)Helpers.GetValue(parts, 0)).length() == 8))
+            if (((partsLength != null && partsLength >= 1)) && (((String)(parts == null || 0 >= parts.size() ? null : parts.get(0))).length() == 8))
             {
-                String ymd = (String) Helpers.GetValue(parts, 0);
+                String ymd = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
                 Object hm = "0000";
-                if (Helpers.isGreaterThanOrEqual(partsLength, 2))
+                if (((partsLength != null && partsLength >= 2)))
                 {
-                    hm = Helpers.GetValue(parts, 1);
+                    hm = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 }
                 String isoStr = ((((((((((ymd == null ? null : ((String)ymd).substring(0, Math.min(4, ((String)ymd).length()))) + "-") + (ymd == null ? null : ((String)ymd).substring(Math.min(4, ((String)ymd).length()), Math.min(6, ((String)ymd).length())))) + "-") + (ymd == null ? null : ((String)ymd).substring(Math.min(6, ((String)ymd).length()), Math.min(8, ((String)ymd).length())))) + "T") + (hm == null ? null : ((String)hm).substring(0, Math.min(2, ((String)hm).length())))) + ":") + (hm == null ? null : ((String)hm).substring(Math.min(2, ((String)hm).length()), Math.min(4, ((String)hm).length())))) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
@@ -2872,7 +2872,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             throw new ExchangeError((this.id + " amountToPrecision() missing prec")) ;
         }
-        if (Helpers.isGreaterThan(prec, 0))
+        if ((prec != null && prec > 0))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -2888,7 +2888,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             throw new ExchangeError((this.id + " priceToPrecision() missing prec")) ;
         }
-        if (Helpers.isGreaterThan(prec, 0))
+        if ((prec != null && prec > 0))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -2897,7 +2897,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object hashMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
     public Map<String, Object> signHash(Object hash, Object privateKey)

@@ -547,6 +547,8 @@ class extended(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if quoteId == 'USD':
             quote = 'USDC'
+        if (base is None) or (quote is None):
+            return None
         status = self.safe_string(market, 'status')
         active = (status == 'ACTIVE')
         amountPrecision = self.safe_number(tradingConfig, 'minOrderSizeChange')

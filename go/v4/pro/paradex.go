@@ -416,7 +416,7 @@ func (this *Paradex) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -430,13 +430,13 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var channel any = "orders."
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		channel = ccxt.Add(channel, market["id"])
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		messageHash += ":" + *symbol
 	} else {
 		channel = ccxt.Add(channel, "ALL")
 	}
@@ -687,6 +687,10 @@ func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ..
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger(contract, "created_at")
 	var fundingPeriod *string = this.SafeString(contract, "funding_period_hours")
+	var interval *string = nil
+	if fundingPeriod != nil {
+		interval = ccxt.SafeStringPtr(*fundingPeriod + "h")
+	}
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
@@ -705,7 +709,7 @@ func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ..
 		"previousFundingRate":      nil,
 		"previousFundingTimestamp": nil,
 		"previousFundingDatetime":  nil,
-		"interval":                 ccxt.Add(fundingPeriod, "h"),
+		"interval":                 interval,
 	}
 }
 func (this *Paradex) HandleErrorMessage(client any, message any) any {

@@ -1065,7 +1065,7 @@ public class Woo extends WooApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1142,6 +1142,10 @@ public class Woo extends WooApi
         String quoteId = this.safeString(parts, 2);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settleId = null;
         String settle = null;
         String symbol = ((base + "/") + quote);
@@ -1163,6 +1167,7 @@ public class Woo extends WooApi
         Boolean active = java.util.Objects.equals(this.safeString(market, "status"), "TRADING");
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalSettleId = settleId;
         final String finalMarketType = marketType;
@@ -1176,7 +1181,7 @@ public class Woo extends WooApi
             put( "id", marketId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -3294,7 +3299,7 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     // the type gate throws NotSupported rather than letting marketSymbols raise
                     // BadRequest, so callers (and the live test harness) can tell "wrong market
@@ -4156,7 +4161,7 @@ public class Woo extends WooApi
             Integer partsLength = (parts == null ? 0 : parts.size());
             String firstPart = this.safeString(parts, 0);
             String currencyId = this.safeString(parts, 1, firstPart);
-            if (Helpers.isGreaterThan(partsLength, 2))
+            if ((partsLength != null && partsLength > 2))
             {
                 currencyId = (currencyId + ("_" + this.safeString(parts, 2)));
             }
@@ -4772,7 +4777,7 @@ public class Woo extends WooApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)

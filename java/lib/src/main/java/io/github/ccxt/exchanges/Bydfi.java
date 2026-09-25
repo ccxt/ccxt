@@ -658,6 +658,10 @@ public class Bydfi extends BydfiApi
         String settleId = this.safeString(market, "marginAsset");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         Boolean inverse = (Boolean) this.safeBool(market, "reverse");
@@ -677,13 +681,14 @@ public class Bydfi extends BydfiApi
         Double maxLeverage = this.safeNumber(market, "maxLeverageLevel");
         String status = this.safeString(market, "status");
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalStatus = status;
         final Boolean finalInverse = inverse;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1122,7 +1127,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object maxLimit = 500; // docs says max 1500, but in practice only 500 works
+            Integer maxLimit = 500; // docs says max 1500, but in practice only 500 works
             Boolean paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
@@ -1138,7 +1143,11 @@ public class Bydfi extends BydfiApi
                 put( "interval", interval );
             }};
             Object startTime = since;
-            Object numberOfCandles = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : maxLimit;
+            Object numberOfCandles = maxLimit;
+            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0))
+            {
+                numberOfCandles = limit;
+            }
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
@@ -1870,7 +1879,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Integer length = ((List<?>)orders).size();
-            if (Helpers.isGreaterThan(length, 5))
+            if ((length != null && length > 5))
             {
                 throw new BadRequest((this.id + " createOrders() accepts a maximum of 5 orders")) ;
             }
@@ -1995,7 +2004,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Integer length = ((List<?>)orders).size();
-            if (Helpers.isGreaterThan(length, 5))
+            if ((length != null && length > 5))
             {
                 throw new BadRequest((this.id + " editOrders() accepts a maximum of 5 orders")) ;
             }
@@ -3978,7 +3987,7 @@ public class Bydfi extends BydfiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("deposit", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("deposit", (String) (code), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -4014,7 +4023,7 @@ public class Bydfi extends BydfiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("withdrawal", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("withdrawal", (String) (code), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -4034,15 +4043,15 @@ public class Bydfi extends BydfiApi
         return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(Object type2, Object code2, Object since, Object limit2, Object parameters2)
+    public CompletableFuture<Object> fetchTransactionsHelper(Object type2, String code2, Object since, Object limit2, Object parameters2)
     {
         final Object type3 = type2;
-        final Object code3 = code2;
+        final String code3 = code2;
         final Object limit3 = limit2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object code = code3;
+            String code = code3;
             Object limit = limit3;
             Object parameters = parameters3;
             String methodName = "fetchWithdrawals";
@@ -4225,7 +4234,12 @@ public class Bydfi extends BydfiApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = apiUrl;
         String endpoint = Helpers.add("/", path);
         String query = "";
         Map<String,Object> sortedParams = this.keysort(parameters);
@@ -4263,7 +4277,7 @@ public class Bydfi extends BydfiApi
                 }};
             }
         }
-        url = Helpers.add(url, endpoint);
+        url = (url + endpoint);
         final Object finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;

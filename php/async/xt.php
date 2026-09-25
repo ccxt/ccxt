@@ -885,7 +885,7 @@ class xt extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function fetch_time($params = array()): PromiseInterface {
@@ -1080,7 +1080,7 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
             Async\await($this->load_time_difference());
         }
         $promisesUnresolved = array(
@@ -1231,7 +1231,10 @@ class xt extends Exchange {
     public function parse_markets(mixed $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
+            $parsed = $this->parse_market($markets[$i]);
+            if ($parsed !== null) {
+                $result[] = $parsed;
+            }
         }
         return $result;
     }
@@ -1358,6 +1361,9 @@ class xt extends Exchange {
         $quoteId = $this->safe_string_2($market, 'quoteCurrency', 'quoteCoin');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $state = $this->safe_string($market, 'state');
         $symbol = $base . '/' . $quote;
         $filters = $this->safe_list($market, 'filters', array());
@@ -2683,11 +2689,14 @@ class xt extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_spot_order(string $symbol, string $type, string $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_spot_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    private function do_create_spot_order(string $symbol, string $type, string $side, mixed $amount, ?float $price = null, $params = array()) {
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2759,11 +2768,11 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_contract_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_contract_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    private function do_create_contract_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3283,11 +3292,11 @@ class xt extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -4694,11 +4703,11 @@ class xt extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 'SUB', $params));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, string $addOrReduce, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $addOrReduce, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, mixed $amount, string $addOrReduce, $params = array()) {
         $positionSide = $this->safe_string($params, 'positionSide');
         $methodName = 'reduceMargin';
         if ($addOrReduce === 'ADD') {
@@ -6100,7 +6109,11 @@ class xt extends Exchange {
         } else {
             $payload = $request;
         }
-        $url = $this->urls['api'][$endpoint] . $payload;
+        $apiUrl = $this->safe_string($this->urls['api'], $endpoint);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $payload;
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = $this->urlencode($this->keysort($query));
         $headers = array(

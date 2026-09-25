@@ -120,7 +120,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 urlUid = ("/" + this.uid);
             }
-            Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), urlUid);
+            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public") + urlUid);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -141,7 +141,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 urlUid = ("/" + this.uid);
             }
-            Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), urlUid);
+            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public") + urlUid);
             Long requestId = this.requestId(url);
             String unsubHash = ("unsubscribe::" + subHash);
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -204,7 +204,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 urlUid = ("/" + this.uid);
             }
-            Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), urlUid);
+            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public") + urlUid);
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -339,7 +339,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Long timestamp = this.safeInteger(orderbook, "timestamp");
             if (java.util.Objects.equals(timestamp, null))
             {
-                ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
+                ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
             } else
             {
                 try
@@ -349,7 +349,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     {
                         return;
                     }
-                    if (Helpers.isGreaterThan(ts, timestamp))
+                    if ((ts != null && (timestamp == null || ts > timestamp)))
                     {
                         this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
                         client.resolve(orderbook, topic);
@@ -418,16 +418,16 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
                 orderbook.reset(snapshot);
-                List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+                List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
                 for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
-                    Object messageItem = Helpers.GetValue(messages, i);
+                    Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
                     Long ts = this.safeInteger(messageItem, "ts");
                     if (java.util.Objects.equals(ts, null))
                     {
                         continue;
                     }
-                    if (Helpers.isLessThan(ts, Helpers.GetValue(orderbook, "timestamp")))
+                    if (Helpers.isLessThan(ts, (orderbook == null ? null : orderbook.get("timestamp"))))
                     {
                         continue;
                     } else
@@ -1333,7 +1333,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.uid);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.uid);
             Client client = this.client(url);
             String messageHash = "authenticated";
             String eventVar = "auth";
@@ -1370,7 +1370,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.uid);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.uid);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -1391,13 +1391,13 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.uid);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.uid);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Map<String, Object> request = this.extend(subscribe, message);
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscribe)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
         });
 
     }
@@ -1862,7 +1862,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 ((List<Object>)messageHashes).add("positions");
             }
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.uid);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.uid);
             Client client = this.client(url);
             this.setPositionsCache(client, symbols);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1934,7 +1934,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
+                if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
                     cache.append(position);
                 }

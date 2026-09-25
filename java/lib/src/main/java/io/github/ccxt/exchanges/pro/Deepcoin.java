@@ -136,8 +136,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     public Object createPublicRequest(Object market, Object requestId, Object topicID, Object suffix, Object unWatch)
     {
-        Object marketId = Helpers.GetValue(market, "symbol"); // spot markets use symbol with slash
-        if (java.util.Objects.equals(Helpers.GetValue(market, "type"), "swap"))
+        String marketId = this.safeString(market, "symbol"); // spot markets use symbol with slash
+        if (java.util.Objects.equals(this.safeString(market, "type"), "swap"))
         {
             marketId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
@@ -147,11 +147,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             action = "0"; // unsubscribe
         }
         final String finalAction = action;
-        final Object finalMarketId = marketId;
+        final String finalMarketId = marketId;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "sendTopicAction", new HashMap<String, Object>() {{
                 put( "Action", finalAction );
-                put( "FilterValue", Helpers.add(Helpers.add("DeepCoin_", finalMarketId), suffix) );
+                put( "FilterValue", Helpers.add(("DeepCoin_" + finalMarketId), suffix) );
                 put( "LocalNo", requestId );
                 put( "ResumeNo", -1 );
                 put( "TopicID", topicID );
@@ -222,7 +222,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return BaseExchange.supplyAsync(() -> {
 
             Object listenKey = (this.authenticate()).join();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "?listenKey="), listenKey);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "?listenKey="), listenKey);
             return (this.watch(url, messageHash, null, "private", parameters)).join();
         });
 
@@ -1074,7 +1074,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String type = this.safeString(message, "t");
-        if (java.util.Objects.equals(Helpers.GetValue(orderbook, "timestamp"), null))
+        if (java.util.Objects.equals((orderbook == null ? null : orderbook.get("timestamp")), null))
         {
             if (java.util.Objects.equals(type, "f"))
             {
@@ -1083,7 +1083,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             } else
             {
                 // cache the updates until the snapshot is received
-                ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
+                ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
             }
         } else
         {
@@ -1126,7 +1126,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Long timestamp = this.safeInteger(message, "mt", 0);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderedEntries, symbol, timestamp);
         orderbook.reset(snapshot);
-        List<Object> cachedMessages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+        List<Object> cachedMessages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
         {
             Object cachedMessage = (cachedMessages == null || j < 0 || j >= ((List<?>)cachedMessages).size() ? null : ((List<?>)cachedMessages).get(j));
@@ -1155,7 +1155,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         //     }
         //
         Long timestamp = this.safeInteger(message, "mt", 0);
-        if (Helpers.isGreaterThan(timestamp, Helpers.GetValue(orderbook, "timestamp")))
+        Long currentTimestamp = this.safeInteger(orderbook, "timestamp");
+        if ((!java.util.Objects.equals(currentTimestamp, null)) && ((timestamp != null && (currentTimestamp == null || timestamp > currentTimestamp))))
         {
             List<Object> response = (List<Object>) this.safeList(message, "r", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(orderbook, response);
@@ -1504,8 +1505,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "?listenKey="), listenKey);
-            Object positions = (this.watchMultiple((String) (url), messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "?listenKey="), listenKey);
+            Object positions = (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();
             if (this.newUpdates)
             {
                 return positions;

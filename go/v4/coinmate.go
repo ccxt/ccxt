@@ -533,7 +533,10 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "secondCurrency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+		if (base == nil) || (quote == nil) {
+			continue
+		}
+		var symbol string = *base + "/" + *quote
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -1674,7 +1677,11 @@ func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))

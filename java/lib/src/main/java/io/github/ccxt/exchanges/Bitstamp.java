@@ -1230,6 +1230,10 @@ public class Bitstamp extends BitstampApi
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
                 String symbol = ((base + "/") + quote);
@@ -1256,6 +1260,7 @@ public class Bitstamp extends BitstampApi
                 String settle = (((!java.util.Objects.equals(settleId, null) && !java.util.Objects.equals(settleId, "")))) ? this.safeCurrencyCode((String) (settleId)) : null;
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final Object finalSettleId = settleId;
                 final String finalType = type;
                 final String finalSubType = subType;
@@ -1263,7 +1268,7 @@ public class Bitstamp extends BitstampApi
                     put( "id", Bitstamp.this.safeString(market, "market_symbol") );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1331,7 +1336,7 @@ public class Bitstamp extends BitstampApi
     {
         String currencyType = "crypto";
         Object description = this.describe();
-        if (Boolean.TRUE.equals(this.isFiat(code)))
+        if (Boolean.TRUE.equals(this.isFiat((String) (code))))
         {
             currencyType = "fiat";
         }
@@ -1491,7 +1496,7 @@ public class Bitstamp extends BitstampApi
                 throw new ExchangeError((this.id + " parseCurrencies() missing minimumOrder")) ;
             }
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)minimumOrder).split(java.util.regex.Pattern.quote(" "))));
-            String cost = (String) Helpers.GetValue(parts, 0);
+            String cost = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
             if ((!java.util.Objects.equals(base, null)) && !(result.containsKey(base)))
             {
                 Long baseDecimals = this.safeInteger(market, "base_decimals");
@@ -1777,7 +1782,7 @@ public class Bitstamp extends BitstampApi
         trade = (Map<String, Object>) (this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side"))));
         List<Object> currencyIds = new ArrayList<Object>(trade.keySet());
         Integer numCurrencyIds = ((List<?>)currencyIds).size();
-        if (Helpers.isGreaterThan(numCurrencyIds, 2))
+        if ((numCurrencyIds != null && numCurrencyIds > 2))
         {
             throw new ExchangeError(((((this.id + " getMarketFromTrade() too many keys: ") + this.json(currencyIds)) + " in the trade: ") + this.json(trade))) ;
         }
@@ -3390,10 +3395,10 @@ public class Bitstamp extends BitstampApi
             // dt (destination tag) is embedded into the address field
             List<Object> addressParts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
             Integer numParts = ((List<?>)addressParts).size();
-            if (Helpers.isGreaterThan(numParts, 1))
+            if ((numParts != null && numParts > 1))
             {
-                address = (String) Helpers.GetValue(addressParts, 0);
-                tag = Helpers.GetValue(addressParts, 1);
+                address = (String) (addressParts == null || 0 >= addressParts.size() ? null : addressParts.get(0));
+                tag = (addressParts == null || 1 >= addressParts.size() ? null : addressParts.get(1));
             }
         }
         Map<String, Object> fee = new HashMap<String, Object>() {{
@@ -3914,7 +3919,7 @@ public class Bitstamp extends BitstampApi
         return ((String)code).toLowerCase();
     }
 
-    public Object isFiat(Object code)
+    public Object isFiat(String code)
     {
         return java.util.Objects.equals(code, "USD") || java.util.Objects.equals(code, "EUR") || java.util.Objects.equals(code, "GBP");
     }
@@ -3933,7 +3938,7 @@ public class Bitstamp extends BitstampApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (Boolean.TRUE.equals(this.isFiat(code)))
+            if (Boolean.TRUE.equals(this.isFiat((String) (code))))
             {
                 throw new NotSupported((((this.id + " fiat fetchDepositAddress() for ") + code) + " is not supported!")) ;
             }
@@ -4005,7 +4010,7 @@ public class Bitstamp extends BitstampApi
             }};
             Map<String, Object> currency = null;
             Object response = null;
-            if (!Boolean.TRUE.equals(this.isFiat(code)))
+            if (!Boolean.TRUE.equals(this.isFiat((String) (code))))
             {
                 Object name = this.getCurrencyName(code);
                 if (java.util.Objects.equals(code, "XRP"))
@@ -4170,7 +4175,12 @@ public class Bitstamp extends BitstampApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/");
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = (apiUrl + "/");
         url = Helpers.add(url, (this.version + "/"));
         url = Helpers.add(url, this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));

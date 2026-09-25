@@ -3963,12 +3963,12 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-func (this *Predictfun) UnWatchWalletEventsAsync(channel any, optionalArgs ...any) <-chan any {
+func (this *Predictfun) UnWatchWalletEventsAsync(channel string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchWalletEventsBody(ch, channel, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel any, optionalArgs ...any) any {
+func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3990,7 +3990,7 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel any, option
 		"messageHashes":    []any{"unsubscribe::orders", "unsubscribe::myTrades"},
 		"subscribeHash":    "walletEvents",
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", channel))
+	var messageHash string = "unsubscribe::" + channel
 	var url any = this.SocketUrl()
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))

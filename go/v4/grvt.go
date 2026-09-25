@@ -1036,8 +1036,11 @@ func (this *Grvt) ParseMarket(market any) any {
 	var settleId *string = quoteId
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
+	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
 	var typeVar *string = nil
 	var typeRaw *string = this.SafeString(market, "kind")
 	if typeRaw != nil && *typeRaw == "PERPETUAL" {
@@ -1591,8 +1594,8 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes117219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
-		ch <- BoxAbsent(retRes117219)
+		var retRes117519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))))
+		ch <- BoxAbsent(retRes117519)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1704,8 +1707,8 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes126619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
-		ch <- BoxAbsent(retRes126619)
+		var retRes126919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes126919)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2267,8 +2270,8 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes172319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", nil, since, limit, params, maxLimit))))
-		ch <- BoxAbsent(retRes172319)
+		var retRes172619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", nil, since, limit, params, maxLimit))))
+		ch <- BoxAbsent(retRes172619)
 		return nil
 	}
 	if limit != nil {
@@ -2318,18 +2321,18 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	ch <- GetValue(filteredResults, 1)
 	return nil
 }
-func (this *Grvt) FilterTransfersByType(transfers any, transferType any, optionalArgs ...any) any {
+func (this *Grvt) FilterTransfersByType(transfers any, transferType string, optionalArgs ...any) any {
 	var onlyMainAccount bool = GetArgBool(optionalArgs, 0, true)
 	_ = onlyMainAccount
 	var matchedResults []any = []any{}
 	var nonMatchedResults []any = []any{}
 	for i := 0; i < GetArrayLength(transfers); i++ {
 		var transfer any = GetValue(transfers, i)
-		if ((onlyMainAccount == true) && IsEqual(GetValue(transfer, "fromAccount"), "0") && IsEqual(GetValue(transfer, "toAccount"), "0")) || (!(onlyMainAccount == true) && (!IsEqual(GetValue(transfer, "fromAccount"), "0") || !IsEqual(GetValue(transfer, "toAccount"), "0"))) {
+		if ((onlyMainAccount == true) && (this.SafeString(transfer, "fromAccount") != nil && *this.SafeString(transfer, "fromAccount") == "0") && (this.SafeString(transfer, "toAccount") != nil && *this.SafeString(transfer, "toAccount") == "0")) || (!(onlyMainAccount == true) && ((this.SafeString(transfer, "fromAccount") == nil || *this.SafeString(transfer, "fromAccount") != "0") || (this.SafeString(transfer, "toAccount") == nil || *this.SafeString(transfer, "toAccount") != "0"))) {
 			var metadata *string = this.SafeString(GetValue(transfer, "info"), "transfer_metadata")
 			var parsedMetadata any = this.ParseJson(metadata)
 			var direction *string = this.SafeString(parsedMetadata, "direction")
-			if IsEqual(direction, transferType) {
+			if direction != nil && *direction == transferType {
 				matchedResults = append(matchedResults, transfer)
 			} else {
 				nonMatchedResults = append(nonMatchedResults, transfer)
@@ -2973,8 +2976,8 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes228519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes228519)
+		var retRes228819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes228819)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -2984,11 +2987,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes229412 := request["base"]
-		AppendToArray(&retRes229412, GetValue(market, "baseId"))
+		retRes229712 := request["base"]
+		AppendToArray(&retRes229712, GetValue(market, "baseId"))
 		request["quote"] = []any{}
-		retRes229612 := request["quote"]
-		AppendToArray(&retRes229612, GetValue(market, "quoteId"))
+		retRes229912 := request["quote"]
+		AppendToArray(&retRes229912, GetValue(market, "quoteId"))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3074,10 +3077,10 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			if GetValue(market, "contract") != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
-			retRes236516 := request["base"]
-			AppendToArray(&retRes236516, market["baseId"])
-			retRes236616 := request["quote"]
-			AppendToArray(&retRes236616, market["quoteId"])
+			retRes236816 := request["base"]
+			AppendToArray(&retRes236816, market["baseId"])
+			retRes236916 := request["quote"]
+			AppendToArray(&retRes236916, market["quoteId"])
 		}
 	}
 
@@ -3399,8 +3402,8 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes261819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, params, 1000))))
-		ch <- BoxAbsent(retRes261819)
+		var retRes262119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, params, 1000))))
+		ch <- BoxAbsent(retRes262119)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3410,11 +3413,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes262712 := request["base"]
-		AppendToArray(&retRes262712, GetValue(market, "baseId"))
+		retRes263012 := request["base"]
+		AppendToArray(&retRes263012, GetValue(market, "baseId"))
 		request["quote"] = []any{}
-		retRes262912 := request["quote"]
-		AppendToArray(&retRes262912, GetValue(market, "quoteId"))
+		retRes263212 := request["quote"]
+		AppendToArray(&retRes263212, GetValue(market, "quoteId"))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3513,11 +3516,11 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes270612 := request["base"]
-		AppendToArray(&retRes270612, GetValue(market, "baseId"))
+		retRes270912 := request["base"]
+		AppendToArray(&retRes270912, GetValue(market, "baseId"))
 		request["quote"] = []any{}
-		retRes270812 := request["quote"]
-		AppendToArray(&retRes270812, GetValue(market, "quoteId"))
+		retRes271112 := request["quote"]
+		AppendToArray(&retRes271112, GetValue(market, "quoteId"))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -4005,11 +4008,11 @@ func (this *Grvt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		request["base"] = []any{}
-		retRes313812 := request["base"]
-		AppendToArray(&retRes313812, market["baseId"])
+		retRes314112 := request["base"]
+		AppendToArray(&retRes314112, market["baseId"])
 		request["quote"] = []any{}
-		retRes314012 := request["quote"]
-		AppendToArray(&retRes314012, market["quoteId"])
+		retRes314312 := request["quote"]
+		AppendToArray(&retRes314312, market["quoteId"])
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params))).Raw))
@@ -4095,13 +4098,13 @@ func (this *Grvt) EipDomainData() any {
 func (this *Grvt) FeeAmountMultiplier() any {
 	return this.ConvertToBigIntCustom("10000") // multiply needed https://t.me/c/3396937126/88
 }
-func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalArgs ...any) any {
+func (this *Grvt) CreateSignedRequest(request any, structureType string, optionalArgs ...any) any {
 	var currencyObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currencyObj
 	signerAddress := GetArg(optionalArgs, 1, nil)
 	_ = signerAddress
 	var messageData any = nil
-	if IsEqual(structureType, "EIP712_TRANSFER_TYPE") {
+	if structureType == "EIP712_TRANSFER_TYPE" {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
 		var amountInt any = Multiply(GetValue(request, "num_tokens"), amountMultiplier)
 		if currencyObj == nil {
@@ -4117,7 +4120,7 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 			"nonce":          GetValue(GetValue(request, "signature"), "nonce"),
 			"expiration":     GetValue(GetValue(request, "signature"), "expiration"),
 		}
-	} else if IsEqual(structureType, "EIP712_WITHDRAWAL_TYPE") {
+	} else if structureType == "EIP712_WITHDRAWAL_TYPE" {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
 		if currencyObj == nil {
 			panic(ExchangeError(this.Id + " createSignedRequest() missing currencyObj"))
@@ -4130,9 +4133,9 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 			"nonce":         GetValue(GetValue(request, "signature"), "nonce"),
 			"expiration":    GetValue(GetValue(request, "signature"), "expiration"),
 		}
-	} else if (IsEqual(structureType, "EIP712_ORDER_TYPE")) || (IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE")) {
+	} else if (structureType == "EIP712_ORDER_TYPE") || (structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") {
 		messageData = this.EipMessageForOrder(request, structureType)
-	} else if IsEqual(structureType, "EIP712_BUILDER_APPROVAL_TYPE") {
+	} else if structureType == "EIP712_BUILDER_APPROVAL_TYPE" {
 		var amountMultiplier any = this.ConvertToBigIntCustom(this.FeeAmountMultiplier())
 		messageData = map[string]any{
 			"mainAccountID":    GetValue(request, "main_account_id"),
@@ -4142,7 +4145,7 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 			"nonce":            GetValue(GetValue(request, "signature"), "nonce"),
 			"expiration":       GetValue(GetValue(request, "signature"), "expiration"),
 		}
-	} else if IsEqual(structureType, "EIP712_WALLETLOGIN_TYPE") {
+	} else if structureType == "EIP712_WALLETLOGIN_TYPE" {
 		messageData = map[string]any{
 			"signer":     GetValue(request, "address"),
 			"nonce":      GetValue(GetValue(request, "signature"), "nonce"),
@@ -4198,7 +4201,7 @@ func (this *Grvt) DefaultSignature() any {
 		}(),
 	}
 }
-func (this *Grvt) HandleUntilOptionString(key any, request any, optionalArgs ...any) any {
+func (this *Grvt) HandleUntilOptionString(key string, request any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	multiplier := GetArg(optionalArgs, 1, 1)
@@ -4227,7 +4230,11 @@ func (this *Grvt) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, path)
 	var queryString string = ""
 	if method == "GET" {
 		if len(ObjectKeys(query)) > 0 {
@@ -4287,7 +4294,7 @@ func (this *Grvt) HandleErrors(code any, reason any, url any, method any, header
 			var cookieValue *string = SafeStringPtr(GetValue(strings.Split(*cookie, ";"), 0))
 			this.Options.Store("AuthCookieValue", cookieValue)
 		}
-		if IsEqual(GetValue(this.Options, "AuthCookieValue"), nil) || IsEqual(GetValue(this.Options, "AuthAccountId"), nil) {
+		if (this.SafeString(this.Options, "AuthCookieValue") == nil) || (this.SafeString(this.Options, "AuthAccountId") == nil) {
 			panic(AuthenticationError(this.Id + " signIn() failed to receive auth-cookie or account-id"))
 		}
 	} else {

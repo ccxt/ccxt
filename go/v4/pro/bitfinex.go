@@ -57,12 +57,12 @@ func (this *Bitfinex) Describe() any {
 		},
 	})
 }
-func (this *Bitfinex) SubscribeAsync(channel any, symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) SubscribeAsync(channel string, symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeBody(ch, channel, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) subscribeBody(ch chan any, channel any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) subscribeBody(ch chan any, channel string, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -75,7 +75,7 @@ func (this *Bitfinex) subscribeBody(ch chan any, channel any, symbol any, option
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
-	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+	var messageHash any = ccxt.Add(channel+":", marketId)
 	var request map[string]any = map[string]any{
 		"event":   "subscribe",
 		"channel": channel,
@@ -87,7 +87,7 @@ func (this *Bitfinex) subscribeBody(ch chan any, channel any, symbol any, option
 	}))
 	ccxt.PanicOnError(result)
 	var checksum *bool = this.SafeBool(this.Options, "checksum", true)
-	if (checksum != nil && *checksum == true) && (ccxt.IsEqual(channel, "book")) {
+	if (checksum != nil && *checksum == true) && (channel == "book") {
 		var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if (!ccxt.IsEqual(sub, nil)) && (!ccxt.IsEqual(ccxt.GetValue(sub, "checksum"), true)) {
 			ccxt.AddElementToObject(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash), "checksum", true)
@@ -102,12 +102,12 @@ func (this *Bitfinex) subscribeBody(ch chan any, channel any, symbol any, option
 	ch <- result
 	return nil
 }
-func (this *Bitfinex) UnSubscribeAsync(channel any, topic any, symbol any, optionalArgs ...any) <-chan any {
+func (this *Bitfinex) UnSubscribeAsync(channel string, topic string, symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unSubscribeBody(ch, channel, topic, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) unSubscribeBody(ch chan any, channel any, topic any, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) unSubscribeBody(ch chan any, channel string, topic string, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -120,9 +120,9 @@ func (this *Bitfinex) unSubscribeBody(ch chan any, channel any, topic any, symbo
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var client ccxt.ClientInterface = this.Client(url)
-	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), marketId))
-	var unSubTopic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe"+":", topic), ":"), symbol))
+	var subMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", marketId))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:"+channel+":", marketId))
+	var unSubTopic *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe"+":"+topic+":", symbol))
 	var channelId *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), unSubTopic)
 	var request map[string]any = map[string]any{
 		"event":  "unsubscribe",

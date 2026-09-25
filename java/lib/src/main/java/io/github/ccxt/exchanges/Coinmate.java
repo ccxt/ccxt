@@ -547,13 +547,18 @@ public class Coinmate extends CoinmateApi
                 String quoteId = this.safeString(market, "secondCurrency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String symbol = ((base + "/") + quote);
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", symbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1062,16 +1067,16 @@ public class Coinmate extends CoinmateApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag2, Object parameters2)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag2, Map<String, Object> parameters2)
     {
         final String tag3 = tag2;
-        final Object parameters3 = parameters2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String tag = tag3;
-            Object parameters = parameters3;
+            Map<String, Object> parameters = parameters3;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = (String) ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1171,11 +1176,7 @@ public class Coinmate extends CoinmateApi
      */
     public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
     {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
-    {
-        return this.withdraw(code, amount, address, tag, (Object) (parameters));
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1852,7 +1853,12 @@ public class Coinmate extends CoinmateApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((apiUrl + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -1876,7 +1882,7 @@ public class Coinmate extends CoinmateApi
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

@@ -710,7 +710,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -938,9 +938,13 @@ public partial class bullish : Exchange
         string id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseSymbol");
         string? quoteId = this.safeString(market, "quoteSymbol");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         string? basePrecision = this.safeString(market, "basePrecision");
         string? quotePrecision = this.safeString(market, "quotePrecision");
         string? amountPrecision = this.safeString(market, "quantityPrecision");
@@ -975,7 +979,7 @@ public partial class bullish : Exchange
         } else
         {
             contractSize = this.safeNumber(market, "contractMultiplier");
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
             linear = (settle == quote);
             inverse = linear != true;
             if (type == "swap")
@@ -987,7 +991,7 @@ public partial class bullish : Exchange
                 List<object> idParts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 string datePart = this.safeString(idParts, 2);
                 string? dateYmd = ((datePart == null) ? null : datePart.Substring(Math.Min(2, datePart.Length)));
-                symbol = add(symbol, ("-" + dateYmd));
+                symbol = symbol + ("-" + dateYmd);
                 if (type == "future")
                 {
                     future = true;
@@ -996,7 +1000,7 @@ public partial class bullish : Exchange
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
                     strike = this.parseToNumeric(this.safeString(market, "optionStrikePrice"));
-                    symbol = add(symbol, ((("-" + this.numberToString(strike)) + "-") + this.safeString(idParts, 4)));
+                    symbol = symbol + ((("-" + this.numberToString(strike)) + "-") + this.safeString(idParts, 4));
                 }
             }
         }
@@ -1799,7 +1803,7 @@ public partial class bullish : Exchange
     public virtual object handlePaginationParams(object method, Int64? since = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Int64 ninetyDays = (((multiply(90, 24) * 60) * 60) * 1000);
+        Int64 ninetyDays = ((((90L * 24L) * 60) * 60) * 1000);
         Int64 now = this.milliseconds();
         Int64 allowedSince = (now - ninetyDays);
         if (((since != null)) && (isLessThan(since, allowedSince)))
@@ -1828,7 +1832,7 @@ public partial class bullish : Exchange
         object until = this.safeInteger(parameters, "until");
         if (((since != null)) || (!isEqual(until, null)))
         {
-            Int64 timeDelta = (((multiply(7, 24) * 60) * 60) * 1000); // 7 days
+            Int64 timeDelta = ((((7L * 24L) * 60) * 60) * 1000); // 7 days
             if ((since == null))
             {
                 since = subtract(until, timeDelta);
@@ -1853,13 +1857,13 @@ public partial class bullish : Exchange
     public virtual object getClosestLimit(Int64? limit)
     {
         int pageSize = 5;
-        if ((isGreaterThan(limit, 5)) && (isLessThan(limit, 26)))
+        if (((limit > 5)) && (isLessThan(limit, 26)))
         {
             pageSize = 25;
-        } else if ((isGreaterThan(limit, 25)) && (isLessThan(limit, 51)))
+        } else if (((limit > 25)) && (isLessThan(limit, 51)))
         {
             pageSize = 50;
-        } else if (isGreaterThan(limit, 50))
+        } else if ((limit > 50))
         {
             pageSize = 100;
         }
@@ -2042,9 +2046,9 @@ public partial class bullish : Exchange
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "tradingAccountId", tradingAccountId },
         };
-        bool isMarketOrder = ((isEqual(typeVar, "market")) || isEqual(typeVar, "MARKET"));
+        bool isMarketOrder = (((typeVar == "market")) || (typeVar == "MARKET"));
         bool? postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(typeVar, "POST_ONLY"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (typeVar == "POST_ONLY"), parameters);
         postOnly = (bool?)postOnlyparametersVariable[0];
         parameters = postOnlyparametersVariable[1];
         if ((postOnly == true))
@@ -3183,7 +3187,7 @@ public partial class bullish : Exchange
         // current endpoint requires both since and until parameters
         if (isEqual(startTimestamp, null))
         {
-            startTimestamp = (now - (((multiply(1000, 60) * 60) * 24) * 90)); // Only the last 90 days of data is available for querying
+            startTimestamp = (now - ((((1000L * 60L) * 60) * 24) * 90)); // Only the last 90 days of data is available for querying
         }
         if ((until == null))
         {
@@ -3233,7 +3237,7 @@ public partial class bullish : Exchange
 
     public virtual object getTimestamp()
     {
-        return subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null));
+        return subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**
@@ -3358,7 +3362,12 @@ public partial class bullish : Exchange
         parameters ??= new Dictionary<string, object>();
         object request = this.omit(parameters, this.extractParams(path));
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), endpoint);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + endpoint);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -3412,7 +3421,7 @@ public partial class bullish : Exchange
             string query = this.urlencode(request);
             if (query.Length > 0)
             {
-                url = add(url, ("?" + query));
+                url = url + ("?" + query);
             }
         }
         return new Dictionary<string, object>() {
@@ -3446,7 +3455,7 @@ public partial class bullish : Exchange
         string? authorizer = this.safeString(response, "authorizer");
         this.options["authorizer"] = authorizer;
         this.token = token;
-        this.options["tokenExpires"] = this.sum(this.milliseconds(), ((multiply(1000, 60) * 60) * 24)); // token expires in 24 hours
+        this.options["tokenExpires"] = this.sum(this.milliseconds(), (((1000L * 60L) * 60) * 24)); // token expires in 24 hours
         return token;
     }
 

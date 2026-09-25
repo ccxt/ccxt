@@ -90,8 +90,8 @@ public partial class deribit : ccxt.deribit
         List<object> channels = new List<object>() {};
         for (int i = 0; i < currencies.Count; i++)
         {
-            object currencyCode = currencies[i];
-            channels.Add(("user.portfolio." + (currencyCode)));
+            string? currencyCode = this.safeString(currencies, i);
+            channels.Add(("user.portfolio." + currencyCode));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -756,10 +756,11 @@ public partial class deribit : ccxt.deribit
     {
         object price = getValue(delta, 1);
         object amount = getValue(delta, 2);
-        if (isEqual(getValue(delta, 0), "new") || isEqual(getValue(delta, 0), "change"))
+        string? action = this.safeString(delta, 0);
+        if (action == "new" || action == "change")
         {
             (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, 1});
-        } else if (isEqual(getValue(delta, 0), "delete"))
+        } else if (action == "delete")
         {
             (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, 0});
         }

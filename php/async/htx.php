@@ -1577,7 +1577,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
             Async\await($this->load_time_difference());
         }
         $types = null;
@@ -1799,6 +1799,9 @@ class htx extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
             $expiry = null;
@@ -1951,6 +1954,9 @@ class htx extends Exchange {
             $info = $this->safe_dict($market, 'info', array());
             $contractType = $this->safe_string($info, 'contract_type');
             $contractSuffix = $this->safe_string($futuresCharsMaps, $contractType);
+            if ($contractSuffix === null) {
+                continue; // unknown contract_type: no id to construct
+            }
             // see comment on formats a bit above
             $constructedId = null;
             if ($market['linear'] === true) {
@@ -3983,13 +3989,13 @@ class htx extends Exchange {
         if ($account === null) {
             throw new ExchangeError($this->id . ' parseMarginBalanceHelper() could not resolve account');
         }
-        if ($balance['type'] === 'trade') {
+        if ($this->safe_string($balance, 'type') === 'trade') {
             $account['free'] = $this->safe_string($balance, 'balance');
         }
         if ($account === null) {
             throw new ExchangeError($this->id . ' parseMarginBalanceHelper() could not resolve account');
         }
-        if ($balance['type'] === 'frozen') {
+        if ($this->safe_string($balance, 'type') === 'frozen') {
             $account['used'] = $this->safe_string($balance, 'balance');
         }
         return $account;
@@ -6667,8 +6673,8 @@ class htx extends Exchange {
         $addresses = array();
         for ($i = 0; $i < count($allAddresses); $i++) {
             $address = $allAddresses[$i];
-            $noteMatch = ($note === null) || ($address['note'] === $note);
-            $networkMatch = ($networkCode === null) || ($address['network'] === $networkCode);
+            $noteMatch = ($note === null) || ($this->safe_string($address, 'note') === $note);
+            $networkMatch = ($networkCode === null) || ($this->safe_string($address, 'network') === $networkCode);
             if ($noteMatch && $networkMatch) {
                 $addresses[] = $address;
             }
@@ -7802,7 +7808,7 @@ class htx extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
@@ -8674,7 +8680,7 @@ class htx extends Exchange {
         if (($market['future'] === true) && ($market['inverse'] === true)) {
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
-                if ($entry['contract_code'] === $market['id']) {
+                if ($this->safe_string($entry, 'contract_code') === $market['id']) {
                     $position = $entry;
                     break;
                 }

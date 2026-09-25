@@ -966,10 +966,14 @@ public partial class grvt : Exchange
         string? baseId = this.safeString(market, "base");
         string? quoteId = this.safeString(market, "quote");
         string? settleId = quoteId;
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settle = this.safeCurrencyCode(settleId);
-        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
+        string symbol = ((((bs + "/") + quote) + ":") + settle);
         string? type = null;
         string? typeRaw = this.safeString(market, "kind");
         if (typeRaw == "PERPETUAL")
@@ -2109,7 +2113,7 @@ public partial class grvt : Exchange
         for (int i = 0; i < getArrayLength(transfers); i++)
         {
             object transfer = getValue(transfers, i);
-            if ((isTrue(onlyMainAccount) && isEqual(getValue(transfer, "fromAccount"), "0") && isEqual(getValue(transfer, "toAccount"), "0")) || (!isTrue(onlyMainAccount) && (!isEqual(getValue(transfer, "fromAccount"), "0") || !isEqual(getValue(transfer, "toAccount"), "0"))))
+            if ((isTrue(onlyMainAccount) && (this.safeString(transfer, "fromAccount") == "0") && (this.safeString(transfer, "toAccount") == "0")) || (!isTrue(onlyMainAccount) && ((this.safeString(transfer, "fromAccount") != "0") || (this.safeString(transfer, "toAccount") != "0"))))
             {
                 string? metadata = this.safeString(getValue(transfer, "info"), "transfer_metadata");
                 object parsedMetadata = this.parseJson(metadata);
@@ -2639,7 +2643,7 @@ public partial class grvt : Exchange
                 Int64 limitDecLength = add(limitDec.Length, 0); // php tr
                 string limitDecLengthStr = limitDecLength.ToString();
                 Int64? powerNum = (limitDecLengthStr == "0") ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
-                object priceInteger = (((this.convertToBigIntCustom(((string)price).Replace(".", (string)"")) * this.convertToBigIntCustom(priceMultiplier)) / (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
+                double? priceInteger = (((this.convertToBigIntCustom(((string)price).Replace(".", (string)"")) * this.convertToBigIntCustom(priceMultiplier)) / (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 legOrder["limitPrice"] = this.parseToInt(priceInteger);
             } else
             {
@@ -3794,7 +3798,12 @@ public partial class grvt : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), path);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = add(apiUrl, path);
         string queryString = "";
         if ((method == "GET"))
         {
@@ -3868,7 +3877,7 @@ public partial class grvt : Exchange
                 object cookieValue = getValue(cookie.Split(new [] {";"}, StringSplitOptions.None).ToList<object>(), 0);
                 this.options["AuthCookieValue"] = cookieValue;
             }
-            if (isEqual((this.options.ContainsKey("AuthCookieValue") ? this.options["AuthCookieValue"] : null), null) || isEqual((this.options.ContainsKey("AuthAccountId") ? this.options["AuthAccountId"] : null), null))
+            if ((this.safeString(this.options, "AuthCookieValue") == null) || (this.safeString(this.options, "AuthAccountId") == null))
             {
                 throw new AuthenticationError ((this.id + " signIn() failed to receive auth-cookie or account-id")) ;
             }

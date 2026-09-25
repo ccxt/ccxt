@@ -1729,12 +1729,12 @@ func (this *Cryptocom) watchPublicMultipleBody(ch chan any, messageHashes any, t
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes)))
 	return nil
 }
-func (this *Cryptocom) UnWatchPublicMultipleAsync(topic any, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) <-chan any {
+func (this *Cryptocom) UnWatchPublicMultipleAsync(topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchPublicMultipleBody(ch, topic, symbols, messageHashes, subMessageHashes, topics, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) unWatchPublicMultipleBody(ch chan any, topic any, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) any {
+func (this *Cryptocom) unWatchPublicMultipleBody(ch chan any, topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

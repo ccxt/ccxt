@@ -1252,8 +1252,9 @@ public class Mercado extends MercadoApi
                 request.put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, this.parseTimeframe(timeframe))));
             } else
             {
-                request.put("to", this.seconds());
-                request.put("from", Helpers.subtract(((Map<String, Object>)request).get("to"), (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
+                Long to = this.seconds();
+                request.put("to", to);
+                request.put("from", Helpers.subtract(to, (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
             }
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
@@ -1451,7 +1452,12 @@ public class Mercado extends MercadoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/");
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
         if ((java.util.Objects.equals(api, "public")) || (java.util.Objects.equals(api, "v4Public")) || (java.util.Objects.equals(api, "v4PublicNet")))
         {

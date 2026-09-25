@@ -400,6 +400,10 @@ public class Btcturk extends BtcturkApi
         String quoteId = this.safeString(entry, "denominator");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         List<Object> filters = (List<Object>) this.safeList(entry, "filters", new ArrayList<Object>(Arrays.asList()));
         Double minPrice = null;
         Double maxPrice = null;
@@ -421,6 +425,7 @@ public class Btcturk extends BtcturkApi
         }
         String status = this.safeString(entry, "status");
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalStatus = status;
         final Double finalMinAmount = minAmount;
         final Double finalMaxAmount = maxAmount;
@@ -429,9 +434,9 @@ public class Btcturk extends BtcturkApi
         final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1461,7 +1466,12 @@ public class Btcturk extends BtcturkApi
         {
             throw new ExchangeError((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((apiUrl + "/"), path);
         if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -1485,7 +1495,7 @@ public class Btcturk extends BtcturkApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

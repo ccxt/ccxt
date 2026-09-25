@@ -722,11 +722,11 @@ public class Mudrex extends MudrexApi
                     paging = false;
                     break;
                 }
-                for (var i = 0; Helpers.isLessThan(i, numItems); i++)
+                for (var i = 0; (numItems != null && i < numItems); i++)
                 {
                     ((List<Object>)aggregated).add((items == null || i < 0 || i >= items.size() ? null : items.get(i)));
                 }
-                if (Helpers.isLessThan(numItems, pageLimit))
+                if ((pageLimit != null && (numItems == null || numItems < pageLimit)))
                 {
                     paging = false;
                 } else

@@ -291,6 +291,8 @@ class hibachi(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'settlementSymbol')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settleId = self.safe_string(market, 'settlementSymbol')
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
@@ -1718,7 +1720,10 @@ class hibachi(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + endpoint
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + endpoint
         headers = {'Hibachi-Client': 'HibachiCCXT/unversioned'}
         if method == 'GET':
             request = self.omit(params, self.extract_params(path))

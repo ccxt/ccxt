@@ -683,7 +683,7 @@ class bitrue(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     async def fetch_status(self, params: dict = {}) -> Status:
         """
@@ -935,7 +935,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         return self.parse_markets(markets)
 
@@ -968,6 +968,8 @@ class bitrue(Exchange, ImplicitAPI):
             settle = self.safe_currency_code(settleId)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         if settle is not None:
             symbol += ':' + settle
@@ -3107,9 +3109,15 @@ class bitrue(Exchange, ImplicitAPI):
         access = self.safe_string(api, 2)
         url = None
         if (type == 'api' and version == 'kline') or (type == 'open' and path.find('listenKey') >= 0):
-            url = self.urls['api'][type]
+            apiUrl2 = self.safe_string(self.urls['api'], type)
+            if apiUrl2 is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = apiUrl2
         else:
-            url = self.urls['api'][type] + '/' + version
+            apiUrl = self.safe_string(self.urls['api'], type)
+            if apiUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = apiUrl + '/' + version
         url = url + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if access == 'private':
@@ -3212,7 +3220,7 @@ class bitrue(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and (self.options['hasAlreadyAuthenticatedSuccessfully'] is True):
+            if (error == '-2015') and self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully', False):
                 raise DDoSProtection(self.id + ' temporary banned: ' + body)
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

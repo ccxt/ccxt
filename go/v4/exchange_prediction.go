@@ -2305,8 +2305,8 @@ func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {
 	}
 	var h any = this.Remove0xPrefix(hexValue)
 	var start any = 0
-	var total int = GetArrayLength(h)
-	for (IsLessThan(start, total)) && (IsEqual(Slice(h, start, Add(start, 1)), "0")) {
+	var total int = GetLength(h)
+	for (IsLessThan(start, total)) && (Slice(h, start, Add(start, 1)) == "0") {
 		start = Add(start, 1)
 	}
 	h = Slice(h, start, nil)

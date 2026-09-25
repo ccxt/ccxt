@@ -528,6 +528,9 @@ func (this *Bitteam) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var active *bool = this.SafeBool(market, "active")
 	var timeStart *string = this.SafeString(market, "timeStart")
 	var created *int64 = this.Parse8601(timeStart)
@@ -541,7 +544,7 @@ func (this *Bitteam) ParseMarket(market any) any {
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"numericId":      numericId,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -1226,8 +1229,8 @@ func (this *Bitteam) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"type": "active",
 	}
 
-	var retRes107415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes107415)
+	var retRes107715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes107715)
 	return nil
 }
 
@@ -1266,8 +1269,8 @@ func (this *Bitteam) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		"type": "closed",
 	}
 
-	var retRes109515 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes109515)
+	var retRes109815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes109815)
 	return nil
 }
 
@@ -1306,8 +1309,8 @@ func (this *Bitteam) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 		"type": "cancelled",
 	}
 
-	var retRes111615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes111615)
+	var retRes111915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes111915)
 	return nil
 }
 
@@ -2781,7 +2784,11 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), endpoint)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, endpoint)
 	var query string = this.Urlencode(request)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()

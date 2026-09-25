@@ -605,10 +605,14 @@ public partial class bydfi : Exchange
         string? baseId = this.safeString(market, "baseAsset");
         string? quoteId = this.safeString(market, "quoteAsset");
         string? settleId = this.safeString(market, "marginAsset");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settle = this.safeCurrencyCode(settleId);
-        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
+        string symbol = ((((bs + "/") + quote) + ":") + settle);
         bool? inverse = this.safeBool(market, "reverse");
         string? limitMaxQty = this.safeString(market, "limitMaxQty");
         string? marketMaxQty = this.safeString(market, "marketMaxQty");
@@ -744,7 +748,7 @@ public partial class bydfi : Exchange
         object result = 1000;
         for (int i = 0; i < (limits?.Count ?? 0); i++)
         {
-            if (isEqual(limit, null))
+            if ((limit == null))
             {
                 throw new ArgumentsRequired ((this.id + " getClosestLimit() requires a limit argument")) ;
             }
@@ -1005,7 +1009,11 @@ public partial class bydfi : Exchange
             { "interval", interval },
         };
         object startTime = since;
-        object numberOfCandles = ((limit != null) && (limit != null) && (limit != 0)) ? limit : maxLimit;
+        object numberOfCandles = maxLimit;
+        if ((limit != null) && (limit != null) && (limit != 0))
+        {
+            numberOfCandles = limit;
+        }
         object until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
         until = untilparametersVariable[0];
@@ -2038,7 +2046,7 @@ public partial class bydfi : Exchange
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Int64 now = this.milliseconds();
-        Int64 sevenDays = (((multiply(7, 24) * 60) * 60) * 1000); // the maximum range is 7 days
+        Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
         object startTime = since;
         if (isEqual(startTime, null))
         {
@@ -2732,7 +2740,7 @@ public partial class bydfi : Exchange
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToLower();
-        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
+        if (!(marginModeVar == "isolated") && !(marginModeVar == "cross"))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -3213,7 +3221,7 @@ public partial class bydfi : Exchange
     public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? type, string? code, object since, object limit, object parameters)
     {
         string methodName = "fetchWithdrawals";
-        if (isEqual(type, "deposit"))
+        if ((type == "deposit"))
         {
             methodName = "fetchDeposits";
         }
@@ -3245,9 +3253,9 @@ public partial class bydfi : Exchange
         until = untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Int64 now = this.milliseconds();
-        Int64 sevenDays = (((multiply(7, 24) * 60) * 60) * 1000); // the maximum range is 7 days
+        Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
         object startTime = since;
-        if ((startTime == null))
+        if (isEqual(startTime, null))
         {
             if (isEqual(until, null))
             {
@@ -3273,12 +3281,12 @@ public partial class bydfi : Exchange
         }
         request["startTime"] = startTime;
         request["endTime"] = until;
-        if ((limit != null))
+        if (!isEqual(limit, null))
         {
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(type, "deposit"))
+        if ((type == "deposit"))
         {
             //
             //     {
@@ -3386,7 +3394,12 @@ public partial class bydfi : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = apiUrl;
         string endpoint = ("/" + (path));
         string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);

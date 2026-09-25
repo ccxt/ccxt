@@ -973,6 +973,10 @@ public class Paradex extends ParadexApi
         String baseId = this.safeString(market, "base_currency");
         String quote = this.safeCurrencyCode(quoteId);
         String base = this.safeCurrencyCode(baseId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settleId = this.safeString(market, "settlement_currency");
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
@@ -994,6 +998,7 @@ public class Paradex extends ParadexApi
         String expireDatetime = ((((expiry != null && expiry == 0)))) ? null : this.iso8601(expiry);
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalType = type;
         final Double finalMakerFee = makerFee;
         final Long finalExpiry = expiry;
@@ -1001,7 +1006,7 @@ public class Paradex extends ParadexApi
             put( "id", marketId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1266,7 +1271,7 @@ public class Paradex extends ParadexApi
                 request.put("start_at", since);
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("end_at", Helpers.subtract(this.sum(since, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
+                    request.put("end_at", Helpers.subtract(Helpers.add(since, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limit, 1))), 1000)), 1));
                 } else
                 {
                     request.put("end_at", until);
@@ -2035,7 +2040,8 @@ public class Paradex extends ParadexApi
 
     public Object hashMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        Object hashed = this.hash(message, keccak(), "hex");
+        return ("0x" + hashed);
     }
 
     public Object signHash(Object hash, Object privateKey)
@@ -2202,7 +2208,7 @@ public class Paradex extends ParadexApi
                 {
                     throw new ExchangeError((this.id + " authenticateRest() missing cachedExpires")) ;
                 }
-                if (Helpers.isLessThan(now, cachedExpires))
+                if ((cachedExpires != null && (now == null || now < cachedExpires)))
                 {
                     return cachedToken;
                 }
@@ -2531,7 +2537,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> orderReq = new HashMap<String, Object>() {{
                 put( "timestamp", Helpers.multiply(finalNow, 1000) );
                 put( "market", Paradex.this.stringToBase16(((Map<String, Object>)request).get("market")) );
-                put( "side", (((java.util.Objects.equals(((Map<String, Object>)request).get("side"), "BUY")))) ? "1" : "2" );
+                put( "side", (((java.util.Objects.equals(Paradex.this.safeString(request, "side"), "BUY")))) ? "1" : "2" );
                 put( "orderType", Paradex.this.stringToBase16(((Map<String, Object>)request).get("type")) );
                 put( "size", Paradex.this.scaleNumber(((Map<String, Object>)request).get("size")) );
                 put( "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : Paradex.this.scaleNumber(((Map<String, Object>)request).get("price")) );
@@ -3265,7 +3271,7 @@ public class Paradex extends ParadexApi
             List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             String paginationCursor = this.safeString(response, "next");
             Integer ordersLength = ((List<?>)orders).size();
-            if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(ordersLength, 0)))
+            if ((!java.util.Objects.equals(paginationCursor, null)) && ((ordersLength != null && ordersLength > 0)))
             {
                 Object first = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
                 ((Map<String, Object>)first).put("next", paginationCursor);
@@ -3897,7 +3903,7 @@ public class Paradex extends ParadexApi
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "DEPOSIT"))
+                if (java.util.Objects.equals(this.safeString(row, "kind"), "DEPOSIT"))
                 {
                     ((List<Object>)deposits).add(row);
                 }
@@ -3998,7 +4004,7 @@ public class Paradex extends ParadexApi
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                if (java.util.Objects.equals(Helpers.GetValue(row, "kind"), "WITHDRAWAL"))
+                if (java.util.Objects.equals(this.safeString(row, "kind"), "WITHDRAWAL"))
                 {
                     ((List<Object>)deposits).add(row);
                 }
@@ -5010,8 +5016,12 @@ public class Paradex extends ParadexApi
                 }}));
             } else
             {
-                Object token = ((Map<String, Object>)this.options).get("authToken");
-                ((Map<String, Object>)headers).put("Authorization", Helpers.add("Bearer ", token));
+                String token = this.safeString(this.options, "authToken");
+                if (java.util.Objects.equals(token, null))
+                {
+                    throw new AuthenticationError((this.id + " sign() requires an authToken, call authenticateRest() first")) ;
+                }
+                ((Map<String, Object>)headers).put("Authorization", ("Bearer " + token));
                 if ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PUT")) || ((java.util.Objects.equals(method, "DELETE")) && (java.util.Objects.equals(path, "orders/batch"))))
                 {
                     ((Map<String, Object>)headers).put("Content-Type", "application/json");

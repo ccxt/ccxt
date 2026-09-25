@@ -620,7 +620,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
@@ -932,7 +932,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 List<Object> trades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
                 Integer length = ((List<?>)trades).size();
-                for (var i = 0; Helpers.isLessThan(i, length); i++)
+                for (var i = 0; (length != null && i < length); i++)
                 {
                     Object index = Helpers.subtract((((long) length) - 1L), i); // need reverse to correct chronology
                     Object item = Helpers.GetValue(trades, index);
@@ -1329,7 +1329,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             cachedOrders.append(parsed);
         }
         Integer length = ((List<?>)this.orders).size();
-        if (Helpers.isGreaterThan(length, 0))
+        if ((length != null && length > 0))
         {
             client.resolve(this.orders, messageHash);
             List<String> keys = new ArrayList<String>(symbols.keySet());
@@ -1653,7 +1653,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Map<String, Object> bid = (Map<String, Object>) this.safeDict(bids, i);
             Double price = this.safeNumber(bid, "price");
             Double qty = this.safeNumber(bid, "qty");
-            io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
             bidsSide.store(price, qty);
         }
         for (var i = 0; i < ((List<?>)asks).size(); i++)
@@ -1661,7 +1661,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Map<String, Object> ask = (Map<String, Object>) this.safeDict(asks, i);
             Double price = this.safeNumber(ask, "price");
             Double qty = this.safeNumber(ask, "qty");
-            io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             asksSide.store(price, qty);
         }
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -1694,11 +1694,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(message, "timestamp");
         if (java.util.Objects.equals(side, "sell"))
         {
-            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             asks.store(price, qty);
         } else
         {
-            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
             bids.store(price, qty);
         }
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -2074,7 +2074,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Integer length = ((List<?>)rawSubs).size();
-            if (Helpers.isGreaterThan(length, 0))
+            if ((length != null && length > 0))
             {
                 request = new HashMap<String, Object>() {{
                     put( "event", "subscribe" );

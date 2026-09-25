@@ -506,6 +506,9 @@ class bydfi extends Exchange {
         $settleId = $this->safe_string($market, 'marginAsset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
         $inverse = $this->safe_bool($market, 'reverse');
@@ -886,7 +889,10 @@ class bydfi extends Exchange {
             'interval' => $interval,
         );
         $startTime = $since;
-        $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
+        $numberOfCandles = $maxLimit;
+        if ($limit !== null && $limit !== null && $limit !== 0) {
+            $numberOfCandles = $limit;
+        }
         $until = null;
         list($until, $params) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
@@ -2951,11 +2957,11 @@ class bydfi extends Exchange {
         return Async\await($this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params));
     }
 
-    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
+    public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($type, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
+    private function do_fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params) {
         $methodName = 'fetchWithdrawals';
         if ($type === 'deposit') {
             $methodName = 'fetchDeposits';
@@ -3105,7 +3111,11 @@ class bydfi extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api];
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl;
         $endpoint = '/' . $path;
         $query = '';
         $sortedParams = $this->keysort($params);

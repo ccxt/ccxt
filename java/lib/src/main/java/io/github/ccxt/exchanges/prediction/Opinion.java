@@ -258,7 +258,7 @@ public class Opinion extends OpinionApi
                 // unflattened row count in 'total' must be compared against fetchedRawCount, not
                 // flatMarkets.length - otherwise expansion makes the comparison meaningless
                 Long total = this.safeInteger(result, "total");
-                for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+                for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
                 {
                     Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                     Long marketType = this.safeInteger(raw, "marketType");
@@ -267,7 +267,7 @@ public class Opinion extends OpinionApi
                         Object eventVar = this.parseEvent((Map<String, Object>) (raw));
                         Object childMarkets = Helpers.GetValue(eventVar, "markets");
                         Integer childMarketsLength = Helpers.getArrayLength(childMarkets);
-                        for (var ci = 0; Helpers.isLessThan(ci, childMarketsLength); ci++)
+                        for (var ci = 0; (childMarketsLength != null && ci < childMarketsLength); ci++)
                         {
                             ((List<Object>)flatMarkets).add(Helpers.GetValue(childMarkets, ci));
                         }
@@ -283,7 +283,7 @@ public class Opinion extends OpinionApi
                     }
                 }
                 Integer collectedLength = ((List<?>)flatMarkets).size();
-                if ((Helpers.isLessThan(rawMarketsLength, pageLimit)) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || ((!java.util.Objects.equals(total, null)) && (Helpers.isGreaterThanOrEqual(fetchedRawCount, total))) || ((!java.util.Objects.equals(userLimit, null)) && (Helpers.isGreaterThanOrEqual(collectedLength, userLimit))))
+                if (((pageLimit != null && (rawMarketsLength == null || rawMarketsLength < pageLimit))) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || ((!java.util.Objects.equals(total, null)) && (Helpers.isGreaterThanOrEqual(fetchedRawCount, total))) || ((!java.util.Objects.equals(userLimit, null)) && ((userLimit == null || (collectedLength != null && collectedLength >= userLimit)))))
                 {
                     break;
                 }
@@ -291,7 +291,7 @@ public class Opinion extends OpinionApi
             }
             this.setEvents(eventsList);
             Integer flatMarketsLength = ((List<?>)flatMarkets).size();
-            if ((!java.util.Objects.equals(userLimit, null)) && (Helpers.isGreaterThan(flatMarketsLength, userLimit)))
+            if ((!java.util.Objects.equals(userLimit, null)) && ((flatMarketsLength != null && (userLimit == null || flatMarketsLength > userLimit))))
             {
                 return this.arraySlice(flatMarkets, 0, userLimit);
             }
@@ -351,7 +351,7 @@ public class Opinion extends OpinionApi
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public Object parseOpinionMarket(Map<String, Object> raw, String eventSlug)
+    public Map<String, Object> parseOpinionMarket(Map<String, Object> raw, String eventSlug)
     {
         // {
         //     "chainId": "56",
@@ -507,7 +507,7 @@ final String finalTokenId = tokenId;
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public Object parseOpinionMarket(Map<String, Object> raw, Object... optionalArgs)
+    public Map<String, Object> parseOpinionMarket(Map<String, Object> raw, Object... optionalArgs)
     {
         return this.parseOpinionMarket(raw, Helpers.getArgString(optionalArgs, 0, null));
     }
@@ -593,7 +593,7 @@ final String finalTokenId = tokenId;
                 List<Object> pageEvents = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
                 Integer pageEventsLength = ((List<?>)pageEvents).size();
                 fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
-                for (var i = 0; Helpers.isLessThan(i, pageEventsLength); i++)
+                for (var i = 0; (pageEventsLength != null && i < pageEventsLength); i++)
                 {
                     ((List<Object>)rawEvents).add((pageEvents == null || i < 0 || i >= pageEvents.size() ? null : pageEvents.get(i)));
                 }
@@ -610,14 +610,14 @@ final String finalTokenId = tokenId;
             {
                 this.markets = this.createSafeDictionary();
             }
-            for (var i = 0; Helpers.isLessThan(i, rawEventsLength); i++)
+            for (var i = 0; (rawEventsLength != null && i < rawEventsLength); i++)
             {
                 Object eventVar = this.parseEvent((Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i))));
                 ((List<Object>)parsedEvents).add(eventVar);
                 // register the parsed markets so populateOutcomes can index their outcomes
                 List<Object> eventMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer eventMarketsLength = ((List<?>)eventMarkets).size();
-                for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
+                for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
                     Object m = (eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi));
                     Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
@@ -804,7 +804,7 @@ final String finalTokenId = tokenId;
         List<Object> rawChildren = (List<Object>) this.safeList(rawEvent, "childMarkets", new ArrayList<Object>(Arrays.asList()));
         Integer rawChildrenLength = ((List<?>)rawChildren).size();
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, rawChildrenLength); i++)
+        for (var i = 0; (rawChildrenLength != null && i < rawChildrenLength); i++)
         {
             ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), slug));
         }
@@ -988,7 +988,7 @@ final String finalTokenId = tokenId;
             (this.loadOutcomes(outcomes)).join();
             Integer outcomesLength = ((List<?>)outcomes).size();
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
@@ -1001,7 +1001,7 @@ final String finalTokenId = tokenId;
             }
             Object responses = (Helpers.promiseAll(promises)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Object priceIndex = Helpers.multiply(i, 2);
@@ -1138,7 +1138,7 @@ final String finalTokenId = tokenId;
             List<Object> history = (List<Object>) this.safeList(result, "history", new ArrayList<Object>(Arrays.asList()));
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
             Integer historyLength = ((List<?>)history).size();
-            for (var i = 0; Helpers.isLessThan(i, historyLength); i++)
+            for (var i = 0; (historyLength != null && i < historyLength); i++)
             {
                 Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i);
                 Double price = this.safeNumber(point, "p");
@@ -1229,7 +1229,7 @@ final String finalTokenId = tokenId;
             List<Object> list = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Integer listLength = ((List<?>)list).size();
             Map<String, Object> quoteTokens = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, listLength); i++)
+            for (var i = 0; (listLength != null && i < listLength); i++)
             {
                 Object entry = (list == null || i < 0 || i >= list.size() ? null : list.get(i));
                 String address = this.safeStringLower(entry, "quoteTokenAddress");
@@ -1325,7 +1325,7 @@ final String finalTokenId = tokenId;
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)sig).get("r"))), this.remove0xPrefix(((Map<String, Object>)sig).get("s"))), this.intToBase16(((Map<String, Object>)sig).get("v")));
+        return ((("0x" + this.remove0xPrefix(((Map<String, Object>)sig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)sig).get("s"))) + this.intToBase16(((Map<String, Object>)sig).get("v")));
     }
 
     public Map<String, Object> opinionOrderRawAmounts(Object isMarket, Object side, Object amount, Object price, Object decimals)
@@ -1477,7 +1477,7 @@ final String finalTokenId = tokenId;
                 put( "side", String.valueOf(sideInt) );
                 put( "signatureType", String.valueOf(signatureType) );
                 put( "signature", signature );
-                put( "sign", Helpers.slice(signatureNo0x, 0, 64) );
+                put( "sign", (signatureNo0x == null ? null : ((String)signatureNo0x).substring(0, Math.min(64, ((String)signatureNo0x).length()))) );
                 put( "contractAddress", "" );
                 put( "currencyAddress", quoteTokenAddress );
                 put( "topicId", topicId );
@@ -1864,7 +1864,7 @@ final String finalTokenId = tokenId;
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Integer tradesLength = ((List<?>)trades).size();
-            for (var i = 0; Helpers.isLessThan(i, tradesLength); i++)
+            for (var i = 0; (tradesLength != null && i < tradesLength); i++)
             {
                 Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 String tokenId = this.safeString(trade, "tokenId");
@@ -1928,7 +1928,7 @@ final String finalTokenId = tokenId;
             }})).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
-            Object market = this.parseOpinionMarket((Map<String, Object>) (data));
+            Map<String, Object> market = this.parseOpinionMarket((Map<String, Object>) (data));
             if (java.util.Objects.equals(market, null))
             {
                 throw new ExchangeError(((this.id + " loadTradeMarket() could not parse market ") + idStr)) ;
@@ -2014,7 +2014,7 @@ final String finalTokenId = tokenId;
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> rawBalances = (List<Object>) this.safeList(result, "balances", new ArrayList<Object>(Arrays.asList()));
             Integer rawBalancesLength = ((List<?>)rawBalances).size();
-            for (var i = 0; Helpers.isLessThan(i, rawBalancesLength); i++)
+            for (var i = 0; (rawBalancesLength != null && i < rawBalancesLength); i++)
             {
                 Object rawBalance = (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
                 String quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
@@ -2054,7 +2054,7 @@ final String finalTokenId = tokenId;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(data, "balances", new ArrayList<Object>(Arrays.asList()));
         Integer balancesLength = ((List<?>)balances).size();
-        for (var i = 0; Helpers.isLessThan(i, balancesLength); i++)
+        for (var i = 0; (balancesLength != null && i < balancesLength); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String code = this.safeString(balance, "symbol", "USDT");
@@ -2186,7 +2186,7 @@ final String finalTokenId = tokenId;
 
     public Object hashMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
     public Map<String, Object> signHash(Object hash, Object privateKey)
@@ -2236,7 +2236,7 @@ final String finalTokenId = tokenId;
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)sig).get("r"))), this.remove0xPrefix(((Map<String, Object>)sig).get("s"))), this.intToBase16(((Map<String, Object>)sig).get("v")));
+        return ((("0x" + this.remove0xPrefix(((Map<String, Object>)sig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)sig).get("s"))) + this.intToBase16(((Map<String, Object>)sig).get("v")));
     }
 
     /**
@@ -2503,7 +2503,7 @@ final String finalTokenId = tokenId;
         }
         List<Object> marketKeys = Helpers.objectKeys(this.markets);
         Integer marketKeysLength = ((List<?>)marketKeys).size();
-        for (var i = 0; Helpers.isLessThan(i, marketKeysLength); i++)
+        for (var i = 0; (marketKeysLength != null && i < marketKeysLength); i++)
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});

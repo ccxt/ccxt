@@ -684,11 +684,15 @@ public partial class extended : Exchange
             baseId = baseId.Replace("SPOT", (string)"");
         }
         string? quoteId = this.safeString(market, "collateralAssetName");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (quoteId == "USD")
         {
             quote = "USDC";
+        }
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
         }
         string? status = this.safeString(market, "status");
         bool active = (status == "ACTIVE");
@@ -700,7 +704,7 @@ public partial class extended : Exchange
         Int64? created = this.safeInteger(market, "createdAt");
         string? settleId = null;
         string? settle = null;
-        object symbol = add(add(bs, "/"), quote);
+        string symbol = ((bs + "/") + quote);
         bool isSpot = false;
         string? type = this.safeStringLower(market, "type");
         double? contractSize = null;
@@ -717,7 +721,7 @@ public partial class extended : Exchange
             type = "swap";
             settleId = quoteId;
             settle = quote;
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
             contractSize = this.parseNumber("1");
             linear = true;
             inverse = false;

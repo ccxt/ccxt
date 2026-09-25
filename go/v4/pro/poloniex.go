@@ -221,12 +221,12 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} data from the websocket stream
  */
-func (this *Poloniex) TradeRequestAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) TradeRequestAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.tradeRequestBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) tradeRequestBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Poloniex) tradeRequestBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

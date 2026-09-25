@@ -254,7 +254,8 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
 	var queryLength int = len(queryKeys)
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), implodedPath)
+	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
+	var url any = Add(Add(baseUrl, "/"), implodedPath)
 	var queryString string = ""
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -1506,7 +1507,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1600,8 +1601,8 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"order_states": orderStates,
 	})
 
-	var retRes126715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
-	ch <- BoxAbsent(retRes126715)
+	var retRes126815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
+	ch <- BoxAbsent(retRes126815)
 	return nil
 }
 
@@ -1676,7 +1677,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit

@@ -1556,10 +1556,14 @@ public class Bingx extends BingxApi
     {
         String id = this.safeString(market, "symbol");
         List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
-        String baseId = (String) Helpers.GetValue(symbolParts, 0);
-        String quoteId = (String) Helpers.GetValue(symbolParts, 1);
+        String baseId = (String) (symbolParts == null || 0 >= symbolParts.size() ? null : symbolParts.get(0));
+        String quoteId = (String) (symbolParts == null || 1 >= symbolParts.size() ? null : symbolParts.get(1));
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String currency = this.safeString(market, "currency");
         Boolean checkIsInverse = false;
         Boolean checkIsLinear = true;
@@ -1625,6 +1629,7 @@ public class Bingx extends BingxApi
         }
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalCurrency = currency;
         final String finalType = type;
@@ -1638,7 +1643,7 @@ public class Bingx extends BingxApi
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -4692,7 +4697,7 @@ public class Bingx extends BingxApi
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                if (Helpers.isGreaterThan(symbolsLength, 5))
+                if ((symbolsLength != null && symbolsLength > 5))
                 {
                     throw new InvalidOrder((this.id + " createOrders() can not create more than 5 orders at once for swap markets")) ;
                 }
@@ -7595,7 +7600,7 @@ public class Bingx extends BingxApi
         }};
         if (!java.util.Objects.equals(networksLength, 0))
         {
-            for (var i = 0; Helpers.isLessThan(i, networksLength); i++)
+            for (var i = 0; (networksLength != null && i < networksLength); i++)
             {
                 String networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Map<String, Object> network = (Map<String, Object>) this.safeDict(networks, networkCode);

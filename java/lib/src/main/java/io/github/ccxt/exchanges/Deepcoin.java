@@ -723,6 +723,10 @@ public class Deepcoin extends DeepcoinApi
         String settle = null;
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         Boolean isLinear = null;
         if (Boolean.TRUE.equals(swap))
@@ -743,6 +747,7 @@ public class Deepcoin extends DeepcoinApi
         Boolean isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalQuoteId = quoteId;
         final String finalSettleId = settleId;
@@ -755,7 +760,7 @@ public class Deepcoin extends DeepcoinApi
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", finalQuoteId );
@@ -1733,9 +1738,9 @@ public class Deepcoin extends DeepcoinApi
             List<DepositAddress> addressess = (this.fetchDepositAddresses((Object)(new ArrayList<Object>(Arrays.asList(code))), (Object)(parameters))).join();
             Integer length = ((List<?>)addressess).size();
             Object address = this.safeDict(addressess, 0, new HashMap<String, Object>() {{}});
-            if ((!java.util.Objects.equals(network, null)) && (Helpers.isGreaterThan(length, 1)))
+            if ((!java.util.Objects.equals(network, null)) && ((length != null && length > 1)))
             {
-                for (var i = 0; Helpers.isLessThan(i, length); i++)
+                for (var i = 0; (length != null && i < length); i++)
                 {
                     Object entry = (addressess == null || i < 0 || i >= addressess.size() ? null : addressess.get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)entry).get("network"), network))
@@ -4457,16 +4462,21 @@ public class Deepcoin extends DeepcoinApi
             String query = this.urlencode(parameters);
             if (query.length() > 0)
             {
-                requestPath = Helpers.add(requestPath, ("?" + query));
+                requestPath = (requestPath + ("?" + query));
             }
         }
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), requestPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((apiUrl + "/") + requestPath);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
-            Object payload = Helpers.add(((dateTime + method) + "/"), requestPath);
+            Object payload = (((dateTime + method) + "/") + requestPath);
             final String finalDateTime = dateTime;
             headers = new HashMap<String, Object>() {{
                 put( "DC-ACCESS-KEY", Deepcoin.this.apiKey );

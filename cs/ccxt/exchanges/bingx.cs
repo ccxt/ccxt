@@ -1062,7 +1062,7 @@ public partial class bingx : Exchange
                     { "USDTMPerp", "linear" },
                     { "coinMPerp", "inverse" },
                 } },
-                { "recvWindow", multiply(5, 1000) },
+                { "recvWindow", (5L * 1000L) },
                 { "broker", "CCXT" },
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "ETH", "ETH" },
@@ -1466,8 +1466,12 @@ public partial class bingx : Exchange
         List<object> symbolParts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         string? baseId = ((string)(symbolParts != null && 0 < symbolParts.Count ? symbolParts[0] : null));
         string? quoteId = ((string)(symbolParts != null && 1 < symbolParts.Count ? symbolParts[1] : null));
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? currency = this.safeString(market, "currency");
         bool checkIsInverse = false;
         bool checkIsLinear = true;
@@ -1497,10 +1501,10 @@ public partial class bingx : Exchange
         }
         bool spot = type == "spot";
         bool swap = type == "swap";
-        object symbol = add(add(bs, "/"), quote);
+        string symbol = ((bs + "/") + quote);
         if ((settle != null))
         {
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
         }
         IDictionary<string, object> fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
         double? contractSize = null;
@@ -6053,11 +6057,11 @@ public partial class bingx : Exchange
             throw new BadSymbol ((this.id + " setMarginMode() supports swap contracts only")) ;
         }
         marginModeVar = marginModeVar.ToUpper();
-        if (isEqual(marginModeVar, "CROSS"))
+        if ((marginModeVar == "CROSS"))
         {
             marginModeVar = "CROSSED";
         }
-        if (!isEqual(marginModeVar, "ISOLATED") && !isEqual(marginModeVar, "CROSSED"))
+        if (!(marginModeVar == "ISOLATED") && !(marginModeVar == "CROSSED"))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -6337,7 +6341,7 @@ public partial class bingx : Exchange
                 request[(string)startTimeReq] = since;
             } else if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
             {
-                request["startTs"] = (now - (((multiply(30, 24) * 60) * 60) * 1000)); // 30 days for swap
+                request["startTs"] = (now - ((((30L * 24L) * 60) * 60) * 1000)); // 30 days for swap
             }
             Int64? until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");

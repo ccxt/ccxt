@@ -366,8 +366,8 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_292: bool = true;
             while { if !__for_first_292 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_292 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
-            let mut currencyCode: Value = currencies.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut channels, add(&Value::Str("user.portfolio.".into()), &currencyCode));
+            let mut currencyCode: Value = self.safe_string(currencies.clone(), i.clone(), &[]);
+            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str("user.portfolio.".into()), currencyCode).into()));
         }
         }
         let mut subscribe: Value = Value::Map({
@@ -1132,9 +1132,10 @@ impl DeribitCore {
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
         let mut price: Value = get_value(&delta, &Value::Int(1));
         let mut amount: Value = get_value(&delta, &Value::Int(2));
-        if (get_value(&delta, &Value::Int(0)).as_str() == Some("new")) || (get_value(&delta, &Value::Int(0)).as_str() == Some("change")) {
+        let mut action: Option<String> = self.safe_string(delta, Value::Int(0), &[]).as_str().map(str::to_owned);
+        if (action.as_deref() == Some("new")) || (action.as_deref() == Some("change")) {
             bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(1)]));
-        }  else if (get_value(&delta, &Value::Int(0)).as_str() == Some("delete")) {
+        }  else if (action.as_deref() == Some("delete")) {
             bookside.store_array(Value::from(vec![price, amount, Value::Int(0)]));
         }
 }

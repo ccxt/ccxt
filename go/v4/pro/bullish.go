@@ -93,12 +93,12 @@ func (this *Bullish) HandlePong(client any, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message // current line is for transpilation compatibility
 }
-func (this *Bullish) WatchPublicAsync(url any, messageHash any, optionalArgs ...any) <-chan any {
+func (this *Bullish) WatchPublicAsync(url string, messageHash any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPublicBody(ch, url, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Bullish) watchPublicBody(ch chan any, url any, messageHash any, optionalArgs ...any) any {
+func (this *Bullish) watchPublicBody(ch chan any, url string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -113,17 +113,21 @@ func (this *Bullish) watchPublicBody(ch chan any, url any, messageHash any, opti
 		"params":  request,
 		"id":      id,
 	}
-	var fullUrl any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), url)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
+	}
+	var fullUrl string = *wsUrl + url
 
 	ch <- ccxt.PanicOnError((<-this.Watch(fullUrl, messageHash, this.DeepExtend(message, params), messageHash)))
 	return nil
 }
-func (this *Bullish) WatchPrivateAsync(messageHash any, subscribeHash any, optionalArgs ...any) <-chan any {
+func (this *Bullish) WatchPrivateAsync(messageHash any, subscribeHash string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPrivateBody(ch, messageHash, subscribeHash, optionalArgs...)
 	return ch
 }
-func (this *Bullish) watchPrivateBody(ch chan any, messageHash any, subscribeHash any, optionalArgs ...any) any {
+func (this *Bullish) watchPrivateBody(ch chan any, messageHash any, subscribeHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -268,7 +272,11 @@ func (this *Bullish) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), market["id"])
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchTicker() has no public websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"/trading-api/v1/market-data/tick/", market["id"]))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, params, messageHash))) // no need to send a subscribe message, the server sends a ticker update on connect

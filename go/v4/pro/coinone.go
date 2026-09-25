@@ -389,7 +389,10 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var quoteId *string = this.SafeStringUpper(trade, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(base, "/"), quote))
+	var symbol any = nil
+	if (base != nil) && (quote != nil) {
+		symbol = *base + "/" + *quote
+	}
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	market = this.SafeMarket(symbol, market)
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")

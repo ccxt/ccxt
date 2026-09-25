@@ -6,7 +6,7 @@
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.binance import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1558,7 +1558,7 @@ class binance(PredictionExchange, ImplicitAPI):
         # amounts truncate so a rounded-up value can never exceed the caller's balance
         return self.decimal_to_precision(amount, TRUNCATE, decimals, DECIMAL_PLACES, self.paddingMode)
 
-    async def create_order(self, outcome: str, type: str, side: str, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         creates a limit or market order for an outcome market
 

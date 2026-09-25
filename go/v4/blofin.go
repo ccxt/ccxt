@@ -823,7 +823,10 @@ func (this *Blofin) ParseMarket(market any) any {
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol any = *base + "/" + *quote
 	if swap {
 		symbol = Add(Add(symbol, ":"), settle)
 	}
@@ -1301,8 +1304,8 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes100519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))))
-		ch <- BoxAbsent(retRes100519)
+		var retRes100819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))))
+		ch <- BoxAbsent(retRes100819)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1386,8 +1389,8 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes107019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 100))))
-		ch <- BoxAbsent(retRes107019)
+		var retRes107319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 100))))
+		ch <- BoxAbsent(retRes107319)
 		return nil
 	}
 	if limit == nil {
@@ -1453,8 +1456,8 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes111319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
-		ch <- BoxAbsent(retRes111319)
+		var retRes111619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
+		ch <- BoxAbsent(retRes111619)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2287,8 +2290,8 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes180019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes180019)
+		var retRes180319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes180319)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2369,8 +2372,8 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes185219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes185219)
+		var retRes185519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes185519)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2466,8 +2469,8 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes191919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))))
-		ch <- BoxAbsent(retRes191919)
+		var retRes192219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))))
+		ch <- BoxAbsent(retRes192219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2532,8 +2535,8 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes196019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))))
-		ch <- BoxAbsent(retRes196019)
+		var retRes196319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))))
+		ch <- BoxAbsent(retRes196319)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2742,8 +2745,8 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes212919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))))
-		ch <- BoxAbsent(retRes212919)
+		var retRes213219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))))
+		ch <- BoxAbsent(retRes213219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3690,8 +3693,8 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes290319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes290319)
+		var retRes290619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes290619)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4066,7 +4069,11 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var request any = Add("/api/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), request)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, request)
 	// const type = this.getPathAuthenticationType (path);
 	if IsEqual(api, "public") {
 		if !this.IsEmpty(query) {

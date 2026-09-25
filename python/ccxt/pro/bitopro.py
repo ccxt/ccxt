@@ -51,7 +51,10 @@ class bitopro(ccxt.async_support.bitopro):
         })
 
     async def watch_public(self, path: str, messageHash: str, marketId: Str):
-        url = self.urls['ws']['public'] + '/' + path + '/' + marketId
+        wsUrl = self.safe_string(self.urls['ws'], 'public')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
+        url = wsUrl + '/' + path + '/' + marketId
         return await self.watch(url, messageHash, None, messageHash)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -193,7 +196,10 @@ class bitopro(ccxt.async_support.bitopro):
         if symbol is not None:
             market = self.market(symbol)
             messageHash = messageHash + ':' + market['symbol']
-        url = self.urls['ws']['private'] + '/' + 'user-trades'
+        wsUrl = self.safe_string(self.urls['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchMyTrades() has no private websocket url')
+        url = wsUrl + '/' + 'user-trades'
         self.authenticate(url)
         trades = await self.watch(url, messageHash, None, messageHash)
         if self.newUpdates:
@@ -266,7 +272,9 @@ class bitopro(ccxt.async_support.bitopro):
         quoteId = self.safe_string(trade, 'quote')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = self.symbol(base + '/' + quote)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = self.symbol(base + '/' + quote)
         market = self.safe_market(symbol, market)
         price = self.safe_string(trade, 'price')
         type = self.safe_string_lower(trade, 'orderType')
@@ -406,7 +414,10 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'ACCOUNT_BALANCE'
-        url = self.urls['ws']['private'] + '/' + 'account-balance'
+        wsUrl = self.safe_string(self.urls['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchBalance() has no private websocket url')
+        url = wsUrl + '/' + 'account-balance'
         self.authenticate(url)
         return await self.watch(url, messageHash, None, messageHash)
 

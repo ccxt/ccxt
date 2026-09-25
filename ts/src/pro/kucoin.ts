@@ -96,7 +96,7 @@ export default class kucoin extends kucoinRest {
         });
     }
 
-    async negotiate (privateChannel: any, isFuturesMethod: boolean = false, params: Dict = {}) {
+    async negotiate (privateChannel: boolean, isFuturesMethod: boolean = false, params: Dict = {}) {
         let connectId: Str = 'public';
         if (privateChannel === true) {
             connectId = 'private';
@@ -250,7 +250,11 @@ export default class kucoin extends kucoinRest {
 
     async getUtaUrl (): Promise<string> {
         const utaToken = await this.authenticateUta ();
-        return this.urls['api']['ws']['private'] + '?token=' + utaToken;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' getUtaUrl() has no private websocket url');
+        }
+        return wsUrl + '?token=' + utaToken;
     }
 
     async authenticateUta (): Promise<Str> {
@@ -491,7 +495,7 @@ export default class kucoin extends kucoinRest {
     async subscribePublicMultipleUta (messageHashes: string[], channel: string, symbols: any[], params: Dict = {}, subscription: NullableDict = undefined) {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
-        const isContract = ((market as Dict)['contract'] === true);
+        const isContract = (this.safeBool (market, 'contract') === true);
         let urlType: Str = 'spot';
         if (isContract) {
             urlType = 'futures';
@@ -765,7 +769,7 @@ export default class kucoin extends kucoinRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         let channelName = '/spotMarket/level1:';
         if (isFuturesMethod) {
             channelName = '/contractMarket/tickerV2:';
@@ -1167,7 +1171,7 @@ export default class kucoin extends kucoinRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
@@ -1209,7 +1213,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
         const subscriptionHashes: string[] = [];
@@ -1522,7 +1526,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const url = await this.negotiate (false, isFuturesMethod);
         let method: Str = '/market/level2';
         if (isFuturesMethod) {
@@ -1586,7 +1590,7 @@ export default class kucoin extends kucoinRest {
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const isFuturesMethod = ((firstMarket as Dict)['contract'] === true);
+        const isFuturesMethod = (this.safeBool (firstMarket, 'contract') === true);
         const url = await this.negotiate (false, isFuturesMethod);
         let method: Str = '/market/level2';
         if (isFuturesMethod) {
@@ -1705,7 +1709,7 @@ export default class kucoin extends kucoinRest {
                     }
                 }
                 const limit = this.safeInteger (subscription, 'limit');
-                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
                 if (cacheLength === snapshotDelay) {
                     this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
@@ -1761,7 +1765,7 @@ export default class kucoin extends kucoinRest {
                 const cacheLength = orderbook.cache.length;
                 const subscription = this.safeDict (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
-                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
                 const utaParams: Dict = {
                     'uta': true,
                 };
@@ -2268,7 +2272,7 @@ export default class kucoin extends kucoinRest {
         const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
         const order = this.safeDict (orders, orderId);
         if (order !== undefined) {
-            if (order['status'] === 'closed') {
+            if (this.safeString (order, 'status') === 'closed') {
                 parsed['status'] = 'closed';
             }
             // carry the accumulated fill state forward, the raw feed only
@@ -2884,8 +2888,8 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'position:' + market['symbol'];
         const client = this.client (url);
         this.setPositionCache (client, symbol);
-        const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
-        const awaitPositionSnapshot = this.handleOption ('watchPosition', 'awaitPositionSnapshot', true);
+        const fetchPositionSnapshot: Bool = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
+        const awaitPositionSnapshot: Bool = this.handleOption ('watchPosition', 'awaitPositionSnapshot', true);
         const currentPosition = this.getCurrentPosition (symbol);
         if ((fetchPositionSnapshot === true) && (awaitPositionSnapshot === true) && (currentPosition === undefined)) {
             const snapshot = await client.future ('fetchPositionSnapshot:' + symbol);
@@ -2930,8 +2934,8 @@ export default class kucoin extends kucoinRest {
         const url = await this.getUtaUrl ();
         const client = this.client (url);
         this.setPositionsCache (client, uta);
-        const fetchPositionSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        const fetchPositionSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionSnapshot: Bool = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache: ArrayCacheBySymbolById = this.positions;
         if ((fetchPositionSnapshot === true) && (awaitPositionSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
@@ -2962,7 +2966,7 @@ export default class kucoin extends kucoinRest {
         if (!(this.isEmpty (this.positions))) {
             return;
         }
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -2994,7 +2998,7 @@ export default class kucoin extends kucoinRest {
     }
 
     setPositionCache (client: Client, symbol: string) {
-        const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', false);
+        const fetchPositionSnapshot: Bool = this.handleOption ('watchPosition', 'fetchPositionSnapshot', false);
         if (fetchPositionSnapshot === true) {
             const messageHash = 'fetchPositionSnapshot:' + symbol;
             if (!(messageHash in client.futures)) {

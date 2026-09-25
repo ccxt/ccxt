@@ -122,7 +122,7 @@ func (this *Kraken) Describe() any {
 		},
 	})
 }
-func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request any, amount any, optionalArgs ...any) any {
+func (this *Kraken) OrderRequestWs(method string, symbol any, typeVar any, request any, amount any, optionalArgs ...any) any {
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -191,7 +191,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 	if isTrailingPercentOrder || isTrailingLimitPercentOrder {
 		priceType = "pct"
 	}
-	if ccxt.IsEqual(method, "createOrderWs") {
+	if method == "createOrderWs" {
 		var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 		if reduceOnly != nil && *reduceOnly == true {
 			ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "reduce_only", true)
@@ -257,7 +257,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 				}
 			}
 		}
-	} else if ccxt.IsEqual(method, "editOrderWs") {
+	} else if method == "editOrderWs" {
 		if isPresetStopLoss || isPresetTakeProfit {
 			panic(ccxt.NotSupported(this.Id + " editing the stopLoss and takeProfit on existing orders is currently not supported"))
 		}
@@ -1391,12 +1391,12 @@ func (this *Kraken) authenticateBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.SafeString(subscription, "token")
 	return nil
 }
-func (this *Kraken) WatchPrivateAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Kraken) WatchPrivateAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPrivateBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Kraken) watchPrivateBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Kraken) watchPrivateBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbol := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1776,12 +1776,12 @@ func (this *Kraken) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	})
 }
-func (this *Kraken) WatchMultiHelperAsync(unifiedName any, channelName any, optionalArgs ...any) <-chan any {
+func (this *Kraken) WatchMultiHelperAsync(unifiedName string, channelName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMultiHelperBody(ch, unifiedName, channelName, optionalArgs...)
 	return ch
 }
-func (this *Kraken) watchMultiHelperBody(ch chan any, unifiedName any, channelName any, optionalArgs ...any) any {
+func (this *Kraken) watchMultiHelperBody(ch chan any, unifiedName string, channelName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1912,22 +1912,22 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), channel)
 }
-func (this *Kraken) GetMessageHash(unifiedElementName any, optionalArgs ...any) any {
+func (this *Kraken) GetMessageHash(unifiedElementName string, optionalArgs ...any) any {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...
 	// subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-	subChannelName := ccxt.GetArg(optionalArgs, 0, nil)
+	var subChannelName *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subChannelName
-	symbol := ccxt.GetArg(optionalArgs, 1, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbol
 	var withSymbol bool = (symbol != nil)
 	var messageHash any = unifiedElementName
 	if !withSymbol {
 		messageHash = ccxt.Add(messageHash, "s")
 	} else {
-		messageHash = ccxt.Add(messageHash, ccxt.Add("@", symbol))
+		messageHash = ccxt.Add(messageHash, "@"+*symbol)
 	}
 	if subChannelName != nil {
-		messageHash = ccxt.Add(messageHash, ccxt.Add("#", subChannelName))
+		messageHash = ccxt.Add(messageHash, "#"+*subChannelName)
 	}
 	return messageHash
 }

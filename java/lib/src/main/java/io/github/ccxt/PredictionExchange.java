@@ -144,14 +144,14 @@ public Object describe()
         String slug = this.safeString(parameters, "slug");
         Integer queriesLength = ((List<?>)queries).size();
         Integer tagsLength = ((List<?>)tags).size();
-        if ((!java.util.Objects.equals(query, null)) || (Helpers.isGreaterThan(queriesLength, 0)) || (Helpers.isGreaterThan(tagsLength, 0)) || (!java.util.Objects.equals(eventId, null)) || (!java.util.Objects.equals(slug, null)))
+        if ((!java.util.Objects.equals(query, null)) || ((queriesLength != null && queriesLength > 0)) || ((tagsLength != null && tagsLength > 0)) || (!java.util.Objects.equals(eventId, null)) || (!java.util.Objects.equals(slug, null)))
         {
             return null;
         }
         List<Object> extraScopeParams = (List<Object>) this.safeList(this.options, "eventScopeParams", new ArrayList<Object>(Arrays.asList()));
         Integer extraScopeParamsLength = ((List<?>)extraScopeParams).size();
         String extraNames = "";
-        for (var i = 0; Helpers.isLessThan(i, extraScopeParamsLength); i++)
+        for (var i = 0; (extraScopeParamsLength != null && i < extraScopeParamsLength); i++)
         {
             Object scopeKey = (extraScopeParams == null || i < 0 || i >= extraScopeParams.size() ? null : extraScopeParams.get(i));
             if ((scopeKey != null && ((Map<?, ?>)parameters).containsKey(scopeKey)))
@@ -201,7 +201,7 @@ public Object describe()
         {
             queriesLength = ((List<?>)queries).size();
         }
-        if (Helpers.isGreaterThan(queriesLength, 0))
+        if ((queriesLength != null && queriesLength > 0))
         {
             result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
         }
@@ -860,7 +860,7 @@ public Object describe()
                     {
                         Integer idLen = ocId.length();
                         Object suffix = ocId;
-                        if (Helpers.isGreaterThan(idLen, 6))
+                        if ((idLen != null && idLen > 6))
                         {
                             suffix = Helpers.slice(ocId, (((long) idLen) - 6L), null);
                         }
@@ -912,7 +912,7 @@ public Object describe()
         }
         List<Object> markets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
         Integer marketsLength = ((List<?>)markets).size();
-        for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
+        for (var i = 0; (marketsLength != null && i < marketsLength); i++)
         {
             Object m = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
             String marketHandle = this.safeString2(m, "market", "symbol");
@@ -953,13 +953,13 @@ public Object describe()
                 Integer missingLength = ((List<?>)missing).size();
                 Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
                 Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
-                if ((Helpers.isGreaterThan(missingLength, 0)) && (java.util.Objects.equals(loadAll, true)) && !Boolean.TRUE.equals(wasWarm) && !Helpers.isTrue(reload))
+                if (((missingLength != null && missingLength > 0)) && (java.util.Objects.equals(loadAll, true)) && !Boolean.TRUE.equals(wasWarm) && !Helpers.isTrue(reload))
                 {
                     // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                     // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                     (this.loadOutcomes()).join();
                     List<Object> stillMissing = new ArrayList<Object>(Arrays.asList());
-                    for (var i = 0; Helpers.isLessThan(i, missingLength); i++)
+                    for (var i = 0; (missingLength != null && i < missingLength); i++)
                     {
                         if (!Boolean.TRUE.equals(this.hasOutcome((String) ((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i))))))
                         {
@@ -969,7 +969,7 @@ public Object describe()
                     missing = stillMissing;
                     missingLength = ((List<?>)missing).size();
                 }
-                if (Helpers.isGreaterThan(missingLength, 0))
+                if ((missingLength != null && missingLength > 0))
                 {
                     (this.fetchOutcomes(missing)).join();
                 }
@@ -2113,7 +2113,7 @@ public Object describe()
         Object trades = this.parsePredictionTrades(rawTrades, outcomeObj);
         Integer tradesLength = ((List<?>)trades).size();
         List<Object> feeList = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isGreaterThan(tradesLength, 0))
+        if ((tradesLength != null && tradesLength > 0))
         {
             if (java.util.Objects.equals(filled, null))
             {
@@ -2123,7 +2123,7 @@ public Object describe()
             {
                 cost = "0";
             }
-            for (var i = 0; Helpers.isLessThan(i, tradesLength); i++)
+            for (var i = 0; (tradesLength != null && i < tradesLength); i++)
             {
                 Object trade = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
                 String tradeAmount = this.safeString(trade, "amount");
@@ -2146,7 +2146,7 @@ public Object describe()
                     if (java.util.Objects.equals(lastTradeTimestamp, null))
                     {
                         lastTradeTimestamp = tradeTimestamp;
-                    } else if (Helpers.isGreaterThan(tradeTimestamp, lastTradeTimestamp))
+                    } else if ((tradeTimestamp != null && (lastTradeTimestamp == null || tradeTimestamp > lastTradeTimestamp)))
                     {
                         lastTradeTimestamp = tradeTimestamp;
                     }
@@ -2186,11 +2186,11 @@ public Object describe()
         Object fee = this.safeDict(outcomeOrder, "fee");
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         Integer feeListLength = ((List<?>)feeList).size();
-        if ((java.util.Objects.equals(fee, null)) && (Helpers.isGreaterThan(feeListLength, 0)))
+        if ((java.util.Objects.equals(fee, null)) && ((feeListLength != null && feeListLength > 0)))
         {
             Object reduced = this.reduceFeesByCurrency(feeList);
             Integer reducedLength = ((List<?>)reduced).size();
-            if (Helpers.isGreaterThan(reducedLength, 0))
+            if ((reducedLength != null && reducedLength > 0))
             {
                 fee = (reduced == null || 0 >= ((List<?>)reduced).size() ? null : ((List<?>)reduced).get(0));
             }
@@ -2682,7 +2682,7 @@ public Object describe()
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         Object stripped = this.remove0xPrefix(address);
-        return Helpers.add("000000000000000000000000", stripped);
+        return ("000000000000000000000000" + stripped);
     }
 
     public Object rlpEncodeBytes(String hex)
@@ -2701,7 +2701,7 @@ public Object describe()
         {
             return hex;
         }
-        if (Helpers.isLessThan(byteLength, 56))
+        if (((byteLength == null || byteLength < 56)))
         {
             return Helpers.add(this.intToBase16((128L + byteLength)), hex);
         }
@@ -2719,7 +2719,7 @@ public Object describe()
             concatenated = Helpers.add(concatenated, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
         }
         Long byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
-        if (Helpers.isLessThan(byteLength, 56))
+        if (((byteLength == null || byteLength < 56)))
         {
             return Helpers.add(this.intToBase16((192L + byteLength)), concatenated);
         }
@@ -2755,7 +2755,7 @@ public Object describe()
         }
         Object h = this.remove0xPrefix(hexValue);
         Object start = 0;
-        Integer total = Helpers.getArrayLength(h);
+        Integer total = ((String)h).length();
         while ((Helpers.isLessThan(start, total)) && (java.util.Objects.equals(Helpers.slice(h, start, Helpers.add(start, 1)), "0")))
         {
             start = Helpers.add(start, 1);

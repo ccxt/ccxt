@@ -1234,10 +1234,10 @@ public class Bit2c extends Bit2cApi
     public Object removeCommaFromValue(Object str)
     {
         Object newString = "";
-        List<Object> strParts = (List<Object>) Helpers.split(str, ",");
-        for (var i = 0; i < (strParts == null ? 0 : strParts.size()); i++)
+        List<Object> strParts = new ArrayList<Object>(Arrays.asList(((String)str).split(java.util.regex.Pattern.quote(","))));
+        for (var i = 0; i < ((List<?>)strParts).size(); i++)
         {
-            newString = Helpers.add(newString, Helpers.GetValue(strParts, i));
+            newString = Helpers.add(newString, (strParts == null || i < 0 || i >= strParts.size() ? null : strParts.get(i)));
         }
         return newString;
     }
@@ -1289,16 +1289,19 @@ public class Bit2c extends Bit2cApi
         {
             id = reference;
             timestamp = this.safeTimestamp(trade, "ticks");
-            price = this.safeString(trade, "price");
-            price = this.removeCommaFromValue(price);
+            String rawPrice = this.safeString(trade, "price");
+            if (!java.util.Objects.equals(rawPrice, null))
+            {
+                price = this.removeCommaFromValue(rawPrice);
+            }
             amount = this.safeString(trade, "firstAmount");
             List<Object> reference_parts = new ArrayList<Object>(Arrays.asList(((String)reference).split(java.util.regex.Pattern.quote("|")))); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             String marketId = this.safeString(trade, "pair");
             market = (Map<String, Object>) (this.safeMarket(marketId, market));
-            market = (Map<String, Object>) (this.safeMarket(Helpers.GetValue(reference_parts, 0), market));
+            market = (Map<String, Object>) (this.safeMarket((reference_parts == null || 0 >= reference_parts.size() ? null : reference_parts.get(0)), market));
             Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
             makerOrTaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
-            orderId = (((java.util.Objects.equals(isMaker, true)))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
+            orderId = (((java.util.Objects.equals(isMaker, true)))) ? (reference_parts == null || 2 >= reference_parts.size() ? null : reference_parts.get(2)) : (reference_parts == null || 1 >= reference_parts.size() ? null : reference_parts.get(1));
             Long action = this.safeInteger(trade, "action");
             if ((action != null && action == 0))
             {
@@ -1452,7 +1455,12 @@ public class Bit2c extends Bit2cApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         if (java.util.Objects.equals(api, "public"))
         {
             url = (url + ".json");
@@ -1482,7 +1490,7 @@ public class Bit2c extends Bit2cApi
                 put( "sign", signature );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

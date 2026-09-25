@@ -452,7 +452,7 @@ public partial class bitrue : Exchange
                 { "fetchMyTradesMethod", "v2PrivateGetMyTrades" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
-                { "recvWindow", multiply(5, 1000) },
+                { "recvWindow", (5L * 1000L) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "parseOrderToPrecision", false },
@@ -734,7 +734,7 @@ public partial class bitrue : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -1012,7 +1012,7 @@ public partial class bitrue : Exchange
         //         }
         //     ]
         //
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -1055,12 +1055,16 @@ public partial class bitrue : Exchange
             }
             settle = this.safeCurrencyCode(settleId);
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         if ((settle != null))
         {
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
         }
         List<object> filters = this.safeList(market, "filters", new List<object>() {});
         Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
@@ -1283,7 +1287,7 @@ public partial class bitrue : Exchange
             };
             if ((limitVar != null))
             {
-                if (isGreaterThan(limitVar, 100))
+                if ((limitVar > 100))
                 {
                     limitVar = ((Int64?)100);
                 }
@@ -1303,7 +1307,7 @@ public partial class bitrue : Exchange
             };
             if ((limitVar != null))
             {
-                if (isGreaterThan(limitVar, 1000))
+                if ((limitVar > 1000))
                 {
                     limitVar = ((Int64?)1000);
                 }
@@ -2734,7 +2738,7 @@ public partial class bitrue : Exchange
         }
         if ((limitVar != null))
         {
-            if (isGreaterThan(limitVar, 1000))
+            if ((limitVar > 1000))
             {
                 limitVar = ((Int64?)1000);
             }
@@ -3321,7 +3325,7 @@ public partial class bitrue : Exchange
         }
         if ((limitVar != null))
         {
-            if (isGreaterThan(limitVar, 200))
+            if ((limitVar > 200))
             {
                 limitVar = ((Int64?)200);
             }
@@ -3519,10 +3523,20 @@ public partial class bitrue : Exchange
         object url = null;
         if ((type == "api" && version == "kline") || (type == "open" && getIndexOf(path, "listenKey") >= 0))
         {
-            url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
+            string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
+            if ((apiUrl2 == null))
+            {
+                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = apiUrl2;
         } else
         {
-            url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type), "/"), version);
+            string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
+            if ((apiUrl == null))
+            {
+                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = ((apiUrl + "/") + version);
         }
         url = add(add(url, "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -3678,7 +3692,7 @@ public partial class bitrue : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error == "-2015") && (isEqual((this.options.ContainsKey("hasAlreadyAuthenticatedSuccessfully") ? this.options["hasAlreadyAuthenticatedSuccessfully"] : null), true)))
+            if ((error == "-2015") && (this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false) == true))
             {
                 throw new DDoSProtection ((string)((this.id + " temporary banned: ") + (body))) ;
             }

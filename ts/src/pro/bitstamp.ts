@@ -481,7 +481,11 @@ export default class bitstamp extends bitstampRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         await this.authenticate ();
-        const channel = 'private-my_orders_' + market['id'] + '-' + this.options['userId'];
+        const userId = this.safeString (this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError (this.id + ' unWatchOrders() requires a userId from authenticate()');
+        }
+        const channel = 'private-my_orders_' + market['id'] + '-' + userId;
         return await this.unWatchChannel (channel, channel, 'orders', [ symbol ], params);
     }
 
@@ -539,7 +543,11 @@ export default class bitstamp extends bitstampRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         await this.authenticate ();
-        const channel = 'private-my_trades_' + market['id'] + '-' + this.options['userId'];
+        const userId = this.safeString (this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError (this.id + ' unWatchMyTrades() requires a userId from authenticate()');
+        }
+        const channel = 'private-my_trades_' + market['id'] + '-' + userId;
         return await this.unWatchChannel (channel, channel, 'myTrades', [ symbol ], params);
     }
 
@@ -1048,7 +1056,11 @@ export default class bitstamp extends bitstampRest {
     async subscribePrivate (subscription: Dict, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws'];
         await this.authenticate ();
-        messageHash += '-' + this.options['userId'];
+        const userId = this.safeString (this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError (this.id + ' subscribePrivate() requires a userId from authenticate()');
+        }
+        messageHash += '-' + userId;
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {

@@ -1205,7 +1205,7 @@ public partial class binance : PredictionExchange
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(parameters, "offset", multiply(page, maxEntriesPerRequest));
-        if (isGreaterThan(offSet, 0))
+        if ((offSet > 0))
         {
             request["offset"] = offSet;
         }
@@ -1298,7 +1298,7 @@ public partial class binance : PredictionExchange
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(parameters, "offset", multiply(page, maxEntriesPerRequest));
-        if (isGreaterThan(offSet, 0))
+        if ((offSet > 0))
         {
             request["offset"] = offSet;
         }
@@ -1590,7 +1590,7 @@ public partial class binance : PredictionExchange
             { "status", "FILLED" },
         };
         Int64? offSet = this.safeInteger(parameters, "offset", multiply(page, maxEntriesPerRequest));
-        if (isGreaterThan(offSet, 0))
+        if ((offSet > 0))
         {
             request["offset"] = offSet;
         }
@@ -1858,7 +1858,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "price", 0.0001);
         int decimals = 4;
-        if (((prec != null)) && (isGreaterThan(prec, 0)))
+        if (((prec != null)) && ((prec > 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -1870,7 +1870,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "amount", 0.01);
         int decimals = 2;
-        if (((prec != null)) && (isGreaterThan(prec, 0)))
+        if (((prec != null)) && ((prec > 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }

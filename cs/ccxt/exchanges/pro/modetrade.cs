@@ -83,7 +83,12 @@ public partial class modetrade : ccxt.modetrade
         {
             id = this.accountId;
         }
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "/"), id));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
+        }
+        string url = ((wsUrl + "/") + (id));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -428,7 +433,7 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        if ((!isEqual(timeframeVar, "1m")) && (!isEqual(timeframeVar, "5m")) && (!isEqual(timeframeVar, "15m")) && (!isEqual(timeframeVar, "30m")) && (!isEqual(timeframeVar, "1h")) && (!isEqual(timeframeVar, "1d")) && (!isEqual(timeframeVar, "1w")) && (!isEqual(timeframeVar, "1M")))
+        if ((!(timeframeVar == "1m")) && (!(timeframeVar == "5m")) && (!(timeframeVar == "15m")) && (!(timeframeVar == "30m")) && (!(timeframeVar == "1h")) && (!(timeframeVar == "1d")) && (!(timeframeVar == "1w")) && (!(timeframeVar == "1M")))
         {
             throw new NotSupported ((this.id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
         }
@@ -675,7 +680,12 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " authenticate() has no private websocket url")) ;
+        }
+        string url = ((wsUrl + "/") + this.accountId);
         var client = this.client(url);
         string messageHash = "authenticated";
         string eventVar = "auth";
@@ -710,7 +720,12 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchPrivate() has no private websocket url")) ;
+        }
+        string url = ((wsUrl + "/") + this.accountId);
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -723,7 +738,12 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchPrivateMultiple() has no private websocket url")) ;
+        }
+        string url = ((wsUrl + "/") + this.accountId);
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -1130,7 +1150,12 @@ public partial class modetrade : ccxt.modetrade
         {
             messageHashes.Add("positions");
         }
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), this.accountId));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchPositions() has no private websocket url")) ;
+        }
+        string url = ((wsUrl + "/") + this.accountId);
         var client = this.client(url);
         this.setPositionsCache(client, symbols);
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));

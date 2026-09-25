@@ -92,7 +92,7 @@ class woo(ccxt.async_support.woo):
         urlUid = ''
         if self.uid != '':
             urlUid = '/' + self.uid
-        url = self.urls['api']['ws']['public'] + urlUid
+        url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -104,7 +104,7 @@ class woo(ccxt.async_support.woo):
         urlUid = ''
         if self.uid != '':
             urlUid = '/' + self.uid
-        url = self.urls['api']['ws']['public'] + urlUid
+        url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
         unsubHash = 'unsubscribe::' + subHash
         message = {
@@ -148,7 +148,7 @@ class woo(ccxt.async_support.woo):
         urlUid = ''
         if self.uid != '':
             urlUid = '/' + self.uid
-        url = self.urls['api']['ws']['public'] + urlUid
+        url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
         request = {
             'event': 'subscribe',
@@ -842,7 +842,7 @@ class woo(ccxt.async_support.woo):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private'] + '/' + self.uid
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
@@ -866,7 +866,7 @@ class woo(ccxt.async_support.woo):
 
     async def watch_private(self, messageHash: str, message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.urls['api']['ws']['private'] + '/' + self.uid
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -876,7 +876,7 @@ class woo(ccxt.async_support.woo):
 
     async def watch_private_multiple(self, messageHashes: list[str], message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.urls['api']['ws']['private'] + '/' + self.uid
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -1214,7 +1214,7 @@ class woo(ccxt.async_support.woo):
                 messageHashes.append('positions::' + symbol)
         else:
             messageHashes.append('positions')
-        url = self.urls['api']['ws']['private'] + '/' + self.uid
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.uid
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)

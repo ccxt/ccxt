@@ -651,6 +651,10 @@ public class Bitso extends BitsoApi
                 String quote = ((String)quoteId).toUpperCase();
                 base = this.safeCurrencyCode(base);
                 quote = this.safeCurrencyCode(quote);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 Map<String, Object> fees = (Map<String, Object>) this.safeDict(market, "fees", new HashMap<String, Object>() {{}});
                 Map<String, Object> flatRate = (Map<String, Object>) this.safeDict(fees, "flat_rate", new HashMap<String, Object>() {{}});
                 String takerString = this.safeString(flatRate, "taker");
@@ -690,7 +694,7 @@ public class Bitso extends BitsoApi
                 final String finalQuote = quote;
                             ((List<Object>)result).add(this.safeMarketStructure(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", Helpers.add((finalBase + "/"), finalQuote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
                     put( "quote", finalQuote );
                     put( "settle", null );
@@ -2680,7 +2684,12 @@ public class Bitso extends BitsoApi
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), endpoint);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + endpoint);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();

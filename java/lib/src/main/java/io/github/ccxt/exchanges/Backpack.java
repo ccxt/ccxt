@@ -823,7 +823,7 @@ public class Backpack extends BackpackApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -940,6 +940,10 @@ public class Backpack extends BackpackApi
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         Map<String, Object> filters = (Map<String, Object>) this.safeDict(market, "filters", new HashMap<String, Object>() {{}});
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "price", new HashMap<String, Object>() {{}});
@@ -973,6 +977,7 @@ public class Backpack extends BackpackApi
         String orderBookState = this.safeString(market, "orderBookState");
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalSettleId = settleId;
         final String finalType = type;
@@ -984,7 +989,7 @@ public class Backpack extends BackpackApi
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -3314,13 +3319,23 @@ public class Backpack extends BackpackApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String endpoint = Helpers.add("/", path);
-        Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = apiUrl;
         Object sortedParams = (((parameters instanceof List))) ? parameters : this.keysort(parameters);
         if (java.util.Objects.equals(api, "private"))
         {
@@ -3367,7 +3382,7 @@ public class Backpack extends BackpackApi
                 endpoint = (endpoint + ("?" + query));
             }
         }
-        url = Helpers.add(url, endpoint);
+        url = (url + endpoint);
         final Object finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;

@@ -835,12 +835,16 @@ public partial class coinbaseexchange : Exchange
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             // const baseId = this.safeString (market, 'base_currency');
             // const quoteId = this.safeString (market, 'quote_currency');
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? status = this.safeString(market, "status");
             result.Add(this.extend(getValue(this.fees, "trading"), new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -1279,8 +1283,9 @@ public partial class coinbaseexchange : Exchange
             { "rate", feeRate },
         };
         string? id = this.safeString(trade, "trade_id");
+        string? rawSide = this.safeString(trade, "side");
         string side = "buy";
-        if (isEqual(getValue(trade, "side"), "buy"))
+        if (rawSide == "buy")
         {
             side = "sell";
         }
@@ -1290,7 +1295,7 @@ public partial class coinbaseexchange : Exchange
         string? takerOrderId = this.safeString(trade, "taker_order_id");
         if (((orderId != null)) || (((makerOrderId != null)) && ((takerOrderId != null))))
         {
-            side = (isEqual(getValue(trade, "side"), "buy")) ? "buy" : "sell";
+            side = (rawSide == "buy") ? "buy" : "sell";
         }
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "size");
@@ -2511,7 +2516,12 @@ public partial class coinbaseexchange : Exchange
                 request = request + ("?" + this.urlencode(query));
             }
         }
-        string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + request);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (this.implodeHostname(apiUrl) + request);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2525,7 +2535,7 @@ public partial class coinbaseexchange : Exchange
                     payload = body;
                 }
             }
-            object what = (((nonce + method) + request) + (payload));
+            string? what = ((string)(((nonce + method) + request) + (payload)));
             byte[]? secret = null;
             try
             {

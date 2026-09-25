@@ -725,7 +725,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     async def fetch_time(self, params: dict = {}) -> Int:
         """
@@ -793,7 +793,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659492212507
         #     }
         #
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
             await self.load_time_difference()
         data = self.safe_dict(response, 'data', {})
         list = self.safe_list(data, 'list', [])
@@ -807,6 +807,8 @@ class tokocrypto(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'marginAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
             filters = self.safe_list(market, 'filters', [])
@@ -815,7 +817,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             active = (status == '1')
             permissions = self.safe_list(market, 'permissions', [])
             for j in range(0, len(permissions)):
-                if permissions[j] == 'TRD_GRP_003':
+                if self.safe_string(permissions, j) == 'TRD_GRP_003':
                     active = False
                     break
             marginTradingEnable = self.safe_string(market, 'marginTradingEnable')
@@ -1074,7 +1076,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             side = self.safe_string_lower(trade, 'side')
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer'] is True) else 'sell'  # this is a true side
+                side = 'buy' if (self.safe_bool(trade, 'isBuyer') is True) else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1082,9 +1084,9 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         if 'isMaker' in trade:
-            takerOrMaker = 'maker' if (trade['isMaker'] is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker') is True) else 'taker'
         if 'maker' in trade:
-            takerOrMaker = 'maker' if (trade['maker'] is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker') is True) else 'taker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -2604,7 +2606,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and (self.options['hasAlreadyAuthenticatedSuccessfully'] is True):
+            if (error == '-2015') and (self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully') is True):
                 raise DDoSProtection(self.id + ' ' + body)
             feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':

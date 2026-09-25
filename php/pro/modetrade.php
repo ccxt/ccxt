@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -93,7 +94,11 @@ class modetrade extends \ccxt\async\modetrade {
         if ($this->accountId !== null && $this->accountId !== '') {
             $id = $this->accountId;
         }
-        $url = $this->urls['api']['ws']['public'] . '/' . $id;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
+        }
+        $url = $wsUrl . '/' . $id;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -663,7 +668,11 @@ class modetrade extends \ccxt\async\modetrade {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' authenticate() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $event = 'auth';
@@ -698,7 +707,11 @@ class modetrade extends \ccxt\async\modetrade {
 
     private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPrivate() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -713,7 +726,11 @@ class modetrade extends \ccxt\async\modetrade {
 
     private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPrivateMultiple() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1093,7 +1110,11 @@ class modetrade extends \ccxt\async\modetrade {
         } else {
             $messageHashes[] = 'positions';
         }
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPositions() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . $this->accountId;
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);

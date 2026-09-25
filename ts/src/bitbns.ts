@@ -299,6 +299,9 @@ export default class bitbns extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const marketPrecision = this.safeDict (market, 'precision', {});
             const marketLimits = this.safeDict (market, 'limits', {});
             const amountLimits = this.safeDict (marketLimits, 'amount', {});
@@ -698,9 +701,7 @@ export default class bitbns extends Exchange {
         const targetRate = this.safeString (params, 'target_rate');
         const trailRate = this.safeString (params, 'trail_rate');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],

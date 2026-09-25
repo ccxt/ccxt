@@ -1221,6 +1221,9 @@ func (this *Toobit) ParseMarket(market any) any {
 	var baseIdClean *string = SafeStringPtr(GetValue(baseParts, 0))
 	var base *string = this.SafeCurrencyCode(baseIdClean)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settleId *string = this.SafeString(market, "marginToken")
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var status *string = this.SafeString(market, "status")
@@ -1230,7 +1233,7 @@ func (this *Toobit) ParseMarket(market any) any {
 	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 	var lotSizeFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 	var minNotionalFilter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	var isContract bool = (InOp(market, "contractMultiplier"))
 	var inverse *bool = this.SafeBool2(market, "isInverse", "inverse")
 	if isContract {
@@ -1985,8 +1988,8 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes163719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
-		ch <- BoxAbsent(retRes163719)
+		var retRes164019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes164019)
 		return nil
 	}
 	if symbol == nil {
@@ -3268,8 +3271,8 @@ func (this *Toobit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes276615 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("deposits", code, since, limit, params))))
-	ch <- BoxAbsent(retRes276615)
+	var retRes276915 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("deposits", code, since, limit, params))))
+	ch <- BoxAbsent(retRes276915)
 	return nil
 }
 
@@ -3301,8 +3304,8 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes278115 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("withdrawals", code, since, limit, params))))
-	ch <- BoxAbsent(retRes278115)
+	var retRes278415 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("withdrawals", code, since, limit, params))))
+	ch <- BoxAbsent(retRes278415)
 	return nil
 }
 func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan any {
@@ -3851,7 +3854,8 @@ func (this *Toobit) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
+	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
+	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	var isPost bool = (method == "POST")
 	var isDelete bool = (method == "DELETE")
 	var extraQuery map[string]any = map[string]any{}

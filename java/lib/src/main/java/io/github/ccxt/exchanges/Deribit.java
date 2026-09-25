@@ -1378,6 +1378,10 @@ public class Deribit extends DeribitApi
                     String settleId = this.safeString(market, "settlement_currency");
                     String base = this.safeCurrencyCode(baseId);
                     String quote = this.safeCurrencyCode(quoteId);
+                    if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                    {
+                        continue;
+                    }
                     String settle = this.safeCurrencyCode(settleId);
                     String settlementPeriod = this.safeString(market, "settlement_period");
                     Boolean swap = (java.util.Objects.equals(settlementPeriod, "perpetual"));
@@ -1433,7 +1437,7 @@ public class Deribit extends DeribitApi
                         inverse = (!java.util.Objects.equals(quote, settle));
                         linear = (java.util.Objects.equals(settle, quote));
                     }
-                    Object parsedMarketValue = this.safeValue(parsedMarkets, symbol);
+                    Boolean parsedMarketValue = (Boolean) this.safeBool(parsedMarkets, symbol);
                     if (!java.util.Objects.equals(parsedMarketValue, null))
                     {
                         continue;
@@ -2879,7 +2883,7 @@ public class Deribit extends DeribitApi
             }};
             String trigger = this.safeString(parameters, "trigger", "last_price");
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            Object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only");
+            Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
             // only stop loss sell orders are allowed when price crossed from above
             Object stopLossPrice = this.safeValue(parameters, "stopLossPrice");
             // only take profit buy orders are allowed when price crossed from below
@@ -4832,7 +4836,7 @@ public class Deribit extends DeribitApi
         if (!java.util.Objects.equals(cursor, null))
         {
             Integer dataLength = ((List<?>)data).size();
-            if (Helpers.isGreaterThan(dataLength, 0))
+            if ((dataLength != null && dataLength > 0))
             {
                 Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
                 Object last = Helpers.GetValue(data, (((long) dataLength) - 1L));
@@ -5502,7 +5506,12 @@ public class Deribit extends DeribitApi
                 put( "Authorization", (((((((("deri-hmac-sha256 id=" + Deribit.this.apiKey) + ",ts=") + finalTimestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) );
             }};
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), request);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + request);
         final Object finalMethod = method;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

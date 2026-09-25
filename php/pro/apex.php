@@ -108,7 +108,7 @@ class apex extends \ccxt\async\apex {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $topic = 'recentlyTrade.H.' . $market['id2'];
+            $topic = 'recentlyTrade.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'trade:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -251,7 +251,7 @@ class apex extends \ccxt\async\apex {
             if ($limit === null) {
                 $limit = 25;
             }
-            $topic = 'orderBook' . (string) $limit . '.H.' . $market['id2'];
+            $topic = 'orderBook' . (string) $limit . '.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'orderbook:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -298,7 +298,7 @@ class apex extends \ccxt\async\apex {
         $url = $this->safe_string($this->options, 'wsPublicUrl');
         if ($url === null) {
             $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['public'] . '&timestamp=' . $timeStamp;
+            $url = $this->safe_string($this->urls['api']['ws'], 'public') . '&timestamp=' . $timeStamp;
             $this->options['wsPublicUrl'] = $url;
         }
         return $url;
@@ -308,7 +308,7 @@ class apex extends \ccxt\async\apex {
         $url = $this->safe_string($this->options, 'wsPrivateUrl');
         if ($url === null) {
             $timeStamp = (string) $this->milliseconds();
-            $url = $this->urls['api']['ws']['private'] . '&timestamp=' . $timeStamp;
+            $url = $this->safe_string($this->urls['api']['ws'], 'private') . '&timestamp=' . $timeStamp;
             $this->options['wsPrivateUrl'] = $url;
         }
         return $url;
@@ -407,7 +407,7 @@ class apex extends \ccxt\async\apex {
         $symbol = $market['symbol'];
         $url = $this->get_ws_public_url();
         $messageHash = 'ticker:' . $symbol;
-        $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+        $topic = 'instrumentInfo' . '.H.' . $this->safe_string($market, 'id2');
         $topics = array( $topic );
         return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
@@ -436,7 +436,7 @@ class apex extends \ccxt\async\apex {
         for ($i = 0; $i < count(($symbols)); $i++) {
             $symbol = ($symbols)[$i];
             $market = $this->market($symbol);
-            $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+            $topic = 'instrumentInfo' . '.H.' . $this->safe_string($market, 'id2');
             $topics[] = $topic;
             $messageHash = 'ticker:' . $symbol;
             $messageHashes[] = $messageHash;

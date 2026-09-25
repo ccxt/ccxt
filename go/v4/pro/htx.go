@@ -2986,7 +2986,7 @@ func (this *Htx) HandleMessage(client any, message any) {
 			}
 		}
 		if ccxt.InOp(message, "ch") {
-			if ccxt.IsEqual(ccxt.GetValue(message, "ch"), "auth") {
+			if this.SafeString(message, "ch") != nil && *this.SafeString(message, "ch") == "auth" {
 				this.HandleAuthenticate(client, message)
 				return
 			} else {
@@ -3346,12 +3346,12 @@ func (this *Htx) subscribePublicBody(ch chan any, url any, symbol any, messageHa
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)))
 	return nil
 }
-func (this *Htx) UnsubscribePublicAsync(market any, subMessageHash any, topic any, optionalArgs ...any) <-chan any {
+func (this *Htx) UnsubscribePublicAsync(market any, subMessageHash any, topic string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unsubscribePublicBody(ch, market, subMessageHash, topic, optionalArgs...)
 	return ch
 }
-func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash any, topic any, optionalArgs ...any) any {
+func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash any, topic string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3362,7 +3362,7 @@ func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash a
 		"id":    requestId,
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subMessageHash))
-	var isFeed bool = (ccxt.IsEqual(topic, "orderbook"))
+	var isFeed bool = (topic == "orderbook")
 	if ccxt.IsEqual(market, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " unsubscribePublic() market is required"))
 	}

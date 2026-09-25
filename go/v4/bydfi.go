@@ -625,8 +625,11 @@ func (this *Bydfi) ParseMarket(market any) any {
 	var settleId *string = this.SafeString(market, "marginAsset")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
+	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
 	var inverse *bool = this.SafeBool(market, "reverse")
 	var limitMaxQty *string = this.SafeString(market, "limitMaxQty")
 	var marketMaxQty *string = this.SafeString(market, "marketMaxQty")
@@ -1076,12 +1079,10 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		"interval": interval,
 	}
 	var startTime any = since
-	var numberOfCandles any = func() any {
-		if (limit != nil) && (!IsEqual(limit, 0)) {
-			return limit
-		}
-		return maxLimit
-	}()
+	var numberOfCandles any = maxLimit
+	if (limit != nil) && (!IsEqual(limit, 0)) {
+		numberOfCandles = limit
+	}
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
@@ -2226,7 +2227,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Bydfi) HandleSinceAndUntil(methodName any, optionalArgs ...any) any {
+func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) any {
 	since := GetArg(optionalArgs, 0, nil)
 	_ = since
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3563,16 +3564,16 @@ func (this *Bydfi) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- PanicOnError((<-this.FetchTransactionsHelperAsync("withdrawal", code, since, limit, params)))
 	return nil
 }
-func (this *Bydfi) FetchTransactionsHelperAsync(typeVar any, code any, since any, limit any, params any) <-chan any {
+func (this *Bydfi) FetchTransactionsHelperAsync(typeVar string, code any, since any, limit any, params any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTransactionsHelperBody(ch, typeVar, code, since, limit, params)
 	return ch
 }
-func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code any, since any, limit any, params any) any {
+func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar string, code any, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var methodName string = "fetchWithdrawals"
-	if IsEqual(typeVar, "deposit") {
+	if typeVar == "deposit" {
 		methodName = "fetchDeposits"
 	}
 	if IsEqual(code, nil) {
@@ -3630,7 +3631,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if IsEqual(typeVar, "deposit") {
+	if typeVar == "deposit" {
 		//
 		//     {
 		//         "code": 200,
@@ -3742,7 +3743,11 @@ func (this *Bydfi) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = GetValue(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = apiUrl
 	var endpoint any = Add("/", path)
 	var query string = ""
 	var sortedParams map[string]any = this.Keysort(params)
@@ -4631,7 +4636,7 @@ func (this *Bydfi) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
 	}
 	return res.Value, nil
 }
-func (this *Bydfi) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) ([]Transaction, error) {
+func (this *Bydfi) FetchTransactionsHelper(typeVar string, code string, since int64, limit int64, params any) ([]Transaction, error) {
 	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchTransactionsHelperAsync(typeVar, code, since, limit, params))
 	if res.Err != nil {
 		return nil, res.Err

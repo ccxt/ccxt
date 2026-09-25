@@ -622,6 +622,9 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quote any = ToUpper(quoteId)
 		base = DerefScalar(this.SafeCurrencyCode(base))
 		quote = DerefScalar(this.SafeCurrencyCode(quote))
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var fees map[string]any = SafeMapTyped(market, "fees")
 		var flatRate map[string]any = SafeMapTyped(fees, "flat_rate")
 		var takerString *string = this.SafeString(flatRate, "taker")
@@ -2473,7 +2476,11 @@ func (this *Bitso) Sign(path any, optionalArgs ...any) any {
 			endpoint = Add(endpoint, "?"+this.Urlencode(query))
 		}
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), endpoint)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(apiUrl, endpoint))
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		// bitso rejects a nonce that is not higher than the previous one (error 104)

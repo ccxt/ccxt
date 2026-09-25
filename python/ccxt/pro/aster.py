@@ -807,8 +807,8 @@ class aster(ccxt.async_support.aster):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if (trade['m'] is True) else 'buy'  # this is reversed intentionally
-            takerOrMaker = 'maker' if (trade['m'] is True) else 'taker'
+                side = 'sell' if (self.safe_bool(trade, 'm') is True) else 'buy'  # this is reversed intentionally
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm') is True) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
@@ -1253,7 +1253,7 @@ class aster(ccxt.async_support.aster):
             else:
                 await self.fapiPrivatePutV3ListenKey()  # extend the expiry
         except Exception as error:
-            url = self.urls['api']['ws']['private'][type] + '/' + listenKey
+            url = self.safe_string(self.urls['api']['ws']['private'], type) + '/' + listenKey
             client = self.client(url)
             messageHashes = list(client.futures.keys())
             for i in range(0, len(messageHashes)):
@@ -1270,7 +1270,7 @@ class aster(ccxt.async_support.aster):
     def get_private_url(self, type: str = 'spot') -> str:
         listenKeyOptions = self.safe_dict(self.options, 'listenKey', {})
         listenKey = self.safe_string(listenKeyOptions, type)
-        url = self.urls['api']['ws']['private'][type] + '/' + listenKey
+        url = self.safe_string(self.urls['api']['ws']['private'], type) + '/' + listenKey
         return url
 
     async def watch_balance(self, params: dict = {}) -> Balances:
@@ -1288,6 +1288,8 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params, type)
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchBalance() requires a market type')
         await self.authenticate(type, params)
         url = self.get_private_url(type)
         client = self.client(url)
@@ -1301,7 +1303,7 @@ class aster(ccxt.async_support.aster):
         message = None
         return await self.watch(url, messageHash, message, type)
 
-    def set_balance_cache(self, client: Client, type: object):
+    def set_balance_cache(self, client: Client, type: str):
         if (type in client.subscriptions) and (type in self.balance):
             return
         options = self.safe_dict(self.options, 'watchBalance')
@@ -1314,7 +1316,7 @@ class aster(ccxt.async_support.aster):
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client: Client, messageHash: str, type: object):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: str):
         params = {
             'type': type,
         }
@@ -1521,7 +1523,7 @@ class aster(ccxt.async_support.aster):
         if not self.is_empty(messageHashes):
             for i in range(0, len(newPositions)):
                 position = newPositions[i]
-                symbol = position['symbol']
+                symbol = self.safe_string(position, 'symbol')
                 symbolMessageHash = messageHash + '::' + symbol
                 client.resolve(position, symbolMessageHash)
             client.resolve(newPositions, 'positions')
@@ -1600,6 +1602,8 @@ class aster(ccxt.async_support.aster):
         messageHash = 'orders'
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params, type)
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchOrders() requires a market type')
         await self.authenticate(type, params)
         if market is not None:
             messageHash += '::' + symbol
@@ -1634,6 +1638,8 @@ class aster(ccxt.async_support.aster):
         messageHash = 'myTrades'
         type = None
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params, type)
+        if type is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a market type')
         await self.authenticate(type, params)
         if market is not None:
             messageHash += '::' + symbol
@@ -1680,7 +1686,7 @@ class aster(ccxt.async_support.aster):
                             insertNewFeeCurrency = True
                             for i in range(0, len(fees)):
                                 orderFee = fees[i]
-                                if orderFee['currency'] == tradeFee['currency']:
+                                if self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                     feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
                                     feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                     order['fees'][i]['cost'] = None if (feeCostString is None) else float(feeCostString)
@@ -1689,11 +1695,11 @@ class aster(ccxt.async_support.aster):
                             if insertNewFeeCurrency:
                                 order['fees'].append(tradeFee)
                         elif fee is not None:
-                            if fee['currency'] == tradeFee['currency']:
+                            if self.safe_string(fee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                 feeCost = self.sum(fee['cost'], tradeFee['cost'])
                                 feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                 order['fee']['cost'] = None if (feeCostString is None) else float(feeCostString)
-                            elif fee['currency'] is None:
+                            elif self.safe_string(fee, 'currency') is None:
                                 order['fee'] = tradeFee
                             else:
                                 order['fees'] = [fee, tradeFee]

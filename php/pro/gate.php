@@ -726,7 +726,10 @@ class gate extends \ccxt\async\gate {
                 $cacheLength = count($storedOrderBook->cache);
             }
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 10);
-            $waitAmount = $isSpot ? $snapshotDelay : 0;
+            $waitAmount = 0;
+            if ($isSpot) {
+                $waitAmount = $snapshotDelay;
+            }
             if ($cacheLength === $waitAmount) {
                 // max limit is 100
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash);
@@ -1517,7 +1520,7 @@ class gate extends \ccxt\async\gate {
         return $this->filter_by_symbols_since_limit($this->safe_value($this->positions, $type), $symbols, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, string $type, ?array $symbols = null) {
         if ($this->positions === null) {
             $this->positions = array();
         }
@@ -1536,11 +1539,11 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function load_positions_snapshot(Client $client, string $messageHash, mixed $type) {
+    public function load_positions_snapshot(Client $client, string $messageHash, string $type) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_positions_snapshot(Client $client, string $messageHash, mixed $type) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, string $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type )));
         $this->positions[$type] = new ArrayCacheBySymbolBySide();
         $cache = $this->positions[$type];
@@ -2306,10 +2309,10 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function get_url_by_market(mixed $market) {
+    public function get_url_by_market(mixed $market): string {
         $baseUrl = $this->urls['api'][$market['type']];
-        if ($market['contract'] === true) {
-            return ($market['linear'] === true) ? $baseUrl['usdt'] : $baseUrl['btc'];
+        if ($this->safe_bool($market, 'contract') === true) {
+            return ($this->safe_bool($market, 'linear') === true) ? $baseUrl['usdt'] : $baseUrl['btc'];
         } else {
             return $baseUrl;
         }

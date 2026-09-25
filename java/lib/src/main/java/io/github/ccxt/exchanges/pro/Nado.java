@@ -1988,7 +1988,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, (String) (this.privateKey));
     }
 

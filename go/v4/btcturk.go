@@ -373,6 +373,9 @@ func (this *Btcturk) ParseMarket(entry any) any {
 	var quoteId *string = this.SafeString(entry, "denominator")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var filters []any = SafeListTyped(entry, "filters")
 	var minPrice *float64 = nil
 	var maxPrice *float64 = nil
@@ -393,7 +396,7 @@ func (this *Btcturk) ParseMarket(entry any) any {
 	var status *string = this.SafeString(entry, "status")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -1323,7 +1326,11 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	if this.Id == "btctrader" {
 		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
 	}
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", path)
 	if (method == "GET") || (method == "DELETE") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))

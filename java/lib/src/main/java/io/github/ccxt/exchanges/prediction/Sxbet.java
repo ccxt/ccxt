@@ -271,12 +271,12 @@ public class Sxbet extends SxbetApi
             Object rawMarkets = (this.fetchRawMarketsPaged(rest, userLimit)).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-            for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+            for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
             {
                 ((List<Object>)markets).add(this.parseSxbetMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i)))));
             }
             Integer marketsLength = ((List<?>)markets).size();
-            if ((!java.util.Objects.equals(userLimit, null)) && (Helpers.isGreaterThan(marketsLength, userLimit)))
+            if ((!java.util.Objects.equals(userLimit, null)) && ((marketsLength != null && (userLimit == null || marketsLength > userLimit))))
             {
                 return this.arraySlice(markets, 0, userLimit);
             }
@@ -330,14 +330,14 @@ public class Sxbet extends SxbetApi
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 List<Object> pageMarkets = (List<Object>) this.safeList(result, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer pageMarketsLength = ((List<?>)pageMarkets).size();
-                for (var i = 0; Helpers.isLessThan(i, pageMarketsLength); i++)
+                for (var i = 0; (pageMarketsLength != null && i < pageMarketsLength); i++)
                 {
                     ((List<Object>)rawMarkets).add((pageMarkets == null || i < 0 || i >= pageMarkets.size() ? null : pageMarkets.get(i)));
                 }
                 paginationKey = this.safeString(result, "nextKey");
                 page = this.sum(page, 1);
                 Integer collectedLength = ((List<?>)rawMarkets).size();
-                if ((Helpers.isLessThan(pageMarketsLength, pageSize)) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || (java.util.Objects.equals(paginationKey, null)) || ((!java.util.Objects.equals(userLimit, null)) && (Helpers.isGreaterThanOrEqual(collectedLength, userLimit))))
+                if (((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize))) || (Helpers.isGreaterThanOrEqual(page, maxPages)) || (java.util.Objects.equals(paginationKey, null)) || ((!java.util.Objects.equals(userLimit, null)) && (Helpers.isGreaterThanOrEqual(collectedLength, userLimit))))
                 {
                     break;
                 }
@@ -373,7 +373,7 @@ public class Sxbet extends SxbetApi
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-        for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+        for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
             Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
             if (java.util.Objects.equals(this.safeString(raw, "sportXeventId"), sportXeventId))
@@ -392,7 +392,7 @@ public class Sxbet extends SxbetApi
      * @param {object} raw the raw sx.bet market object
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public Object parseSxbetMarket(Map<String, Object> raw)
+    public Map<String, Object> parseSxbetMarket(Map<String, Object> raw)
     {
         //
         //     {
@@ -554,7 +554,7 @@ final Object finalOi = oi;
             List<Object> queries = this.parseSearchQueries(parameters);
             List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer tagsLength = ((List<?>)tags).size();
-            for (var i = 0; Helpers.isLessThan(i, tagsLength); i++)
+            for (var i = 0; (tagsLength != null && i < tagsLength); i++)
             {
                 ((List<Object>)queries).add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
             }
@@ -588,11 +588,11 @@ final Object finalOi = oi;
                 rawMarkets = (this.fetchRawMarketsPaged(rest)).join();
             }
             Integer queriesLength = ((List<?>)queries).size();
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 List<Object> filtered = new ArrayList<Object>(Arrays.asList());
                 Integer preFilterLength = ((List<?>)rawMarkets).size();
-                for (var i = 0; Helpers.isLessThan(i, preFilterLength); i++)
+                for (var i = 0; (preFilterLength != null && i < preFilterLength); i++)
                 {
                     if (Boolean.TRUE.equals(this.matchesEventQuery((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), queries)))
                     {
@@ -604,7 +604,7 @@ final Object finalOi = oi;
             Map<String, Object> grouped = new HashMap<String, Object>() {{}};
             List<Object> order = new ArrayList<Object>(Arrays.asList());
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-            for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+            for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
             {
                 Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
                 String sportXeventId = this.safeString(raw, "sportXeventId");
@@ -625,13 +625,13 @@ final Object finalOi = oi;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer orderLength = ((List<?>)order).size();
-            for (var i = 0; Helpers.isLessThan(i, orderLength); i++)
+            for (var i = 0; (orderLength != null && i < orderLength); i++)
             {
                 Object fixtureId = (order == null || i < 0 || i >= order.size() ? null : order.get(i));
                 Object eventVar = this.parseEvent(fixtureId, (grouped == null || fixtureId == null ? null : grouped.get(fixtureId)));
                 List<Object> evMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer evMarketsLength = ((List<?>)evMarkets).size();
-                for (var j = 0; Helpers.isLessThan(j, evMarketsLength); j++)
+                for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
                 {
                     Object m = (evMarkets == null || j < 0 || j >= evMarkets.size() ? null : evMarkets.get(j));
                     Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
@@ -724,7 +724,7 @@ final Object finalOi = oi;
     {
         List<String> fields = new ArrayList<String>(Arrays.asList(this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")));
         Integer queriesLength = ((List<?>)queries).size();
-        for (var qi = 0; Helpers.isLessThan(qi, queriesLength); qi++)
+        for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
         {
             String query = ((String)(queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi))).toLowerCase();
             if (java.util.Objects.equals(query, ""))
@@ -766,10 +766,10 @@ final Object finalOi = oi;
         String teamTwoName = null;
         String leagueLabel = null;
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-        for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+        for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
             Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
-            Object parsed = this.parseSxbetMarket((Map<String, Object>) (raw));
+            Map<String, Object> parsed = this.parseSxbetMarket((Map<String, Object>) (raw));
             if (java.util.Objects.equals(parsed, null))
             {
                 throw new ExchangeError((this.id + " parseEvent() could not resolve parsed market")) ;
@@ -887,7 +887,7 @@ final Object finalOi = oi;
      */
     public Object hashEip712Digest(Object encoded)
     {
-        return Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        return ("0x" + this.hash(encoded, keccak(), "hex"));
     }
 
     /**
@@ -933,7 +933,7 @@ final Object finalOi = oi;
     }}, "latest")))).join();
             Object hex = this.remove0xPrefix(result);
             // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
-            String lengthHex = Helpers.slice(hex, 64, 128);
+            String lengthHex = (hex == null ? null : ((String)hex).substring(Math.min(64, ((String)hex).length()), Math.min(128, ((String)hex).length())));
             Object length = this.hexToInt(lengthHex);
             Object dataEnd = this.sum(128, Helpers.multiply(length, 2));
             String dataHex = Helpers.slice(hex, 128, dataEnd);
@@ -956,7 +956,7 @@ final Object finalOi = oi;
         String lowerHex = ((String)hex).toLowerCase();
         Integer hexLength = lowerHex.length();
         Object result = 0;
-        for (var i = 0; Helpers.isLessThan(i, hexLength); i++)
+        for (var i = 0; (hexLength != null && i < hexLength); i++)
         {
             Object ch = Helpers.GetValue(lowerHex, i);
             Object digitValue = ((String)digits).indexOf(((String)ch));
@@ -1435,7 +1435,7 @@ final Object finalOi = oi;
         // report 'cancelledSubmitted' instead - treat both like cancelled
         List<Object> cancelled = (List<Object>) this.safeList2(data, "cancelled", "cancelledSubmitted", new ArrayList<Object>(Arrays.asList()));
         Integer cancelledLength = ((List<?>)cancelled).size();
-        for (var i = 0; Helpers.isLessThan(i, cancelledLength); i++)
+        for (var i = 0; (cancelledLength != null && i < cancelledLength); i++)
         {
 final Object finalI = i;
                         ((List<Object>)result).add(this.safePredictionOrder(new HashMap<String, Object>() {{
@@ -1446,7 +1446,7 @@ final Object finalI = i;
         }
         List<Object> notCancelled = (List<Object>) this.safeList(data, "notCancelled", new ArrayList<Object>(Arrays.asList()));
         Integer notCancelledLength = ((List<?>)notCancelled).size();
-        for (var i = 0; Helpers.isLessThan(i, notCancelledLength); i++)
+        for (var i = 0; (notCancelledLength != null && i < notCancelledLength); i++)
         {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
 final Object finalI = i;
@@ -1458,7 +1458,7 @@ final Object finalI = i;
         }
         List<Object> unconfirmed = (List<Object>) this.safeList(data, "unconfirmed", new ArrayList<Object>(Arrays.asList()));
         Integer unconfirmedLength = ((List<?>)unconfirmed).size();
-        for (var i = 0; Helpers.isLessThan(i, unconfirmedLength); i++)
+        for (var i = 0; (unconfirmedLength != null && i < unconfirmedLength); i++)
         {
 final Object finalI = i;
                         ((List<Object>)result).add(this.safePredictionOrder(new HashMap<String, Object>() {{
@@ -1538,7 +1538,7 @@ final Object finalI = i;
             Long chunkSize = this.safeInteger(this.options, "cancelOrdersBatchSize", 100);
             Long chunkCount = this.parseToInt(Helpers.divide(this.sum(idsLength, (chunkSize - 1L)), chunkSize));
             Object result = new ArrayList<Object>(Arrays.asList());
-            for (var c = 0; Helpers.isLessThan(c, chunkCount); c++)
+            for (var c = 0; (chunkCount != null && c < chunkCount); c++)
             {
                 Object start = Helpers.multiply(c, chunkSize);
                 Object end = Helpers.add(start, chunkSize);
@@ -1965,7 +1965,7 @@ final Object finalI = i;
             List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             Integer rawTradesLength = ((List<?>)rawTrades).size();
-            for (var i = 0; Helpers.isLessThan(i, rawTradesLength); i++)
+            for (var i = 0; (rawTradesLength != null && i < rawTradesLength); i++)
             {
                 ((List<Object>)trades).add(this.parseSxbetV3PublicTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)))));
             }
@@ -2035,7 +2035,7 @@ final Object finalI = i;
             List<Object> rawFills = (List<Object>) this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             Integer rawFillsLength = ((List<?>)rawFills).size();
-            for (var i = 0; Helpers.isLessThan(i, rawFillsLength); i++)
+            for (var i = 0; (rawFillsLength != null && i < rawFillsLength); i++)
             {
                 ((List<Object>)trades).add(this.parseSxbetV3Fill((Map<String, Object>) ((rawFills == null || i < 0 || i >= rawFills.size() ? null : rawFills.get(i)))));
             }
@@ -2177,7 +2177,7 @@ final Object finalI = i;
             }};
             String usdcDecimals = "1000000";
             Integer balancesLength = ((List<?>)balances).size();
-            for (var i = 0; Helpers.isLessThan(i, balancesLength); i++)
+            for (var i = 0; (balancesLength != null && i < balancesLength); i++)
             {
                 Map<String, Object> row = (Map<String, Object>) this.safeDict(balances, i);
                 String tokenAddress = this.safeStringLower(row, "tokenAddress", "");
@@ -2232,10 +2232,10 @@ final Object finalI = i;
             Object outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes;
             Integer outcomesLength = ((List<?>)outcomesList).size();
             Map<String, Object> wantedMarkets = new HashMap<String, Object>() {{}};
-            if (Helpers.isGreaterThan(outcomesLength, 0))
+            if ((outcomesLength != null && outcomesLength > 0))
             {
                 (this.loadOutcomes(outcomesList)).join();
-                for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+                for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
                 {
                     Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
                     String hash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
@@ -2253,11 +2253,11 @@ final Object finalI = i;
             List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer rawPositionsLength = ((List<?>)rawPositions).size();
-            for (var i = 0; Helpers.isLessThan(i, rawPositionsLength); i++)
+            for (var i = 0; (rawPositionsLength != null && i < rawPositionsLength); i++)
             {
                 Object raw = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
                 String marketHash = this.safeString(raw, "marketHash", "");
-                if (Helpers.isGreaterThan(outcomesLength, 0))
+                if ((outcomesLength != null && outcomesLength > 0))
                 {
                     if (java.util.Objects.equals(this.safeBool(wantedMarkets, marketHash), null))
                     {
@@ -2397,7 +2397,7 @@ final Object finalI = i;
             List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer rawTradesLength = ((List<?>)rawTrades).size();
-            for (var i = 0; Helpers.isLessThan(i, rawTradesLength); i++)
+            for (var i = 0; (rawTradesLength != null && i < rawTradesLength); i++)
             {
                 Object settlement = this.parseSettlement((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))));
                 if ((java.util.Objects.equals(wantedOutcomeId, null)) || (java.util.Objects.equals(this.safeString(settlement, "outcomeId"), wantedOutcomeId)))
@@ -2678,7 +2678,7 @@ final Object finalI = i;
             Integer outcomesLength = ((List<?>)outcomesList).size();
             List<Object> hashesOrder = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> seenHashes = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 (this.loadOutcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))))).join();
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
@@ -2697,7 +2697,7 @@ final Object finalI = i;
             Boolean hasApiKey = !Boolean.TRUE.equals(this.isEmptyString(this.apiKey));
             if (!Boolean.TRUE.equals(hasApiKey))
             {
-                for (var i = 0; Helpers.isLessThan(i, hashesLength); i++)
+                for (var i = 0; (hashesLength != null && i < hashesLength); i++)
                 {
                     Object marketHash = (hashesOrder == null || i < 0 || i >= hashesOrder.size() ? null : hashesOrder.get(i));
                     Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
@@ -2707,7 +2707,7 @@ final Object finalI = i;
             }
             Long chunkSize = this.safeInteger(this.options, "bestOddsBatchSize", 100);
             Long chunkCount = this.parseToInt(Helpers.divide(this.sum(hashesLength, (chunkSize - 1L)), chunkSize));
-            for (var c = 0; Helpers.isLessThan(c, chunkCount); c++)
+            for (var c = 0; (chunkCount != null && c < chunkCount); c++)
             {
                 Object start = Helpers.multiply(c, chunkSize);
                 Object end = Helpers.add(start, chunkSize);
@@ -2718,7 +2718,7 @@ final Object finalI = i;
                 Object chunk = this.arraySlice(hashesOrder, start, end);
                 Object rows = (this.fetchSxbetBestOdds(chunk, parameters)).join();
                 Integer rowsLength = ((List<?>)rows).size();
-                for (var j = 0; Helpers.isLessThan(j, rowsLength); j++)
+                for (var j = 0; (rowsLength != null && j < rowsLength); j++)
                 {
                     Object row = (rows == null || j < 0 || j >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(j));
                     String rowHash = this.safeString(row, "marketHash");
@@ -2759,7 +2759,7 @@ final Object finalI = i;
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Integer outcomesLength = ((List<?>)outcomesList).size();
-        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             Object outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
             String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
@@ -2962,7 +2962,7 @@ final Object finalI = i;
         Object oppositeLevels = ((Helpers.isTrue((isOutcomeOne)))) ? this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         Integer ownLevelsLength = ((List<?>)ownLevels).size();
-        for (var i = 0; Helpers.isLessThan(i, ownLevelsLength); i++)
+        for (var i = 0; (ownLevelsLength != null && i < ownLevelsLength); i++)
         {
             Map<String, Object> level = (Map<String, Object>) this.safeDict(ownLevels, i);
             String percentageOdds = this.safeString(level, "percentageOdds");
@@ -2973,7 +2973,7 @@ final Object finalI = i;
         }
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         Integer oppositeLevelsLength = ((List<?>)oppositeLevels).size();
-        for (var i = 0; Helpers.isLessThan(i, oppositeLevelsLength); i++)
+        for (var i = 0; (oppositeLevelsLength != null && i < oppositeLevelsLength); i++)
         {
             Map<String, Object> level = (Map<String, Object>) this.safeDict(oppositeLevels, i);
             String percentageOdds = this.safeString(level, "percentageOdds");
@@ -3137,9 +3137,9 @@ final Object finalI = i;
         {
             List<Object> lines = new ArrayList<Object>(Arrays.asList(((String)message).split(java.util.regex.Pattern.quote("\n"))));
             Integer linesLength = ((List<?>)lines).size();
-            for (var i = 0; Helpers.isLessThan(i, linesLength); i++)
+            for (var i = 0; (linesLength != null && i < linesLength); i++)
             {
-                String line = (String) Helpers.GetValue(lines, i);
+                String line = (String) (lines == null || i < 0 || i >= lines.size() ? null : lines.get(i));
                 if (line.length() > 0)
                 {
                     Object parsed = Helpers.parseJson(line);
@@ -3363,7 +3363,7 @@ final Object finalI = i;
         List<String> watchedSyms = new ArrayList<String>(watchedBooks.keySet());
         Long timestamp = this.milliseconds();
         Integer watchedSymsLength = ((List<?>)watchedSyms).size();
-        for (var i = 0; Helpers.isLessThan(i, watchedSymsLength); i++)
+        for (var i = 0; (watchedSymsLength != null && i < watchedSymsLength); i++)
         {
             String sym = (watchedSyms == null || i < 0 || i >= watchedSyms.size() ? null : watchedSyms.get(i));
             if (!java.util.Objects.equals(this.safeString(watchedBooks, sym), marketHash))
@@ -3404,11 +3404,11 @@ final Object finalI = i;
         //     }
         //
         Integer rowsLength = ((List<?>)rows).size();
-        for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Object refreshed = this.applySxbetWsSnapshot((Map<String, Object>) ((rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i))));
             Integer refreshedLength = ((List<?>)refreshed).size();
-            for (var j = 0; Helpers.isLessThan(j, refreshedLength); j++)
+            for (var j = 0; (refreshedLength != null && j < refreshedLength); j++)
             {
                 Object sym = (refreshed == null || j < 0 || j >= ((List<?>)refreshed).size() ? null : ((List<?>)refreshed).get(j));
                 client.resolve(this.safeValue(this.orderbooks, sym), ("orderbook::" + sym));
@@ -3501,7 +3501,7 @@ final Object finalI = i;
         Map<String, Object> watchedTickers = (Map<String, Object>) this.safeDict(this.options, "wsWatchedTickers", new HashMap<String, Object>() {{}});
         List<String> watchedSyms = new ArrayList<String>(watchedTickers.keySet());
         Integer rowsLength = ((List<?>)rows).size();
-        for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(rows, i);
             String marketHash = this.safeString(entry, "marketHash");
@@ -3524,7 +3524,7 @@ final Object finalI = i;
                 }} );
             }};
             Integer watchedSymsLength = ((List<?>)watchedSyms).size();
-            for (var j = 0; Helpers.isLessThan(j, watchedSymsLength); j++)
+            for (var j = 0; (watchedSymsLength != null && j < watchedSymsLength); j++)
             {
                 String sym = (watchedSyms == null || j < 0 || j >= watchedSyms.size() ? null : watchedSyms.get(j));
                 if (!java.util.Objects.equals(this.safeString(watchedTickers, sym), marketHash))
@@ -3637,7 +3637,7 @@ final Object finalI = i;
         //                  "betTime": "2026-07-31T18:22:41.000Z", ... } }
         //
         Integer rowsLength = ((List<?>)rows).size();
-        for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Object row = this.safeDict((rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i)), "trade", (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i)));
             Object trade = this.parseSxbetV3PublicTrade((Map<String, Object>) (row));
@@ -3717,7 +3717,7 @@ final Object finalI = i;
         //     FillV3 rows - identical to GET /fills-v3
         //
         Integer rowsLength = ((List<?>)rows).size();
-        for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Object row = this.safeDict((rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i)), "fill", (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i)));
             Object trade = this.parseSxbetV3Fill((Map<String, Object>) (row));
@@ -3794,7 +3794,7 @@ final Object finalI = i;
         //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
         Integer rowsLength = ((List<?>)rows).size();
-        for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             Object row = this.safeDict((rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i)), "order", (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i)));
             Object order = this.parsePredictionOrder((Map<String, Object>) (row));
@@ -3903,7 +3903,7 @@ final Object finalI = i;
         {
             List<Object> queryKeys = Helpers.objectKeys(query);
             Integer queryKeysLength = ((List<?>)queryKeys).size();
-            if (Helpers.isGreaterThan(queryKeysLength, 0))
+            if ((queryKeysLength != null && queryKeysLength > 0))
             {
                 body = this.json(query);
             }

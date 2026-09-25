@@ -641,7 +641,12 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
             this.checkRequiredCredentials();
             Object listenKey = (this.authenticate((String) (channel))).join();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot"), "?listenKey="), listenKey);
+            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchSpotPrivate() has no spot websocket url")) ;
+            }
+            String url = ((wsUrl + "?listenKey=") + listenKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIPTION" );
                 put( "params", new ArrayList<Object>(Arrays.asList(channel)) );
@@ -1037,7 +1042,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 continue;
             }
-            if (Helpers.isGreaterThanOrEqual(deltaNonce, nonce))
+            if ((nonce == null || (deltaNonce != null && deltaNonce >= nonce)))
             {
                 return i;
             }
@@ -1128,13 +1133,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Boolean shouldReturn = false;
         if (java.util.Objects.equals(nonce, null))
         {
-            Object cacheLength = ((List<?>)((List<Object>)Helpers.GetValue(storedOrderBook, "cache"))).size();
+            Object cacheLength = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
             if (Helpers.isEqual(cacheLength, snapshotDelay))
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
-            ((List<Object>)((List<Object>)Helpers.GetValue(storedOrderBook, "cache"))).add(data);
+            ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(data);
             return;
         }
         try
@@ -1184,7 +1189,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
         Long existingNonce = this.safeInteger(orderbook, "nonce");
         Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
-        if ((!java.util.Objects.equals(deltaNonce, null)) && (!java.util.Objects.equals(existingNonce, null)) && (Helpers.isLessThan(deltaNonce, existingNonce)))
+        if ((!java.util.Objects.equals(deltaNonce, null)) && (!java.util.Objects.equals(existingNonce, null)) && ((existingNonce != null && (deltaNonce == null || deltaNonce < existingNonce))))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
@@ -2591,7 +2596,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 List<Object> splitHashes = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
                 String symbol = this.safeString(splitHashes, 2);
                 Integer splitHashesLength = ((List<?>)splitHashes).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-                if (Helpers.isGreaterThan(splitHashesLength, 4))
+                if ((splitHashesLength != null && splitHashesLength > 4))
                 {
                     symbol = Helpers.add(symbol, (":" + this.safeString(splitHashes, 3)));
                 }
@@ -2699,11 +2704,16 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
             } catch(Exception error)
             {
-                Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot"), "?listenKey="), listenKey);
+                String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
+                if (java.util.Objects.equals(wsUrl, null))
+                {
+                    throw new ExchangeError((this.id + " keepAliveListenKey() has no spot websocket url")) ;
+                }
+                String url = ((wsUrl + "?listenKey=") + listenKey);
                 Client client = this.client(url);
                 Helpers.addElementToObject(this.options, "listenKey", null);
                 client.reject(error);
-                ((Map<String,Object>)this.clients).remove((String)url);
+                ((Map<String,Object>)this.clients).remove(url);
             }
             return null;
         });

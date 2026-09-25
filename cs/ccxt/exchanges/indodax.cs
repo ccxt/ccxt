@@ -252,7 +252,7 @@ public partial class indodax : Exchange
                 { "1w", "1W" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "recvWindow", multiply(5, 1000) },
+                { "recvWindow", (5L * 1000L) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
@@ -339,7 +339,7 @@ public partial class indodax : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -409,13 +409,17 @@ public partial class indodax : Exchange
             string? id = this.safeString(market, "id");
             string? baseId = this.safeString(market, "traded_currency");
             string? quoteId = this.safeString(market, "base_currency");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             Int64? isMaintenance = this.safeInteger(market, "is_maintenance");
             bool inMaintenance = ((isMaintenance != null)) && ((isMaintenance != 0));
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -1416,7 +1420,7 @@ public partial class indodax : Exchange
             { "withdraw_address", address },
             { "request_id", requestId.ToString() },
         };
-        if (((tagVar != null)) && (!isEqual(tagVar, "")))
+        if (((tagVar != null)) && (!(tagVar == "")))
         {
             request["withdraw_memo"] = tagVar;
         }
@@ -1648,7 +1652,12 @@ public partial class indodax : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = apiUrl;
         if (isEqual(api, "public"))
         {
             object query = this.omit(parameters, this.extractParams(path));

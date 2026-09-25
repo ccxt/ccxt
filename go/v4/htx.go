@@ -2499,7 +2499,7 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -2751,14 +2751,17 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol any = *base + "/" + *quote
 		var expiry any = nil
 		if contract {
 			if inverse == true {
-				symbol = Add(symbol, Add(":", base))
+				symbol = Add(symbol, ":"+*base)
 			} else if linear == true {
-				symbol = Add(symbol, Add(":", quote))
+				symbol = Add(symbol, ":"+*quote)
 			}
 			if future {
 				expiry = DerefScalar(this.SafeInteger(market, "delivery_time"))
@@ -2909,6 +2912,9 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 		var info map[string]any = SafeMapTyped(market, "info")
 		var contractType *string = this.SafeString(info, "contract_type")
 		var contractSuffix *string = this.SafeString(futuresCharsMaps, contractType)
+		if contractSuffix == nil {
+			continue
+		}
 		// see comment on formats a bit above
 		var constructedId any = nil
 		if IsEqual(GetValue(market, "linear"), true) {
@@ -3671,8 +3677,8 @@ func (this *Htx) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 		panic(NotSupported(this.Id + " fetchOrderTrades() is only supported for spot markets"))
 	}
 
-	var retRes264815 []any = ListTyped(PanicOnError((<-this.FetchSpotOrderTradesAsync(id, symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes264815)
+	var retRes265415 []any = ListTyped(PanicOnError((<-this.FetchSpotOrderTradesAsync(id, symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes265415)
 	return nil
 }
 
@@ -3761,8 +3767,8 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes269719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes269719)
+		var retRes270319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes270319)
 		return nil
 	}
 	var market map[string]any = nil
@@ -4109,8 +4115,8 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes300519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
-		ch <- BoxAbsent(retRes300519)
+		var retRes301119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes301119)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -5142,13 +5148,13 @@ func (this *Htx) ParseMarginBalanceHelper(balance any, code *string, result any)
 	if IsEqual(account, nil) {
 		panic(ExchangeError(this.Id + " parseMarginBalanceHelper() could not resolve account"))
 	}
-	if IsEqual(GetValue(balance, "type"), "trade") {
+	if this.SafeString(balance, "type") != nil && *this.SafeString(balance, "type") == "trade" {
 		AddElementToObject(account, "free", this.SafeString(balance, "balance"))
 	}
 	if IsEqual(account, nil) {
 		panic(ExchangeError(this.Id + " parseMarginBalanceHelper() could not resolve account"))
 	}
-	if IsEqual(GetValue(balance, "type"), "frozen") {
+	if this.SafeString(balance, "type") != nil && *this.SafeString(balance, "type") == "frozen" {
 		AddElementToObject(account, "used", this.SafeString(balance, "balance"))
 	}
 	return account
@@ -5255,8 +5261,8 @@ func (this *Htx) fetchSpotOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes398115 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatesAsync("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes398115)
+	var retRes398715 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatesAsync("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes398715)
 	return nil
 }
 func (this *Htx) FetchClosedSpotOrdersAsync(optionalArgs ...any) <-chan any {
@@ -5276,8 +5282,8 @@ func (this *Htx) fetchClosedSpotOrdersBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes398515 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatesAsync("filled", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes398515)
+	var retRes399115 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatesAsync("filled", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes399115)
 	return nil
 }
 func (this *Htx) FetchContractOrdersAsync(optionalArgs ...any) <-chan any {
@@ -5448,8 +5454,8 @@ func (this *Htx) fetchClosedContractOrdersBody(ch chan any, optionalArgs ...any)
 		request["status"] = "6"
 	}
 
-	var retRes416715 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes416715)
+	var retRes417315 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes417315)
 	return nil
 }
 
@@ -5509,13 +5515,13 @@ func (this *Htx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if contract {
 
-		var retRes420719 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersAsync(symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes420719)
+		var retRes421319 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersAsync(symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes421319)
 		return nil
 	} else {
 
-		var retRes420919 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersAsync(symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes420919)
+		var retRes421519 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersAsync(symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes421519)
 		return nil
 	}
 }
@@ -5564,8 +5570,8 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes423819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledOrders", symbol, since, limit, params, 100))))
-		ch <- BoxAbsent(retRes423819)
+		var retRes424419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledOrders", symbol, since, limit, params, 100))))
+		ch <- BoxAbsent(retRes424419)
 		return nil
 	}
 	var market map[string]any = nil
@@ -5578,8 +5584,8 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if marketType != nil && *marketType == "spot" {
 
-		var retRes424719 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatesAsync("partial-canceled,canceled", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes424719)
+		var retRes425319 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatesAsync("partial-canceled,canceled", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes425319)
 		return nil
 	} else {
 		if symbol == nil {
@@ -5602,8 +5608,8 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["status"] = "5,7" // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
 		}
 
-		var retRes426819 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-		ch <- BoxAbsent(retRes426819)
+		var retRes427419 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+		ch <- BoxAbsent(retRes427419)
 		return nil
 	}
 }
@@ -5652,8 +5658,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes429719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params, 100))))
-		ch <- BoxAbsent(retRes429719)
+		var retRes430319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params, 100))))
+		ch <- BoxAbsent(retRes430319)
 		return nil
 	}
 	var market map[string]any = nil
@@ -5666,13 +5672,13 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	if marketType != nil && *marketType == "spot" {
 
-		var retRes430619 []any = ListTyped(PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes430619)
+		var retRes431219 []any = ListTyped(PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes431219)
 		return nil
 	} else {
 
-		var retRes430819 []any = ListTyped(PanicOnError((<-this.FetchClosedContractOrdersAsync(symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes430819)
+		var retRes431419 []any = ListTyped(PanicOnError((<-this.FetchClosedContractOrdersAsync(symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes431419)
 		return nil
 	}
 }
@@ -6480,8 +6486,8 @@ func (this *Htx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes504715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes504715)
+	var retRes505315 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes505315)
 	return nil
 }
 
@@ -6524,8 +6530,8 @@ func (this *Htx) createTrailingPercentOrderBody(ch chan any, symbol any, typeVar
 	AddElementToObject(params, "trailingPercent", trailingPercent)
 	AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-	var retRes507315 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params))))
-	ch <- BoxAbsent(retRes507315)
+	var retRes507915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params))))
+	ch <- BoxAbsent(retRes507915)
 	return nil
 }
 
@@ -8176,8 +8182,8 @@ func (this *Htx) fetchWithdrawAddressesBody(ch chan any, code any, optionalArgs 
 	var addresses []any = []any{}
 	for i := 0; i < GetArrayLength(allAddresses); i++ {
 		var address any = GetValue(allAddresses, i)
-		var noteMatch bool = (note == nil) || (IsEqual(GetValue(address, "note"), note))
-		var networkMatch bool = (networkCode == nil) || (IsEqual(GetValue(address, "network"), networkCode))
+		var noteMatch bool = (note == nil) || (IsEqual(this.SafeString(address, "note"), note))
+		var networkMatch bool = (networkCode == nil) || (IsEqual(this.SafeString(address, "network"), networkCode))
 		if noteMatch && networkMatch {
 			addresses = append(addresses, address)
 		}
@@ -8982,8 +8988,8 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes716419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))))
-		ch <- BoxAbsent(retRes716419)
+		var retRes717019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))))
+		ch <- BoxAbsent(retRes717019)
 		return nil
 	}
 	if this.Markets == nil {
@@ -9423,7 +9429,7 @@ func (this *Htx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Htx) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 func (this *Htx) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -10187,7 +10193,7 @@ func (this *Htx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	if (GetValue(market, "future") == true) && (GetValue(market, "inverse") == true) {
 		for i := 0; i < GetArrayLength(positions); i++ {
 			var entry any = GetValue(positions, i)
-			if IsEqual(GetValue(entry, "contract_code"), GetValue(market, "id")) {
+			if IsEqual(this.SafeString(entry, "contract_code"), GetValue(market, "id")) {
 				position = entry
 				break
 			}
@@ -10303,8 +10309,8 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes854419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 500))))
-		ch <- BoxAbsent(retRes854419)
+		var retRes855019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 500))))
+		ch <- BoxAbsent(retRes855019)
 		return nil
 	}
 

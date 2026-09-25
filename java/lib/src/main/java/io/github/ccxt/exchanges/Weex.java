@@ -885,7 +885,7 @@ public class Weex extends WeexApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -1203,7 +1203,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1296,6 +1296,10 @@ public class Weex extends WeexApi
         String settleId = this.safeString(market, "marginAsset");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settle = this.safeCurrencyCode(settleId);
         Object active = true;
         String symbol = ((base + "/") + quote);
@@ -1336,6 +1340,7 @@ public class Weex extends WeexApi
         final String finalId = id;
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final Boolean finalIsSpot = isSpot;
         final Object finalActive = active;
@@ -1349,7 +1354,7 @@ public class Weex extends WeexApi
             put( "numericId", Weex.this.safeInteger(market, "contractId") );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -6353,7 +6358,8 @@ public class Weex extends WeexApi
                 put( "User-Agent", "ccxt" );
             }};
         }
-        String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + endpoint);
+        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String url = ((baseUrl + "/") + endpoint);
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

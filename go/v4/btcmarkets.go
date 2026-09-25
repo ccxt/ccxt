@@ -364,12 +364,12 @@ func (this *Btcmarkets) Describe() any {
 		},
 	})
 }
-func (this *Btcmarkets) FetchTransactionsWithMethodAsync(method any, optionalArgs ...any) <-chan any {
+func (this *Btcmarkets) FetchTransactionsWithMethodAsync(method string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTransactionsWithMethodBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any, optionalArgs ...any) any {
+func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -396,10 +396,10 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
 		currency = this.Currency(code)
 	}
 	var response []any = nil
-	if IsEqual(method, "privateGetTransfers") {
+	if method == "privateGetTransfers" {
 
 		response = ListTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
-	} else if IsEqual(method, "privateGetDeposits") {
+	} else if method == "privateGetDeposits" {
 
 		response = ListTyped(PanicOnError((<-this.PrivateGetDeposits(this.Extend(request, params))).Raw))
 	} else {
@@ -676,7 +676,10 @@ func (this *Btcmarkets) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "marketId")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote
 	var fees any = this.SafeDict(this.SafeDict(this.Options, "fees", map[string]any{}), quote, this.Fees)
 	var pricePrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "priceDecimals"))))
 	var minAmount *float64 = this.SafeNumber(market, "minOrderAmount")
@@ -1641,8 +1644,8 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "open",
 	}
 
-	var retRes130815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes130815)
+	var retRes131115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes131115)
 	return nil
 }
 
@@ -1865,7 +1868,11 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 			request = Add(request, "?"+this.Urlencode(query))
 		}
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), request)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(apiUrl, request))
 	return map[string]any{
 		"url":     url,
 		"method":  method,

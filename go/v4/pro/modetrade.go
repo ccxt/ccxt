@@ -98,7 +98,11 @@ func (this *Modetrade) watchPublicBody(ch chan any, messageHash any, message any
 	if !ccxt.IsEqual(this.AccountId, nil) && (this.AccountId != "") {
 		id = this.AccountId
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/"), id)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"/", id))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -760,7 +764,11 @@ func (this *Modetrade) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " authenticate() has no private websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"/", this.AccountId))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
@@ -802,7 +810,11 @@ func (this *Modetrade) watchPrivateBody(ch chan any, messageHash any, message an
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchPrivate() has no private websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"/", this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -824,7 +836,11 @@ func (this *Modetrade) watchPrivateMultipleBody(ch chan any, messageHashes any, 
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchPrivateMultiple() has no private websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"/", this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -856,7 +872,7 @@ func (this *Modetrade) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -877,8 +893,8 @@ func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = topic
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
+		messageHash = ccxt.Add(messageHash, ":"+*symbol)
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -916,7 +932,7 @@ func (this *Modetrade) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -934,11 +950,11 @@ func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		topic = "algoexecutionreport"
 	}
 	params = ccxt.MapTyped(this.Omit(params, "stop"))
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
+		messageHash += ":" + *symbol
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -1261,7 +1277,11 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchPositions() has no private websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"/", this.AccountId))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)

@@ -531,7 +531,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         types = self.safe_list(options, 'types', [])
         rawPromises = []
         for i in range(0, len(types)):
-            marketType = types[i]
+            marketType = self.safe_string(types, i)
             if marketType == 'swap':
                 rawPromises.append(self.fetch_swap_markets(params))
             elif marketType == 'spot':
@@ -992,6 +992,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' parseMarket() missing base currency')
         base = base.replace(':', '-')  # handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         quote = self.safe_currency_code(quoteId)
+        if quote is None:
+            return None
         baseId = self.safe_string(market, 'baseId')
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
@@ -2725,7 +2727,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             request['vaultAddress'] = vaultAddress
         return request
 
-    async def edit_order(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order
 
@@ -3785,7 +3787,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def modify_margin_helper(self, symbol: str, amount: object, type: object, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -4342,7 +4344,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             for i in range(0, len(records)):
                 record = records[i]
-                if record['type'] == 'vaultDeposit':
+                if self.safe_string(record, 'type') == 'vaultDeposit':
                     delta = self.safe_dict(record, 'delta', {})
                     if delta['vault'] == '0x' + vaultAddress:
                         deposits.append(record)
@@ -4401,7 +4403,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             for i in range(0, len(records)):
                 record = records[i]
-                if record['type'] == 'vaultWithdraw':
+                if self.safe_string(record, 'type') == 'vaultWithdraw':
                     delta = self.safe_dict(record, 'delta', {})
                     if delta['vault'] == '0x' + vaultAddress:
                         withdrawals.append(record)
@@ -4685,7 +4687,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         return None
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(apiUrl) + '/' + path
         if method == 'POST':
             headers = {
                 'Content-Type': 'application/json',

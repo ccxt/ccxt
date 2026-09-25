@@ -642,7 +642,7 @@ func (this *Derive) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -662,8 +662,8 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = topic
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
+		messageHash = ccxt.Add(messageHash, ":"+*symbol)
 	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -794,7 +794,7 @@ func (this *Derive) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -814,8 +814,8 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = topic
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
+		messageHash = ccxt.Add(messageHash, ":"+*symbol)
 	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -966,9 +966,9 @@ func (this *Derive) HandleMessage(client any, message any) {
 			return this.SafeDict(subscriptionsById, id, map[string]any{})
 		}()
 		if ccxt.InOp(subscription, "method") {
-			if ccxt.IsEqual(ccxt.GetValue(subscription, "method"), "public/login") {
+			if this.SafeString(subscription, "method") != nil && *this.SafeString(subscription, "method") == "public/login" {
 				this.HandleAuth(client, message)
-			} else if ccxt.IsEqual(ccxt.GetValue(subscription, "method"), "unsubscribe") {
+			} else if this.SafeString(subscription, "method") != nil && *this.SafeString(subscription, "method") == "unsubscribe" {
 				this.HandleUnSubscribe(client, message)
 			}
 		}

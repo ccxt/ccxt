@@ -862,9 +862,12 @@ func (this *Modetrade) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(parts, 2)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settleId *string = this.SafeString(parts, 2)
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
+	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1324,8 +1327,8 @@ func (this *Modetrade) fetchFundingIntervalBody(ch chan any, symbol any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes94915 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
-	ch <- BoxAbsent(retRes94915)
+	var retRes95215 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
+	ch <- BoxAbsent(retRes95215)
 	return nil
 }
 
@@ -1471,8 +1474,8 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes104619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
-		ch <- BoxAbsent(retRes104619)
+		var retRes104919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
+		ch <- BoxAbsent(retRes104919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -1611,8 +1614,8 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes114919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes114919)
+		var retRes115219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes115219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2779,8 +2782,8 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes214819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
-		ch <- BoxAbsent(retRes214819)
+		var retRes215119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))))
+		ch <- BoxAbsent(retRes215119)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2894,8 +2897,8 @@ func (this *Modetrade) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		"status": "INCOMPLETE",
 	})
 
-	var retRes223615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes223615)
+	var retRes223915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes223915)
 	return nil
 }
 
@@ -2940,8 +2943,8 @@ func (this *Modetrade) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
 		"status": "COMPLETED",
 	})
 
-	var retRes226115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes226115)
+	var retRes226415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes226415)
 	return nil
 }
 
@@ -3053,8 +3056,8 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes233419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes233419)
+		var retRes233719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes233719)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3445,8 +3448,8 @@ func (this *Modetrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"side": "DEPOSIT",
 	}
 
-	var retRes265015 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes265015)
+	var retRes265315 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes265315)
 	return nil
 }
 
@@ -3481,8 +3484,8 @@ func (this *Modetrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		"side": "WITHDRAW",
 	}
 
-	var retRes266815 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes266815)
+	var retRes267115 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes267115)
 	return nil
 }
 
@@ -3563,8 +3566,8 @@ func (this *Modetrade) getWithdrawNonceBody(ch chan any, optionalArgs ...any) an
 func (this *Modetrade) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Modetrade) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+func (this *Modetrade) SignHash(hash any, privateKey string) any {
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -4027,7 +4030,11 @@ func (this *Modetrade) Sign(path any, optionalArgs ...any) any {
 	var version any = GetValue(section, 0)
 	var access any = GetValue(section, 1)
 	var pathWithParams any = this.ImplodeParams(path, params)
-	var url any = Add(Add(Add(GetValue(GetValue(this.Urls, "api"), access), "/"), version), "/")
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), access)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(Add(*apiUrl+"/", version), "/")
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
 	if IsEqual(access, "public") {

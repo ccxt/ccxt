@@ -580,7 +580,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def is_fiat(self, code: object) -> bool:
         return(code in self.options['fiat'])
 
-    def get_currency_name(self, code: object):
+    def get_currency_name(self, code: str):
         # temporary fix for transpiler recognition, even though this is in parent class
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
@@ -684,6 +684,8 @@ class bitfinex(Exchange, ImplicitAPI):
             splitQuote = quote.split('F0')
             base = self.safe_string(splitBase, 0)
             quote = self.safe_string(splitQuote, 0)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             # baseId = 'f' + baseId;
             # quoteId = 'f' + quoteId;
@@ -2924,7 +2926,10 @@ class bitfinex(Exchange, ImplicitAPI):
             request = api + request
         else:
             request = self.version + request
-        url = self.urls['api'][api] + '/' + request
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + request
         if api == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)

@@ -127,7 +127,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		messageHash = ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol"))
 		productIds = []any{ccxt.GetValue(market, "id")}
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
@@ -165,12 +165,12 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-func (this *Coinbaseinternational) SubscribeMultipleAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) SubscribeMultipleAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeMultipleBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -193,9 +193,9 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 		var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
 		var symbol any = this.Symbol(marketId)
 		productIds = append(productIds, marketId)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
+		messageHashes = append(messageHashes, ccxt.Add(name+"::", symbol))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}

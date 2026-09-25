@@ -1680,6 +1680,9 @@ export default class nado extends Exchange {
             const rawQuoteId = this.safeString (pair, 'quote', 'USDT0');
             const base = this.safeCurrencyCode (this.removeMarketSuffix (rawBaseId));
             const quote = this.safeCurrencyCode (rawQuoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const baseAsset = this.safeDict (assetsByCode, base, asset);
             const quoteAsset = this.safeDict (assetsByCode, quote);
             const baseId = this.safeString (baseAsset, 'product_id', rawBaseId);

@@ -713,9 +713,12 @@ func (this *Upbit) ParseMarket(market any) any {
 	baseId := GetValue(quoteIdbaseIdVariable, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -1680,7 +1683,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		request["identifier"] = clientOrderId
 	}
 	if postOnly {
-		if !IsEqual(request["ord_type"], "limit") {
+		if this.SafeString(request, "ord_type") == nil || *this.SafeString(request, "ord_type") != "limit" {
 			panic(InvalidOrder(this.Id + " postOnly orders are only supported for limit orders"))
 		}
 		request["time_in_force"] = "post_only"
@@ -1690,7 +1693,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 			request["time_in_force"] = timeInForce
 		}
 	}
-	if IsEqual(request["ord_type"], "best") && (timeInForce == nil) {
+	if (this.SafeString(request, "ord_type") != nil && *this.SafeString(request, "ord_type") == "best") && (timeInForce == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a timeInForce parameter for best type orders"))
 	}
 	var response any = nil
@@ -1885,7 +1888,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		request["new_smp_type"] = selfTradePrevention
 	}
 	if postOnly {
-		if !IsEqual(request["new_ord_type"], "limit") {
+		if this.SafeString(request, "new_ord_type") == nil || *this.SafeString(request, "new_ord_type") != "limit" {
 			panic(InvalidOrder(this.Id + " postOnly orders are only supported for limit orders"))
 		}
 		request["new_time_in_force"] = "post_only"
@@ -1895,7 +1898,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 			request["new_time_in_force"] = timeInForce
 		}
 	}
-	if IsEqual(request["new_ord_type"], "best") && (timeInForce == nil) {
+	if (this.SafeString(request, "new_ord_type") != nil && *this.SafeString(request, "new_ord_type") == "best") && (timeInForce == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a timeInForce parameter for best type orders"))
 	}
 	params = MapTyped(this.Omit(params, []any{"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"}))

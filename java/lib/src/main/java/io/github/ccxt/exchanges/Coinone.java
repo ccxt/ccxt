@@ -598,12 +598,17 @@ public class Coinone extends CoinoneApi
                 String quoteId = this.safeStringUpper(entry, "quote_currency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1725,7 +1730,7 @@ public class Coinone extends CoinoneApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = (walletAddress == null || key == null ? null : walletAddress.get(key));
+                String value = this.safeString(walletAddress, key);
                 if ((java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, "")) || (java.util.Objects.equals(value, "-1")))
                 {
                     continue;
@@ -1737,7 +1742,7 @@ public class Coinone extends CoinoneApi
                 Map<String, Object> depositAddress = (Map<String, Object>) this.safeDict(result, code);
                 if (java.util.Objects.equals(depositAddress, null))
                 {
-                    final Object finalValue = value;
+                    final String finalValue = value;
                     final String finalCode = code;
                     depositAddress = new HashMap<String, Object>() {{
                         put( "info", finalValue );
@@ -1782,17 +1787,37 @@ public class Coinone extends CoinoneApi
     {
         String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/");
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + "/");
         if (java.util.Objects.equals(api, "v2Public"))
         {
-            url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("v2Public"), "/");
+            String apiUrl2 = this.safeString(((Map<String, Object>)this.urls).get("api"), "v2Public");
+            if (java.util.Objects.equals(apiUrl2, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = (apiUrl2 + "/");
             api = "public";
         } else if (java.util.Objects.equals(api, "v2Private"))
         {
-            url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("v2Private"), "/");
+            String apiUrl3 = this.safeString(((Map<String, Object>)this.urls).get("api"), "v2Private");
+            if (java.util.Objects.equals(apiUrl3, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = (apiUrl3 + "/");
         } else if (java.util.Objects.equals(api, "v2_1Private"))
         {
-            url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("v2_1Private"), "/");
+            String apiUrl4 = this.safeString(((Map<String, Object>)this.urls).get("api"), "v2_1Private");
+            if (java.util.Objects.equals(apiUrl4, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = (apiUrl4 + "/");
         }
         if (java.util.Objects.equals(api, "public"))
         {
@@ -1829,7 +1854,7 @@ public class Coinone extends CoinoneApi
                 put( "X-COINONE-SIGNATURE", signature );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

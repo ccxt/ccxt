@@ -364,8 +364,12 @@ public partial class bitbns : Exchange
             string? id = this.safeString(market, "id");
             object baseId = this.safeString(market, "base");
             string? quoteId = this.safeString(market, "quote");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             IDictionary<string, object> marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
             IDictionary<string, object> marketLimits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
             IDictionary<string, object> amountLimits = this.safeDict(marketLimits, "amount", new Dictionary<string, object>() {});
@@ -381,7 +385,7 @@ public partial class bitbns : Exchange
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", uppercaseId },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -785,10 +789,7 @@ public partial class bitbns : Exchange
         string? targetRate = this.safeString(parameters, "target_rate");
         string? trailRate = this.safeString(parameters, "trail_rate");
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", side.ToUpper() },
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },

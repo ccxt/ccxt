@@ -2380,7 +2380,7 @@ class htx(ccxt.async_support.htx):
                     self.handle_subscription_status(client, message)
                     return
             if 'ch' in message:
-                if message['ch'] == 'auth':
+                if self.safe_string(message, 'ch') == 'auth':
                     self.handle_authenticate(client, message)
                     return
                 else:

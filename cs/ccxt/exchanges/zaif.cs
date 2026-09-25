@@ -336,9 +336,13 @@ public partial class zaif : Exchange
         var baseIdquoteIdVariable = name.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         var baseId = baseIdquoteIdVariable[0];
         var quoteId = baseIdquoteIdVariable[1];
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -948,7 +952,8 @@ public partial class zaif : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/");
+        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        object url = add(baseUrl, "/");
         if (isEqual(api, "public"))
         {
             url = add(url, ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));

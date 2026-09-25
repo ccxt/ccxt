@@ -93,7 +93,7 @@ export default class deribit extends deribitRest {
         const currencies = this.safeList (this.options, 'currencies', []);
         const channels: List = [];
         for (let i = 0; i < currencies.length; i++) {
-            const currencyCode = currencies[i];
+            const currencyCode = this.safeString (currencies, i);
             channels.push ('user.portfolio.' + currencyCode);
         }
         const subscribe: Dict = {
@@ -695,9 +695,10 @@ export default class deribit extends deribitRest {
     override handleDelta (bookside: any, delta: any) {
         const price = delta[1];
         const amount = delta[2];
-        if (delta[0] === 'new' || delta[0] === 'change') {
+        const action = this.safeString (delta, 0);
+        if (action === 'new' || action === 'change') {
             bookside.storeArray ([ price, amount, 1 ]);
-        } else if (delta[0] === 'delete') {
+        } else if (action === 'delete') {
             bookside.storeArray ([ price, amount, 0 ]);
         }
     }

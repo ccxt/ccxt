@@ -1648,9 +1648,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	var market map[string]any = this.Market(symbol)
 	var orderType string = ToUpper(typeVar)
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var orderSide string = ToUpper(side)
 	var orderSize *string = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"

@@ -599,11 +599,15 @@ public partial class upbit : Exchange
         var quoteIdbaseIdVariable = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         var quoteId = quoteIdbaseIdVariable[0];
         var baseId = quoteIdbaseIdVariable[1];
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -1360,7 +1364,7 @@ public partial class upbit : Exchange
             quoteAmount = this.costToPrecision(symbol, cost);
         } else if ((createMarketBuyOrderRequiresPrice == true))
         {
-            if ((price == null) || isEqual(amount, null))
+            if ((price == null) || (amount == null))
             {
                 throw new InvalidOrder ((this.id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
             }
@@ -1370,7 +1374,7 @@ public partial class upbit : Exchange
             quoteAmount = this.costToPrecision(symbol, costRequest);
         } else
         {
-            if (isEqual(amount, null))
+            if ((amount == null))
             {
                 throw new ArgumentsRequired ((this.id + " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
             }
@@ -1489,7 +1493,7 @@ public partial class upbit : Exchange
         }
         if (postOnly)
         {
-            if (!isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("ord_type") ? ((IDictionary<string, object>)request)["ord_type"] : null), "limit"))
+            if ((this.safeString(request, "ord_type") != "limit"))
             {
                 throw new InvalidOrder ((this.id + " postOnly orders are only supported for limit orders")) ;
             }
@@ -1502,7 +1506,7 @@ public partial class upbit : Exchange
                 request["time_in_force"] = timeInForce;
             }
         }
-        if (isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("ord_type") ? ((IDictionary<string, object>)request)["ord_type"] : null), "best") && (timeInForce == null))
+        if ((this.safeString(request, "ord_type") == "best") && (timeInForce == null))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
         }
@@ -1688,7 +1692,7 @@ public partial class upbit : Exchange
         }
         if (postOnly)
         {
-            if (!isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("new_ord_type") ? ((IDictionary<string, object>)request)["new_ord_type"] : null), "limit"))
+            if ((this.safeString(request, "new_ord_type") != "limit"))
             {
                 throw new InvalidOrder ((this.id + " postOnly orders are only supported for limit orders")) ;
             }
@@ -1701,7 +1705,7 @@ public partial class upbit : Exchange
                 request["new_time_in_force"] = timeInForce;
             }
         }
-        if (isEqual((request != null && ((IDictionary<string, object>)request).ContainsKey("new_ord_type") ? ((IDictionary<string, object>)request)["new_ord_type"] : null), "best") && (timeInForce == null))
+        if ((this.safeString(request, "new_ord_type") == "best") && (timeInForce == null))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires a timeInForce parameter for best type orders")) ;
         }

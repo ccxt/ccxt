@@ -673,6 +673,9 @@ export default class coinbaseexchange extends Exchange {
             // const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'status');
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -1085,8 +1088,9 @@ export default class coinbaseexchange extends Exchange {
             'rate': feeRate,
         };
         const id = this.safeString (trade, 'trade_id');
+        const rawSide = this.safeString (trade, 'side');
         let side: Str = 'buy';
-        if (trade['side'] === 'buy') {
+        if (rawSide === 'buy') {
             side = 'sell';
         }
         const orderId = this.safeString (trade, 'order_id');
@@ -1094,7 +1098,7 @@ export default class coinbaseexchange extends Exchange {
         const makerOrderId = this.safeString (trade, 'maker_order_id');
         const takerOrderId = this.safeString (trade, 'taker_order_id');
         if ((orderId !== undefined) || ((makerOrderId !== undefined) && (takerOrderId !== undefined))) {
-            side = (trade['side'] === 'buy') ? 'buy' : 'sell';
+            side = (rawSide === 'buy') ? 'buy' : 'sell';
         }
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
@@ -2192,7 +2196,11 @@ export default class coinbaseexchange extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.implodeHostname (this.urls['api'][api]) + request;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = this.implodeHostname (apiUrl) + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

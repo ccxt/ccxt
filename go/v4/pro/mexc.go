@@ -582,12 +582,12 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), messageHash)))
 	return nil
 }
-func (this *Mexc) WatchSpotPrivateAsync(channel any, messageHash any, optionalArgs ...any) <-chan any {
+func (this *Mexc) WatchSpotPrivateAsync(channel string, messageHash any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchSpotPrivateBody(ch, channel, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSpotPrivateBody(ch chan any, channel any, messageHash any, optionalArgs ...any) any {
+func (this *Mexc) watchSpotPrivateBody(ch chan any, channel string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -596,7 +596,11 @@ func (this *Mexc) watchSpotPrivateBody(ch chan any, channel any, messageHash any
 
 	listenKey := (<-this.AuthenticateAsync(channel))
 	ccxt.PanicOnError(listenKey)
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"), "?listenKey="), listenKey)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchSpotPrivate() has no spot websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"?listenKey=", listenKey))
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIPTION",
 		"params": []any{channel},
@@ -605,12 +609,12 @@ func (this *Mexc) watchSpotPrivateBody(ch chan any, channel any, messageHash any
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, params), channel)))
 	return nil
 }
-func (this *Mexc) WatchSwapPublicAsync(channel any, messageHash any, requestParams any, optionalArgs ...any) <-chan any {
+func (this *Mexc) WatchSwapPublicAsync(channel string, messageHash any, requestParams any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchSwapPublicBody(ch, channel, messageHash, requestParams, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchSwapPublicBody(ch chan any, channel any, messageHash any, requestParams any, optionalArgs ...any) any {
+func (this *Mexc) watchSwapPublicBody(ch chan any, channel string, messageHash any, requestParams any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1268,7 +1272,7 @@ func (this *Mexc) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1284,7 +1288,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var typeVar *string = nil
@@ -1486,7 +1490,7 @@ func (this *Mexc) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1502,7 +1506,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var typeVar *string = nil
@@ -2466,7 +2470,11 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArg
 					}
 					ret_ = func(this *Mexc) any {
 						// catch block:
-						var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"), "?listenKey="), listenKey)
+						var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+						if wsUrl == nil {
+							panic(ccxt.ExchangeError(this.Id + " keepAliveListenKey() has no spot websocket url"))
+						}
+						var url any = ccxt.Add(*wsUrl+"?listenKey=", listenKey)
 						var client ccxt.ClientInterface = this.Client(url)
 						this.Options.Store("listenKey", nil)
 						client.(ccxt.ClientInterface).Reject(error)

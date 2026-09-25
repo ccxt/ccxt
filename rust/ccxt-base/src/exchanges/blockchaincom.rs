@@ -580,6 +580,9 @@ impl BlockchaincomCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "counter_currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            if (base == Value::Null) || (quote == Value::Null) {
+                continue;
+            }
             let mut numericId: Value = self.safe_number_k(market.clone(), "id", &[]);
             let mut active: Value = Value::Null;
             let mut marketState: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -965,9 +968,7 @@ impl BlockchaincomCore {
         let mut uppercaseOrderType: Value = to_upper(&orderType);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[self.uuid16(&[])]);
         params = self.omit(params.clone(), Value::from(vec![Value::Str("ordType".into()), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
-        if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
-        }
+        self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ordType".to_string(), uppercaseOrderType.clone());
@@ -991,12 +992,13 @@ impl BlockchaincomCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("STOPLIMIT".into())); }
             }
         }
+        let mut ordType: Option<String> = self.safe_string_k(request.clone(), "ordType", &[]).as_str().map(str::to_owned);
         let mut priceRequired: bool = false;
         let mut stopPriceRequired: bool = false;
-        if (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("LIMIT")) || (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("STOPLIMIT")) {
+        if (ordType.as_deref() == Some("LIMIT")) || (ordType.as_deref() == Some("STOPLIMIT")) {
             priceRequired = true;
         }
-        if (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("STOP")) || (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("STOPLIMIT")) {
+        if (ordType.as_deref() == Some("STOP")) || (ordType.as_deref() == Some("STOPLIMIT")) {
             stopPriceRequired = true;
         }
         if priceRequired {
@@ -1768,7 +1770,11 @@ impl BlockchaincomCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
-        let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &requestPath);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        if (apiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", apiUrl, requestPath).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (api.as_str() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {

@@ -673,6 +673,8 @@ class digifinex(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'clear_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             #
             # The status is documented in the exchange API docs as follows:
@@ -779,6 +781,8 @@ class digifinex(Exchange, ImplicitAPI):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -3912,7 +3916,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         tiers = []
-        brackets = self.safe_value(info, 'open_max_limits', {})
+        brackets = self.safe_list(info, 'open_max_limits', [])
         for i in range(0, len(brackets)):
             tier = self.safe_dict(brackets, i)
             marketId = self.safe_string(info, 'instrument_id')
@@ -4238,14 +4242,17 @@ class digifinex(Exchange, ImplicitAPI):
         return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
     def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        signed = api[0] == 'private'
-        endpoint = api[1]
+        signed = self.safe_string(api, 0) == 'private'
+        endpoint = self.safe_string(api, 1)
         pathPart = '/swap/v2'
         if endpoint == 'spot':
             pathPart = '/v3'
         request = '/' + self.implode_params(path, params)
         payload = pathPart + request
-        url = self.urls['api']['rest'] + payload
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + payload
         query = self.omit(params, self.extract_params(path))
         urlencoded = None
         if signed and (pathPart == '/swap/v2') and (method == 'POST'):

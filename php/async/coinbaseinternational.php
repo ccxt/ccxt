@@ -1911,9 +1911,7 @@ class coinbaseinternational extends Exchange {
         $clientOrderIdprefix = $this->safe_string($this->options, 'brokerId', 'nfqkvdjp');
         $clientOrderId = $clientOrderIdprefix . '-' . $this->uuid();
         $clientOrderId = mb_substr($clientOrderId, 0, 17 - 0);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'client_order_id' => $clientOrderId,
             'side' => strtoupper($side),
@@ -2512,8 +2510,8 @@ class coinbaseinternational extends Exchange {
     }
 
     public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $version = $api[0];
-        $signed = $api[1] === 'private';
+        $version = $this->safe_string($api, 0);
+        $signed = $this->safe_string($api, 1) === 'private';
         $fullPath = '/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = '/api' . $fullPath;
@@ -2522,7 +2520,11 @@ class coinbaseinternational extends Exchange {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $fullPath;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
         if ($signed) {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

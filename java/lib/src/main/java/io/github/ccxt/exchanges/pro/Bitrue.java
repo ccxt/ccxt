@@ -520,14 +520,14 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 put( "buys", Bitrue.this.parseContractBidsAsks(rawBuys, finalSymbol) );
             }};
         }
-        if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
         orderbook.reset(snapshot);
-        String messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -538,17 +538,21 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        List<String> symbols = new ArrayList<String>(((Map<String, Object>)markets).keySet());
+        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-            if (!java.util.Objects.equals(Helpers.GetValue(candidate, "swap"), true))
+            if (!java.util.Objects.equals(this.safeBool(candidate, "swap"), true))
             {
                 continue;
             }
-            String baseId = this.safeStringLower(candidate, "baseId", "");
-            String quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (java.util.Objects.equals(Helpers.add(((String)baseId), quoteId), wsBaseQuote))
+            String baseId = this.safeStringLower(candidate, "baseId");
+            String quoteId = this.safeStringLower(candidate, "quoteId");
+            if (java.util.Objects.equals(baseId, null) || java.util.Objects.equals(quoteId, null))
+            {
+                throw new ExchangeError((((this.id + " findSwapMarketByWsBaseQuote() market ") + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))) + " has no baseId or quoteId")) ;
+            }
+            if (java.util.Objects.equals(Helpers.add(baseId, quoteId), wsBaseQuote))
             {
                 return candidate;
             }
@@ -1145,7 +1149,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
                     Helpers.addElementToObject(this.options, "listenKey", key);
-                    Helpers.addElementToObject(this.options, "listenKeyUrl", Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/stream?listenKey="), key));
+                    String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+                    if (java.util.Objects.equals(wsUrl, null))
+                    {
+                        throw new ExchangeError((this.id + " authenticate() has no private websocket url")) ;
+                    }
+                    Helpers.addElementToObject(this.options, "listenKeyUrl", ((wsUrl + "/stream?listenKey=") + key));
                     client.resolve(key, messageHash);
                 } catch(Exception e)
                 {

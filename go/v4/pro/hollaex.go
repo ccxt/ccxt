@@ -297,7 +297,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	// usually the first message is an empty array
 	// when the user does not have any trades yet
 	var dataLength int = ccxt.GetArrayLength(rawTrades)
-	if ccxt.IsEqual(dataLength, 0) {
+	if dataLength == 0 {
 		return
 	}
 	if ccxt.IsEqual(this.MyTrades, nil) {
@@ -438,7 +438,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	// usually the first message is an empty array
 	var dataLength int = ccxt.GetArrayLength(data)
-	if ccxt.IsEqual(dataLength, 0) {
+	if dataLength == 0 {
 		return
 	}
 	if ccxt.IsEqual(this.Orders, nil) {

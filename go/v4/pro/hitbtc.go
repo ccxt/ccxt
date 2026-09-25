@@ -143,12 +143,12 @@ func (this *Hitbtc) authenticateBody(ch chan any) any {
  * @param {string[]} [symbols] unified CCXT symbol(s)
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-func (this *Hitbtc) SubscribePublicAsync(name any, messageHashPrefix any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) SubscribePublicAsync(name any, messageHashPrefix string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribePublicBody(ch, name, messageHashPrefix, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix any, optionalArgs ...any) any {
+func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -165,7 +165,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 	var messageHashes []any = []any{}
 	if (symbols != nil) && !isBatch {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(messageHashPrefix, "::"), ccxt.GetValue(symbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add(messageHashPrefix+"::", ccxt.GetValue(symbols, i)))
 		}
 	} else {
 		messageHashes = append(messageHashes, messageHashPrefix)
@@ -196,7 +196,7 @@ func (this *Hitbtc) SubscribePrivateAsync(name any, optionalArgs ...any) <-chan 
 func (this *Hitbtc) subscribePrivateBody(ch chan any, name any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -228,12 +228,12 @@ func (this *Hitbtc) subscribePrivateBody(ch chan any, name any, optionalArgs ...
  * @param {string} name websocket endpoint name
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-func (this *Hitbtc) TradeRequestAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) TradeRequestAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.tradeRequestBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) tradeRequestBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Hitbtc) tradeRequestBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

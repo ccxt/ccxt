@@ -773,7 +773,7 @@ public class Btse extends BtseApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -874,6 +874,10 @@ public class Btse extends BtseApi
         String quoteId = this.safeString(market, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         String maxAmountString = this.safeString(market, "maxOrderSize");
         String minAmountString = this.safeString(market, "minOrderSize");
@@ -905,6 +909,7 @@ public class Btse extends BtseApi
         }
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final Object finalQuote = quote;
         final String finalType = type;
         final Boolean finalIsSwap = isSwap;
         final Map<String, Object> finalFees = fees;
@@ -914,8 +919,8 @@ public class Btse extends BtseApi
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
-            put( "settle", ((Boolean.TRUE.equals(isSpot))) ? null : quote );
+            put( "quote", finalQuote );
+            put( "settle", ((Boolean.TRUE.equals(isSpot))) ? null : finalQuote );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "settleId", ((Boolean.TRUE.equals(isSpot))) ? null : quoteId );
@@ -1250,7 +1255,7 @@ public class Btse extends BtseApi
             {
                 Object rate = (rates == null || i < 0 || i >= rates.size() ? null : rates.get(i));
                 Long timestamp = this.safeInteger(rate, "timestamp");
-                if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isLessThanOrEqual(timestamp, until)))
+                if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
                 {
                     ((List<Object>)result).add(rate);
                 }
@@ -2023,7 +2028,7 @@ public class Btse extends BtseApi
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
-        if ((!java.util.Objects.equals(fundingIntervalMinutes, null)) && (Helpers.isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
+        if ((!java.util.Objects.equals(fundingIntervalMinutes, null)) && (((fundingIntervalMinutes != null && fundingIntervalMinutes >= 60))))
         {
             Long hours = this.parseToInt((((double) fundingIntervalMinutes) / ((double) 60)));
             interval = (String.valueOf(hours) + "h");
@@ -2119,7 +2124,7 @@ public class Btse extends BtseApi
             {
                 Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 Long timestamp = this.safeInteger(trade, "timestamp");
-                if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isLessThanOrEqual(timestamp, until)))
+                if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
                 {
                     ((List<Object>)result).add(trade);
                 }
@@ -5245,8 +5250,13 @@ public class Btse extends BtseApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
-        Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = apiUrl;
+        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
@@ -5296,7 +5306,7 @@ public class Btse extends BtseApi
                 put( "BROKER-ID", "ccxt" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;
@@ -5334,6 +5344,6 @@ public class Btse extends BtseApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 }

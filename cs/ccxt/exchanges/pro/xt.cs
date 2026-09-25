@@ -79,7 +79,7 @@ public partial class xt : ccxt.xt
         {
             tradeType = "contract";
         }
-        object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType);
+        object url = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType);
         if (!isTrue(isContract))
         {
             url = add(url, "/private");
@@ -214,7 +214,7 @@ public partial class xt : ccxt.xt
     public async virtual Task<object> subscribe(object name, string? access, string? methodName, IDictionary<string, object> market = null, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool privateAccess = isEqual(access, "private");
+        bool privateAccess = (access == "private");
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, parameters);
         type = (string)typeparametersVariable[0];
@@ -260,7 +260,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", id },
         };
-        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType), "/"), tail);
+        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType) + "/") + (tail));
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
 
@@ -285,7 +285,7 @@ public partial class xt : ccxt.xt
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
-        bool privateAccess = isEqual(access, "private");
+        bool privateAccess = (access == "private");
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, parameters);
         type = (string)typeparametersVariable[0];
@@ -324,7 +324,7 @@ public partial class xt : ccxt.xt
         {
             tail = privateAccess ? "user" : "market";
         }
-        object url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType), "/"), tail);
+        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), tradeType) + "/") + (tail));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
             { "id", id },
@@ -749,7 +749,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "contract"), "/"), "user"));
+        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "contract") + "/") + "user");
         var client = this.client(url);
         this.setPositionsCache(client);
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
@@ -881,7 +881,7 @@ public partial class xt : ccxt.xt
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }

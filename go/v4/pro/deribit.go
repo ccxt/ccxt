@@ -108,12 +108,7 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var currencies []any = ccxt.SafeListTyped(this.Options, "currencies")
 	var channels []any = []any{}
 	for i := 0; i < len(currencies); i++ {
-		var currencyCode any = func() any {
-			if i >= 0 && i < len(currencies) {
-				return ccxt.DerefScalar(currencies[i])
-			}
-			return nil
-		}()
+		var currencyCode *string = this.SafeString(currencies, i)
 		channels = append(channels, ccxt.Add("user.portfolio.", currencyCode))
 	}
 	var subscribe map[string]any = map[string]any{
@@ -875,9 +870,10 @@ func (this *Deribit) CleanOrderBook(data any) any {
 func (this *Deribit) HandleDelta(bookside any, delta any) {
 	var price any = ccxt.GetValue(delta, 1)
 	var amount any = ccxt.GetValue(delta, 2)
-	if ccxt.IsEqual(ccxt.GetValue(delta, 0), "new") || ccxt.IsEqual(ccxt.GetValue(delta, 0), "change") {
+	var action *string = this.SafeString(delta, 0)
+	if (action != nil && *action == "new") || (action != nil && *action == "change") {
 		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 1})
-	} else if ccxt.IsEqual(ccxt.GetValue(delta, 0), "delete") {
+	} else if action != nil && *action == "delete" {
 		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 0})
 	}
 }
@@ -1144,12 +1140,12 @@ func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
-func (this *Deribit) WatchMultipleWrapperAsync(channelName any, channelDescriptor any, optionalArgs ...any) <-chan any {
+func (this *Deribit) WatchMultipleWrapperAsync(channelName string, channelDescriptor any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMultipleWrapperBody(ch, channelName, channelDescriptor, optionalArgs...)
 	return ch
 }
-func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, channelDescriptor any, optionalArgs ...any) any {
+func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName string, channelDescriptor any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbolsArray := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1163,7 +1159,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var rawSubscriptions []any = []any{}
 	var messageHashes []any = []any{}
-	var isOHLCV bool = (ccxt.IsEqual(channelName, "chart.trades"))
+	var isOHLCV bool = (channelName == "chart.trades")
 	var symbols any = func() any {
 		if isOHLCV {
 			return this.GetListFromObjectValues(symbolsArray, 0)
@@ -1188,9 +1184,9 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 		} else {
 			market = this.Market(current)
 		}
-		var message any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "."), ccxt.GetValue(market, "id")), "."), channelDescriptor)
+		var message *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(channelName+".", ccxt.GetValue(market, "id")), "."), channelDescriptor))
 		rawSubscriptions = append(rawSubscriptions, message)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "|"), ccxt.GetValue(market, "symbol")), "|"), channelDescriptor))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(channelName+"|", ccxt.GetValue(market, "symbol")), "|"), channelDescriptor))
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",

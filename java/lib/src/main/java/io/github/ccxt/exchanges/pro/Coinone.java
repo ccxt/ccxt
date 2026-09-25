@@ -435,7 +435,11 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String quoteId = this.safeStringUpper(trade, "quote_currency");
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        String symbol = Helpers.add((base + "/"), quote);
+        String symbol = null;
+        if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+        {
+            symbol = ((base + "/") + quote);
+        }
         Long timestamp = this.safeInteger(trade, "timestamp");
         market = (Map<String, Object>) (this.safeMarket(symbol, market));
         Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker");

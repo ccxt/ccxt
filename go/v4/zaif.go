@@ -355,7 +355,10 @@ func (this *Zaif) ParseMarket(market any) any {
 	quoteId := GetValue(baseIdquoteIdVariable, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -1084,7 +1087,8 @@ func (this *Zaif) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/")
+	var baseUrl any = GetValue(GetValue(this.Urls, "api"), "rest")
+	var url any = Add(baseUrl, "/")
 	if IsEqual(api, "public") {
 		url = Add(url, Add("api/"+this.Version+"/", this.ImplodeParams(path, params)))
 	} else if IsEqual(api, "fapi") {

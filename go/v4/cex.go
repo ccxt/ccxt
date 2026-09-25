@@ -547,8 +547,11 @@ func (this *Cex) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quoteId *string = this.SafeString(market, "quote")
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var id *string = SafeStringPtr(Add(Add(base, "-"), quote)) // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var id string = *base + "-" + *quote // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+	var symbol string = *base + "/" + *quote
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -1250,12 +1253,12 @@ func (this *Cex) ParseBalance(response any) any {
  * @param {int} [params.until] timestamp in ms of the latest entry
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan any {
+func (this *Cex) FetchOrdersByStatusAsync(status string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ...any) any {
+func (this *Cex) fetchOrdersByStatusBody(ch chan any, status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1271,7 +1274,7 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var isClosedOrders bool = (IsEqual(status, "closed"))
+	var isClosedOrders bool = (status == "closed")
 	if isClosedOrders {
 		request["archived"] = true
 	}
@@ -1372,8 +1375,8 @@ func (this *Cex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes112715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("closed", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes112715)
+	var retRes113015 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("closed", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes113015)
 	return nil
 }
 
@@ -1405,8 +1408,8 @@ func (this *Cex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes114215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("open", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes114215)
+	var retRes114515 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("open", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes114515)
 	return nil
 }
 
@@ -1616,9 +1619,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"clientOrderId": this.Uuid(),
 		"currency1":     market["baseId"],
@@ -2292,7 +2293,11 @@ func (this *Cex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if method == "GET" {

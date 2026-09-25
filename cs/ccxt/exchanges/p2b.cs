@@ -385,8 +385,12 @@ public partial class p2b : Exchange
         string? marketId = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
         string? quoteId = this.safeString(market, "money");
-        string bs = this.safeCurrencyCode(baseId);
-        string quote = this.safeCurrencyCode(quoteId);
+        string? bs = this.safeCurrencyCode(baseId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         IDictionary<string, object> limits = this.safeDict(market, "limits");
         string? maxAmount = this.safeString(limits, "max_amount");
         string? maxPrice = this.safeString(limits, "max_price");
@@ -1430,7 +1434,8 @@ public partial class p2b : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.implodeParams(path, parameters));
+        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         if ((method == "GET"))
         {

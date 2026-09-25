@@ -542,6 +542,9 @@ class onetrading extends Exchange {
         $id = $this->safe_string($market, 'id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $state = $this->safe_string($market, 'state');
         $type = $this->safe_string($market, 'type');
         $isPerp = $type === 'PERP';
@@ -1403,9 +1406,7 @@ class onetrading extends Exchange {
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'instrument_code' => $market['id'],
             'type' => $uppercaseType, // LIMIT, MARKET, STOP
@@ -1899,7 +1900,11 @@ class onetrading extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if (count($query) > 0) {

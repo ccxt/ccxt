@@ -428,17 +428,22 @@ public class P2b extends P2bApi
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
         String quoteId = this.safeString(market, "money");
-        String base = ((String)this.safeCurrencyCode(baseId));
-        String quote = ((String)this.safeCurrencyCode(quoteId));
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         Map<String, Object> limits = (Map<String, Object>) this.safeDict(market, "limits");
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
         final String finalBase = base;
+        final String finalQuote = quote;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1746,7 +1751,8 @@ public class P2b extends P2bApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.implodeParams(path, parameters));
+        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(method, "GET"))
         {
@@ -1770,7 +1776,7 @@ public class P2b extends P2bApi
             }};
             body = (String) (this.json(parameters));
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import hashlib
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -502,7 +503,10 @@ class mexc(ccxt.async_support.mexc):
     async def watch_spot_private(self, channel: str, messageHash: str, params: dict = {}):
         self.check_required_credentials()
         listenKey = await self.authenticate(channel)
-        url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'spot')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchSpotPrivate() has no spot websocket url')
+        url = wsUrl + '?listenKey=' + listenKey
         request = {
             'method': 'SUBSCRIPTION',
             'params': [channel],
@@ -1926,7 +1930,10 @@ class mexc(ccxt.async_support.mexc):
             listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
             self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, listenKey, params)
         except Exception as error:
-            url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
+            wsUrl = self.safe_string(self.urls['api']['ws'], 'spot')
+            if wsUrl is None:
+                raise ExchangeError(self.id + ' keepAliveListenKey() has no spot websocket url')
+            url = wsUrl + '?listenKey=' + listenKey
             client = self.client(url)
             self.options['listenKey'] = None
             client.reject(error)

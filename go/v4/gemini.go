@@ -878,9 +878,12 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		var baseId *string = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		result = append(result, map[string]any{
 			"id":             marketId,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -977,7 +980,10 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 		// don't use Promise.all here, for some reason the exchange can't handle it and crashes
 
 		var rawResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))).Raw))
-		result = append(result, this.ParseMarket(rawResponse))
+		var parsed any = this.ParseMarket(rawResponse)
+		if !IsEqual(parsed, nil) {
+			result = append(result, parsed)
+		}
 	}
 
 	ch <- result
@@ -1043,7 +1049,10 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 
 		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 		for i := 0; i < len(responses); i++ {
-			result = append(result, this.ParseMarket(GetValue(responses, i)))
+			var parsed any = this.ParseMarket(GetValue(responses, i))
+			if !IsEqual(parsed, nil) {
+				result = append(result, parsed)
+			}
 		}
 	} else {
 		// use trading-pairs info, if it was fetched
@@ -1059,7 +1068,10 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 				}()
 				var pairInfo []any = SafeListTyped(indexedTradingPairs, ToUpper(marketId))
 				if (pairInfo != nil) && !this.InArray(marketId, brokenPairs) {
-					result = append(result, this.ParseMarket(pairInfo))
+					var parsed any = this.ParseMarket(pairInfo)
+					if !IsEqual(parsed, nil) {
+						result = append(result, parsed)
+					}
 				}
 			}
 		} else {
@@ -1070,12 +1082,15 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 					}
 					return nil
 				}(), brokenPairs) {
-					result = append(result, this.ParseMarket(func() any {
+					var parsed any = this.ParseMarket(func() any {
 						if i >= 0 && i < len(marketIds) {
 							return DerefScalar(marketIds[i])
 						}
 						return nil
-					}()))
+					}())
+					if !IsEqual(parsed, nil) {
+						result = append(result, parsed)
+					}
 				}
 			}
 		}
@@ -1180,8 +1195,11 @@ func (this *Gemini) ParseMarket(response any) any {
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	if !IsEqual(settleId, nil) {
 		symbol = Add(Add(symbol, ":"), settle)
 		swap = true
@@ -1410,19 +1428,19 @@ func (this *Gemini) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var method *string = this.SafeString(this.Options, "fetchTickerMethod", "fetchTickerV1")
 	if method != nil && *method == "fetchTickerV1" {
 
-		var retRes103819 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1Async(symbol, params))))
-		ch <- BoxAbsent(retRes103819)
+		var retRes105619 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1Async(symbol, params))))
+		ch <- BoxAbsent(retRes105619)
 		return nil
 	}
 	if method != nil && *method == "fetchTickerV2" {
 
-		var retRes104119 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV2Async(symbol, params))))
-		ch <- BoxAbsent(retRes104119)
+		var retRes105919 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV2Async(symbol, params))))
+		ch <- BoxAbsent(retRes105919)
 		return nil
 	}
 
-	var retRes104315 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1AndV2Async(symbol, params))))
-	ch <- BoxAbsent(retRes104315)
+	var retRes106115 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1AndV2Async(symbol, params))))
+	ch <- BoxAbsent(retRes106115)
 	return nil
 }
 func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1508,7 +1526,9 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 		}
 		base = this.SafeCurrencyCode(baseId)
 		quote = this.SafeCurrencyCode(quoteId)
-		symbol = Add(Add(base, "/"), quote)
+		if (base != nil) && (quote != nil) {
+			symbol = *base + "/" + *quote
+		}
 	}
 	if (symbol == nil) && (market != nil) {
 		symbol = GetValue(market, "symbol")
@@ -1945,10 +1965,10 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = this.SafeString(order, "remaining_amount")
 	var filled *string = this.SafeString(order, "executed_amount")
 	var status string = "closed"
-	if IsEqual(GetValue(order, "is_live"), true) {
+	if IsEqual(this.SafeBool(order, "is_live"), true) {
 		status = "open"
 	}
-	if IsEqual(GetValue(order, "is_cancelled"), true) {
+	if IsEqual(this.SafeBool(order, "is_cancelled"), true) {
 		status = "canceled"
 	}
 	var price *string = this.SafeString(order, "price")
@@ -2180,12 +2200,12 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"side":            side,
 		"type":            "exchange limit",
 	}
-	typeVar = DerefScalar(this.SafeString(params, "type", typeVar))
+	var orderType *string = this.SafeString(params, "type", typeVar)
 	params = MapTyped(this.Omit(params, "type"))
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stop_price", "stopPrice"})
 	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stop_price", "stopPrice", "type"}))
-	if IsEqual(typeVar, "stopLimit") {
-		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a triggerPrice parameter or a stop_price parameter for ", typeVar), " orders")))
+	if orderType != nil && *orderType == "stopLimit" {
+		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for " + *orderType + " orders"))
 	}
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -2690,7 +2710,11 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
-	url = Add(GetValue(GetValue(this.Urls, "api"), api), url)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	url = Add(apiUrl, url)
 	if (method == "POST") || (method == "DELETE") {
 		body = this.Json(query)
 	}

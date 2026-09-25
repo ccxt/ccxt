@@ -492,6 +492,8 @@ class bitvavo(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             status = self.safe_string(market, 'status')
             result.append(self.safe_market_structure({
                 'id': id,
@@ -2558,7 +2560,10 @@ class bitvavo(Exchange, ImplicitAPI):
             }
             if not getOrDelete:
                 headers['Content-Type'] = 'application/json'
-        url = self.urls['api'][api] + url
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

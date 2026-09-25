@@ -880,6 +880,9 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 		var settleId *string = this.SafeString(market, "clear_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		//
 		// The status is documented in the exchange API docs as follows:
@@ -906,12 +909,12 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 			}
 			return nil
 		}()
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol string = *base + "/" + *quote
 		var isInverse any = nil
 		var isLinear any = nil
 		if swap {
 			typeVar = "swap"
-			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+			symbol = *base + "/" + *quote + ":" + *settle
 			isInverse = DerefScalar(this.SafeBool(market, "is_inverse"))
 			isLinear = func() bool {
 				if !IsEqual(isInverse, true) {
@@ -1024,9 +1027,12 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan any, optionalArgs ...any) any 
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		result = append(result, map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -2462,8 +2468,8 @@ func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan any, symbol any,
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes197715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes197715)
+	var retRes198315 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes198315)
 	return nil
 }
 
@@ -3678,8 +3684,8 @@ func (this *Digifinex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes297215 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("deposit", code, since, limit, params))))
-	ch <- BoxAbsent(retRes297215)
+	var retRes297815 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("deposit", code, since, limit, params))))
+	ch <- BoxAbsent(retRes297815)
 	return nil
 }
 
@@ -3711,8 +3717,8 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes298715 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("withdrawal", code, since, limit, params))))
-	ch <- BoxAbsent(retRes298715)
+	var retRes299315 []any = ListTyped(PanicOnError((<-this.FetchTransactionsByTypeAsync("withdrawal", code, since, limit, params))))
+	ch <- BoxAbsent(retRes299315)
 	return nil
 }
 func (this *Digifinex) ParseTransactionStatus(status *string) *string {
@@ -4315,8 +4321,8 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan any, symbol any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes346615 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
-	ch <- BoxAbsent(retRes346615)
+	var retRes347215 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
+	ch <- BoxAbsent(retRes347215)
 	return nil
 }
 func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -5178,8 +5184,8 @@ func (this *Digifinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) a
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tiers []any = []any{}
-	var brackets any = this.SafeValue(info, "open_max_limits", map[string]any{})
-	for i := 0; i < GetArrayLength(brackets); i++ {
+	var brackets []any = SafeListTyped(info, "open_max_limits")
+	for i := 0; i < len(brackets); i++ {
 		var tier map[string]any = SafeMapTyped(brackets, i)
 		var marketId *string = this.SafeString(info, "instrument_id")
 		market = this.SafeMarket(marketId, market)
@@ -5399,8 +5405,8 @@ func (this *Digifinex) addMarginBody(ch chan any, symbol any, amount any, option
 	var side *string = this.SafeString(params, "side")
 	this.CheckRequiredArgument("addMargin", side, "side", []any{"long", "short"})
 
-	var retRes435515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
-	ch <- BoxAbsent(retRes435515)
+	var retRes436115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	ch <- BoxAbsent(retRes436115)
 	return nil
 }
 
@@ -5428,8 +5434,8 @@ func (this *Digifinex) reduceMarginBody(ch chan any, symbol any, amount any, opt
 	var side *string = this.SafeString(params, "side")
 	this.CheckRequiredArgument("reduceMargin", side, "side", []any{"long", "short"})
 
-	var retRes437215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
-	ch <- BoxAbsent(retRes437215)
+	var retRes437815 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	ch <- BoxAbsent(retRes437815)
 	return nil
 }
 func (this *Digifinex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
@@ -5656,15 +5662,19 @@ func (this *Digifinex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var signed bool = IsEqual(GetValue(api, 0), "private")
-	var endpoint any = GetValue(api, 1)
+	var signed bool = (this.SafeString(api, 0) != nil && *this.SafeString(api, 0) == "private")
+	var endpoint *string = this.SafeString(api, 1)
 	var pathPart string = "/swap/v2"
-	if IsEqual(endpoint, "spot") {
+	if endpoint != nil && *endpoint == "spot" {
 		pathPart = "/v3"
 	}
 	var request any = Add("/", this.ImplodeParams(path, params))
 	var payload any = Add(pathPart, request)
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), payload)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, payload)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var urlencoded any = nil
 	if signed && (pathPart == "/swap/v2") && (method == "POST") {

@@ -423,6 +423,8 @@ class coinone(Exchange, ImplicitAPI):
             quoteId = self.safe_string_upper(entry, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1190,7 +1192,7 @@ class coinone(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(keys)):
             key = keys[i]
-            value = walletAddress[key]
+            value = self.safe_string(walletAddress, key)
             if (value is None) or (value is None) or (value == '') or (value == '-1'):
                 continue
             parts = key.split('_')
@@ -1220,14 +1222,26 @@ class coinone(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api']['rest'] + '/'
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/'
         if api == 'v2Public':
-            url = self.urls['api']['v2Public'] + '/'
+            apiUrl2 = self.safe_string(self.urls['api'], 'v2Public')
+            if apiUrl2 is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = apiUrl2 + '/'
             api = 'public'
         elif api == 'v2Private':
-            url = self.urls['api']['v2Private'] + '/'
+            apiUrl3 = self.safe_string(self.urls['api'], 'v2Private')
+            if apiUrl3 is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = apiUrl3 + '/'
         elif api == 'v2_1Private':
-            url = self.urls['api']['v2_1Private'] + '/'
+            apiUrl4 = self.safe_string(self.urls['api'], 'v2_1Private')
+            if apiUrl4 is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = apiUrl4 + '/'
         if api == 'public':
             url += request
             if len(query) > 0:

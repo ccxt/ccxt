@@ -331,7 +331,7 @@ class zebpay(Exchange, ImplicitAPI):
         defaultMarkets = ['spot', 'swap']
         types = self.safe_list(fetchMarketsOptions, 'types', defaultMarkets)
         for i in range(0, len(types)):
-            type = types[i]
+            type = self.safe_string(types, i)
             if type == 'spot':
                 promisesUnresolved.append(self.fetch_spot_markets(params))
             elif type == 'swap':
@@ -1004,8 +1004,7 @@ class zebpay(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         params = self.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice'])
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
@@ -1308,7 +1307,7 @@ class zebpay(Exchange, ImplicitAPI):
         }, market)
         return parsedOrder
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -1556,6 +1555,8 @@ class zebpay(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -1633,6 +1634,8 @@ class zebpay(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
             symbol = base + '/' + quote

@@ -799,6 +799,8 @@ class cryptocom(Exchange, ImplicitAPI):
             settleId = None if spot else quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = None if spot else self.safe_currency_code(settleId)
             optionType = self.safe_string_lower(market, 'put_call')
             strike = self.safe_string(market, 'strike')
@@ -2387,7 +2389,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if execInst is not None:
             postOnly = False
             for i in range(0, len(execInst)):
-                inst = execInst[i]
+                inst = self.safe_string(execInst, i)
                 if inst == 'POST_ONLY':
                     postOnly = True
                     break
@@ -3238,7 +3240,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 returnString += str(value)
         return returnString
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -3402,7 +3404,10 @@ class cryptocom(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
-        url = self.urls['api'][type] + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], type)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         query = self.omit(params, self.extract_params(path))
         if access == 'public':
             if len(query) > 0:

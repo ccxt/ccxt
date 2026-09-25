@@ -95,7 +95,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     }})) );
             }};
             String subscribeHash = ("l2:" + ((Map<String, Object>)market).get("symbol"));
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+            }
+            String url = (wsUrl + "/v2/marketdata");
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscribeHash, null)).join();
             if (this.newUpdates)
             {
@@ -387,7 +392,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     }})) );
             }};
             String messageHash = ((("ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + timeframeId);
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchOHLCV() has no websocket url")) ;
+            }
+            String url = (wsUrl + "/v2/marketdata");
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
             if (this.newUpdates)
             {
@@ -467,7 +477,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         Integer changesLength = ((List<?>)changes).size();
         // reverse order of array to store candles in ascending order
-        for (var i = 0; Helpers.isLessThan(i, changesLength); i++)
+        for (var i = 0; (changesLength != null && i < changesLength); i++)
         {
             Object index = Helpers.subtract(Helpers.subtract(changesLength, i), 1);
             List<Object> parsed = (List<Object>) this.parseOHLCV(Helpers.GetValue(changes, index), market);
@@ -513,7 +523,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     }})) );
             }};
             String subscribeHash = ("l2:" + ((Map<String, Object>)market).get("symbol"));
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+            }
+            String url = (wsUrl + "/v2/marketdata");
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscribeHash, null)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -561,7 +576,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
             Double price = this.safeNumber(delta, 1);
             Double size = this.safeNumber(delta, 2);
-            String side = (((java.util.Objects.equals(Helpers.GetValue(delta, 0), "buy")))) ? "bids" : "asks";
+            String side = (((java.util.Objects.equals(this.safeString(delta, 0), "buy")))) ? "bids" : "asks";
             io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
             bookside.store(price, size);
             Helpers.addElementToObject(orderbook, side, bookside);
@@ -740,7 +755,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
             }
             String queryStr = String.join(",", (List<String>)marketIds);
-            String url = ((Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v1/multimarketdata?symbols=") + queryStr) + "&heartbeat=true&");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " helperForWatchMultipleConstruct() has no websocket url")) ;
+            }
+            String url = (((wsUrl + "/v1/multimarketdata?symbols=") + queryStr) + "&heartbeat=true&");
             if (java.util.Objects.equals(itemHashName, "orderbook"))
             {
                 url = (url + "trades=false&bids=true&offers=true");
@@ -787,8 +807,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         for (var i = 0; i < ((List<?>)rawOrderBookChanges).size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(rawOrderBookChanges, i);
@@ -874,7 +894,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Object limit = limit3;
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchOrders() has no websocket url")) ;
+            }
+            String url = (wsUrl + "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -1182,17 +1207,17 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 }
             }
             Integer lengthBa = ((List<?>)bidaskItems).size();
-            if (Helpers.isGreaterThan(lengthBa, 0))
+            if ((lengthBa != null && lengthBa > 0))
             {
                 this.handleBidsAsksForMultidata(client, bidaskItems, ts, eventId);
             }
             Integer lengthOb = ((List<?>)orderBookItems).size();
-            if (Helpers.isGreaterThan(lengthOb, 0))
+            if ((lengthOb != null && lengthOb > 0))
             {
                 this.handleOrderBookForMultidata(client, orderBookItems, ts, eventId);
             }
             Integer lengthTrades = ((List<?>)collectedEventsOfTrades).size();
-            if (Helpers.isGreaterThan(lengthTrades, 0))
+            if ((lengthTrades != null && lengthTrades > 0))
             {
                 this.handleTradesForMultidata(client, collectedEventsOfTrades, ts);
             }

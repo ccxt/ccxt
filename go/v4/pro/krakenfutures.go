@@ -1861,12 +1861,12 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 		},
 	})
 }
-func (this *Krakenfutures) WatchMultiHelperAsync(unifiedName any, channelName any, optionalArgs ...any) <-chan any {
+func (this *Krakenfutures) WatchMultiHelperAsync(unifiedName string, channelName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMultiHelperBody(ch, unifiedName, channelName, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName any, channelName any, optionalArgs ...any) any {
+func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName string, channelName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1909,22 +1909,22 @@ func (this *Krakenfutures) SubscriptionExistsForHash(url any, hash any) any {
 	var client ccxt.ClientInterface = this.Client(url)
 	return (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), hash))
 }
-func (this *Krakenfutures) GetMessageHash(unifiedElementName any, optionalArgs ...any) any {
+func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArgs ...any) any {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...
 	// subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-	subChannelName := ccxt.GetArg(optionalArgs, 0, nil)
+	var subChannelName *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subChannelName
-	symbol := ccxt.GetArg(optionalArgs, 1, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbol
 	var withSymbol bool = (symbol != nil)
 	var messageHash any = unifiedElementName
 	if !withSymbol {
 		messageHash = ccxt.Add(messageHash, "s")
 	} else {
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		messageHash = ccxt.Add(messageHash, ":"+*symbol)
 	}
 	if subChannelName != nil {
-		messageHash = ccxt.Add(messageHash, ccxt.Add("#", subChannelName))
+		messageHash = ccxt.Add(messageHash, "#"+*subChannelName)
 	}
 	return messageHash
 }

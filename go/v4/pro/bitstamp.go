@@ -152,12 +152,12 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitstamp) UnWatchChannelAsync(channel any, subHash any, topic any, symbols any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) UnWatchChannelAsync(channel any, subHash any, topic string, symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchChannelBody(ch, channel, subHash, topic, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) unWatchChannelBody(ch chan any, channel any, subHash any, topic any, symbols any, optionalArgs ...any) any {
+func (this *Bitstamp) unWatchChannelBody(ch chan any, channel any, subHash any, topic string, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -601,7 +601,11 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	symbol = market["symbol"]
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId")))
+	var userId *string = this.SafeString(this.Options, "userId")
+	if userId == nil {
+		panic(ccxt.AuthenticationError(this.Id + " unWatchOrders() requires a userId from authenticate()"))
+	}
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("private-my_orders_", market["id"]), "-"), userId))
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, channel, "orders", []any{symbol}, params)))
 	return nil
@@ -693,7 +697,11 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	symbol = market["symbol"]
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", market["id"]), "-"), ccxt.GetValue(this.Options, "userId")))
+	var userId *string = this.SafeString(this.Options, "userId")
+	if userId == nil {
+		panic(ccxt.AuthenticationError(this.Id + " unWatchMyTrades() requires a userId from authenticate()"))
+	}
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("private-my_trades_", market["id"]), "-"), userId))
 
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(channel, channel, "myTrades", []any{symbol}, params)))
 	return nil
@@ -1257,7 +1265,11 @@ func (this *Bitstamp) subscribePrivateBody(ch chan any, subscription any, messag
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
+	var userId *string = this.SafeString(this.Options, "userId")
+	if userId == nil {
+		panic(ccxt.AuthenticationError(this.Id + " subscribePrivate() requires a userId from authenticate()"))
+	}
+	messageHash = ccxt.Add(messageHash, "-"+*userId)
 	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{

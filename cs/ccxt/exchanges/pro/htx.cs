@@ -1441,7 +1441,7 @@ public partial class htx : ccxt.htx
         client.resolve(this.orders, messageHash);
         if ((isEqual(messageHash, "orders")) && ((marketId != null)))
         {
-            object specificMessageHash = add(add(messageHash, "."), marketId.ToLower());
+            string? specificMessageHash = ((string)add(add(messageHash, "."), marketId.ToLower()));
             client.resolve(this.orders, specificMessageHash);
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
@@ -2866,7 +2866,7 @@ public partial class htx : ccxt.htx
             }
             if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ch")))
             {
-                if (isEqual(((IDictionary<string,object>)message)["ch"], "auth"))
+                if ((this.safeString(message, "ch") == "auth"))
                 {
                     this.handleAuthenticate(client, message);
                     return;

@@ -107,7 +107,7 @@ export default class weex extends weexRest {
         if (isContract) {
             type = 'contract';
         }
-        const url = this.urls['api']['ws'][type] + '/public';
+        const url = this.safeString (this.urls['api']['ws'], type) + '/public';
         return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, subscription);
     }
 
@@ -116,7 +116,7 @@ export default class weex extends weexRest {
         if (isContract) {
             type = 'contract';
         }
-        const url = this.urls['api']['ws'][type] + '/private';
+        const url = this.safeString (this.urls['api']['ws'], type) + '/private';
         this.authenticate (url);
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
@@ -1634,7 +1634,7 @@ export default class weex extends weexRest {
         if (isContract) {
             urlType = 'contract';
         }
-        const url = this.urls['api']['ws'][urlType] + '/private';
+        const url = this.safeString (this.urls['api']['ws'], urlType) + '/private';
         this.authenticate (url);
         const client = this.client (url);
         this.setBalanceCache (client, type);
@@ -1783,7 +1783,7 @@ export default class weex extends weexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws']['contract'] + '/private';
+        const url = this.safeString (this.urls['api']['ws'], 'contract') + '/private';
         this.authenticate (url);
         const client = this.client (url);
         symbols = this.marketSymbols (symbols, 'swap', true);

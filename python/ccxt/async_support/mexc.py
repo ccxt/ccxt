@@ -1241,7 +1241,7 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             await self.load_time_difference()
         spotMarketPromise = self.fetch_spot_markets(params)
         swapMarketPromise = self.fetch_swap_markets(params)
@@ -1310,6 +1310,8 @@ class mexc(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             status = self.safe_string(market, 'status')
             isSpotTradingAllowed = self.safe_bool(market, 'isSpotTradingAllowed')
             active = False
@@ -1440,6 +1442,8 @@ class mexc(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'settleCoin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             state = self.safe_string(market, 'state')
             isLinear = quote == settle
@@ -2313,8 +2317,10 @@ class mexc(Exchange, ImplicitAPI):
         else:
             return await self.create_swap_order(market, type, side, amount, price, marginMode, query)
 
-    def create_spot_order_request(self, market: object, type: object, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}):
+    def create_spot_order_request(self, market: object, type: Str, side: Str, amount: object, price: Num = None, marginMode: Str = None, params={}):
         symbol = market['symbol']
+        if (type is None) or (side is None):
+            raise ArgumentsRequired(self.id + ' createOrder() requires a type and a side argument')
         orderSide = side.upper()
         request = {
             'symbol': market['id'],
@@ -2415,7 +2421,7 @@ class mexc(Exchange, ImplicitAPI):
             order['amount'] = amount
         return order
 
-    async def create_swap_order(self, market: object, type: object, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}) -> Order:
+    async def create_swap_order(self, market: object, type: object, side: Str, amount: object, price: Num = None, marginMode: Str = None, params={}) -> Order:
         """
  @ignore
         create a trade order
@@ -2811,16 +2817,22 @@ class mexc(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['start_time'] = since
+                maxTimeTillEnd = self.safe_integer(self.options, 'maxTimeTillEnd')
+                if maxTimeTillEnd is None:
+                    raise ExchangeError(self.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]')
                 end = self.safe_integer(params, 'end_time', until)
                 if end is None:
-                    request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
+                    request['end_time'] = self.sum(since, maxTimeTillEnd)
                 else:
-                    if (end - since) > self.options['maxTimeTillEnd']:
+                    if (end - since) > maxTimeTillEnd:
                         raise BadRequest(self.id + ' end is invalid, i.e. exceeds allowed 90 days.')
                     else:
                         request['end_time'] = until
             elif until is not None:
-                request['start_time'] = self.sum(until, self.options['maxTimeTillEnd'] * -1)
+                maxTimeTillEnd = self.safe_integer(self.options, 'maxTimeTillEnd')
+                if maxTimeTillEnd is None:
+                    raise ExchangeError(self.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]')
+                request['start_time'] = self.sum(until, maxTimeTillEnd * -1)
                 request['end_time'] = until
             if limit is not None:
                 request['page_size'] = limit
@@ -4747,7 +4759,7 @@ class mexc(Exchange, ImplicitAPI):
             rawNetwork = self.safe_string(params, 'network')
             if rawNetwork is not None:
                 params = self.omit(params, 'network')
-                request['coin'] = request['coin'] + '-' + rawNetwork
+                request['coin'] = currency['id'] + '-' + rawNetwork
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -5942,9 +5954,15 @@ class mexc(Exchange, ImplicitAPI):
         url = None
         if section == 'spot' or section == 'broker':
             if section == 'broker':
-                url = self.urls['api'][section][access] + '/' + path
+                apiUrl = self.safe_string(self.urls['api'][section], access)
+                if apiUrl is None:
+                    raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+                url = apiUrl + '/' + path
             else:
-                url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
+                apiUrl = self.safe_string(self.urls['api'][section], access)
+                if apiUrl is None:
+                    raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+                url = apiUrl + '/api/' + self.version + '/' + path
             urlParams = params
             if access == 'private':
                 if section == 'broker' and ((method == 'POST') or (method == 'PUT') or (method == 'DELETE')):
@@ -5972,7 +5990,10 @@ class mexc(Exchange, ImplicitAPI):
                 headers = {} if (headers is None) else headers
                 headers['Content-Type'] = 'application/json'
         elif section == 'contract' or section == 'spot2':
-            url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)
+            apiUrl = self.safe_string(self.urls['api'][section], access)
+            if apiUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = apiUrl + '/' + self.implode_params(path, params)
             params = self.omit(params, self.extract_params(path))
             if access == 'public':
                 if len(params) > 0:

@@ -872,6 +872,8 @@ class poloniex(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteCurrencyName')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         state = self.safe_string(market, 'state')
         active = state == 'NORMAL'
         symbolTradeLimit = self.safe_dict(market, 'symbolTradeLimit')
@@ -963,10 +965,12 @@ class poloniex(Exchange, ImplicitAPI):
         settleId = self.safe_string(market, 'sCcy')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         status = self.safe_string(market, 'status')
         active = status == 'OPEN'
-        linear = market['ctType'] == 'LINEAR'
+        linear = self.safe_string(market, 'ctType') == 'LINEAR'
         symbol = base + '/' + quote
         if linear:
             symbol += ':' + settle

@@ -624,10 +624,10 @@ public class Btcmarkets extends BtcmarketsApi
         {
             List<Object> addressParts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
             Integer numParts = ((List<?>)addressParts).size();
-            if (Helpers.isGreaterThan(numParts, 1))
+            if ((numParts != null && numParts > 1))
             {
-                address = (String) Helpers.GetValue(addressParts, 0);
-                tag = Helpers.GetValue(addressParts, 1);
+                address = (String) (addressParts == null || 0 >= addressParts.size() ? null : addressParts.get(0));
+                tag = (addressParts == null || 1 >= addressParts.size() ? null : addressParts.get(1));
             }
         }
         String addressTo = address;
@@ -732,6 +732,10 @@ public class Btcmarkets extends BtcmarketsApi
         String id = this.safeString(market, "marketId");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         Object fees = this.safeDict(this.safeDict(this.options, "fees", new HashMap<String, Object>() {{}}), quote, this.fees);
         Double pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
@@ -2087,7 +2091,12 @@ public class Btcmarkets extends BtcmarketsApi
                 request = (request + ("?" + this.urlencode(query)));
             }
         }
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), request);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + request);
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

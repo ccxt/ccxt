@@ -168,22 +168,22 @@ public partial class toobit : Exchange
                             { "cost", 1 },
                         } },
                         { "api/v1/spot/order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/spot/openOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/futures/openOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/spot/tradeOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v1/futures/historyOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v1/account/trades", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v1/account/balanceFlow", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -210,10 +210,10 @@ public partial class toobit : Exchange
                             { "cost", 1 },
                         } },
                         { "api/v1/futures/order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/futures/positions", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v1/futures/historyPositions", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -222,7 +222,7 @@ public partial class toobit : Exchange
                             { "cost", 5 },
                         } },
                         { "api/v1/futures/userTrades", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v1/futures/balanceFlow", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -279,25 +279,25 @@ public partial class toobit : Exchange
                             { "cost", 5 },
                         } },
                         { "api/v2/futures/order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v2/futures/open-orders", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v2/futures/history-orders", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v2/futures/user-trades", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v2/futures/algo-order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v2/futures/open-algo-orders", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v2/futures/history-algo-orders", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v2/futures/voucher/list", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -305,16 +305,16 @@ public partial class toobit : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "api/v1/spot/orderTest", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/spot/order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/futures/order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/spot/batchOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(2, 1.67) },
+                            { "cost", (2 * 1.67) },
                         } },
                         { "api/v1/subAccount/transfer", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -329,16 +329,16 @@ public partial class toobit : Exchange
                             { "cost", 1 },
                         } },
                         { "api/v1/futures/batchOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(2, 1.67) },
+                            { "cost", (2 * 1.67) },
                         } },
                         { "api/v1/futures/position/trading-stop", new Dictionary<string, object>() {
-                            { "cost", multiply(3, 1.67) },
+                            { "cost", (3 * 1.67) },
                         } },
                         { "api/v1/futures/positionMargin", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "api/v1/futures/order/update", new Dictionary<string, object>() {
-                            { "cost", multiply(2, 1.67) },
+                            { "cost", (2 * 1.67) },
                         } },
                         { "api/v1/futures/autoAddMargin", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -361,22 +361,22 @@ public partial class toobit : Exchange
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "api/v1/spot/order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/futures/order", new Dictionary<string, object>() {
-                            { "cost", multiply(1, 1.67) },
+                            { "cost", (1 * 1.67) },
                         } },
                         { "api/v1/spot/openOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v1/futures/batchOrders", new Dictionary<string, object>() {
-                            { "cost", multiply(3, 1.67) },
+                            { "cost", (3 * 1.67) },
                         } },
                         { "api/v1/spot/cancelOrderByIds", new Dictionary<string, object>() {
-                            { "cost", multiply(5, 1.67) },
+                            { "cost", (5 * 1.67) },
                         } },
                         { "api/v1/futures/cancelOrderByIds", new Dictionary<string, object>() {
-                            { "cost", multiply(3, 1.67) },
+                            { "cost", (3 * 1.67) },
                         } },
                         { "api/v1/userDataStream", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -1156,8 +1156,12 @@ public partial class toobit : Exchange
         string? quoteId = this.safeString(market, "quoteAsset");
         List<object> baseParts = baseId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         string? baseIdClean = ((string)(baseParts != null && 0 < baseParts.Count ? baseParts[0] : null));
-        object bs = this.safeCurrencyCode(baseIdClean);
+        string? bs = this.safeCurrencyCode(baseIdClean);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settleId = this.safeString(market, "marginToken");
         string? settle = this.safeCurrencyCode(settleId);
         string? status = this.safeString(market, "status");
@@ -1167,12 +1171,12 @@ public partial class toobit : Exchange
         IDictionary<string, object> priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
         IDictionary<string, object> lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
         IDictionary<string, object> minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
-        object symbol = add(add(bs, "/"), quote);
+        string symbol = ((bs + "/") + quote);
         bool isContract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractMultiplier")));
         bool? inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isContract)
         {
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -3003,10 +3007,10 @@ public partial class toobit : Exchange
             request["limit"] = limit;
         }
         List<object> response = new List<object>() {};
-        if (isEqual(type, "deposits"))
+        if ((type == "deposits"))
         {
             response = await this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters));
-        } else if (isEqual(type, "withdrawals"))
+        } else if ((type == "withdrawals"))
         {
             response = await this.privateGetApiV1AccountWithdrawOrders(this.extend(request, parameters));
         }
@@ -3443,7 +3447,8 @@ public partial class toobit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.implodeParams(path, parameters));
+        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         bool isPost = (method == "POST");
         bool isDelete = (method == "DELETE");
         Dictionary<string, object> extraQuery = new Dictionary<string, object>() {};

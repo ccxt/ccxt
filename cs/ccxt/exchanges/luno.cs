@@ -610,8 +610,12 @@ public partial class luno : Exchange
             string? id = this.safeString(market, "market_id");
             string? baseId = this.safeString(market, "base_currency");
             string? quoteId = this.safeString(market, "counter_currency");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? status = this.safeString(market, "trading_status");
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -645,7 +649,7 @@ public partial class luno : Exchange
             }
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "taker", taker },
                 { "maker", maker },
                 { "base", bs },
@@ -1162,10 +1166,10 @@ public partial class luno : Exchange
             {
                 side = "buy";
             }
-            if ((side == "sell") && (isEqual(getValue(trade, "is_buy"), true)))
+            if ((side == "sell") && ((this.safeBool(trade, "is_buy") == true)))
             {
                 takerOrMaker = "maker";
-            } else if ((side == "buy") && (!isEqual(getValue(trade, "is_buy"), true)))
+            } else if ((side == "buy") && ((this.safeBool(trade, "is_buy") != true)))
             {
                 takerOrMaker = "maker";
             } else
@@ -1174,7 +1178,7 @@ public partial class luno : Exchange
             }
         } else
         {
-            side = (isEqual(getValue(trade, "is_buy"), true)) ? "buy" : "sell";
+            side = ((this.safeBool(trade, "is_buy") == true)) ? "buy" : "sell";
         }
         string? feeBaseString = this.safeString(trade, "fee_base");
         string? feeCounterString = this.safeString(trade, "fee_counter");
@@ -1291,7 +1295,7 @@ public partial class luno : Exchange
             request["since"] = this.parseToInt(since);
         } else
         {
-            Int64 duration = (multiply(1000, 1000) * this.parseTimeframe(timeframeVar));
+            Int64 duration = ((1000L * 1000L) * this.parseTimeframe(timeframeVar));
             request["since"] = (this.milliseconds() - duration);
         }
         Dictionary<string, object> response = await this.exchangePrivateGetCandles(this.extend(request, parameters));
@@ -1445,10 +1449,7 @@ public partial class luno : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         if ((type == "market"))
         {
             request["type"] = side.ToUpper();
@@ -1857,11 +1858,16 @@ public partial class luno : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
         {
-            url = add(url, ("?" + this.urlencode(query)));
+            url = url + ("?" + this.urlencode(query));
         }
         if ((isEqual(api, "private")) || (isEqual(api, "exchangePrivate")))
         {

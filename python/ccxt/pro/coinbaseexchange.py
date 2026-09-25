@@ -65,6 +65,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         }
 
     async def subscribe(self, name: str, symbol: Str = None, messageHashStart: Str = None, params: dict = {}):
+        if messageHashStart is None:
+            raise ArgumentsRequired(self.id + ' ' + name + ' subscription requires a messageHashStart argument')
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -74,7 +76,9 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             market = self.market(symbol)
             messageHash += ':' + market['id']
             productIds.append(market['id'])
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
+        if url is None:
+            raise ExchangeError(self.id + ' urls.api.ws is not set')
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
@@ -89,6 +93,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         return await self.watch(url, messageHash, request, messageHash)
 
     async def subscribe_multiple(self, name: str, symbols: list[str] = [], messageHashStart: Str = None, params: dict = {}):
+        if messageHashStart is None:
+            raise ArgumentsRequired(self.id + ' ' + name + ' subscription requires a messageHashStart argument')
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -100,7 +106,9 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             market = self.market(symbol)
             productIds.append(market['id'])
             messageHashes.append(messageHashStart + ':' + market['symbol'])
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
+        if url is None:
+            raise ExchangeError(self.id + ' urls.api.ws is not set')
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'

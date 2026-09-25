@@ -1773,6 +1773,9 @@ class nado extends Exchange {
             $rawQuoteId = $this->safe_string($pair, 'quote', 'USDT0');
             $base = $this->safe_currency_code($this->remove_market_suffix($rawBaseId));
             $quote = $this->safe_currency_code($rawQuoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $baseAsset = $this->safe_dict($assetsByCode, $base, $asset);
             $quoteAsset = $this->safe_dict($assetsByCode, $quote);
             $baseId = $this->safe_string($baseAsset, 'product_id', $rawBaseId);

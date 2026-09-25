@@ -543,12 +543,16 @@ public partial class bitvavo : Exchange
             string? id = this.safeString(market, "market");
             string? baseId = this.safeString(market, "base");
             string? quoteId = this.safeString(market, "quote");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? status = this.safeString(market, "status");
             result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -2993,7 +2997,7 @@ public partial class bitvavo : Exchange
                 }
             }
             string timestamp = this.milliseconds().ToString();
-            object auth = (((timestamp + method) + (url)) + (payload));
+            string? auth = ((string)(((timestamp + method) + (url)) + (payload)));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
@@ -3007,7 +3011,12 @@ public partial class bitvavo : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        url = add(apiUrl, url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -643,9 +643,12 @@ func (this *Dydx) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settleId string = "USDC"
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
+	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
 	var contract bool = true
 	var swap bool = true
 	var amountPrecisionStr *string = this.SafeString(market, "stepSize")
@@ -1307,8 +1310,8 @@ func (this *Dydx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "OPEN",
 	}
 
-	var retRes106615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes106615)
+	var retRes106915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes106915)
 	return nil
 }
 
@@ -1345,8 +1348,8 @@ func (this *Dydx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "FILLED",
 	}
 
-	var retRes108615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes108615)
+	var retRes108915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes108915)
 	return nil
 }
 func (this *Dydx) ParsePosition(position any, optionalArgs ...any) any {
@@ -1620,7 +1623,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan any) any {
 	ch <- account
 	return nil
 }
-func (this *Dydx) Pow(n any, m any) any {
+func (this *Dydx) Pow(n string, m any) any {
 	var r *string = Precise.StringMul(n, "1")
 	var c int64 = this.ParseToInt(m)
 	// TODO: cap
@@ -3152,7 +3155,11 @@ func (this *Dydx) ParseBalance(response any) any {
 	return this.SafeBalance(result)
 }
 func (this *Dydx) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
+	if timeDifference == nil {
+		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
+	}
+	return Subtract(this.Milliseconds(), timeDifference)
 }
 func (this *Dydx) GetWalletAddress() any {
 	if !IsEqual(this.WalletAddress, nil) && (this.WalletAddress != "") {
@@ -3180,7 +3187,11 @@ func (this *Dydx) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var pathWithParams any = this.ImplodeParams(path, params)
-	var url any = GetValue(GetValue(this.Urls, "api"), section)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), section)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = apiUrl
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
 	url = Add(url, Add("/", pathWithParams))

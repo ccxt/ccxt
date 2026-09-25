@@ -2645,8 +2645,8 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+func (this *Hyperliquid) SignHash(hash any, privateKey string) any {
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
@@ -2847,7 +2847,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan any) any {
 
 	return nil
 }
-func (this *Hyperliquid) HandlePublicAddress(methodName any, params any) any {
+func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) any {
 	var userAux any = nil
 	var userAuxparamsVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	userAux = ccxt.GetValue(userAuxparamsVariable, 0)
@@ -2862,7 +2862,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName any, params any) any {
 	if !ccxt.IsEqual(this.WalletAddress, nil) && (this.WalletAddress != "") {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a user parameter or walletAddress to be set")))
+	panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter or walletAddress to be set"))
 }
 func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	address := ccxt.GetArg(optionalArgs, 0, nil)

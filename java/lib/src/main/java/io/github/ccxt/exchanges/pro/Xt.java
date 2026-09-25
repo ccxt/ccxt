@@ -110,7 +110,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "contract";
             }
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), tradeType);
+            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), tradeType);
             if (!Helpers.isTrue(isContract))
             {
                 url = (url + "/private");
@@ -199,7 +199,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i);
             Long deltaNonce = (Long) this.safeInteger2(delta, "i", "u");
-            if ((!java.util.Objects.equals(deltaNonce, null)) && (!java.util.Objects.equals(nonce, null)) && (Helpers.isGreaterThanOrEqual(deltaNonce, nonce)))
+            if ((!java.util.Objects.equals(deltaNonce, null)) && (!java.util.Objects.equals(nonce, null)) && ((nonce == null || (deltaNonce != null && deltaNonce >= nonce))))
             {
                 return i;
             }
@@ -301,7 +301,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), tradeType), "/"), tail);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), tradeType) + "/"), tail);
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
@@ -392,7 +392,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
             }
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), tradeType), "/"), tail);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), tradeType) + "/"), tail);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
@@ -1092,7 +1092,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "contract"), "/") + "user");
+            String url = ((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "contract") + "/") + "user");
             Client client = this.client(url);
             this.setPositionsCache(client);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1283,7 +1283,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
+                if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
                     cache.append(position);
                 }
@@ -1345,7 +1345,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(new ArrayList<Object>(Arrays.asList(position)), "symbol", symbols, false);
             if (!this.isEmpty(positions))
@@ -1537,12 +1537,12 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 2);
+            String symbolsString = (String) (parts == null || 2 >= parts.size() ? null : parts.get(2));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Map<String, Object> tickers = (Map<String, Object>) this.filterByArray(newTickers, "symbol", symbols);
             List<String> tickersSymbols = new ArrayList<String>(tickers.keySet());
             Integer numTickers = ((List<?>)tickersSymbols).size();
-            if (Helpers.isGreaterThan(numTickers, 0))
+            if ((numTickers != null && numTickers > 0))
             {
                 client.resolve(tickers, messageHash);
             }
@@ -1767,18 +1767,18 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Long nonce = this.safeInteger(orderbook, "nonce");
             if (java.util.Objects.equals(nonce, null))
             {
-                Object cacheLength = ((List<?>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).size();
+                Object cacheLength = ((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size();
                 Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (Helpers.isEqual(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }
-                ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(data);
+                ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(data);
                 return;
             }
             if (!java.util.Objects.equals(obAsks, null))
             {
-                io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+                io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
                 for (var i = 0; i < ((List<?>)obAsks).size(); i++)
                 {
                     List<Object> ask = (List<Object>) this.safeList(obAsks, i);
@@ -1789,7 +1789,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             if (!java.util.Objects.equals(obBids, null))
             {
-                io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+                io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
                 for (var i = 0; i < ((List<?>)obBids).size(); i++)
                 {
                     List<Object> bid = (List<Object>) this.safeList(obBids, i);

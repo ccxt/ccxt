@@ -71,7 +71,11 @@ export default class gemini extends geminiRest {
             ],
         };
         const subscribeHash = 'l2:' + market['symbol'];
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
+        }
+        const url = wsUrl + '/v2/marketdata';
         const trades: ArrayCache = await this.watch (url, messageHash, request, subscribeHash);
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
@@ -301,7 +305,11 @@ export default class gemini extends geminiRest {
             ],
         };
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchOHLCV() has no websocket url');
+        }
+        const url = wsUrl + '/v2/marketdata';
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -400,7 +408,11 @@ export default class gemini extends geminiRest {
             ],
         };
         const subscribeHash = 'l2:' + market['symbol'];
-        const url = this.urls['api']['ws'] + '/v2/marketdata';
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + '/v2/marketdata';
         const orderbook: Ob = await this.watch (url, messageHash, request, subscribeHash);
         return orderbook.limit ();
     }
@@ -427,7 +439,7 @@ export default class gemini extends geminiRest {
             const delta = changes[i];
             const price = this.safeNumber (delta, 1);
             const size = this.safeNumber (delta, 2);
-            const side = (delta[0] === 'buy') ? 'bids' : 'asks';
+            const side = (this.safeString (delta, 0) === 'buy') ? 'bids' : 'asks';
             const bookside = orderbook[side];
             bookside.store (price, size);
             orderbook[side] = bookside;
@@ -551,7 +563,11 @@ export default class gemini extends geminiRest {
             marketIds.push (market['id']);
         }
         const queryStr = marketIds.join (',');
-        let url = this.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' helperForWatchMultipleConstruct() has no websocket url');
+        }
+        let url = wsUrl + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&';
         if (itemHashName === 'orderbook') {
             url += 'trades=false&bids=true&offers=true';
         } else if (itemHashName === 'bidsasks') {
@@ -664,7 +680,11 @@ export default class gemini extends geminiRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchOrders() has no websocket url');
+        }
+        const url = wsUrl + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

@@ -1518,7 +1518,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Map<String, Object> tickers = (Map<String, Object>) this.filterByArray(newTickers, "symbol", symbols);
             if (!this.isEmpty(tickers))
@@ -1614,7 +1614,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> bid = (List<Object>) this.safeList(bids, j);
                         Double price = this.safeNumber(bid, 0);
                         Double amount = this.safeNumber(bid, 1);
-                        io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+                        io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
                         bidsSide.store(price, amount);
                     }
                 }
@@ -1625,7 +1625,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> ask = (List<Object>) this.safeList(asks, j);
                         Double price = this.safeNumber(ask, 0);
                         Double amount = this.safeNumber(ask, 1);
-                        io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+                        io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
                         asksSide.store(price, amount);
                     }
                 }
@@ -1776,7 +1776,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Integer dataLength = ((List<?>)data).size();
-            if (Helpers.isGreaterThan(dataLength, 0))
+            if ((dataLength != null && dataLength > 0))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});
             }

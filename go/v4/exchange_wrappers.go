@@ -702,7 +702,7 @@ func (this *ExchangeTyped) WatchOHLCV(symbol string, options ...WatchOHLCVOption
 	}
 	return res.Value, nil
 }
-func (this *ExchangeTyped) FetchWebEndpoint(method any, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
+func (this *ExchangeTyped) FetchWebEndpoint(method string, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
 
 	opts := FetchWebEndpointOptionsStruct{}
 
@@ -3824,7 +3824,7 @@ func (this *BaseExchangeTyped) WatchOHLCV(symbol string, options ...WatchOHLCVOp
 	}
 	return res.Value, nil
 }
-func (this *BaseExchangeTyped) FetchWebEndpoint(method any, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
+func (this *BaseExchangeTyped) FetchWebEndpoint(method string, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
 
 	opts := FetchWebEndpointOptionsStruct{}
 

@@ -630,6 +630,9 @@ class gemini extends Exchange {
             $baseId = $this->safe_string_lower($amountPrecisionParts, 1, str_replace($quoteId, '', $marketId));
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $base . '/' . $quote,
@@ -716,7 +719,10 @@ class gemini extends Exchange {
             );
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             $rawResponse = Async\await($this->publicGetV1SymbolsDetailsSymbol($this->extend($request, $params)));
-            $result[] = $this->parse_market($rawResponse);
+            $parsed = $this->parse_market($rawResponse);
+            if ($parsed !== null) {
+                $result[] = $parsed;
+            }
         }
         return $result;
     }
@@ -770,7 +776,10 @@ class gemini extends Exchange {
             }
             $responses = Async\await(Promise\all($promises));
             for ($i = 0; $i < count($responses); $i++) {
-                $result[] = $this->parse_market($responses[$i]);
+                $parsed = $this->parse_market($responses[$i]);
+                if ($parsed !== null) {
+                    $result[] = $parsed;
+                }
             }
         } else {
             // use trading-pairs info, if it was fetched
@@ -781,13 +790,19 @@ class gemini extends Exchange {
                     $marketId = $marketIds[$i];
                     $pairInfo = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
                     if ($pairInfo !== null && !$this->in_array($marketId, $brokenPairs)) {
-                        $result[] = $this->parse_market($pairInfo);
+                        $parsed = $this->parse_market($pairInfo);
+                        if ($parsed !== null) {
+                            $result[] = $parsed;
+                        }
                     }
                 }
             } else {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     if (!$this->in_array($marketIds[$i], $brokenPairs)) {
-                        $result[] = $this->parse_market($marketIds[$i]);
+                        $parsed = $this->parse_market($marketIds[$i]);
+                        if ($parsed !== null) {
+                            $result[] = $parsed;
+                        }
                     }
                 }
             }
@@ -891,6 +906,9 @@ class gemini extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
         if ($settleId !== null) {
@@ -1145,7 +1163,9 @@ class gemini extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            if (($base !== null) && ($quote !== null)) {
+                $symbol = $base . '/' . $quote;
+            }
         }
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
@@ -1536,10 +1556,10 @@ class gemini extends Exchange {
         $remaining = $this->safe_string($order, 'remaining_amount');
         $filled = $this->safe_string($order, 'executed_amount');
         $status = 'closed';
-        if ($order['is_live'] === true) {
+        if ($this->safe_bool($order, 'is_live') === true) {
             $status = 'open';
         }
-        if ($order['is_cancelled'] === true) {
+        if ($this->safe_bool($order, 'is_cancelled') === true) {
             $status = 'canceled';
         }
         $price = $this->safe_string($order, 'price');
@@ -1738,12 +1758,12 @@ class gemini extends Exchange {
             'type' => 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         );
-        $type = $this->safe_string($params, 'type', $type);
+        $orderType = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price', 'stopPrice' ));
         $params = $this->omit($params, array( 'triggerPrice', 'stop_price', 'stopPrice', 'type' ));
-        if ($type === 'stopLimit') {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $type . ' orders');
+        if ($orderType === 'stopLimit') {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $orderType . ' orders');
         }
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -2156,7 +2176,11 @@ class gemini extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'][$api] . $url;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $url;
         if (($method === 'POST') || ($method === 'DELETE')) {
             $body = $this->json($query);
         }

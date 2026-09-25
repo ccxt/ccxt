@@ -453,7 +453,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             books = this.safeDict(data, "update", new HashMap<String, Object>() {{}});
             Long previousNonce = this.safeInteger(data, "pu");
-            Object currentNonce = Helpers.GetValue(orderbook, "nonce");
+            Object currentNonce = (orderbook == null ? null : orderbook.get("nonce"));
             if (!Helpers.isEqual(currentNonce, previousNonce))
             {
                 Object checksum = this.handleOption("watchOrderBook", "checksum", true);
@@ -463,8 +463,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }
             }
         }
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         String messageHash = ("orderbook:" + symbol);
@@ -1380,7 +1380,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String symbolSpecificMessageHash = this.safeString(message, "subscription");
         List<Object> orders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer ordersLength = ((List<?>)orders).size();
-        if (Helpers.isGreaterThan(ordersLength, 0))
+        if ((ordersLength != null && ordersLength > 0))
         {
             if (java.util.Objects.equals(this.orders, null))
             {
@@ -1511,7 +1511,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
+                if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
                     cache.append(position);
                 }
@@ -1577,7 +1577,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))

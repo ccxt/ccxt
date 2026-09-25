@@ -346,8 +346,12 @@ public partial class blockchaincom : Exchange
             IDictionary<string, object> market = this.safeDict(markets, marketId);
             string? baseId = this.safeString(market, "base_currency");
             string? quoteId = this.safeString(market, "counter_currency");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             double? numericId = this.safeNumber(market, "id");
             bool? active = null;
             string? marketState = this.safeString(market, "status");
@@ -388,7 +392,7 @@ public partial class blockchaincom : Exchange
                 { "info", market },
                 { "id", marketId },
                 { "numericId", numericId },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -681,10 +685,7 @@ public partial class blockchaincom : Exchange
         string uppercaseOrderType = orderType.ToUpper();
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -711,13 +712,14 @@ public partial class blockchaincom : Exchange
                 request["ordType"] = "STOPLIMIT";
             }
         }
+        string? ordType = this.safeString(request, "ordType");
         bool priceRequired = false;
         bool stopPriceRequired = false;
-        if (isEqual(request["ordType"], "LIMIT") || isEqual(request["ordType"], "STOPLIMIT"))
+        if (ordType == "LIMIT" || ordType == "STOPLIMIT")
         {
             priceRequired = true;
         }
-        if (isEqual(request["ordType"], "STOP") || isEqual(request["ordType"], "STOPLIMIT"))
+        if (ordType == "STOP" || ordType == "STOPLIMIT")
         {
             stopPriceRequired = true;
         }
@@ -1369,13 +1371,18 @@ public partial class blockchaincom : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string requestPath = ("/" + this.implodeParams(path, parameters));
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), requestPath);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + requestPath);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else if (isEqual(api, "private"))
         {
@@ -1387,7 +1394,7 @@ public partial class blockchaincom : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else
             {

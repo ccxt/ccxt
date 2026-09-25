@@ -1104,6 +1104,9 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = func() *string {
 			if spot {
 				return nil
@@ -1121,7 +1124,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol any = *base + "/" + *quote
 		var typeVar *string = nil
 		var contract any = nil
 		if inst_type != nil && *inst_type == "CCY_PAIR" {
@@ -1358,8 +1361,8 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes97319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes97319)
+		var retRes97619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes97619)
 		return nil
 	}
 	var market map[string]any = nil
@@ -1464,8 +1467,8 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes105719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes105719)
+		var retRes106019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes106019)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1552,8 +1555,8 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes112119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
-		ch <- BoxAbsent(retRes112119)
+		var retRes112419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
+		ch <- BoxAbsent(retRes112419)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2623,8 +2626,8 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes196619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))))
-		ch <- BoxAbsent(retRes196619)
+		var retRes196919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))))
+		ch <- BoxAbsent(retRes196919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3280,13 +3283,8 @@ func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
 	if execInst != nil {
 		postOnly = false
 		for i := 0; i < len(execInst); i++ {
-			var inst any = func() any {
-				if i >= 0 && i < len(execInst) {
-					return DerefScalar(execInst[i])
-				}
-				return nil
-			}()
-			if IsEqual(inst, "POST_ONLY") {
+			var inst *string = this.SafeString(execInst, i)
+			if inst != nil && *inst == "POST_ONLY" {
 				postOnly = true
 				break
 			}
@@ -4080,8 +4078,8 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes319619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
-		ch <- BoxAbsent(retRes319619)
+		var retRes319919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes319919)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4609,7 +4607,11 @@ func (this *Cryptocom) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var typeVar *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), typeVar), "/"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", path)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if access != nil && *access == "public" {
 		if len(ObjectKeys(query)) > 0 {

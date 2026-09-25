@@ -3467,7 +3467,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.options.as_map().and_then(|__m| __m.get("adjustForTimeDifference")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
+        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
             self.load_time_difference(&[]).await;
         }
         if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
@@ -3480,16 +3480,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_670: bool = true;
             while { if !__for_first_670 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
-            let mut marketType: Value = types.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (marketType.as_str() == Some("spot")) {
+            let mut marketType: Option<String> = self.safe_string(types.clone(), i.clone(), &[]).as_str().map(str::to_owned);
+            if (marketType.as_deref() == Some("spot")) {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets
                 append_to_array(&mut rawPromises, self.fetch_spot_markets(&[params.clone()]).await);
-            }  else if (marketType.as_str() == Some("swap")) {
+            }  else if (marketType.as_deref() == Some("swap")) {
                 append_to_array(&mut rawPromises, self.fetch_swap_markets(&[params.clone()]).await);
-            }  else if (marketType.as_str() == Some("future")) {
+            }  else if (marketType.as_deref() == Some("future")) {
                 append_to_array(&mut rawPromises, self.fetch_future_markets(&[params.clone()]).await);
-            }  else if (marketType.as_str() == Some("option")) {
+            }  else if (marketType.as_deref() == Some("option")) {
                 append_to_array(&mut rawPromises, self.fetch_option_markets(&[params.clone()]).await);
             }
         }
@@ -3566,6 +3566,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut quoteId: Value = baseIdquoteIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            if (base == Value::Null) || (quote == Value::Null) {
+                continue;
+            }
             let mut takerPercent: Value = self.safe_string_k(market.clone(), "fee", &[]);
             let mut makerPercent: Value = self.safe_string_k(market.clone(), "maker_fee_rate", &[takerPercent.clone()]);
             let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amount_precision", &[])]), &[]);
@@ -3655,7 +3658,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut result: Value = Value::from(vec![]);
         let mut swapSettlementCurrencies: Value = self.get_settlement_currencies(Value::Str("swap".into()), Value::Str("fetchMarkets".into()));
-        if is_equal(&self.options.as_map().and_then(|__m| __m.get("sandboxMode")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
+        if (self.safe_bool_k(self.options.clone(), "sandboxMode", &[]).as_bool() == Some(true)) {
             swapSettlementCurrencies = Value::from(vec![Value::Str("usdt".into())]); // gate sandbox only has usdt-margined swaps
         }
         {
@@ -3679,7 +3682,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
                 let mut parsedMarket: Value = self.parse_contract_market(contract, settleId.clone());
-                append_to_array(&mut result, parsedMarket);
+                if (parsedMarket != Value::Null) {
+                    append_to_array(&mut result, parsedMarket);
+                }
             }
             }
         }
@@ -3694,7 +3699,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.options.as_map().and_then(|__m| __m.get("sandboxMode")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
+        if (self.safe_bool_k(self.options.clone(), "sandboxMode", &[]).as_bool() == Some(true)) {
             return Value::from(vec![]);
         }
         let mut result: Value = Value::from(vec![]);
@@ -3720,7 +3725,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
                 let mut parsedMarket: Value = self.parse_contract_market(contract, settleId.clone());
-                append_to_array(&mut result, parsedMarket);
+                if (parsedMarket != Value::Null) {
+                    append_to_array(&mut result, parsedMarket);
+                }
             }
             }
         }
@@ -3841,6 +3848,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut date: Option<String> = self.safe_string(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut expiry: Value = self.safe_timestamp_k(market.clone(), "expire_time", &[]);
         let mut symbol: Value = Value::Str("".into());
@@ -3879,7 +3889,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(marketType.as_str() == Some("swap")));
         m.insert("future".to_string(), Value::Bool(marketType.as_str() == Some("future")));
-        m.insert("option".to_string(), Value::Bool(marketType.as_str() == Some("option")));
+        m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("trading")));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), isLinear.clone());
@@ -3965,6 +3975,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[]);
                 let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+                if (base == Value::Null) || (quote == Value::Null) {
+                    continue;
+                }
                 let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
                 let mut expiry: Value = self.safe_timestamp_k(market.clone(), "expiration_time", &[]);
                 let mut strike: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
@@ -5288,8 +5301,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_686 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_686 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&response, &i);
                 let mut entry: Value = get_value(&response, &i);
-                if is_equal(&crate::value::get_value_k(&entry, "name"), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)) {
-                    ticker = entry.clone();
+                if (self.safe_string_k(entry.clone(), "name", &[]).as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()) {
+                    ticker = entry;
                     break;
                 }
             }
@@ -9546,7 +9559,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn nonce(&self) -> Value {
-        return subtract(&self.milliseconds(), &self.options.as_map().and_then(|__m| __m.get("timeDifference")).cloned().unwrap_or(Value::Null));
+        let mut timeDifference: Value = self.safe_integer_k(self.options.clone(), "timeDifference", &[]);
+        if (timeDifference == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
+        }
+        return (match (&(self.milliseconds()), &(timeDifference)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }

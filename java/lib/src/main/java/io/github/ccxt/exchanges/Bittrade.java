@@ -844,7 +844,7 @@ public class Bittrade extends BittradeApi
             //
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Integer numMarkets = ((List<?>)markets).size();
-            if (Helpers.isLessThan(numMarkets, 1))
+            if (((numMarkets == null || numMarkets < 1)))
             {
                 throw new NetworkError(((this.id + " fetchMarkets() returned empty response: ") + this.json(markets))) ;
             }
@@ -856,6 +856,10 @@ public class Bittrade extends BittradeApi
                 String quoteId = this.safeString(market, "quote-currency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String state = this.safeString(market, "state");
                 String leverageRatio = this.safeString(market, "leverage-ratio", "1");
                 String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
@@ -872,12 +876,13 @@ public class Bittrade extends BittradeApi
     final String finalBaseId = baseId;
                 final String finalQuoteId = quoteId;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalState = state;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", Helpers.add(finalBaseId, finalQuoteId) );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", finalBaseId );
                     put( "quoteId", finalQuoteId );
@@ -1275,8 +1280,8 @@ public class Bittrade extends BittradeApi
         if (!java.util.Objects.equals(type, null))
         {
             List<Object> typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
-            side = (String) Helpers.GetValue(typeParts, 0);
-            type = (String) Helpers.GetValue(typeParts, 1);
+            side = (String) (typeParts == null || 0 >= typeParts.size() ? null : typeParts.get(0));
+            type = (String) (typeParts == null || 1 >= typeParts.size() ? null : typeParts.get(1));
         }
         String takerOrMaker = this.safeString(trade, "role");
         String price = this.safeString(trade, "price");
@@ -1772,7 +1777,7 @@ public class Bittrade extends BittradeApi
             {
                 throw new ExchangeError((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (java.util.Objects.equals(((Map<String, Object>)balance).get("type"), "trade"))
+            if (java.util.Objects.equals(this.safeString(balance, "type"), "trade"))
             {
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "balance"));
             }
@@ -1780,7 +1785,7 @@ public class Bittrade extends BittradeApi
             {
                 throw new ExchangeError((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (java.util.Objects.equals(((Map<String, Object>)balance).get("type"), "frozen"))
+            if (java.util.Objects.equals(this.safeString(balance, "type"), "frozen"))
             {
                 ((Map<String, Object>)account).put("used", this.safeString(balance, "balance"));
             }
@@ -2182,8 +2187,8 @@ public class Bittrade extends BittradeApi
         if (((Map<?, ?>)order).containsKey("type"))
         {
             List<Object> orderType = (List<Object>) Helpers.split(((Map<String, Object>)order).get("type"), "-");
-            side = Helpers.GetValue(orderType, 0);
-            type = Helpers.GetValue(orderType, 1);
+            side = (orderType == null || 0 >= orderType.size() ? null : orderType.get(0));
+            type = (orderType == null || 1 >= orderType.size() ? null : orderType.get(1));
             status = this.parseOrderStatus(this.safeString(order, "state"));
         }
         String marketId = this.safeString(order, "symbol");
@@ -2323,7 +2328,7 @@ public class Bittrade extends BittradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account-id", ((Map<String, Object>)(Bittrade.this.accounts == null || 0 >= ((List<?>)Bittrade.this.accounts).size() ? null : ((List<?>)Bittrade.this.accounts).get(0))).get("id") );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "type", Helpers.add((finalSide + "-"), finalType) );
+                put( "type", ((finalSide + "-") + finalType) );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (java.util.Objects.equals(clientOrderId, null))

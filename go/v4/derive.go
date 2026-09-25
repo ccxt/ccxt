@@ -1030,8 +1030,11 @@ func (this *Derive) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var marketId *string = this.SafeString(market, "instrument_name")
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	var settleId any = nil
 	var settle *string = nil
 	var expiry any = nil
@@ -1045,7 +1048,7 @@ func (this *Derive) ParseMarket(market any) any {
 		margin = false
 		settleId = "USDC"
 		settle = this.SafeCurrencyCode(settleId)
-		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+		symbol = Add(*base+"/"+*quote+":", settle)
 		swap = true
 		linear = true
 		inverse = false
@@ -1060,7 +1063,7 @@ func (this *Derive) ParseMarket(market any) any {
 		expiry = this.SafeTimestamp(optionDetails, "expiry")
 		strike = this.SafeInteger(optionDetails, "strike")
 		optionLetter = this.SafeString(optionDetails, "option_type")
-		symbol = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), this.Yymmdd(expiry)), "-"), this.NumberToString(strike)), "-"), optionLetter)
+		symbol = Add(Add(Add(Add(Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.Yymmdd(expiry)), "-"), this.NumberToString(strike)), "-"), optionLetter)
 		if optionLetter != nil && *optionLetter == "P" {
 			optionType = SafeStringPtr("put")
 		} else {
@@ -1662,9 +1665,9 @@ func (this *Derive) HashMessage(message any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Derive) SignHash(hash any, privateKey any) any {
+func (this *Derive) SignHash(hash any, privateKey string) any {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -2285,8 +2288,8 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes178919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes178919)
+		var retRes179219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes179219)
 		return nil
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -2411,8 +2414,8 @@ func (this *Derive) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	})
 
-	var retRes188715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes188715)
+	var retRes189015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes189015)
 	return nil
 }
 
@@ -2452,8 +2455,8 @@ func (this *Derive) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "filled",
 	})
 
-	var retRes190715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes190715)
+	var retRes191015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes191015)
 	return nil
 }
 
@@ -2493,8 +2496,8 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "cancelled",
 	})
 
-	var retRes192715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes192715)
+	var retRes193015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes193015)
 	return nil
 }
 func (this *Derive) ParseTimeInForce(timeInForce *string) *string {
@@ -2782,8 +2785,8 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes217519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes217519)
+		var retRes217819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes217819)
 		return nil
 	}
 	var subaccountId any = nil
@@ -3056,8 +3059,8 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes240319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes240319)
+		var retRes240619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes240619)
 		return nil
 	}
 	var subaccountId any = nil
@@ -3454,7 +3457,7 @@ func (this *Derive) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Derive) HandleDeriveSubaccountId(methodName any, params any) any {
+func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) any {
 	var derivesubAccountId any = nil
 	var derivesubAccountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
 	derivesubAccountId = GetValue(derivesubAccountIdparamsVariable, 0)
@@ -3467,9 +3470,9 @@ func (this *Derive) HandleDeriveSubaccountId(methodName any, params any) any {
 	if optionsWallet != nil {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")))
+	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID."))
 }
-func (this *Derive) HandleDeriveWalletAddress(methodName any, params any) any {
+func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) any {
 	var deriveWalletAddress any = nil
 	var deriveWalletAddressparamsVariable []any = this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
@@ -3482,7 +3485,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName any, params any) any {
 	if optionsWallet != nil {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")))
+	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab."))
 }
 func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(response, nil) {
@@ -3514,7 +3517,11 @@ func (this *Derive) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(*apiUrl+"/", path))
 	if method == "POST" {
 		headers = map[string]any{
 			"Content-Type": "application/json",

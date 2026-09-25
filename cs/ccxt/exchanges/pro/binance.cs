@@ -301,11 +301,20 @@ public partial class binance : ccxt.binance
 
     public virtual string? getPrivateWsUrl(object type, object listenKey)
     {
+        if ((listenKey == null))
+        {
+            throw new AuthenticationError ((this.id + " getPrivateWsUrl() requires a listenKey from authenticate()")) ;
+        }
         if (isEqual(type, "future"))
         {
             return ((string?)((object)(add(add(this.getWsUrl(type, "private"), "?listenKey="), listenKey))));
         }
-        return ((string?)((object)(add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), ((string)type)), "/"), listenKey))));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " getPrivateWsUrl() has no websocket url for this market type")) ;
+        }
+        return ((wsUrl + "/") + (listenKey));
     }
 
     public virtual object getStockWsUrl(object streamType = null)
@@ -1747,9 +1756,9 @@ public partial class binance : ccxt.binance
         {
             if ((side == null))
             {
-                side = (isEqual(((IDictionary<string,object>)trade)["m"], true)) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((this.safeBool(trade, "m") == true)) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["m"], true)) ? "maker" : "taker";
+            takerOrMaker = ((this.safeBool(trade, "m") == true)) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -1843,7 +1852,7 @@ public partial class binance : ccxt.binance
         parameters = stockparametersVariable[1];
         if (isEqual(stock, true))
         {
-            if ((!isEqual(timeframeVar, "5m")) && (!isEqual(timeframeVar, "1h")) && (!isEqual(timeframeVar, "1d")) && (!isEqual(timeframeVar, "1w")) && (!isEqual(timeframeVar, "1M")))
+            if ((!(timeframeVar == "5m")) && (!(timeframeVar == "1h")) && (!(timeframeVar == "1d")) && (!(timeframeVar == "1w")) && (!(timeframeVar == "1M")))
             {
                 throw new BadRequest ((this.id + " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
             }
@@ -3313,7 +3322,7 @@ public partial class binance : ccxt.binance
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
         Int64? listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
         Int64 time = this.milliseconds();
-        Int64 delay = this.sum(listenTokenRefreshRate, 10000);
+        Int64? delay = (listenTokenRefreshRate + 10000);
         if (isGreaterThan(subtract(time, lastAuthenticatedTime), delay))
         {
             // the future covers the REST create plus the ws subscribe, including the
@@ -3476,7 +3485,7 @@ public partial class binance : ccxt.binance
             refreshRateKey = "stockListenKeyRefreshRate";
         }
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
-        Int64 delay = this.sum(listenKeyRefreshRate, 10000);
+        Int64? delay = (listenKeyRefreshRate + 10000);
         if (isGreaterThan(subtract(time, lastAuthenticatedTime), delay))
         {
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
@@ -5785,7 +5794,7 @@ public partial class binance : ccxt.binance
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }
@@ -6273,7 +6282,7 @@ public partial class binance : ccxt.binance
                             for (int i = 0; i < (fees?.Count ?? 0); i++)
                             {
                                 object orderFee = fees[i];
-                                if (isEqual(getValue(orderFee, "currency"), GetValue(tradeFee, "currency")))
+                                if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
                                 {
                                     object feeCost = this.sum(GetValue(tradeFee, "cost"), getValue(orderFee, "cost"));
                                     string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);
@@ -6292,7 +6301,7 @@ public partial class binance : ccxt.binance
                             }
                         } else if ((fee != null))
                         {
-                            if (isEqual(GetValue(fee, "currency"), GetValue(tradeFee, "currency")))
+                            if ((this.safeString(fee, "currency") == this.safeString(tradeFee, "currency")))
                             {
                                 object feeCost = this.sum(GetValue(fee, "cost"), GetValue(tradeFee, "cost"));
                                 string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);

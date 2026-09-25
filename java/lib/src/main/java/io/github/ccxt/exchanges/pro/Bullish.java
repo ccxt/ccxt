@@ -124,7 +124,12 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "params", request );
                 put( "id", id );
             }};
-            Object fullUrl = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), url);
+            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
+            }
+            Object fullUrl = Helpers.add(wsUrl, url);
             return (this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash, null)).join();
         });
 
@@ -283,7 +288,12 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), "/trading-api/v1/market-data/tick/"), ((Map<String, Object>)market).get("id"));
+            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchTicker() has no public websocket url")) ;
+            }
+            String url = ((wsUrl + "/trading-api/v1/market-data/tick/") + ((Map<String, Object>)market).get("id"));
             String messageHash = ("ticker::" + symbol);
             return (this.watch(url, messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
         }).thenApply(Ticker::new);
@@ -608,7 +618,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of orders
         }
         Integer numRawOrders = ((List<?>)rawOrders).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-        if (Helpers.isGreaterThan(numRawOrders, 0))
+        if ((numRawOrders != null && numRawOrders > 0))
         {
             if (java.util.Objects.equals(this.orders, null))
             {
@@ -757,7 +767,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             rawTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of trades
         }
         Integer numRawTrades = ((List<?>)rawTrades).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-        if (Helpers.isGreaterThan(numRawTrades, 0))
+        if ((numRawTrades != null && numRawTrades > 0))
         {
             if (java.util.Objects.equals(this.myTrades, null))
             {
@@ -1009,7 +1019,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> symbolPositions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(symbolPositions))

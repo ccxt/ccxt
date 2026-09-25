@@ -414,12 +414,17 @@ public class Bitbank extends BitbankApi
         String quoteId = this.safeString(entry, "quote_asset");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1520,7 +1525,12 @@ public class Bitbank extends BitbankApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = (this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/");
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = (this.implodeHostname(apiUrl) + "/");
         if ((java.util.Objects.equals(api, "public")) || (java.util.Objects.equals(api, "markets")))
         {
             url = Helpers.add(url, this.implodeParams(path, parameters));

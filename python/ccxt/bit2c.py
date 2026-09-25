@@ -838,7 +838,7 @@ class bit2c(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    def remove_comma_from_value(self, str: object):
+    def remove_comma_from_value(self, str: str):
         newString = ''
         strParts = str.split(',')
         for i in range(0, len(strParts)):
@@ -890,8 +890,9 @@ class bit2c(Exchange, ImplicitAPI):
         if reference is not None:
             id = reference
             timestamp = self.safe_timestamp(trade, 'ticks')
-            price = self.safe_string(trade, 'price')
-            price = self.remove_comma_from_value(price)
+            rawPrice = self.safe_string(trade, 'price')
+            if rawPrice is not None:
+                price = self.remove_comma_from_value(rawPrice)
             amount = self.safe_string(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId_by_taker|orderId_by_maker'
             marketId = self.safe_string(trade, 'pair')
@@ -991,7 +992,10 @@ class bit2c(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
         else:

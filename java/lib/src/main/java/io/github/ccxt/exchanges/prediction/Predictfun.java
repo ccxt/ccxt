@@ -322,11 +322,11 @@ public class Predictfun extends PredictfunApi
             List<PredictionEvent> events = (this.fetchEvents(parameters)).join();
             Integer eventsLength = ((List<?>)events).size();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
+            for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
             {
                 Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
                 Integer eventMarketsLength = ((List<?>)eventMarkets).size();
-                for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
+                for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
                     ((List<Object>)markets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
                 }
@@ -456,7 +456,7 @@ public class Predictfun extends PredictfunApi
                 }}, rest))).join();
                 Object data = this.safeDict(response, "data");
                 rawTopics = new ArrayList<Object>(Arrays.asList(data));
-            } else if (Helpers.isGreaterThan(queriesLength, 0))
+            } else if ((queriesLength != null && queriesLength > 0))
             {
                 // a query/queries scope is answered by the dedicated search endpoint — the categories
                 // listing has no text filter, so paging it and matching client-side would both miss
@@ -467,7 +467,7 @@ public class Predictfun extends PredictfunApi
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
                 Object tags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
                 Integer tagsLength = ((List<?>)tags).size();
-                if (Helpers.isGreaterThan(tagsLength, 0))
+                if ((tagsLength != null && tagsLength > 0))
                 {
                     String tagsString = String.join(",", (List<String>)tags);
                     request.put("tagIds", tagsString);
@@ -643,7 +643,7 @@ public class Predictfun extends PredictfunApi
                 List<Object> data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 rawTopics = this.arrayConcat(rawTopics, data);
                 Integer topicsLength = ((List<?>)rawTopics).size();
-                while (Helpers.isLessThan(topicsLength, fetchCap))
+                while ((fetchCap != null && (topicsLength == null || topicsLength < fetchCap)))
                 {
                     String nextPageToken = this.safeString(rawTopicsResponse, "cursor");
                     if (java.util.Objects.equals(nextPageToken, null))
@@ -656,20 +656,20 @@ public class Predictfun extends PredictfunApi
                     rawTopics = this.arrayConcat(rawTopics, data);
                     topicsLength = ((List<?>)rawTopics).size();
                 }
-                if (Helpers.isGreaterThan(topicsLength, fetchCap))
+                if ((topicsLength != null && (fetchCap == null || topicsLength > fetchCap)))
                 {
                     rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
                 }
             }
             Integer rawTopicsLength = ((List<?>)rawTopics).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
+            for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
                 Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)result).add(parsedEvent);
                 Object parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
                 Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
-                for (var mi = 0; Helpers.isLessThan(mi, parsedMarketsLength); mi++)
+                for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
                     Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
                     // prediction market rows are keyed by the unified 'market' handle
@@ -763,7 +763,7 @@ public class Predictfun extends PredictfunApi
             // market rows whose category row did not come back, bucketed by the slug they carry
             Map<String, Object> orphanMarkets = new HashMap<String, Object>() {{}};
             List<Object> orphanSlugs = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, queriesLength); i++)
+            for (var i = 0; (queriesLength != null && i < queriesLength); i++)
             {
                 final Object finalI = i;
                 final String finalIncludeResolved = includeResolved;
@@ -824,7 +824,7 @@ public class Predictfun extends PredictfunApi
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Object categories = (List<Object>)(this.safeList(data, "categories", new ArrayList<Object>(Arrays.asList())));
                 Integer categoriesLength = ((List<?>)categories).size();
-                for (var ci = 0; Helpers.isLessThan(ci, categoriesLength); ci++)
+                for (var ci = 0; (categoriesLength != null && ci < categoriesLength); ci++)
                 {
                     Map<String, Object> category = (Map<String, Object>) this.safeDict(categories, ci);
                     String categorySlug = this.safeString(category, "slug");
@@ -843,7 +843,7 @@ public class Predictfun extends PredictfunApi
                 // categorySlug they carry
                 Object rawMarkets = (List<Object>)(this.safeList(data, "markets", new ArrayList<Object>(Arrays.asList())));
                 Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-                for (var mi = 0; Helpers.isLessThan(mi, rawMarketsLength); mi++)
+                for (var mi = 0; (rawMarketsLength != null && mi < rawMarketsLength); mi++)
                 {
                     Object rawMarket = (rawMarkets == null || mi < 0 || mi >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(mi));
                     String marketSlug = this.safeString(rawMarket, "categorySlug");
@@ -867,7 +867,7 @@ public class Predictfun extends PredictfunApi
             // whatever the category rows did not claim is a market-only hit: synthesize the enclosing
             // topic from the market rows themselves, without spending a request per slug
             Integer orphanSlugsLength = ((List<?>)orphanSlugs).size();
-            for (var i = 0; Helpers.isLessThan(i, orphanSlugsLength); i++)
+            for (var i = 0; (orphanSlugsLength != null && i < orphanSlugsLength); i++)
             {
                 Object orphanSlug = (orphanSlugs == null || i < 0 || i >= orphanSlugs.size() ? null : orphanSlugs.get(i));
                 if (!(seenSlugs.containsKey(orphanSlug)))
@@ -1099,9 +1099,9 @@ public class Predictfun extends PredictfunApi
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         Boolean anyActive = false;
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-        for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+        for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
-            Object parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
+            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
             ((List<Object>)marketsList).add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
@@ -1164,7 +1164,7 @@ public class Predictfun extends PredictfunApi
         Object chars = this.stringToCharsArray(text);
         Integer charsLength = ((List<?>)chars).size();
         Object stripped = "";
-        for (var i = 0; Helpers.isLessThan(i, charsLength); i++)
+        for (var i = 0; (charsLength != null && i < charsLength); i++)
         {
             Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
             Boolean keep = true;
@@ -1235,7 +1235,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
      * @returns {object} a market structure
      */
-    public Object parseTopicMarket(Map<String, Object> rawMarket, Map<String, Object> rawTopic)
+    public Map<String, Object> parseTopicMarket(Map<String, Object> rawMarket, Map<String, Object> rawTopic)
     {
         //
         //     {
@@ -1357,7 +1357,7 @@ public class Predictfun extends PredictfunApi
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcomeRaw = null;
         Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
-        for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
+        for (var oi = 0; (rawOutcomesLength != null && oi < rawOutcomesLength); oi++)
         {
             Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= rawOutcomes.size() ? null : rawOutcomes.get(oi));
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
@@ -1406,7 +1406,7 @@ final Object finalMarketSymbol = marketSymbol;
         String resolvedOutcome = resolvedOutcomeRaw;
         String collateral = "USDT";
         String marketType = "binary";
-        if (Helpers.isGreaterThan(rawOutcomesLength, 2))
+        if ((rawOutcomesLength != null && rawOutcomesLength > 2))
         {
             marketType = "categorical";
         }
@@ -1690,7 +1690,7 @@ final Object finalMarketSymbol = marketSymbol;
         Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
         Object rawOutcome = new HashMap<String, Object>() {{}};
         Boolean outcomeFound = false;
-        for (var i = 0; Helpers.isLessThan(i, rawOutcomesLength); i++)
+        for (var i = 0; (rawOutcomesLength != null && i < rawOutcomesLength); i++)
         {
             Object candidate = (rawOutcomes == null || i < 0 || i >= rawOutcomes.size() ? null : rawOutcomes.get(i));
             if (Helpers.isEqual(this.safeInteger(candidate, "indexSet"), indexSet))
@@ -1797,7 +1797,7 @@ final Object finalMarketSymbol = marketSymbol;
             // so the legs it signed are the ones to report - a self trade legitimately yields two rows
             List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Map<String, Object> taker = (Map<String, Object>) this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
@@ -1815,7 +1815,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
                 List<Object> makers = (List<Object>) this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
                 Integer makersLength = ((List<?>)makers).size();
-                for (var j = 0; Helpers.isLessThan(j, makersLength); j++)
+                for (var j = 0; (makersLength != null && j < makersLength); j++)
                 {
                     Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
                     String makerSigner = this.safeStringLower(maker, "signer");
@@ -1921,7 +1921,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i);
                 Map<String, Object> taker = (Map<String, Object>) this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
@@ -1952,7 +1952,7 @@ final Object finalMarketSymbol = marketSymbol;
                         put( "role", "maker" );
                         put( "type", "limit" );
                     }};
-                    for (var j = 0; Helpers.isLessThan(j, makersLength); j++)
+                    for (var j = 0; (makersLength != null && j < makersLength); j++)
                     {
                         Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
                         Map<String, Object> makerOutcome = (Map<String, Object>) this.safeDict(maker, "outcome", new HashMap<String, Object>() {{}});
@@ -2136,7 +2136,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
         Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
+        return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
     /**
@@ -2187,7 +2187,7 @@ final Object finalMarketSymbol = marketSymbol;
             Long expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
             // a token outlives its window silently: the venue answers 401 on every order action once
             // it lapses, so re-issue before that rather than after the first failure
-            if ((!java.util.Objects.equals(cached, null)) && (Helpers.isLessThan(now, expiresAt)))
+            if ((!java.util.Objects.equals(cached, null)) && ((expiresAt != null && (now == null || now < expiresAt))))
             {
                 return cached;
             }
@@ -2308,7 +2308,7 @@ final Object finalMarketSymbol = marketSymbol;
         }}, order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
         // the digest that gets signed - and that the venue indexes the order by - is its keccak
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return new HashMap<String, Object>() {{
             put( "hash", hash );
             put( "signature", Predictfun.this.signHash(hash, Predictfun.this.privateKey) );
@@ -2659,7 +2659,7 @@ final Object finalMarketSymbol = marketSymbol;
             // the venue filters by marketId only, so a set of outcome handles is applied here
             Map<String, Object> wanted = new HashMap<String, Object>() {{}};
             List<Object> wantedOutcomes = this.toArray(outcomes);
-            for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i))));
                 String wantedId = this.safeString(outcomeObj, "outcomeId", "");
@@ -2667,7 +2667,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer parsedLength = ((List<?>)parsed).size();
-            for (var i = 0; Helpers.isLessThan(i, parsedLength); i++)
+            for (var i = 0; (parsedLength != null && i < parsedLength); i++)
             {
                 Object position = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
                 String outcomeId = this.safeString(position, "outcomeId");
@@ -2919,7 +2919,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires at least one order hash")) ;
             }
-            if (Helpers.isGreaterThan(idsLength, 100))
+            if ((idsLength != null && idsLength > 100))
             {
                 throw new BadRequest((this.id + " cancelOrders() takes at most 100 order hashes per call")) ;
             }
@@ -2942,7 +2942,7 @@ final Object finalMarketSymbol = marketSymbol;
             //
             List<Object> rejected = (List<Object>) this.safeList(response, "rejected", new ArrayList<Object>(Arrays.asList()));
             Integer rejectedLength = ((List<?>)rejected).size();
-            if (Helpers.isGreaterThan(rejectedLength, 0))
+            if ((rejectedLength != null && rejectedLength > 0))
             {
                 throw new OrderNotFound(((this.id + " cancelOrders() was refused for ") + this.json(rejected))) ;
             }
@@ -2952,7 +2952,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> noop = (List<Object>) this.safeList(response, "noop", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             Integer removedLength = ((List<?>)removed).size();
-            for (var i = 0; Helpers.isLessThan(i, removedLength); i++)
+            for (var i = 0; (removedLength != null && i < removedLength); i++)
             {
     final Object finalI = i;
                             ((List<Object>)rows).add(this.extend(response, new HashMap<String, Object>() {{
@@ -2961,7 +2961,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }}));
             }
             Integer noopLength = ((List<?>)noop).size();
-            for (var i = 0; Helpers.isLessThan(i, noopLength); i++)
+            for (var i = 0; (noopLength != null && i < noopLength); i++)
             {
                 // accepted, but nothing was resting to pull: the order had already filled, expired,
                 // was never booked, or had been removed before - so the status is left unknown
@@ -3636,7 +3636,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
                 List<Object> receipts = new ArrayList<Object>(Arrays.asList());
                 Integer operatorsLength = ((List<?>)operators).size();
-                for (var i = 0; Helpers.isLessThan(i, operatorsLength); i++)
+                for (var i = 0; (operatorsLength != null && i < operatorsLength); i++)
                 {
                     Object operatorAddress = (operators == null || i < 0 || i >= operators.size() ? null : operators.get(i));
                     if (java.util.Objects.equals(operatorAddress, null))
@@ -3802,7 +3802,7 @@ final Object finalMarketSymbol = marketSymbol;
             List<Object> handles = new ArrayList<Object>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 String handle = this.safeString((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)), "outcome");
                 if (!java.util.Objects.equals(handle, null))
@@ -3862,7 +3862,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object outcomes = this.outcomesByMarketId((String) (marketId));
         Integer outcomesLength = ((List<?>)outcomes).size();
         List<Object> hashes = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             String handle = this.safeString((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)), "outcome");
             if (!java.util.Objects.equals(handle, null))
@@ -3908,7 +3908,7 @@ final Object finalMarketSymbol = marketSymbol;
         {
             throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
         }
-        for (var i = 0; Helpers.isLessThan(i, messageHashesLength); i++)
+        for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
         {
             client.reject(error, (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)));
         }
@@ -3932,7 +3932,7 @@ final Object finalMarketSymbol = marketSymbol;
         // releases both. the book path needs no such thing - it registers the full narrowed hash of
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         Boolean isWalletTopic = (java.util.Objects.equals(this.safeString(subscription, "topic"), "walletEvents"));
-        for (var i = 0; Helpers.isLessThan(i, messageHashesLength); i++)
+        for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
         {
             this.cleanUnsubscription(client, (String) ((subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), isWalletTopic);
         }
@@ -3952,7 +3952,7 @@ final Object finalMarketSymbol = marketSymbol;
         // inherited cache from a derived class is dropped outright by the go and c# transpilers,
         // silently leaving those two languages with a stale cache
         Integer subMessageHashesLength = ((List<?>)subMessageHashes).size();
-        for (var i = 0; Helpers.isLessThan(i, subMessageHashesLength); i++)
+        for (var i = 0; (subMessageHashesLength != null && i < subMessageHashesLength); i++)
         {
             Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
             if ((java.util.Objects.equals(subHash, "orders")) || (java.util.Objects.equals(subHash, "myTrades")))
@@ -4233,7 +4233,7 @@ final Object finalSubHash = subHash;
         List<Object> hashes = new ArrayList<Object>(Arrays.asList("orders", "myTrades"));
         List<Object> futures = Helpers.objectKeys(client.futures);
         Integer futuresLength = ((List<?>)futures).size();
-        for (var i = 0; Helpers.isLessThan(i, futuresLength); i++)
+        for (var i = 0; (futuresLength != null && i < futuresLength); i++)
         {
             Object future = (futures == null || i < 0 || i >= futures.size() ? null : futures.get(i));
             if (((((String)future).indexOf("orders::") == 0)) || ((((String)future).indexOf("myTrades::") == 0)))
@@ -4407,7 +4407,7 @@ final Object finalSubHash = subHash;
         }
         List<String> handles = new ArrayList<String>(((Map<String, Object>)cached).keySet());
         Integer handlesLength = ((List<?>)handles).size();
-        for (var i = 0; Helpers.isLessThan(i, handlesLength); i++)
+        for (var i = 0; (handlesLength != null && i < handlesLength); i++)
         {
             Object outcomeObj = Helpers.GetValue(cached, (handles == null || i < 0 || i >= handles.size() ? null : handles.get(i)));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
@@ -4475,7 +4475,7 @@ final Object finalSubHash = subHash;
         List<Object> noBids = new ArrayList<Object>(Arrays.asList());
         List<Object> noAsks = new ArrayList<Object>(Arrays.asList());
         Integer bidsLength = ((List<?>)rawBids).size();
-        for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
+        for (var i = 0; (bidsLength != null && i < bidsLength); i++)
         {
             List<Object> bid = (List<Object>) this.safeList(rawBids, i);
             String bidPrice = this.safeString(bid, 0);
@@ -4485,7 +4485,7 @@ final Object finalSubHash = subHash;
             ((List<Object>)noAsks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", bidPrice)), bidSize)));
         }
         Integer asksLength = ((List<?>)rawAsks).size();
-        for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
+        for (var i = 0; (asksLength != null && i < asksLength); i++)
         {
             List<Object> ask = (List<Object>) this.safeList(rawAsks, i);
             String askPrice = this.safeString(ask, 0);
@@ -4495,7 +4495,7 @@ final Object finalSubHash = subHash;
         }
         Object outcomes = this.outcomesByMarketId((String) (marketId));
         Integer outcomesLength = ((List<?>)outcomes).size();
-        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(outcomes, i);
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
@@ -4662,7 +4662,7 @@ final Object finalBids = bids;
         Long outcomeIndex = this.safeInteger(details, "outcomeIndex");
         Object outcomes = this.outcomesByMarketId((String) (marketId));
         Integer outcomesLength = ((List<?>)outcomes).size();
-        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             Object candidate = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(candidate, "info", new HashMap<String, Object>() {{}});

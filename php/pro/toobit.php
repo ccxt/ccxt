@@ -215,7 +215,7 @@ class toobit extends \ccxt\async\toobit {
             $subParams[] = $rawHash;
         }
         $marketIds = $this->market_ids($symbols);
-        $url = $this->urls['api']['ws']['common'] . '/quote/ws/v1';
+        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
         $request = array(
             'symbol' => implode(',', $marketIds),
             'topic' => 'trade',
@@ -320,7 +320,7 @@ class toobit extends \ccxt\async\toobit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws']['common'] . '/quote/ws/v1';
+        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
         $messageHashes = array();
         $timeframes = $this->safe_dict($this->options['ws'], 'timeframes', array());
         $marketIds = array();
@@ -476,7 +476,7 @@ class toobit extends \ccxt\async\toobit {
             $subParams[] = $rawHash;
         }
         $marketIds = $this->market_ids($symbols);
-        $url = $this->urls['api']['ws']['common'] . '/quote/ws/v1';
+        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
         $request = array(
             'symbol' => implode(',', $marketIds),
             'topic' => 'realtimes',
@@ -603,7 +603,7 @@ class toobit extends \ccxt\async\toobit {
             $subParams[] = $rawHash;
         }
         $marketIds = $this->market_ids($symbols);
-        $url = $this->urls['api']['ws']['common'] . '/quote/ws/v1';
+        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
         $request = array(
             'symbol' => implode(',', $marketIds),
             'topic' => $channel,
@@ -1267,7 +1267,7 @@ class toobit extends \ccxt\async\toobit {
         $time = $this->milliseconds();
         $lastAuthenticatedTime = $this->safe_integer($this->options['ws'], 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options['ws'], 'listenKeyRefreshRate', 1200000);
-        $delay = $this->sum($listenKeyRefreshRate, 10000);
+        $delay = $listenKeyRefreshRate + 10000;
         if ($time - $lastAuthenticatedTime > $delay) {
             $this->check_required_credentials();
             // single-flight leader election on a never-dialed client, see
@@ -1345,7 +1345,7 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function get_user_stream_url(): string {
-        return $this->urls['api']['ws']['common'] . '/api/v1/ws/' . $this->options['ws']['listenKey'];
+        return $this->safe_string($this->urls['api']['ws'], 'common') . '/api/v1/ws/' . $this->safe_string($this->options['ws'], 'listenKey');
     }
 
     public function handle_error_message(Client $client, array $message): ?bool {

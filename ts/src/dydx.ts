@@ -521,6 +521,9 @@ export default class dydx extends Exchange {
         const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -2493,7 +2496,11 @@ export default class dydx extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     getWalletAddress () {
@@ -2513,7 +2520,11 @@ export default class dydx extends Exchange {
 
     override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.urls['api'][section];
+        const apiUrl = this.safeString (this.urls['api'], section);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = apiUrl;
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         url += '/' + pathWithParams;

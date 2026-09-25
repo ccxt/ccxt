@@ -508,8 +508,12 @@ public partial class bitteam : Exchange
         List<object> parts = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         bool? active = this.safeBool(market, "active");
         string? timeStart = this.safeString(market, "timeStart");
         Int64? created = this.parse8601(timeStart);
@@ -524,7 +528,7 @@ public partial class bitteam : Exchange
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "numericId", numericId },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -2571,7 +2575,12 @@ public partial class bitteam : Exchange
         parameters ??= new Dictionary<string, object>();
         object request = this.omit(parameters, this.extractParams(path));
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), endpoint);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + endpoint);
         string query = this.urlencode(request);
         if (isEqual(api, "private"))
         {
@@ -2581,7 +2590,7 @@ public partial class bitteam : Exchange
                 body = this.json(request);
             } else if ((query.Length != 0))
             {
-                url = add(url, ("?" + query));
+                url = url + ("?" + query);
             }
             string auth = ((this.apiKey + ":") + this.secret);
             string auth64 = this.stringToBase64(auth);
@@ -2592,7 +2601,7 @@ public partial class bitteam : Exchange
             };
         } else if ((query.Length != 0))
         {
-            url = add(url, ("?" + query));
+            url = url + ("?" + query);
         }
         return new Dictionary<string, object>() {
             { "url", url },

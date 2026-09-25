@@ -1750,12 +1750,12 @@ func (this *Nado) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- BoxAbsent(retRes138515)
 	return nil
 }
-func (this *Nado) QueryTransactionsByEventTypeAsync(eventType any, transactionType any, methodName any, optionalArgs ...any) <-chan any {
+func (this *Nado) QueryTransactionsByEventTypeAsync(eventType string, transactionType string, methodName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.queryTransactionsByEventTypeBody(ch, eventType, transactionType, methodName, optionalArgs...)
 	return ch
 }
-func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, transactionType any, methodName any, optionalArgs ...any) any {
+func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType string, transactionType string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1767,7 +1767,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if IsEqual(this.WalletAddress, nil) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires walletAddress")))
+		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires walletAddress"))
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
@@ -2165,6 +2165,9 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var rawQuoteId *string = this.SafeString(pair, "quote", "USDT0")
 		var base *string = this.SafeCurrencyCode(this.RemoveMarketSuffix(rawBaseId))
 		var quote *string = this.SafeCurrencyCode(rawQuoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var baseAsset any = this.SafeDict(assetsByCode, base, asset)
 		var quoteAsset map[string]any = SafeMapTyped(assetsByCode, quote)
 		var baseId *string = this.SafeString(baseAsset, "product_id", rawBaseId)
@@ -2181,7 +2184,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol any = *base + "/" + *quote
 		if contract {
 			symbol = Add(symbol, Add(":", settle))
 		}
@@ -3710,7 +3713,7 @@ func (this *Nado) CreateSubaccount(walletAddress any, optionalArgs ...any) any {
 		subaccount = "default"
 	}
 	var address string = strings.ToLower(this.Remove0xPrefix(walletAddress))
-	if !IsEqual(len(address), 40) {
+	if len(address) != 40 {
 		panic(BadRequest(this.Id + " createOrder() requires a 20-byte walletAddress"))
 	}
 	var encoded string = this.Remove0xPrefix(this.StringToBase16(subaccount))

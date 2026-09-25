@@ -403,6 +403,9 @@ func (this *P2b) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "money")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var limits map[string]any = SafeMapTyped(market, "limits")
 	var maxAmount *string = this.SafeString(limits, "max_amount")
 	var maxPrice *string = this.SafeString(limits, "max_price")
@@ -1581,7 +1584,8 @@ func (this *P2b) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
+	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
+	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
 		if len(ObjectKeys(params)) > 0 {

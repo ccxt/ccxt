@@ -98,7 +98,7 @@ public class TestFetchTickers extends BaseTest {
                 return;
             }
             Integer allMarketsLength = ((List<?>)new ArrayList<Object>(((Map<String, Object>)allMarkets).keySet())).size();
-            Assert(Helpers.isLessThanOrEqual(obtainedTickersLength, allMarketsLength), (((((((exchange.id + " ") + "fetchTickers") + " must return <= than all markets, but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(allMarketsLength)) + " markets"));
+            Assert((obtainedTickersLength == null || (allMarketsLength != null && obtainedTickersLength <= allMarketsLength)), (((((((exchange.id + " ") + "fetchTickers") + " must return <= than all markets, but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(allMarketsLength)) + " markets"));
         }
     }
 

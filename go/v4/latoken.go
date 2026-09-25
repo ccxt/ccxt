@@ -467,7 +467,11 @@ func (this *Latoken) Describe() any {
 	})
 }
 func (this *Latoken) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
+	if timeDifference == nil {
+		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
+	}
+	return Subtract(this.Milliseconds(), timeDifference)
 }
 
 /**
@@ -1126,9 +1130,12 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	var quoteId *string = this.SafeString(trade, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
-	if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
-		market = this.Market(symbol)
+	var symbol any = nil
+	if (base != nil) && (quote != nil) {
+		symbol = *base + "/" + *quote
+		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
+			market = this.Market(symbol)
+		}
 	}
 	var id *string = this.SafeString(trade, "id")
 	var orderId *string = this.SafeString(trade, "order")
@@ -1234,13 +1241,13 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	params = MapTyped(this.Omit(params, "method"))
 	if method != nil && *method == "fetchPrivateTradingFee" {
 
-		var retRes97319 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeeAsync(symbol, params))))
-		ch <- BoxAbsent(retRes97319)
+		var retRes98019 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeeAsync(symbol, params))))
+		ch <- BoxAbsent(retRes98019)
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFee" {
 
-		var retRes97519 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeeAsync(symbol, params))))
-		ch <- BoxAbsent(retRes97519)
+		var retRes98219 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeeAsync(symbol, params))))
+		ch <- BoxAbsent(retRes98219)
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " not support this method"))
@@ -1813,9 +1820,7 @@ func (this *Latoken) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	var market map[string]any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"baseCurrency":  market["baseId"],
 		"quoteCurrency": market["quoteId"],
@@ -2357,7 +2362,11 @@ func (this *Latoken) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 		}
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), requestString)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(apiUrl, requestString))
 	return map[string]any{
 		"url":     url,
 		"method":  method,

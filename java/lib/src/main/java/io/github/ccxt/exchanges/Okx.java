@@ -2532,7 +2532,7 @@ public class Okx extends OkxApi
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = (Helpers.isGreaterThan(partsLength, 3)) && (Helpers.isTrue(((String)marketId).endsWith("-C")) || Helpers.isTrue(((String)marketId).endsWith("-P")));
+            isOption = ((partsLength != null && partsLength > 3)) && (Helpers.isTrue(((String)marketId).endsWith("-C")) || Helpers.isTrue(((String)marketId).endsWith("-P")));
         }
         if (Boolean.TRUE.equals(isOption) && (!java.util.Objects.equals(marketId, null)) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
@@ -2755,7 +2755,12 @@ public class Okx extends OkxApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     /**
@@ -2771,7 +2776,7 @@ public class Okx extends OkxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -2901,6 +2906,10 @@ public class Okx extends OkxApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         // handle preopen empty markets
         if (java.util.Objects.equals(base, "") || java.util.Objects.equals(quote, ""))
@@ -3206,7 +3215,7 @@ public class Okx extends OkxApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String type = "crypto";
         Integer chainsLength = ((List<?>)chains).size();
-        for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
+        for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
@@ -3971,7 +3980,7 @@ public class Okx extends OkxApi
         //     ]
         //
         Object res = this.handleMarketTypeAndParams("fetchOHLCV", market);
-        Object type = Helpers.GetValue(res, 0);
+        String type = (String) ((List<Object>)res).get(0);
         Integer volumeIndex = (((java.util.Objects.equals(type, "spot")))) ? 5 : 6;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
@@ -4983,7 +4992,7 @@ public class Okx extends OkxApi
             }
             List<String> attachOrdKeys = new ArrayList<String>(attachAlgoOrd.keySet());
             Integer attachOrdLen = ((List<?>)attachOrdKeys).size();
-            if (Helpers.isGreaterThan(attachOrdLen, 0))
+            if ((attachOrdLen != null && attachOrdLen > 0))
             {
                 ((Map<String, Object>)request).put("attachAlgoOrds", new ArrayList<Object>(Arrays.asList(attachAlgoOrd)));
             }
@@ -8596,7 +8605,7 @@ public class Okx extends OkxApi
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
                 Integer marketIdsLength = ((List<?>)marketIds).size();
-                if (Helpers.isGreaterThan(marketIdsLength, 0))
+                if ((marketIdsLength != null && marketIdsLength > 0))
                 {
                     request.put("instId", String.join(",", (List<String>)marketIds));
                 }
@@ -9852,7 +9861,7 @@ public class Okx extends OkxApi
             List<Account> accounts = (this.fetchAccounts(new Object[0])).join();
             Integer length = ((List<?>)accounts).size();
             Object selectedAccount = null;
-            if (Helpers.isGreaterThan(length, 1))
+            if ((length != null && length > 1))
             {
                 String accountId = this.safeString(parameters, "accountId");
                 if (java.util.Objects.equals(accountId, null))
@@ -9988,7 +9997,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long lever = (Long) this.safeInteger2(parameters, "lever", "leverage");
-            if ((java.util.Objects.equals(lever, null)) || (Helpers.isLessThan(lever, 1)) || (Helpers.isGreaterThan(lever, 125)))
+            if ((java.util.Objects.equals(lever, null)) || (((lever == null || lever < 1))) || ((lever != null && lever > 125)))
             {
                 throw new BadRequest((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
             }

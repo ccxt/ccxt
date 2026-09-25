@@ -588,10 +588,14 @@ public partial class bitso : Exchange
             var baseIdquoteIdVariable = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             var baseId = baseIdquoteIdVariable[0];
             var quoteId = baseIdquoteIdVariable[1];
-            object bs = ((string)baseId).ToUpper();
+            string? bs = ((string)baseId).ToUpper();
             string? quote = ((string)quoteId).ToUpper();
             bs = this.safeCurrencyCode(bs);
             quote = this.safeCurrencyCode(quote);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             IDictionary<string, object> fees = this.safeDict(market, "fees", new Dictionary<string, object>() {});
             IDictionary<string, object> flatRate = this.safeDict(fees, "flat_rate", new Dictionary<string, object>() {});
             string? takerString = this.safeString(flatRate, "taker");
@@ -629,7 +633,7 @@ public partial class bitso : Exchange
             IDictionary<string, object> baseCurrency = this.safeDict(currencies, bs);
             result.Add(this.safeMarketStructure(this.extend(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -2174,7 +2178,12 @@ public partial class bitso : Exchange
                 endpoint = endpoint + ("?" + this.urlencode(query));
             }
         }
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), endpoint));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + endpoint);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();

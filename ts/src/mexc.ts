@@ -1236,7 +1236,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         const spotMarketPromise = this.fetchSpotMarkets (params);
@@ -1307,6 +1307,9 @@ export default class mexc extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'status');
             const isSpotTradingAllowed = this.safeBool (market, 'isSpotTradingAllowed');
             let active = false;
@@ -1440,6 +1443,9 @@ export default class mexc extends Exchange {
             const settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             const state = this.safeString (market, 'state');
             const isLinear = quote === settle;
@@ -2379,8 +2385,11 @@ export default class mexc extends Exchange {
         }
     }
 
-    createSpotOrderRequest (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createSpotOrderRequest (market: any, type: Str, side: Str, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const symbol = market['symbol'];
+        if ((type === undefined) || (side === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a type and a side argument');
+        }
         const orderSide = side.toUpperCase ();
         const request: Dict = {
             'symbol': market['id'],
@@ -2523,7 +2532,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
+    async createSwapOrder (market: any, type: any, side: Str, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2930,18 +2939,26 @@ export default class mexc extends Exchange {
         } else {
             if (since !== undefined) {
                 request['start_time'] = since;
+                const maxTimeTillEnd = this.safeInteger (this.options, 'maxTimeTillEnd');
+                if (maxTimeTillEnd === undefined) {
+                    throw new ExchangeError (this.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
+                }
                 const end = this.safeInteger (params, 'end_time', until);
                 if (end === undefined) {
-                    request['end_time'] = this.sum (since, this.options['maxTimeTillEnd']);
+                    request['end_time'] = this.sum (since, maxTimeTillEnd);
                 } else {
-                    if ((end - since) > this.options['maxTimeTillEnd']) {
+                    if ((end - since) > maxTimeTillEnd) {
                         throw new BadRequest (this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
                     } else {
                         request['end_time'] = until;
                     }
                 }
             } else if (until !== undefined) {
-                request['start_time'] = this.sum (until, this.options['maxTimeTillEnd'] * -1);
+                const maxTimeTillEnd = this.safeInteger (this.options, 'maxTimeTillEnd');
+                if (maxTimeTillEnd === undefined) {
+                    throw new ExchangeError (this.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
+                }
+                request['start_time'] = this.sum (until, maxTimeTillEnd * -1);
                 request['end_time'] = until;
             }
             if (limit !== undefined) {
@@ -5006,7 +5023,7 @@ export default class mexc extends Exchange {
             const rawNetwork = this.safeString (params, 'network');
             if (rawNetwork !== undefined) {
                 params = this.omit (params, 'network');
-                request['coin'] = request['coin'] + '-' + rawNetwork;
+                request['coin'] = currency['id'] + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {
@@ -6290,9 +6307,17 @@ export default class mexc extends Exchange {
         let url: Str = undefined;
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {
-                url = this.urls['api'][section][access as string] + '/' + path;
+                const apiUrl = this.safeString (this.urls['api'][section], access);
+                if (apiUrl === undefined) {
+                    throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+                }
+                url = apiUrl + '/' + path;
             } else {
-                url = this.urls['api'][section][access as string] + '/api/' + this.version + '/' + path;
+                const apiUrl = this.safeString (this.urls['api'][section], access);
+                if (apiUrl === undefined) {
+                    throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+                }
+                url = apiUrl + '/api/' + this.version + '/' + path;
             }
             let urlParams: Dict = params;
             if (access === 'private') {
@@ -6326,7 +6351,11 @@ export default class mexc extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {
-            url = this.urls['api'][section][access as string] + '/' + this.implodeParams (path, params);
+            const apiUrl = this.safeString (this.urls['api'][section], access);
+            if (apiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl + '/' + this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
             if (access === 'public') {
                 if (Object.keys (params).length > 0) {

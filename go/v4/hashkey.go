@@ -1183,7 +1183,10 @@ func (this *Hashkey) ParseMarket(market any) any {
 		suffix = Add(suffix, Add(":", settleId))
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
-	var symbol *string = SafeStringPtr(Add(Add(Add(base, "/"), quote), suffix))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote, suffix))
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "TRADING")
 	var isLinear any = nil
@@ -1784,8 +1787,8 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes158019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
-		ch <- BoxAbsent(retRes158019)
+		var retRes158319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes158319)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2949,13 +2952,13 @@ func (this *Hashkey) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
 
-		var retRes254119 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes254119)
+		var retRes254419 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes254419)
 		return nil
 	} else if GetValue(market, "swap") == true {
 
-		var retRes254319 map[string]any = MapTyped(PanicOnError((<-this.CreateSwapOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes254319)
+		var retRes254619 map[string]any = MapTyped(PanicOnError((<-this.CreateSwapOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes254619)
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" createOrder() is not supported for ", market["type"]), " type of markets")))
@@ -2993,8 +2996,8 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
 		"cost": cost,
 	}
 
-	var retRes256915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes256915)
+	var retRes257215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes257215)
 	return nil
 }
 
@@ -3674,13 +3677,13 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}, params)
 	if IsEqual(marketType, "spot") {
 
-		var retRes332119 []any = ListTyped(PanicOnError((<-this.FetchOpenSpotOrdersAsync(symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes332119)
+		var retRes332419 []any = ListTyped(PanicOnError((<-this.FetchOpenSpotOrdersAsync(symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes332419)
 		return nil
 	} else if IsEqual(marketType, "swap") {
 
-		var retRes332319 []any = ListTyped(PanicOnError((<-this.FetchOpenSwapOrdersAsync(symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes332319)
+		var retRes332619 []any = ListTyped(PanicOnError((<-this.FetchOpenSwapOrdersAsync(symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes332619)
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
@@ -3936,13 +3939,13 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
 }
-func (this *Hashkey) CheckTypeParam(methodName any, params any) {
+func (this *Hashkey) CheckTypeParam(methodName string, params any) {
 	// some hashkey endpoints have a type param for swap markets that defines the type of an order
 	// type param is reserved in ccxt for defining the type of the market
 	// current method warns user if he provides the exchange specific value in type parameter
 	var paramsType *string = this.SafeString(params, "type")
 	if (paramsType != nil) && (paramsType == nil || *paramsType != "spot") && (paramsType == nil || *paramsType != "swap") {
-		panic(BadRequest(Add(Add(Add(Add(this.Id+" ", methodName), " () type parameter can not be \""), paramsType), "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")))
+		panic(BadRequest(this.Id + " " + methodName + " () type parameter can not be \"" + *paramsType + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)"))
 	}
 }
 func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) any {
@@ -4417,10 +4420,10 @@ func (this *Hashkey) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var retRes403615 []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(GetValue(symbols, 0), this.Extend(map[string]any{
+	var retRes403915 []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(GetValue(symbols, 0), this.Extend(map[string]any{
 		"methodName": "fetchPositions",
 	}, params)))))
-	ch <- BoxAbsent(retRes403615)
+	ch <- BoxAbsent(retRes403915)
 	return nil
 }
 
@@ -4701,8 +4704,8 @@ func (this *Hashkey) addMarginBody(ch chan any, symbol any, amount any, optional
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes424715 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes424715)
+	var retRes425015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes425015)
 	return nil
 }
 
@@ -4728,16 +4731,16 @@ func (this *Hashkey) reduceMarginBody(ch chan any, symbol any, amount any, optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes426215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes426215)
+	var retRes426515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes426515)
 	return nil
 }
-func (this *Hashkey) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Hashkey) ModifyMarginHelperAsync(symbol any, amount any, typeVar string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
@@ -4755,14 +4758,14 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 	side = GetValue(sideparamsVariable, 0)
 	params = GetValue(sideparamsVariable, 1)
 	if side == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", typeVar), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")))
+		panic(ArgumentsRequired(this.Id + " " + typeVar + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\""))
 	}
 	side = ToUpper(side)
 	if (!IsEqual(side, "LONG")) && (!IsEqual(side, "SHORT")) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", typeVar), "Margin() params[\"side\"] must be either long or short")))
+		panic(ArgumentsRequired(this.Id + " " + typeVar + "Margin() params[\"side\"] must be either long or short"))
 	}
 	var amountString *string = this.NumberToString(amount)
-	if IsEqual(typeVar, "reduce") {
+	if typeVar == "reduce" {
 		amountString = Precise.StringMul(amountString, "-1")
 	}
 	var request map[string]any = map[string]any{
@@ -5105,7 +5108,11 @@ func (this *Hashkey) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", path)
 	var query any = nil
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()

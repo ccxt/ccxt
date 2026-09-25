@@ -967,6 +967,10 @@ impl ParadexCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         let mut timestamp: Value = self.safe_integer_k(contract.clone(), "created_at", &[]);
         let mut fundingPeriod: Value = self.safe_string_k(contract.clone(), "funding_period_hours", &[]);
+        let mut interval: Value = Value::Null;
+        if (fundingPeriod != Value::Null) {
+            interval = Value::Str(format!("{}{}", fundingPeriod, Value::Str("h".into())).into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -986,7 +990,7 @@ impl ParadexCore {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), Value::Str(format!("{}{}", fundingPeriod, Value::Str("h".into())).into()));
+        m.insert("interval".to_string(), interval);
     m
 });
 

@@ -1057,7 +1057,11 @@ export default class bingx extends bingxRest {
                 'dataType': 'spot.executionReport',
             };
         }
-        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchOrders() requires a websocket URL and a listen key');
+        }
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const subscription: Dict = {
             'unsubscribe': false,
             'id': uuid,
@@ -1128,7 +1132,11 @@ export default class bingx extends bingxRest {
                 'dataType': 'spot.executionReport',
             };
         }
-        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchMyTrades() requires a websocket URL and a listen key');
+        }
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const subscription: Dict = {
             'unsubscribe': false,
             'id': uuid,
@@ -1189,7 +1197,11 @@ export default class bingx extends bingxRest {
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
-        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchBalance() requires a websocket URL and a listen key');
+        }
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const client = this.client (url);
         this.setBalanceCache (client, type, subType, subscriptionHash, params);
         let fetchBalanceSnapshot: Bool = undefined;
@@ -1206,7 +1218,7 @@ export default class bingx extends bingxRest {
         return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
-    setBalanceCache (client: Client, type: any, subType: Str, subscriptionHash: string, params: Dict) {
+    setBalanceCache (client: Client, type: string, subType: Str, subscriptionHash: string, params: Dict) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -1223,7 +1235,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: any, subType: Str) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string, subType: Str) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -1270,7 +1282,11 @@ export default class bingx extends bingxRest {
         const subscriptionHash = 'swap:private';
         messageHash = 'swap:positions' + messageHash;
         const baseUrl = this.safeString (this.urls['api']['ws'], subType);
-        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        const userStreamKey = this.safeString (this.options, 'listenKey');
+        if (baseUrl === undefined || userStreamKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchPositions() requires a websocket URL and a listen key');
+        }
+        const url = baseUrl + '?listenKey=' + userStreamKey;
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         let fetchPositionsSnapshot: Bool = undefined;
@@ -1675,7 +1691,7 @@ export default class bingx extends bingxRest {
                     // Match both id and symbol: several cached orders can share a symbol.
                     for (let i = 0; i < stored.length; i++) {
                         const previousOrder = stored[i];
-                        if ((previousOrder['id'] === orderId) && (previousOrder['symbol'] === parsedOrder['symbol'])) {
+                        if ((this.safeString (previousOrder, 'id') === orderId) && (this.safeString (previousOrder, 'symbol') === this.safeString (parsedOrder, 'symbol'))) {
                             const previousTimestamp = this.safeInteger (previousOrder, 'lastUpdateTimestamp');
                             if ((previousTimestamp !== undefined) && (updateTimestamp < previousTimestamp)) {
                                 return;

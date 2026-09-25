@@ -1213,7 +1213,7 @@ public partial class xt : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -1410,7 +1410,7 @@ public partial class xt : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -1557,7 +1557,11 @@ public partial class xt : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(markets); i++)
         {
-            result.Add(this.parseMarket(getValue(markets, i)));
+            Dictionary<string, object> parsed = this.parseMarket(getValue(markets, i));
+            if ((parsed != null))
+            {
+                result.Add(parsed);
+            }
         }
         return result;
     }
@@ -1683,10 +1687,14 @@ public partial class xt : Exchange
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString2(market, "baseCurrency", "baseCoin");
         string? quoteId = this.safeString2(market, "quoteCurrency", "quoteCoin");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? state = this.safeString(market, "state");
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = ((bs + "/") + quote);
         List<object> filters = this.safeList(market, "filters", new List<object>() {});
         double? minAmount = null;
         double? maxAmount = null;
@@ -1723,7 +1731,7 @@ public partial class xt : Exchange
         bool? linear = null;
         bool? inverse = null;
         string? settleId = null;
-        object settle = null;
+        string? settle = null;
         Int64? expiry = null;
         bool future = false;
         bool swap = false;
@@ -3116,6 +3124,10 @@ public partial class xt : Exchange
     public async virtual Task<ccxt.Order> CreateSpotOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((side == null))
+        {
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
+        }
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -3845,7 +3857,7 @@ public partial class xt : Exchange
             // size would truncate the mixed-state page before the local status
             // filter runs, so the limit is only applied locally after filtering
             request = this.omit(request, new List<object>() {"state", "size"});
-        } else if (isEqual(status, "open"))
+        } else if ((status == "open"))
         {
             if (((trigger == true)) || ((stopLossTakeProfit == true)))
             {
@@ -3854,7 +3866,7 @@ public partial class xt : Exchange
             {
                 request["state"] = "UNFINISHED"; // NEW & PARTIALLY_FILLED
             }
-        } else if (isEqual(status, "closed"))
+        } else if ((status == "closed"))
         {
             if (((trigger == true)) || ((stopLossTakeProfit == true)))
             {
@@ -3863,7 +3875,7 @@ public partial class xt : Exchange
             {
                 request["state"] = "FILLED";
             }
-        } else if (isEqual(status, "canceled"))
+        } else if ((status == "canceled"))
         {
             if (((trigger == true)) || ((stopLossTakeProfit == true)))
             {
@@ -3910,7 +3922,7 @@ public partial class xt : Exchange
         } else if ((trailing == true))
         {
             parameters = this.omit(parameters, "trailing");
-            if (isEqual(status, "open"))
+            if ((status == "open"))
             {
                 if (subType == "inverse")
                 {
@@ -3950,7 +3962,7 @@ public partial class xt : Exchange
                 marginOrSpotRequest = "LEVER";
             }
             request["bizType"] = marginOrSpotRequest;
-            if (!isEqual(status, "open"))
+            if (!(status == "open"))
             {
                 if ((since != null))
                 {
@@ -5336,7 +5348,7 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         string? positionSide = this.safeString(parameters, "positionSide");
         string methodName = "reduceMargin";
-        if (isEqual(addOrReduce, "ADD"))
+        if ((addOrReduce == "ADD"))
         {
             methodName = "addMargin";
         }
@@ -6600,11 +6612,11 @@ public partial class xt : Exchange
             throw new NotSupported ((this.id + " setMarginMode() supports contract markets only")) ;
         }
         marginModeVar = marginModeVar.ToLower();
-        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
+        if (!(marginModeVar == "isolated") && !(marginModeVar == "cross"))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
-        if (isEqual(marginModeVar, "cross"))
+        if ((marginModeVar == "cross"))
         {
             marginModeVar = "CROSSED";
         } else
@@ -6826,7 +6838,12 @@ public partial class xt : Exchange
         {
             payload = request;
         }
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint), payload);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + payload);
         object query = this.omit(parameters, this.extractParams(path));
         string urlencoded = this.urlencode(this.keysort(query));
         headers = new Dictionary<string, object>() {
@@ -6872,7 +6889,7 @@ public partial class xt : Exchange
                 {
                     if (urlencoded != "")
                     {
-                        url = add(url, ("?" + urlencoded));
+                        url = url + ("?" + urlencoded);
                         payloadString = add(payloadString, ((((("#" + method) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
                     } else
                     {
@@ -6891,7 +6908,7 @@ public partial class xt : Exchange
                 {
                     if (urlencoded != "")
                     {
-                        url = add(url, ("?" + urlencoded));
+                        url = url + ("?" + urlencoded);
                         payloadString = add(payloadString, ((("#" + payload) + "#") + urlencoded));
                     } else
                     {
@@ -6910,7 +6927,7 @@ public partial class xt : Exchange
         {
             if (urlencoded != "")
             {
-                url = add(url, ("?" + urlencoded));
+                url = url + ("?" + urlencoded);
             }
         }
         return new Dictionary<string, object>() {

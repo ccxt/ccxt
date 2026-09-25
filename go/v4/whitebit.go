@@ -762,7 +762,7 @@ func (this *Whitebit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -804,13 +804,16 @@ func (this *Whitebit) ParseMarket(market any) any {
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var active *bool = this.SafeBool(market, "tradesEnabled")
 	var isCollateral *bool = this.SafeBool(market, "isCollateral")
 	var typeId *string = this.SafeString(market, "type")
 	var typeVar string
 	var settle *string = nil
 	var settleId any = nil
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	var swap bool = (typeId != nil && *typeId == "futures") || (typeId != nil && *typeId == "tradfiFutures")
 	var margin bool = (isCollateral != nil && *isCollateral == true) && !swap
 	var contract bool = false
@@ -1471,7 +1474,7 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 		if (IsEqual(market, nil)) || (IsEqual(market, nil)) || (marketSymbol == nil) || (marketSymbol != nil && *marketSymbol == "") {
 			continue
 		}
-		var symbol any = GetValue(market, "symbol")
+		var symbol *string = marketSymbol
 		// Filter by symbols if specified
 		if symbols != nil {
 			var symbolFound bool = false
@@ -1622,7 +1625,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		for j := 0; j < len(feeKeys); j++ {
 			var feeKey string = GetValue(feeKeys, j).(string)
 			var fee any = this.SafeDict(feesData, feeKey)
-			if (!IsEqual(fee, nil) && !IsEqual(fee, nil)) && IsEqual(GetValue(fee, "ticker"), code) {
+			if (!IsEqual(fee, nil) && !IsEqual(fee, nil)) && (this.SafeString(fee, "ticker") != nil && *this.SafeString(fee, "ticker") == code) {
 				feeData = fee
 				break
 			}
@@ -2623,9 +2626,9 @@ func (this *Whitebit) createMarketOrderWithCostBody(ch chan any, symbol any, sid
 		"cost": cost,
 	}
 
-	var retRes200715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, this.Extend(req, params)))))
+	var retRes201015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, this.Extend(req, params)))))
 	// only buy side is supported
-	ch <- BoxAbsent(retRes200715)
+	ch <- BoxAbsent(retRes201015)
 	return nil
 }
 
@@ -2649,8 +2652,8 @@ func (this *Whitebit) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes202015 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
-	ch <- BoxAbsent(retRes202015)
+	var retRes202315 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
+	ch <- BoxAbsent(retRes202315)
 	return nil
 }
 
@@ -5433,8 +5436,8 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes422519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))))
-		ch <- BoxAbsent(retRes422519)
+		var retRes422819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, maxLimit))))
+		ch <- BoxAbsent(retRes422819)
 		return nil
 	}
 	if this.Markets == nil {
@@ -5486,7 +5489,7 @@ func (this *Whitebit) ParseFundingRateHistory(info any, optionalArgs ...any) any
 	}
 }
 func (this *Whitebit) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -5507,7 +5510,11 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 	}
 	AddElementToObject(headers, "User-Agent", "ccxt/"+this.Id+"-"+this.Version)
 	var pathWithParams any = Add("/", this.ImplodeParams(path, params))
-	var url any = Add(GetValue(GetValue(GetValue(this.Urls, "api"), version), accessibility), pathWithParams)
+	var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), version), accessibility)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, pathWithParams)
 	if IsEqual(accessibility, "public") {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

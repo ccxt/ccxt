@@ -789,13 +789,17 @@ public partial class bittrade : Exchange
             object market = markets[i];
             string? baseId = this.safeString(market, "base-currency");
             string? quoteId = this.safeString(market, "quote-currency");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? state = this.safeString(market, "state");
             string? leverageRatio = this.safeString(market, "leverage-ratio", "1");
             string? superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
             bool margin = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
-            double? fee = (isEqual(bs, "OMG")) ? this.parseNumber("0") : this.parseNumber("0.002");
+            double? fee = (bs == "OMG") ? this.parseNumber("0") : this.parseNumber("0.002");
             if ((baseId == null))
             {
                 throw new ExchangeError ((this.id + " fetchMarkets() missing baseId")) ;
@@ -806,7 +810,7 @@ public partial class bittrade : Exchange
             }
             result.Add(new Dictionary<string, object>() {
                 { "id", (baseId + quoteId) },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -1267,7 +1271,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limitVar, null))
+        if (!(limitVar == null))
         {
             request["size"] = mathMin(limitVar, 2000);
         }
@@ -1355,7 +1359,7 @@ public partial class bittrade : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(limitVar, null))
+        if (!(limitVar == null))
         {
             request["size"] = mathMin(limitVar, 2000);
         }
@@ -1516,7 +1520,7 @@ public partial class bittrade : Exchange
             {
                 throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (isEqual((balance != null && ((IDictionary<string, object>)balance).ContainsKey("type") ? ((IDictionary<string, object>)balance)["type"] : null), "trade"))
+            if ((this.safeString(balance, "type") == "trade"))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
             }
@@ -1524,7 +1528,7 @@ public partial class bittrade : Exchange
             {
                 throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (isEqual((balance != null && ((IDictionary<string, object>)balance).ContainsKey("type") ? ((IDictionary<string, object>)balance)["type"] : null), "frozen"))
+            if ((this.safeString(balance, "type") == "frozen"))
             {
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "balance");
             }
@@ -2216,7 +2220,7 @@ public partial class bittrade : Exchange
     {
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }
@@ -2261,7 +2265,7 @@ public partial class bittrade : Exchange
     {
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }

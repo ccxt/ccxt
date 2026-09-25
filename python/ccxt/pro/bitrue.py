@@ -5,8 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
@@ -407,10 +408,12 @@ class bitrue(ccxt.async_support.bitrue):
         symbols = list(markets.keys())
         for i in range(0, len(symbols)):
             candidate = markets[symbols[i]]
-            if candidate['swap'] is not True:
+            if self.safe_bool(candidate, 'swap') is not True:
                 continue
-            baseId = self.safe_string_lower(candidate, 'baseId', '')
-            quoteId = self.safe_string_lower(candidate, 'quoteId', '')
+            baseId = self.safe_string_lower(candidate, 'baseId')
+            quoteId = self.safe_string_lower(candidate, 'quoteId')
+            if baseId is None or quoteId is None:
+                raise ExchangeError(self.id + ' findSwapMarketByWsBaseQuote() market ' + symbols[i] + ' has no baseId or quoteId')
             if baseId + quoteId == wsBaseQuote:
                 return candidate
         return None
@@ -425,7 +428,7 @@ class bitrue(ccxt.async_support.bitrue):
             result.append([price, amount])
         return result
 
-    def convert_from_raw_quantity(self, symbol: str, rawQuantity: object):
+    def convert_from_raw_quantity(self, symbol: str, rawQuantity: Num):
         if rawQuantity is None:
             return None
         market = self.market(symbol)
@@ -828,7 +831,10 @@ class bitrue(ccxt.async_support.bitrue):
                     # waiters retry rather than dial a hollow stream url
                     raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
                 self.options['listenKey'] = key
-                self.options['listenKeyUrl'] = self.urls['api']['ws']['private'] + '/stream?listenKey=' + key
+                wsUrl = self.safe_string(self.urls['api']['ws'], 'private')
+                if wsUrl is None:
+                    raise ExchangeError(self.id + ' authenticate() has no private websocket url')
+                self.options['listenKeyUrl'] = wsUrl + '/stream?listenKey=' + key
                 client.resolve(key, messageHash)
             except Exception as e:
                 # reject the flight - all waiters throw and the next caller

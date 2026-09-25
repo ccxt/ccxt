@@ -571,6 +571,9 @@ class luno extends Exchange {
             $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $status = $this->safe_string($market, 'trading_status');
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -1071,15 +1074,15 @@ class luno extends Exchange {
             } elseif (($type === 'BID') || ($type === 'BUY')) {
                 $side = 'buy';
             }
-            if (($side === 'sell') && ($trade['is_buy'] === true)) {
+            if (($side === 'sell') && ($this->safe_bool($trade, 'is_buy') === true)) {
                 $takerOrMaker = 'maker';
-            } elseif (($side === 'buy') && ($trade['is_buy'] !== true)) {
+            } elseif (($side === 'buy') && ($this->safe_bool($trade, 'is_buy') !== true)) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';
             }
         } else {
-            $side = ($trade['is_buy'] === true) ? 'buy' : 'sell';
+            $side = ($this->safe_bool($trade, 'is_buy') === true) ? 'buy' : 'sell';
         }
         $feeBaseString = $this->safe_string($trade, 'fee_base');
         $feeCounterString = $this->safe_string($trade, 'fee_counter');
@@ -1337,9 +1340,7 @@ class luno extends Exchange {
             'pair' => $market['id'],
         );
         $response = null;
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         if ($type === 'market') {
             $request['type'] = strtoupper($side);
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1705,7 +1706,11 @@ class luno extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if (count($query) > 0) {
             $url .= '?' . $this->urlencode($query);

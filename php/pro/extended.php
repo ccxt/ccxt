@@ -74,7 +74,7 @@ class extended extends \ccxt\async\extended {
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/orderbooks/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/orderbooks/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
@@ -158,7 +158,7 @@ class extended extends \ccxt\async\extended {
 
     private function do_watch_private(string $messageHash, ?array $subscription = null) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws'] . '/account';
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/account';
         if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             $defaultOptions = array(
                 'ws' => array(
@@ -576,7 +576,7 @@ class extended extends \ccxt\async\extended {
         $symbol = $market['symbol'];
         $messageHash = 'fundingRate:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/funding/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/funding/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
@@ -654,7 +654,7 @@ class extended extends \ccxt\async\extended {
         $symbol = $market['symbol'];
         $messageHash = 'markPrice:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/prices/mark/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/prices/mark/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
@@ -721,7 +721,7 @@ class extended extends \ccxt\async\extended {
         $symbol = $market['symbol'];
         $messageHash = 'trades:' . $symbol;
         $query = $this->urlencode($params);
-        $url = $this->urls['api']['ws'] . '/publicTrades/' . $market['id'];
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/publicTrades/' . $market['id'];
         if (strlen($query) > 0) {
             $url .= '?' . $query;
         }
@@ -822,7 +822,7 @@ class extended extends \ccxt\async\extended {
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe . ':' . $candleType;
         $query = $this->urlencode($this->extend(array( 'interval' => $interval ), $params));
-        $url = $this->urls['api']['ws'] . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/candles/' . $market['id'] . '/' . $candleType . '?' . $query;
         $ohlcv = Async\await($this->watch($url, $messageHash, null, $messageHash, array(
             'name' => 'ohlcv',
             'symbol' => $symbol,

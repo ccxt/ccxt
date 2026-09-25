@@ -577,7 +577,7 @@ func (this *Cex) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Cex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -596,8 +596,8 @@ func (this *Cex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var market map[string]any = this.Market(symbol)
-	symbol = market["symbol"]
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", symbol))
+	symbol = ccxt.SafeStringPtr(market["symbol"])
+	var messageHash string = "orders:" + *symbol
 	var message map[string]any = map[string]any{
 		"e": "open-orders",
 		"data": map[string]any{
@@ -1210,7 +1210,8 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	var symbol any = this.PairToSymbol(pair)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	if !ccxt.IsEqual(incrementalId, ccxt.Add(ccxt.GetValue(storedOrderBook, "nonce"), 1)) {
+	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
+	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, ccxt.Add(nonce, 1))) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		client.(ccxt.ClientInterface).Reject(this.Id+" watchOrderBook() skipped a message", messageHash)
 		return

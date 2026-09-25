@@ -677,7 +677,11 @@ public partial class bithumb : Exchange
                         continue;
                     }
                     object market = getValue(data, currencyId);
-                    object bs = this.safeCurrencyCode(currencyId);
+                    string? bs = this.safeCurrencyCode(currencyId);
+                    if ((bs == null))
+                    {
+                        continue;
+                    }
                     bool active = true;
                     if (((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                     {
@@ -689,7 +693,7 @@ public partial class bithumb : Exchange
                     }
                     Dictionary<string, object> entry = this.deepExtend(new Dictionary<string, object>() {
                         { "id", currencyId },
-                        { "symbol", add(add(bs, "/"), quote) },
+                        { "symbol", ((bs + "/") + quote) },
                         { "base", bs },
                         { "quote", quote },
                         { "settle", null },
@@ -1291,7 +1295,7 @@ public partial class bithumb : Exchange
                     string? currencyId = ((string)currencyIds[j]);
                     object ticker = getValue(data, currencyId);
                     object bs = this.safeCurrencyCode(currencyId);
-                    object symbol = add(add(bs, "/"), quote);
+                    string? symbol = ((string)add(add(bs, "/"), quote));
                     Dictionary<string, object> market = this.safeMarket(symbol);
                     ((IDictionary<string,object>)ticker)["date"] = timestamp;
                     result[(string)symbol] = this.parseTicker(ticker, market);
@@ -1475,13 +1479,13 @@ public partial class bithumb : Exchange
             {
                 request["count"] = limit;
             }
-            if (isEqual(timeframeVar, "1d"))
+            if ((timeframeVar == "1d"))
             {
                 response = await this.publicGetV1CandlesDays(this.extend(request, parameters));
-            } else if (isEqual(timeframeVar, "1w"))
+            } else if ((timeframeVar == "1w"))
             {
                 response = await this.publicGetV1CandlesWeeks(this.extend(request, parameters));
-            } else if (isEqual(timeframeVar, "1M"))
+            } else if ((timeframeVar == "1M"))
             {
                 response = await this.publicGetV1CandlesMonths(this.extend(request, parameters));
             } else
@@ -1641,7 +1645,7 @@ public partial class bithumb : Exchange
         }
         if ((!isEqual(timestamp, null)) && (!isGenerationTwo))
         {
-            timestamp = subtract(timestamp, multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
+            timestamp = subtract(timestamp, (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
         }
         object type = null;
         string? side = this.safeStringLower2(trade, "ask_bid", "type");
@@ -2427,7 +2431,7 @@ public partial class bithumb : Exchange
                 Int64? normalizedTimestamp = this.parse8601(normalized);
                 if ((normalizedTimestamp != null))
                 {
-                    timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
+                    timestamp = subtract(normalizedTimestamp, (9L * 3600000L));
                 } else
                 {
                     timestamp = this.parse8601(datetime);
@@ -2845,7 +2849,7 @@ public partial class bithumb : Exchange
                 throw new ArgumentsRequired ((this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
             }
             string? side = null;
-            if (isEqual(getValue(parameters, "side"), "buy"))
+            if ((this.safeString(parameters, "side") == "buy"))
             {
                 side = "bid";
             } else
@@ -3093,7 +3097,7 @@ public partial class bithumb : Exchange
             Int64? normalizedTimestamp = this.parse8601(normalized);
             if ((normalizedTimestamp != null))
             {
-                timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
+                timestamp = subtract(normalizedTimestamp, (9L * 3600000L));
             }
         }
         return new Dictionary<string, object>() {
@@ -3688,7 +3692,12 @@ public partial class bithumb : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + endpoint);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (this.implodeHostname(apiUrl) + endpoint);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryKeysLength = queryKeys.Count;

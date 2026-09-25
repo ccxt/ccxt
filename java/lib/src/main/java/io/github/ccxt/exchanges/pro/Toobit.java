@@ -264,13 +264,13 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)subParams).add(rawHash);
             }
             List<String> marketIds = this.marketIds(symbols);
-            Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
                 put( "topic", "trade" );
                 put( "event", "sub" );
             }};
-            List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -416,7 +416,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 (this.loadMarkets()).join();
             }
-            Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("ws"), "timeframes", new HashMap<String, Object>() {{}});
             Object marketIds = new ArrayList<Object>(Arrays.asList());
@@ -445,7 +445,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "topic", ("kline_" + finalSelectedTimeframe) );
                 put( "event", "sub" );
             }};
-            var symboltimeframestoredVariable = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            var symboltimeframestoredVariable = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
@@ -627,13 +627,13 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)subParams).add(rawHash);
             }
             List<String> marketIds = this.marketIds(symbols);
-            Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
                 put( "topic", "realtimes" );
                 put( "event", "sub" );
             }};
-            Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -810,14 +810,14 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)subParams).add(rawHash);
             }
             List<String> marketIds = this.marketIds(symbols);
-            Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
+            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/quote/ws/v1");
             final String finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", String.join(",", (List<String>)marketIds) );
                 put( "topic", finalChannel );
                 put( "event", "sub" );
             }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -886,8 +886,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long timestamp = this.safeInteger(entry, "t");
             List<Object> bids = (List<Object>) this.safeList(entry, "b", new ArrayList<Object>(Arrays.asList()));
             List<Object> asks = (List<Object>) this.safeList(entry, "a", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderBook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderBook, "bids"), bids);
+            this.handleDeltas((orderBook == null ? null : orderBook.get("asks")), asks);
+            this.handleDeltas((orderBook == null ? null : orderBook.get("bids")), bids);
             Helpers.addElementToObject(orderBook, "timestamp", timestamp);
             Helpers.addElementToObject(this.orderbooks, symbol, orderBook);
             client.resolve(orderBook, messageHash);
@@ -935,7 +935,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             return;
         }
-        for (var i = 0; Helpers.isLessThan(i, length); i++)
+        for (var i = 0; (length != null && i < length); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i);
             String marketId = this.safeString(entry, "s");
@@ -1615,7 +1615,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> filtered = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(filtered))
@@ -1669,7 +1669,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long time = this.milliseconds();
             Long lastAuthenticatedTime = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "lastAuthenticatedTime", 0);
             Long listenKeyRefreshRate = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "listenKeyRefreshRate", 1200000);
-            Object delay = this.sum(listenKeyRefreshRate, 10000);
+            Object delay = (listenKeyRefreshRate + 10000L);
             if (Helpers.isGreaterThan((time - lastAuthenticatedTime), delay))
             {
                 this.checkRequiredCredentials();
@@ -1769,7 +1769,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public Object getUserStreamUrl()
     {
-        return Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/api/v1/ws/"), Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "listenKey"));
+        return ((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common") + "/api/v1/ws/") + this.safeString(((Map<String, Object>)this.options).get("ws"), "listenKey"));
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

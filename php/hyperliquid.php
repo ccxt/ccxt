@@ -531,7 +531,7 @@ class hyperliquid extends Exchange {
         $types = $this->safe_list($options, 'types', array());
         $rawPromises = array();
         for ($i = 0; $i < count($types); $i++) {
-            $marketType = $types[$i];
+            $marketType = $this->safe_string($types, $i);
             if ($marketType === 'swap') {
                 $rawPromises[] = $this->fetch_swap_markets($params);
             } elseif ($marketType === 'spot') {
@@ -1020,6 +1020,9 @@ class hyperliquid extends Exchange {
         }
         $base = str_replace(':', '-', $base); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         $quote = $this->safe_currency_code($quoteId);
+        if ($quote === null) {
+            return null;
+        }
         $baseId = $this->safe_string($market, 'baseId');
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
@@ -4064,7 +4067,7 @@ class hyperliquid extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4657,7 +4660,7 @@ class hyperliquid extends Exchange {
         if ($vaultAddress !== null) {
             for ($i = 0; $i < count($records); $i++) {
                 $record = $records[$i];
-                if ($record['type'] === 'vaultDeposit') {
+                if ($this->safe_string($record, 'type') === 'vaultDeposit') {
                     $delta = $this->safe_dict($record, 'delta', array());
                     if ($delta['vault'] === '0x' . $vaultAddress) {
                         $deposits[] = $record;
@@ -4725,7 +4728,7 @@ class hyperliquid extends Exchange {
         if ($vaultAddress !== null) {
             for ($i = 0; $i < count($records); $i++) {
                 $record = $records[$i];
-                if ($record['type'] === 'vaultWithdraw') {
+                if ($this->safe_string($record, 'type') === 'vaultWithdraw') {
                     $delta = $this->safe_dict($record, 'delta', array());
                     if ($delta['vault'] === '0x' . $vaultAddress) {
                         $withdrawals[] = $record;
@@ -5052,7 +5055,11 @@ class hyperliquid extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($apiUrl) . '/' . $path;
         if ($method === 'POST') {
             $headers = array(
                 'Content-Type' => 'application/json',

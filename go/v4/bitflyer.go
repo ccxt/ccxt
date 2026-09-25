@@ -317,7 +317,10 @@ func (this *Bitflyer) ParseExpiryDate(expiry any) any {
 		"DEC": "12",
 	}
 	var month *string = this.SafeString(months, monthName)
-	return this.Parse8601(Add(Add(Add(Add(year+"-", month), "-"), day), "T00:00:00Z"))
+	if month == nil {
+		return nil
+	}
+	return this.Parse8601(year + "-" + *month + "-" + day + "T00:00:00Z")
 }
 func (this *Bitflyer) SafeMarket(optionalArgs ...any) map[string]any {
 	// Bitflyer has a different type of conflict in markets, because
@@ -462,13 +465,22 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				}()
 				var splitId []string = Split(id, currencyIds)
 				var expiryDate *string = this.SafeString(splitId, 1)
+				if expiryDate == nil {
+					continue
+				}
 				expiry = this.ParseExpiryDate(expiryDate)
+			}
+			if IsEqual(expiry, nil) {
+				continue
 			}
 			typeVar = "future"
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol any = Add(Add(base, "/"), quote)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
+		var symbol any = *base + "/" + *quote
 		var taker any = GetValue(this.Fees["trading"], "taker")
 		var maker any = GetValue(this.Fees["trading"], "maker")
 		var contract bool = swap || future
@@ -1116,8 +1128,8 @@ func (this *Bitflyer) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		"child_order_state": "ACTIVE",
 	}
 
-	var retRes83815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes83815)
+	var retRes85015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes85015)
 	return nil
 }
 
@@ -1152,8 +1164,8 @@ func (this *Bitflyer) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"child_order_state": "COMPLETED",
 	}
 
-	var retRes85615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes85615)
+	var retRes86815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes86815)
 	return nil
 }
 
@@ -1675,7 +1687,11 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 			request = Add(request, "?"+this.Urlencode(params))
 		}
 	}
-	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest"))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl any = this.ImplodeHostname(apiUrl)
 	var url any = Add(baseUrl, request)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()

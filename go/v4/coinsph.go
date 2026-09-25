@@ -1024,13 +1024,16 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quoteAsset")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var limits map[string]any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
 		var amountLimits map[string]any = SafeMapTyped(limits, "LOT_SIZE")
 		var priceLimits map[string]any = SafeMapTyped(limits, "PRICE_FILTER")
 		var costLimits map[string]any = SafeMapTyped(limits, "NOTIONAL")
 		result = append(result, map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -1571,8 +1574,8 @@ func (this *Coinsph) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 		"orderId": id,
 	}
 
-	var retRes124615 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes124615)
+	var retRes124915 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes124915)
 	return nil
 }
 func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1908,8 +1911,8 @@ func (this *Coinsph) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
-	if !IsEqual(clientOrderId, nil) {
+	var clientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
+	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else {
 		request["orderId"] = id
@@ -2045,8 +2048,8 @@ func (this *Coinsph) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
-	if !IsEqual(clientOrderId, nil) {
+	var clientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
+	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else {
 		request["orderId"] = id
@@ -2850,7 +2853,11 @@ func (this *Coinsph) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var url any = GetValue(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = apiUrl
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var endpoint any = this.ImplodeParams(path, params)
 	url = Add(Add(url, "/"), endpoint)
@@ -2872,7 +2879,7 @@ func (this *Coinsph) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		query = this.UrlEncodeQuery(query)
-		if !IsEqual(GetArrayLength(query), 0) {
+		if GetArrayLength(query) != 0 {
 			url = Add(url, Add("?", query))
 		}
 	}

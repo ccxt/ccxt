@@ -226,7 +226,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry: any) {
+    parseExpiryDate (expiry: string): Int {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
@@ -245,6 +245,9 @@ export default class bitflyer extends Exchange {
             'DEC': '12',
         };
         const month = this.safeString (months, monthName);
+        if (month === undefined) {
+            return undefined;
+        }
         return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
     }
 
@@ -336,12 +339,21 @@ export default class bitflyer extends Exchange {
                     quoteId = (currencyIds as string).slice (-3);
                     const splitId = (id as string).split (currencyIds as string);
                     const expiryDate = this.safeString (splitId, 1);
+                    if (expiryDate === undefined) {
+                        continue;
+                    }
                     expiry = this.parseExpiryDate (expiryDate);
+                }
+                if (expiry === undefined) {
+                    continue;
                 }
                 type = 'future';
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let symbol = base + '/' + quote;
             let taker = this.fees['trading']['taker'];
             let maker = this.fees['trading']['maker'];
@@ -1248,7 +1260,11 @@ export default class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = this.implodeHostname (apiUrl);
         const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();

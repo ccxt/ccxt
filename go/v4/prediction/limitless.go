@@ -2664,9 +2664,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		"buy":  0,
 		"sell": 1,
 	}
-	if ccxt.IsEqual(side, nil) {
-		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var sideValue *int64 = this.SafeInteger(sides, ccxt.ToLower(side))
 	var rank map[string]any = ccxt.SafeMapTyped(accountInfo, "rank")
 	// signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -3182,8 +3180,8 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if paginate == true {
 		params = ccxt.MapTyped(this.Omit(params, "paginate"))
 
-		var retRes248719 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))))
-		ch <- ccxt.BoxAbsent(retRes248719)
+		var retRes248519 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))))
+		ch <- ccxt.BoxAbsent(retRes248519)
 		return nil
 	}
 	var request map[string]any = map[string]any{}

@@ -695,6 +695,9 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				}
 				var market any = data[currencyId]
 				var base *string = this.SafeCurrencyCode(currencyId)
+				if base == nil {
+					continue
+				}
 				var active bool = true
 				if IsArray(market) {
 					var numElements int = GetArrayLength(market)
@@ -704,7 +707,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				}
 				var entry map[string]any = this.DeepExtend(map[string]any{
 					"id":             currencyId,
-					"symbol":         Add(Add(base, "/"), quote),
+					"symbol":         Add(*base+"/", quote),
 					"base":           base,
 					"quote":          quote,
 					"settle":         nil,
@@ -2139,8 +2142,8 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes186915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes186915)
+	var retRes187215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes187215)
 	return nil
 }
 
@@ -2974,7 +2977,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a `side` parameter (sell or buy)"))
 		}
 		var side string
-		if IsEqual(params["side"], "buy") {
+		if this.SafeString(params, "side") != nil && *this.SafeString(params, "side") == "buy" {
 			side = "bid"
 		} else {
 			side = "ask"
@@ -3073,8 +3076,8 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan any, order any, optionalArgs
 		"side": GetValue(order, "side"),
 	}
 
-	var retRes266815 map[string]any = MapTyped(PanicOnError((<-this.CancelOrderAsync(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes266815)
+	var retRes267115 map[string]any = MapTyped(PanicOnError((<-this.CancelOrderAsync(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes267115)
 	return nil
 }
 
@@ -3902,7 +3905,11 @@ func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
-	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), endpoint)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(this.ImplodeHostname(apiUrl), endpoint)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)

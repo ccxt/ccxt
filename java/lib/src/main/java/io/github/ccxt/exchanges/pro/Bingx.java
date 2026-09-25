@@ -972,7 +972,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String dataType = this.safeString(message, "dataType", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)dataType).split(java.util.regex.Pattern.quote("@"))));
-        String firstPart = (String) Helpers.GetValue(parts, 0);
+        String firstPart = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
         Boolean isAllEndpoint = (java.util.Objects.equals(firstPart, "all"));
         String marketId = this.safeString(data, "symbol", firstPart);
         Boolean isSwap = ((String)client.url).indexOf("swap") >= 0;
@@ -1120,7 +1120,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Boolean isSwap = ((String)client.url).indexOf("swap") >= 0;
         String dataType = this.safeString(message, "dataType", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)dataType).split(java.util.regex.Pattern.quote("@"))));
-        String firstPart = (String) Helpers.GetValue(parts, 0);
+        String firstPart = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
         Boolean isAllEndpoint = (java.util.Objects.equals(firstPart, "all"));
         String marketId = this.safeString(message, "s", firstPart);
         String marketType = "spot";
@@ -1405,7 +1405,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     put( "dataType", "spot.executionReport" );
                 }};
             }
-            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String userStreamKey = this.safeString(this.options, "listenKey");
+            if (java.util.Objects.equals(baseUrl, null) || java.util.Objects.equals(userStreamKey, null))
+            {
+                throw new AuthenticationError((this.id + " watchOrders() requires a websocket URL and a listen key")) ;
+            }
+            String url = ((baseUrl + "?listenKey=") + userStreamKey);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
@@ -1516,7 +1521,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     put( "dataType", "spot.executionReport" );
                 }};
             }
-            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String userStreamKey = this.safeString(this.options, "listenKey");
+            if (java.util.Objects.equals(baseUrl, null) || java.util.Objects.equals(userStreamKey, null))
+            {
+                throw new AuthenticationError((this.id + " watchMyTrades() requires a websocket URL and a listen key")) ;
+            }
+            String url = ((baseUrl + "?listenKey=") + userStreamKey);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
@@ -1611,7 +1621,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     put( "dataType", "ACCOUNT_UPDATE" );
                 }};
             }
-            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String userStreamKey = this.safeString(this.options, "listenKey");
+            if (java.util.Objects.equals(baseUrl, null) || java.util.Objects.equals(userStreamKey, null))
+            {
+                throw new AuthenticationError((this.id + " watchBalance() requires a websocket URL and a listen key")) ;
+            }
+            String url = ((baseUrl + "?listenKey=") + userStreamKey);
             Client client = this.client(url);
             this.setBalanceCache(client, type, subType, subscriptionHash, (Map<String, Object>) (parameters));
             Boolean fetchBalanceSnapshot = null;
@@ -1661,10 +1676,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         parameters = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
-            Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
+            String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, (String) (subType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -1691,7 +1706,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
-                client.resolve((type == null ? null : this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), Helpers.add(type, ":balance"));
+                client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
             }
             return null;
         });
@@ -1748,7 +1763,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String subscriptionHash = "swap:private";
             messageHash = ("swap:positions" + messageHash);
             String baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
-            String url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
+            String userStreamKey = this.safeString(this.options, "listenKey");
+            if (java.util.Objects.equals(baseUrl, null) || java.util.Objects.equals(userStreamKey, null))
+            {
+                throw new AuthenticationError((this.id + " watchPositions() requires a websocket URL and a listen key")) ;
+            }
+            String url = ((baseUrl + "?listenKey=") + userStreamKey);
             Client client = this.client(url);
             this.setPositionsCache(client, type, symbols);
             Boolean fetchPositionsSnapshot = null;
@@ -1974,7 +1994,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> filteredSymbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!this.isEmpty(positions))
@@ -2252,7 +2272,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             // The envelope T is the order update time; o.T is the trade time.
             Long updateTimestamp = this.safeInteger(message, "T");
-            if ((!java.util.Objects.equals(updateTimestamp, null)) && (Helpers.isGreaterThan(updateTimestamp, 0)))
+            if ((!java.util.Objects.equals(updateTimestamp, null)) && ((updateTimestamp != null && updateTimestamp > 0)))
             {
                 String orderId = this.safeString(parsedOrder, "id");
                 if (!java.util.Objects.equals(orderId, null))
@@ -2262,10 +2282,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     for (var i = 0; i < ((List<?>)stored).size(); i++)
                     {
                         Object previousOrder = (stored == null || i < 0 || i >= ((List<?>)stored).size() ? null : ((List<?>)stored).get(i));
-                        if ((java.util.Objects.equals(Helpers.GetValue(previousOrder, "id"), orderId)) && (java.util.Objects.equals(Helpers.GetValue(previousOrder, "symbol"), ((Map<String, Object>)parsedOrder).get("symbol"))))
+                        if ((java.util.Objects.equals(this.safeString(previousOrder, "id"), orderId)) && (java.util.Objects.equals(this.safeString(previousOrder, "symbol"), this.safeString(parsedOrder, "symbol"))))
                         {
                             Long previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
-                            if ((!java.util.Objects.equals(previousTimestamp, null)) && (Helpers.isLessThan(updateTimestamp, previousTimestamp)))
+                            if ((!java.util.Objects.equals(previousTimestamp, null)) && ((previousTimestamp != null && (updateTimestamp == null || updateTimestamp < previousTimestamp))))
                             {
                                 return;
                             }

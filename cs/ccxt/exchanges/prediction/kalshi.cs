@@ -1438,8 +1438,8 @@ public partial class kalshi : PredictionExchange
             request["start_ts"] = sinceS;
             if ((limit != null))
             {
-                object end = this.sum(sinceS, (limit * tf));
-                request["end_ts"] = (isLessThan(end, now)) ? end : now;
+                Int64 end = this.sum(sinceS, (limit * tf));
+                request["end_ts"] = (end < now) ? end : now;
             } else
             {
                 // the candlesticks endpoint requires end_ts - default to now
@@ -1615,7 +1615,7 @@ public partial class kalshi : PredictionExchange
         Int64? ts = this.parse8601(this.safeString(trade, "created_time"));
         double? priceDollars = this.safeNumber2(trade, "yes_price_dollars", "price_dollars");
         double? priceCents = this.safeNumber2(trade, "yes_price", "price");
-        object price = null;
+        double? price = null;
         if ((priceDollars != null))
         {
             price = priceDollars;
@@ -1644,7 +1644,7 @@ public partial class kalshi : PredictionExchange
             }
         }
         object cost = null;
-        if ((!isEqual(price, null)) && ((amount != null)))
+        if (((price != null)) && ((amount != null)))
         {
             cost = multiply(price, amount);
         }
@@ -1759,11 +1759,11 @@ public partial class kalshi : PredictionExchange
             side = "sell";
         }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
-        object price = null;
+        double? price = null;
         if (sideLeg == "no")
         {
             price = this.safeNumber(fill, "no_price_dollars");
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 double? noCents = this.safeNumber(fill, "no_price");
                 if ((noCents != null))
@@ -1774,7 +1774,7 @@ public partial class kalshi : PredictionExchange
         } else
         {
             price = this.safeNumber(fill, "yes_price_dollars");
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 double? yesCents = this.safeNumber(fill, "yes_price");
                 if ((yesCents != null))
@@ -1785,7 +1785,7 @@ public partial class kalshi : PredictionExchange
         }
         double? amount = this.safeNumber2(fill, "count_fp", "count");
         object cost = null;
-        if ((!isEqual(price, null)) && ((amount != null)))
+        if (((price != null)) && ((amount != null)))
         {
             cost = multiply(price, amount);
         }
@@ -1854,7 +1854,7 @@ public partial class kalshi : PredictionExchange
             { "info", response },
         };
         double? balanceCents = this.safeNumber(response, "balance");
-        object total = null;
+        double? total = null;
         if ((balanceCents != null))
         {
             total = (balanceCents / 100);
@@ -2012,8 +2012,8 @@ public partial class kalshi : PredictionExchange
         string? marketResult = this.safeStringUpper(settlement, "market_result");
         bool won = ((marketResult == heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
-        object payout = this.safeNumber(settlement, "revenue_dollars");
-        if (isEqual(payout, null))
+        double? payout = this.safeNumber(settlement, "revenue_dollars");
+        if ((payout == null))
         {
             double? revenueCents = this.safeNumber(settlement, "revenue");
             if ((revenueCents != null))
@@ -2031,8 +2031,8 @@ public partial class kalshi : PredictionExchange
         {
             costDollarsKey = "yes_total_cost_dollars";
         }
-        object cost = this.safeNumber(settlement, costDollarsKey);
-        if (isEqual(cost, null))
+        double? cost = this.safeNumber(settlement, costDollarsKey);
+        if ((cost == null))
         {
             double? costCents = this.safeNumber(settlement, costKey);
             if ((costCents != null))
@@ -2041,7 +2041,7 @@ public partial class kalshi : PredictionExchange
             }
         }
         object pnl = null;
-        if ((!isEqual(payout, null)) && (!isEqual(cost, null)))
+        if (((payout != null)) && ((cost != null)))
         {
             pnl = subtract(payout, cost);
         }
@@ -2083,7 +2083,7 @@ public partial class kalshi : PredictionExchange
         double? contractsValue = null;
         if ((yesContracts != null))
         {
-            positionSide = (isGreaterThanOrEqual(yesContracts, 0)) ? "long" : "short";
+            positionSide = ((yesContracts >= 0)) ? "long" : "short";
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
         }
         return this.safePredictionPosition(new Dictionary<string, object>() {
@@ -2291,8 +2291,8 @@ public partial class kalshi : PredictionExchange
         {
             centsKey = "no_price";
         }
-        object price = this.safeNumber(order, dollarsKey);
-        if (isEqual(price, null))
+        double? price = this.safeNumber(order, dollarsKey);
+        if ((price == null))
         {
             double? priceCents = this.safeNumber(order, centsKey);
             if ((priceCents != null))
@@ -2743,7 +2743,7 @@ public partial class kalshi : PredictionExchange
         for (int ei = 0; ei < eventTickersLength; ei++)
         {
             int collectedLength = (rawEvents?.Count ?? 0);
-            if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedLength, limit)))
+            if ((!isEqual(limit, null)) && ((collectedLength >= limit)))
             {
                 break;
             }
@@ -2885,17 +2885,17 @@ public partial class kalshi : PredictionExchange
         for (int si = 0; si < seriesTickersLength; si++)
         {
             int collectedLength = (rawEvents?.Count ?? 0);
-            if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedLength, limit)))
+            if ((!isEqual(limit, null)) && ((collectedLength >= limit)))
             {
                 break;
             }
             string? cursor = null;
             for (int page = 0; isLessThan(page, maxPages); page++)
             {
-                object reqLimit = pageLimit;
+                Int64? reqLimit = pageLimit;
                 if (!isEqual(limit, null))
                 {
-                    object remaining = (limit - (rawEvents?.Count ?? 0));
+                    Int64 remaining = (limit - (rawEvents?.Count ?? 0));
                     if (isLessThan(remaining, reqLimit))
                     {
                         reqLimit = remaining;
@@ -2924,7 +2924,7 @@ public partial class kalshi : PredictionExchange
                 }
                 cursor = this.safeString(response, "cursor");
                 int collectedAfterPage = (rawEvents?.Count ?? 0);
-                if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedAfterPage, limit)))
+                if ((!isEqual(limit, null)) && ((collectedAfterPage >= limit)))
                 {
                     break;
                 }
@@ -3168,7 +3168,7 @@ public partial class kalshi : PredictionExchange
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
             object versionPrefix = slice(baseUrl, tradeApiIndex, null);
             string? pathForSigning = ((string)add(add(versionPrefix, "/"), implodedPath));
-            object payload = ((timestamp + method) + pathForSigning);
+            string? payload = ((string)((timestamp + method) + pathForSigning));
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", keyParts.ToArray());

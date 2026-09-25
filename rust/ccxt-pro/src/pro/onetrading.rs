@@ -627,7 +627,7 @@ impl OnetradingCore {
         }
         trades = self.filter_by_symbol_since_limit(trades.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
         let mut numTrades: Value = get_array_length(&trades);
-        if is_equal(&numTrades, &Value::Int(0)) {
+        if (numTrades.as_f64() == Some(0.0)) {
             return Box::pin(self.watch_my_trades(&[symbol, since, limit, params])).await;
         }
         return trades;
@@ -817,7 +817,7 @@ impl OnetradingCore {
         }
         orders = self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
         let mut numOrders: Value = get_array_length(&orders);
-        if is_equal(&numOrders, &Value::Int(0)) {
+        if (numOrders.as_f64() == Some(0.0)) {
             return Box::pin(self.watch_orders(&[symbol, since, limit, params])).await;
         }
         return orders;

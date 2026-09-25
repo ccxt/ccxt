@@ -7,7 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.opinion import ImplicitAPI
 import asyncio
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -928,7 +928,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             takerAmount = Precise.string_mul(k, priceNum)
         return {'makerAmount': makerAmount, 'takerAmount': takerAmount}
 
-    async def create_order(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         places a limit or market order on the CLOB for the given outcome token
 
@@ -1024,7 +1024,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         orderData = self.safe_dict(result, 'orderData', {})
         return self.parse_prediction_order(orderData, outcomeObj)
 
-    async def cancel_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         cancels a single open order by id
 

@@ -368,10 +368,10 @@ public partial class bingx : ccxt.bingx
             limit = 100;
         } else
         {
-            if (isEqual(marketType, "swap") || isEqual(marketType, "future"))
+            if ((marketType == "swap") || (marketType == "future"))
             {
                 limit = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100}, limit);
-            } else if (isEqual(marketType, "spot"))
+            } else if ((marketType == "spot"))
             {
                 limit = this.findNearestCeiling(new List<object>() {20, 100}, limit);
             }
@@ -1156,7 +1156,7 @@ public partial class bingx : ccxt.bingx
             messageHash = messageHash + (":" + (symbolVar));
         }
         string uuid = this.uuid();
-        object baseUrl = null;
+        string? baseUrl = null;
         Dictionary<string, object> request = null;
         if (type == "swap")
         {
@@ -1174,7 +1174,12 @@ public partial class bingx : ccxt.bingx
                 { "dataType", "spot.executionReport" },
             };
         }
-        object url = add(add(baseUrl, "?listenKey="), (this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null));
+        string? userStreamKey = this.safeString(this.options, "listenKey");
+        if ((baseUrl == null) || (userStreamKey == null))
+        {
+            throw new AuthenticationError ((this.id + " watchOrders() requires a websocket URL and a listen key")) ;
+        }
+        string url = ((baseUrl + "?listenKey=") + userStreamKey);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", false },
             { "id", uuid },
@@ -1244,7 +1249,7 @@ public partial class bingx : ccxt.bingx
             messageHash = messageHash + (":" + (symbolVar));
         }
         string uuid = this.uuid();
-        object baseUrl = null;
+        string? baseUrl = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (type == "swap")
         {
@@ -1262,7 +1267,12 @@ public partial class bingx : ccxt.bingx
                 { "dataType", "spot.executionReport" },
             };
         }
-        object url = add(add(baseUrl, "?listenKey="), (this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null));
+        string? userStreamKey = this.safeString(this.options, "listenKey");
+        if ((baseUrl == null) || (userStreamKey == null))
+        {
+            throw new AuthenticationError ((this.id + " watchMyTrades() requires a websocket URL and a listen key")) ;
+        }
+        string url = ((baseUrl + "?listenKey=") + userStreamKey);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", false },
             { "id", uuid },
@@ -1317,7 +1327,7 @@ public partial class bingx : ccxt.bingx
             subscriptionHash = spotSubHash;
         }
         Dictionary<string, object> request = null;
-        object baseUrl = null;
+        string? baseUrl = null;
         string uuid = this.uuid();
         if (isEqual(type, "swap"))
         {
@@ -1336,7 +1346,12 @@ public partial class bingx : ccxt.bingx
                 { "dataType", "ACCOUNT_UPDATE" },
             };
         }
-        object url = add(add(baseUrl, "?listenKey="), (this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null));
+        string? userStreamKey = this.safeString(this.options, "listenKey");
+        if ((baseUrl == null) || (userStreamKey == null))
+        {
+            throw new AuthenticationError ((this.id + " watchBalance() requires a websocket URL and a listen key")) ;
+        }
+        string url = ((baseUrl + "?listenKey=") + userStreamKey);
         var client = this.client(url);
         this.setBalanceCache(client, type, subType, subscriptionHash, parameters);
         bool? fetchBalanceSnapshot = null;
@@ -1440,8 +1455,13 @@ public partial class bingx : ccxt.bingx
         }
         string subscriptionHash = "swap:private";
         messageHash = ("swap:positions" + messageHash);
-        object baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
-        object url = add(add(baseUrl, "?listenKey="), (this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null));
+        string? baseUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), subType);
+        string? userStreamKey = this.safeString(this.options, "listenKey");
+        if ((baseUrl == null) || (userStreamKey == null))
+        {
+            throw new AuthenticationError ((this.id + " watchPositions() requires a websocket URL and a listen key")) ;
+        }
+        string url = ((baseUrl + "?listenKey=") + userStreamKey);
         var client = this.client(url);
         this.setPositionsCache(client, type, symbols);
         bool? fetchPositionsSnapshot = null;
@@ -1500,7 +1520,7 @@ public partial class bingx : ccxt.bingx
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (isGreaterThan(contracts, 0))
+            if ((contracts > 0))
             {
                 cache.append(position);
             }
@@ -1884,7 +1904,7 @@ public partial class bingx : ccxt.bingx
         {
             // The envelope T is the order update time; o.T is the trade time.
             Int64? updateTimestamp = this.safeInteger(message, "T");
-            if (((updateTimestamp != null)) && (isGreaterThan(updateTimestamp, 0)))
+            if (((updateTimestamp != null)) && ((updateTimestamp > 0)))
             {
                 string? orderId = this.safeString(parsedOrder, "id");
                 if ((orderId != null))
@@ -1894,7 +1914,7 @@ public partial class bingx : ccxt.bingx
                     for (int i = 0; i < getArrayLength(stored); i++)
                     {
                         object previousOrder = getValue(stored, i);
-                        if ((isEqual(getValue(previousOrder, "id"), orderId)) && (isEqual(getValue(previousOrder, "symbol"), (parsedOrder != null && ((IDictionary<string, object>)parsedOrder).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedOrder)["symbol"] : null))))
+                        if (((this.safeString(previousOrder, "id") == orderId)) && ((this.safeString(previousOrder, "symbol") == this.safeString(parsedOrder, "symbol"))))
                         {
                             Int64? previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
                             if (((previousTimestamp != null)) && (isLessThan(updateTimestamp, previousTimestamp)))

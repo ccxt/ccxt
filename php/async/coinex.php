@@ -880,6 +880,9 @@ class coinex extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_ccy');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $result[] = array(
                 'id' => $id,
@@ -977,6 +980,9 @@ class coinex extends Exchange {
             $quoteId = $this->safe_string($entry, 'quote_ccy');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settleId = $baseId;
             if ($subType === 'linear') {
                 $settleId = 'USDT';
@@ -3053,9 +3059,7 @@ class coinex extends Exchange {
          * @param {float} [$params->triggerPrice] the $price to trigger stop orders
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-        }
+        $this->check_required_argument('editOrder', $symbol, 'symbol');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3713,11 +3717,11 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch a list of orders
          *
@@ -6442,11 +6446,15 @@ class coinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = array(), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $path = $this->implode_params($path, $params);
         $version = $api[0];
         $requestUrl = $api[1];
-        $url = $this->urls['api'][$requestUrl] . '/' . $version . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $requestUrl);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $version . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
         if ($method === 'POST') {
@@ -6470,7 +6478,7 @@ class coinex extends Exchange {
                 $clientOrderId = $this->safe_string($params, 'client_id');
                 if ($clientOrderId === null) {
                     $defaultId = 'x-167673045';
-                    $brokerId = $this->safe_value($this->options, 'brokerId', $defaultId);
+                    $brokerId = $this->safe_string($this->options, 'brokerId', $defaultId);
                     $query['client_id'] = $brokerId . '_' . $this->uuid16();
                 }
             }

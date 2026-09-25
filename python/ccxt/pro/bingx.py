@@ -989,7 +989,10 @@ class bingx(ccxt.async_support.bingx):
                 'reqType': 'sub',
                 'dataType': 'spot.executionReport',
             }
-        url = baseUrl + '?listenKey=' + self.options['listenKey']
+        userStreamKey = self.safe_string(self.options, 'listenKey')
+        if baseUrl is None or userStreamKey is None:
+            raise AuthenticationError(self.id + ' watchOrders() requires a websocket URL and a listen key')
+        url = baseUrl + '?listenKey=' + userStreamKey
         subscription = {
             'unsubscribe': False,
             'id': uuid,
@@ -1051,7 +1054,10 @@ class bingx(ccxt.async_support.bingx):
                 'reqType': 'sub',
                 'dataType': 'spot.executionReport',
             }
-        url = baseUrl + '?listenKey=' + self.options['listenKey']
+        userStreamKey = self.safe_string(self.options, 'listenKey')
+        if baseUrl is None or userStreamKey is None:
+            raise AuthenticationError(self.id + ' watchMyTrades() requires a websocket URL and a listen key')
+        url = baseUrl + '?listenKey=' + userStreamKey
         subscription = {
             'unsubscribe': False,
             'id': uuid,
@@ -1105,7 +1111,10 @@ class bingx(ccxt.async_support.bingx):
                 'id': uuid,
                 'dataType': 'ACCOUNT_UPDATE',
             }
-        url = baseUrl + '?listenKey=' + self.options['listenKey']
+        userStreamKey = self.safe_string(self.options, 'listenKey')
+        if baseUrl is None or userStreamKey is None:
+            raise AuthenticationError(self.id + ' watchBalance() requires a websocket URL and a listen key')
+        url = baseUrl + '?listenKey=' + userStreamKey
         client = self.client(url)
         self.set_balance_cache(client, type, subType, subscriptionHash, params)
         fetchBalanceSnapshot = None
@@ -1120,7 +1129,7 @@ class bingx(ccxt.async_support.bingx):
         }
         return await self.watch(url, messageHash, request, subscriptionHash, subscription)
 
-    def set_balance_cache(self, client: Client, type: object, subType: Str, subscriptionHash: str, params: dict):
+    def set_balance_cache(self, client: Client, type: str, subType: Str, subscriptionHash: str, params: dict):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = False
@@ -1133,7 +1142,7 @@ class bingx(ccxt.async_support.bingx):
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client: Client, messageHash: str, type: object, subType: Str):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: str, subType: Str):
         response = await self.fetch_balance({'type': type, 'subType': subType})
         self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
         # don't remove the future from the .futures cache
@@ -1174,7 +1183,10 @@ class bingx(ccxt.async_support.bingx):
         subscriptionHash = 'swap:private'
         messageHash = 'swap:positions' + messageHash
         baseUrl = self.safe_string(self.urls['api']['ws'], subType)
-        url = baseUrl + '?listenKey=' + self.options['listenKey']
+        userStreamKey = self.safe_string(self.options, 'listenKey')
+        if baseUrl is None or userStreamKey is None:
+            raise AuthenticationError(self.id + ' watchPositions() requires a websocket URL and a listen key')
+        url = baseUrl + '?listenKey=' + userStreamKey
         client = self.client(url)
         self.set_positions_cache(client, type, symbols)
         fetchPositionsSnapshot = None
@@ -1539,7 +1551,7 @@ class bingx(ccxt.async_support.bingx):
                     # Match both id and symbol: several cached orders can share a symbol.
                     for i in range(0, len(stored)):
                         previousOrder = stored[i]
-                        if (previousOrder['id'] == orderId) and (previousOrder['symbol'] == parsedOrder['symbol']):
+                        if (self.safe_string(previousOrder, 'id') == orderId) and (self.safe_string(previousOrder, 'symbol') == self.safe_string(parsedOrder, 'symbol')):
                             previousTimestamp = self.safe_integer(previousOrder, 'lastUpdateTimestamp')
                             if (previousTimestamp is not None) and (updateTimestamp < previousTimestamp):
                                 return

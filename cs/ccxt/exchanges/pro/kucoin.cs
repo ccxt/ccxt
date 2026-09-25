@@ -54,7 +54,7 @@ public partial class kucoin : ccxt.kucoin
             { "options", new Dictionary<string, object>() {
                 { "utaToken", null },
                 { "utaTokenLastUpdate", 0 },
-                { "utaTokenRefreshInterval", ((multiply(1000, 60) * 60) * 24) },
+                { "utaTokenRefreshInterval", (((1000L * 60L) * 60) * 24) },
                 { "tradesLimit", 1000 },
                 { "watchTicker", new Dictionary<string, object>() {
                     { "spotMethod", "/market/snapshot" },
@@ -254,7 +254,12 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<string?> getUtaUrl()
     {
         string? utaToken = await this.authenticateUta();
-        return ((string?)((object)(add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "?token="), utaToken))));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " getUtaUrl() has no private websocket url")) ;
+        }
+        return ((string?)((object)(((wsUrl + "?token=") + utaToken))));
     }
 
     public async virtual Task<string?> authenticateUta()
@@ -262,7 +267,7 @@ public partial class kucoin : ccxt.kucoin
         this.checkRequiredCredentials();
         string? utaToken = this.safeString(this.options, "utaToken");
         Int64? lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
-        Int64? refreshInterval = ((multiply(1000, 60) * 60) * 24); // 24 hours
+        Int64? refreshInterval = (((1000L * 60L) * 60) * 24); // 24 hours
         refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
         Int64 now = this.milliseconds();
         bool expired = isGreaterThanOrEqual((subtract(now, lastUpdate)), refreshInterval);
@@ -556,7 +561,7 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
         Dictionary<string, object> market = this.getMarketFromSymbols(symbols);
-        bool isContract = (isEqual((market != null && market.ContainsKey("contract") ? market["contract"] : null), true));
+        bool isContract = ((this.safeBool(market, "contract") == true));
         string urlType = "spot";
         if (isContract)
         {
@@ -851,7 +856,7 @@ public partial class kucoin : ccxt.kucoin
         }
         symbols = this.marketSymbols(symbols, null, false, true, false);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        bool isFuturesMethod = (isEqual((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null), true));
+        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
         string channelName = "/spotMarket/level1:";
         if (isFuturesMethod)
         {
@@ -1290,7 +1295,7 @@ public partial class kucoin : ccxt.kucoin
         }
         symbols = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        bool isFuturesMethod = (isEqual((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null), true));
+        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
         IList<object> marketIds = this.marketIds(symbols);
         object url = await this.negotiate(false, isFuturesMethod);
         List<object> messageHashes = new List<object>() {};
@@ -1338,7 +1343,7 @@ public partial class kucoin : ccxt.kucoin
         symbols = this.marketSymbols(symbols, null, false, true);
         IList<object> marketIds = this.marketIds(symbols);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        bool isFuturesMethod = (isEqual((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null), true));
+        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
         object url = await this.negotiate(false, isFuturesMethod);
         List<object> messageHashes = new List<object>() {};
         List<object> subscriptionHashes = new List<object>() {};
@@ -1687,7 +1692,7 @@ public partial class kucoin : ccxt.kucoin
         symbols = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbols);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        bool isFuturesMethod = (isEqual((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null), true));
+        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
         object url = await this.negotiate(false, isFuturesMethod);
         object method = "/market/level2";
         if (isFuturesMethod)
@@ -1763,7 +1768,7 @@ public partial class kucoin : ccxt.kucoin
         symbols = this.marketSymbols(symbols, null, false, true);
         IList<object> marketIds = this.marketIds(symbols);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        bool isFuturesMethod = (isEqual((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null), true));
+        bool isFuturesMethod = ((this.safeBool(firstMarket, "contract") == true));
         object url = await this.negotiate(false, isFuturesMethod);
         object method = "/market/level2";
         if (isFuturesMethod)
@@ -2528,7 +2533,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> order = this.safeDict(orders, orderId);
         if ((order != null))
         {
-            if (isEqual(GetValue(order, "status"), "closed"))
+            if ((this.safeString(order, "status") == "closed"))
             {
                 parsed["status"] = "closed";
             }
@@ -3329,7 +3334,7 @@ public partial class kucoin : ccxt.kucoin
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (isGreaterThan(contracts, 0))
+            if ((contracts > 0))
             {
                 cache.append(position);
             }

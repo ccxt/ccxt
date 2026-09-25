@@ -510,7 +510,10 @@ func (this *Bitopro) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote
 	var limits map[string]any = map[string]any{
 		"amount": map[string]any{
 			"min": this.SafeNumber(market, "minLimitBaseAmount"),
@@ -1094,7 +1097,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 	// the exchange doesn't send zero volume candles so we emulate them instead
 	// otherwise sending a limit arg leads to unexpected results
 	var length int = GetArrayLength(candles)
-	if IsEqual(length, 0) {
+	if length == 0 {
 		return candles
 	}
 	var result []any = []any{}
@@ -2372,7 +2375,11 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
-	url = Add(GetValue(GetValue(this.Urls, "api"), "rest"), url)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	url = Add(apiUrl, url)
 	return map[string]any{
 		"url":     url,
 		"method":  method,

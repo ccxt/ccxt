@@ -764,10 +764,13 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(quoteAsset, "symbol")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             this.SafeString(market, "name"),
 			"uuid":           this.SafeString(market, "id"),
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -829,11 +832,14 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(market, "symbol")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var inverse *bool = this.SafeBool(market, "isInverse")
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             marketId,
-			"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
+			"symbol":         Add(*base+"/"+*quote+":", settle),
 			"base":           base,
 			"quote":          quote,
 			"settle":         settle,
@@ -1790,8 +1796,8 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes158215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes158215)
+	var retRes158815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes158815)
 	return nil
 }
 
@@ -2290,8 +2296,8 @@ func (this *Bigone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"state": "PENDING",
 	}
 
-	var retRes194815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes194815)
+	var retRes195415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes195415)
 	return nil
 }
 
@@ -2326,8 +2332,8 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"state": "FILLED",
 	}
 
-	var retRes196615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes196615)
+	var retRes197215 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes197215)
 	return nil
 }
 func (this *Bigone) Nonce() any {
@@ -2346,7 +2352,11 @@ func (this *Bigone) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl any = this.ImplodeHostname(apiUrl)
 	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	headers = map[string]any{}
 	if (IsEqual(api, "public")) || (IsEqual(api, "webExchange")) || (IsEqual(api, "contractPublic")) {

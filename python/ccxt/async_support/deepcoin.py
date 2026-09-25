@@ -517,6 +517,8 @@ class deepcoin(Exchange, ImplicitAPI):
         settle = None
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         isLinear = None
         if swap:
@@ -2829,7 +2831,7 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.extend({'ordId': id}, params)
         return await self.fetch_my_trades(symbol, since, limit, params)
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -2870,7 +2872,10 @@ class deepcoin(Exchange, ImplicitAPI):
             query = self.urlencode(params)
             if len(query) > 0:
                 requestPath += '?' + query
-        url = self.urls['api'][api] + '/' + requestPath
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + requestPath
         if api == 'private':
             self.check_required_credentials()
             timestamp = self.milliseconds()

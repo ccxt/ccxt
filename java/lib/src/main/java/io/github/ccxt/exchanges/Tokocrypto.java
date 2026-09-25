@@ -798,7 +798,7 @@ public class Tokocrypto extends TokocryptoApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -890,7 +890,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659492212507
             //     }
             //
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -907,6 +907,10 @@ public class Tokocrypto extends TokocryptoApi
                 String settleId = this.safeString(market, "marginAsset");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 String symbol = ((base + "/") + quote);
                 List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
@@ -916,7 +920,7 @@ public class Tokocrypto extends TokocryptoApi
                 List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)permissions).size(); j++)
                 {
-                    if (java.util.Objects.equals((permissions == null || j < 0 || j >= permissions.size() ? null : permissions.get(j)), "TRD_GRP_003"))
+                    if (java.util.Objects.equals(this.safeString(permissions, j), "TRD_GRP_003"))
                     {
                         active = false;
                         break;
@@ -924,6 +928,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 String marginTradingEnable = this.safeString(market, "marginTradingEnable");
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalMarginTradingEnable = marginTradingEnable;
                 final Boolean finalActive = active;
                 Map<String, Object> entry = new HashMap<String, Object>() {{
@@ -931,7 +936,7 @@ public class Tokocrypto extends TokocryptoApi
                     put( "lowercaseId", lowercaseId );
                     put( "symbol", symbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1238,7 +1243,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             if (((Map<?, ?>)trade).containsKey("isBuyer"))
             {
-                side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
+                side = (((java.util.Objects.equals(this.safeBool(trade, "isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
             }
         }
         Map<String, Object> fee = null;
@@ -1251,11 +1256,11 @@ public class Tokocrypto extends TokocryptoApi
         }
         if (((Map<?, ?>)trade).containsKey("isMaker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isMaker"), true)))) ? "maker" : "taker";
+            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "isMaker"), true)))) ? "maker" : "taker";
         }
         if (((Map<?, ?>)trade).containsKey("maker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("maker"), true)))) ? "maker" : "taker";
+            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "maker"), true)))) ? "maker" : "taker";
         }
         final String finalId = id;
         final String finalSide = side;
@@ -3483,7 +3488,7 @@ public class Tokocrypto extends TokocryptoApi
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((java.util.Objects.equals(error, "-2015")) && (java.util.Objects.equals(((Map<String, Object>)this.options).get("hasAlreadyAuthenticatedSuccessfully"), true)))
+            if ((java.util.Objects.equals(error, "-2015")) && (java.util.Objects.equals(this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
             {
                 throw new DDoSProtection(((this.id + " ") + body)) ;
             }

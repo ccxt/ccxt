@@ -749,13 +749,18 @@ public class Upbit extends UpbitApi
         var baseId = ((List<Object>) quoteIdbaseIdVariable).get(1);
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         final String finalId = id;
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -770,8 +775,8 @@ public class Upbit extends UpbitApi
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
-            put( "taker", Upbit.this.safeNumber(((Map<String, Object>)Upbit.this.options).get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(Upbit.this.fees, "trading"), "taker")) );
-            put( "maker", Upbit.this.safeNumber(((Map<String, Object>)Upbit.this.options).get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(Upbit.this.fees, "trading"), "maker")) );
+            put( "taker", Upbit.this.safeNumber(((Map<String, Object>)Upbit.this.options).get("tradingFeesByQuoteCurrency"), finalQuote, Helpers.GetValue(Helpers.GetValue(Upbit.this.fees, "trading"), "taker")) );
+            put( "maker", Upbit.this.safeNumber(((Map<String, Object>)Upbit.this.options).get("tradingFeesByQuoteCurrency"), finalQuote, Helpers.GetValue(Helpers.GetValue(Upbit.this.fees, "trading"), "maker")) );
             put( "contractSize", null );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1125,13 +1130,13 @@ public class Upbit extends UpbitApi
                 }
                 Object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
                 Object quoteCurrencies = "";
-                for (var i = 0; i < Helpers.getArrayLength(sortedQuoteIds); i++)
+                for (var i = 0; i < ((List<?>)sortedQuoteIds).size(); i++)
                 {
                     if (!java.util.Objects.equals(quoteCurrencies, ""))
                     {
                         quoteCurrencies = (quoteCurrencies + ",");
                     }
-                    quoteCurrencies = Helpers.add(quoteCurrencies, Helpers.GetValue(sortedQuoteIds, i));
+                    quoteCurrencies = Helpers.add(quoteCurrencies, (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
                 }
                 final Object finalQuoteCurrencies = quoteCurrencies;
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1852,7 +1857,7 @@ public class Upbit extends UpbitApi
             }
             if (postOnly)
             {
-                if (!java.util.Objects.equals(((Map<String, Object>)request).get("ord_type"), "limit"))
+                if (!java.util.Objects.equals(this.safeString(request, "ord_type"), "limit"))
                 {
                     throw new InvalidOrder((this.id + " postOnly orders are only supported for limit orders")) ;
                 }
@@ -1865,7 +1870,7 @@ public class Upbit extends UpbitApi
                     request.put("time_in_force", timeInForce);
                 }
             }
-            if (java.util.Objects.equals(((Map<String, Object>)request).get("ord_type"), "best") && java.util.Objects.equals(timeInForce, null))
+            if (java.util.Objects.equals(this.safeString(request, "ord_type"), "best") && java.util.Objects.equals(timeInForce, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
             }
@@ -2109,7 +2114,7 @@ public class Upbit extends UpbitApi
             }
             if (postOnly)
             {
-                if (!java.util.Objects.equals(((Map<String, Object>)request).get("new_ord_type"), "limit"))
+                if (!java.util.Objects.equals(this.safeString(request, "new_ord_type"), "limit"))
                 {
                     throw new InvalidOrder((this.id + " postOnly orders are only supported for limit orders")) ;
                 }
@@ -2122,7 +2127,7 @@ public class Upbit extends UpbitApi
                     request.put("new_time_in_force", timeInForce);
                 }
             }
-            if (java.util.Objects.equals(((Map<String, Object>)request).get("new_ord_type"), "best") && java.util.Objects.equals(timeInForce, null))
+            if (java.util.Objects.equals(this.safeString(request, "new_ord_type"), "best") && java.util.Objects.equals(timeInForce, null))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a timeInForce parameter for best type orders")) ;
             }
@@ -2675,7 +2680,7 @@ public class Upbit extends UpbitApi
             put( "type", finalType );
         }});
         Integer numTrades = ((List<?>)trades).size();
-        if (Helpers.isGreaterThan(numTrades, 0))
+        if ((numTrades != null && numTrades > 0))
         {
             // the timestamp in fetchOrder trades is missing
             lastTradeTimestamp = Helpers.GetValue(Helpers.GetValue(trades, (((long) numTrades) - 1L)), "timestamp");
@@ -2686,7 +2691,7 @@ public class Upbit extends UpbitApi
                 feeCost = "0";
             }
             cost = "0";
-            for (var i = 0; Helpers.isLessThan(i, numTrades); i++)
+            for (var i = 0; (numTrades != null && i < numTrades); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));

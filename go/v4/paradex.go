@@ -925,9 +925,12 @@ func (this *Paradex) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "base_currency")
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var base *string = this.SafeCurrencyCode(baseId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settleId *string = this.SafeString(market, "settlement_currency")
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	var symbol any = Add(*base+"/"+*quote+":", settle)
 	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
 	var strikePrice *string = this.SafeString(market, "strike_price")
@@ -1215,7 +1218,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	if since != nil {
 		request["start_at"] = since
 		if limit != nil {
-			request["end_at"] = Subtract(this.Sum(since, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
+			request["end_at"] = Subtract(Add(since, Multiply(Multiply(duration, (Add(limit, 1))), 1000)), 1)
 		} else {
 			request["end_at"] = until
 		}
@@ -1676,8 +1679,8 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes123119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes123119)
+		var retRes123419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes123419)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1883,10 +1886,11 @@ func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *Paradex) HashMessage(message any) any {
-	return Add("0x", this.Hash(message, keccak, "hex"))
+	var hashed any = this.Hash(message, keccak, "hex")
+	return Add("0x", hashed)
 }
-func (this *Paradex) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+func (this *Paradex) SignHash(hash any, privateKey string) any {
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -2368,7 +2372,7 @@ func (this *Paradex) signOrderRequestBody(ch chan any, request any, optionalArgs
 		"timestamp": Multiply(now, 1000),
 		"market":    this.StringToBase16(GetValue(request, "market")),
 		"side": func() string {
-			if IsEqual(GetValue(request, "side"), "BUY") {
+			if this.SafeString(request, "side") != nil && *this.SafeString(request, "side") == "BUY" {
 				return "1"
 			}
 			return "2"
@@ -2998,8 +3002,8 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes226019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes226019)
+		var retRes226419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes226419)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3245,8 +3249,8 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes244519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes244519)
+		var retRes244919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes244919)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3581,8 +3585,8 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes270019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes270019)
+		var retRes270419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes270419)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3627,7 +3631,7 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		if IsEqual(GetValue(row, "kind"), "DEPOSIT") {
+		if this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "DEPOSIT" {
 			deposits = append(deposits, row)
 		}
 	}
@@ -3677,8 +3681,8 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes276419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes276419)
+		var retRes276819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes276819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3723,7 +3727,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 			}
 			return nil
 		}()
-		if IsEqual(GetValue(row, "kind"), "WITHDRAWAL") {
+		if this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "WITHDRAWAL" {
 			deposits = append(deposits, row)
 		}
 	}
@@ -3773,8 +3777,8 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes282819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes282819)
+		var retRes283219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes283219)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4400,8 +4404,8 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes333019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes333019)
+		var retRes333419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next", "cursor", nil, 100))))
+		ch <- BoxAbsent(retRes333419)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4581,7 +4585,7 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var version any = this.Version
-	if IsEqual(GetIndexOf(path, "v2/"), 0) {
+	if GetIndexOf(path, "v2/") == 0 {
 		version = "v2"
 		path = Replace(path, "v2/", "")
 	}
@@ -4612,8 +4616,11 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 				"public_key": GetValue(query, "public_key"),
 			})
 		} else {
-			var token any = GetValue(this.Options, "authToken")
-			AddElementToObject(headers, "Authorization", Add("Bearer ", token))
+			var token *string = this.SafeString(this.Options, "authToken")
+			if token == nil {
+				panic(AuthenticationError(this.Id + " sign() requires an authToken, call authenticateRest() first"))
+			}
+			AddElementToObject(headers, "Authorization", "Bearer "+*token)
 			if (method == "POST") || (method == "PUT") || ((method == "DELETE") && (IsEqual(path, "orders/batch"))) {
 				AddElementToObject(headers, "Content-Type", "application/json")
 				body = this.Json(query)

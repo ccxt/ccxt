@@ -976,8 +976,11 @@ func (this *Pacifica) ParseMarket(market any) any {
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	if isSwap {
 		symbol = Add(Add(symbol, ":"), settle)
 	}
@@ -1608,7 +1611,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1632,8 +1635,8 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes125619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))))
-		ch <- BoxAbsent(retRes125619)
+		var retRes125919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))))
+		ch <- BoxAbsent(retRes125919)
 		return nil
 	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1816,8 +1819,8 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes140119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes140119)
+		var retRes140419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes140419)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2188,7 +2191,7 @@ func (this *Pacifica) BatchOrdersRequest(actions any) any {
 	var maxLen any = this.HandleOption("batchOrdersRequest", "batchOrdersMax")
 	if !IsEqual(maxLen, nil) {
 		if IsGreaterThan(lenActions, maxLen) {
-			panic(ExchangeError(Add(this.Id+" batchOrdersRequest() too many orders to create/cancel. Limit is ", maxLen)))
+			panic(ExchangeError(Add(this.Id+" batchOrdersRequest() too many orders to create/cancel. Limit is ", this.NumberToString(maxLen))))
 		}
 	}
 	return map[string]any{
@@ -2725,8 +2728,8 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes212519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes212519)
+		var retRes212819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes212819)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3114,8 +3117,8 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // max default 100
 	if paginate {
 
-		var retRes239119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes239119)
+		var retRes239419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes239419)
 		return nil
 	}
 	var userAddress any = nil
@@ -4018,8 +4021,8 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // Default max limit
 	if paginate {
 
-		var retRes310519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes310519)
+		var retRes310819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes310819)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -4160,8 +4163,8 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var defaultLimit int = 100
 	if paginate {
 
-		var retRes322119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
-		ch <- BoxAbsent(retRes322119)
+		var retRes322419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))))
+		ch <- BoxAbsent(retRes322419)
 		return nil
 	}
 
@@ -4541,7 +4544,7 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	ch <- PanicOnError((<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params))).Raw)
 	return nil
 }
-func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {
+func (this *Pacifica) HandleOriginAndSingleAddress(methodName string, params any) any {
 	var address *string = nil
 	var addressparamsVariable []any = this.HandleParamString2(params, "account", "address", nil)
 	address = SafeStringPtr(GetValue(addressparamsVariable, 0))
@@ -4553,7 +4556,7 @@ func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) a
 	if address1 != nil {
 		return []any{address1, params}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")))
+	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params"))
 }
 func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(response, nil) {
@@ -4651,12 +4654,12 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 		var keys []string = ObjectKeys(value)
 		var sortedKeys []any = this.Sort(keys)
 		for i := 0; i < len(sortedKeys); i++ {
-			var key any = func() any {
+			var key *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(sortedKeys) {
 					return DerefScalar(sortedKeys[i])
 				}
 				return nil
-			}()
+			}())
 			AddElementToObject(result, key, this.SortJsonKeys(GetValue(value, key)))
 		}
 		return result

@@ -929,8 +929,12 @@ public partial class phemex : Exchange
         string? quoteId = this.safeString(market, "quoteCurrency");
         string? settleId = this.safeString(market, "settleCurrency");
         object bs = this.safeCurrencyCode(baseId);
-        bs = ((string)bs).Replace(" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ((Dictionary<string, object>)((object)(null)));
+        }
+        bs = ((string)bs).Replace(" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
         string? settle = this.safeCurrencyCode(settleId);
         bool inverse = false;
         if ((settleId != quoteId))
@@ -1065,14 +1069,18 @@ public partial class phemex : Exchange
         string? id = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quoteCurrency");
         string? baseId = this.safeString(market, "baseCurrency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ((Dictionary<string, object>)((object)(null)));
+        }
         string? status = this.safeString(market, "status");
         object precisionAmount = this.parseSafeNumber(this.safeString(market, "baseTickSize"));
         object precisionPrice = this.parseSafeNumber(this.safeString(market, "quoteTickSize"));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -1361,7 +1369,10 @@ public partial class phemex : Exchange
                 });
                 market = this.parseSpotMarket(market);
             }
-            result.Add(market);
+            if ((market != null))
+            {
+                result.Add(market);
+            }
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -1556,7 +1567,7 @@ public partial class phemex : Exchange
 
     public virtual object toEn(object n, object scale)
     {
-        if (((n == null)) || ((scale == null)))
+        if (((n == null)) || (isEqual(scale, null)))
         {
             return null;
         }
@@ -3106,7 +3117,7 @@ public partial class phemex : Exchange
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             string? qtyType = this.safeString(parameters, "qtyType", "ByBase");
-            if ((isEqual(typeVar, "Market")) || (isEqual(typeVar, "Stop")) || (isEqual(typeVar, "MarketIfTouched")))
+            if (((typeVar == "Market")) || ((typeVar == "Stop")) || ((typeVar == "MarketIfTouched")))
             {
                 if ((price != null))
                 {
@@ -3115,10 +3126,10 @@ public partial class phemex : Exchange
             }
             if ((triggerPrice != null))
             {
-                if (isEqual(typeVar, "Limit"))
+                if ((typeVar == "Limit"))
                 {
                     request["ordType"] = "StopLimit";
-                } else if (isEqual(typeVar, "Market"))
+                } else if ((typeVar == "Market"))
                 {
                     request["ordType"] = "Stop";
                 }
@@ -3129,7 +3140,7 @@ public partial class phemex : Exchange
             {
                 object cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (isEqual((this.options.ContainsKey("createOrderByQuoteRequiresPrice") ? this.options["createOrderByQuoteRequiresPrice"] : null), true))
+                if ((this.safeBool(this.options, "createOrderByQuoteRequiresPrice") == true))
                 {
                     if ((price != null))
                     {
@@ -3198,19 +3209,19 @@ public partial class phemex : Exchange
                 {
                     if (isEqual(sideVar, "sell"))
                     {
-                        request["ordType"] = (isEqual(typeVar, "Market")) ? "MarketIfTouched" : "LimitIfTouched";
+                        request["ordType"] = ((typeVar == "Market")) ? "MarketIfTouched" : "LimitIfTouched";
                     } else if (isEqual(sideVar, "buy"))
                     {
-                        request["ordType"] = (isEqual(typeVar, "Market")) ? "Stop" : "StopLimit";
+                        request["ordType"] = ((typeVar == "Market")) ? "Stop" : "StopLimit";
                     }
                 } else if (triggerDirection == "descending" || triggerDirection == "down")
                 {
                     if (isEqual(sideVar, "sell"))
                     {
-                        request["ordType"] = (isEqual(typeVar, "Market")) ? "Stop" : "StopLimit";
+                        request["ordType"] = ((typeVar == "Market")) ? "Stop" : "StopLimit";
                     } else if (isEqual(sideVar, "buy"))
                     {
-                        request["ordType"] = (isEqual(typeVar, "Market")) ? "MarketIfTouched" : "LimitIfTouched";
+                        request["ordType"] = ((typeVar == "Market")) ? "MarketIfTouched" : "LimitIfTouched";
                     }
                 }
             }
@@ -3268,7 +3279,7 @@ public partial class phemex : Exchange
                 }
             }
         }
-        if ((isEqual(typeVar, "Limit")) || (isEqual(typeVar, "StopLimit")) || (isEqual(typeVar, "LimitIfTouched")))
+        if (((typeVar == "Limit")) || ((typeVar == "StopLimit")) || ((typeVar == "LimitIfTouched")))
         {
             if (isStableSettled)
             {
@@ -4792,7 +4803,7 @@ public partial class phemex : Exchange
         };
         if ((limit != null))
         {
-            if (isGreaterThan(limit, 200))
+            if ((limit > 200))
             {
                 throw new BadRequest ((this.id + " fetchFundingHistory() limit argument cannot exceed 200")) ;
             }
@@ -5090,14 +5101,14 @@ public partial class phemex : Exchange
             throw new BadSymbol ((this.id + " setMarginMode() supports swap contracts only")) ;
         }
         marginModeVar = marginModeVar.ToLower();
-        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
+        if (!(marginModeVar == "isolated") && !(marginModeVar == "cross"))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        bool isCross = isEqual(marginModeVar, "cross");
+        bool isCross = (marginModeVar == "cross");
         if (this.inArray((market.ContainsKey("settle") ? market["settle"] : null), new List<object>() {"USDT", "USDC"}))
         {
             string? currentLeverage = this.safeString(parameters, "leverage");
@@ -5109,7 +5120,7 @@ public partial class phemex : Exchange
             return ccxt.BaseExchange.ToDict(await this.privatePutGPositionsLeverage(this.extend(request, parameters)));
         }
         object leverage = this.safeInteger(parameters, "leverage");
-        if (isEqual(marginModeVar, "cross"))
+        if ((marginModeVar == "cross"))
         {
             leverage = 0;
         }

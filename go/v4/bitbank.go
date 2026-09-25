@@ -387,9 +387,12 @@ func (this *Bitbank) ParseMarket(entry any) any {
 	var quoteId *string = this.SafeString(entry, "quote_asset")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -1376,7 +1379,11 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), "/")
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(this.ImplodeHostname(apiUrl), "/")
 	if (IsEqual(api, "public")) || (IsEqual(api, "markets")) {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {

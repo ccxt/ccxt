@@ -712,7 +712,7 @@ class tokocrypto extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function fetch_time($params = array()): PromiseInterface {
@@ -790,7 +790,7 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659492212507
         //     }
         //
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
             Async\await($this->load_time_difference());
         }
         $data = $this->safe_dict($response, 'data', array());
@@ -805,6 +805,9 @@ class tokocrypto extends Exchange {
             $settleId = $this->safe_string($market, 'marginAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
             $filters = $this->safe_list($market, 'filters', array());
@@ -813,7 +816,7 @@ class tokocrypto extends Exchange {
             $active = ($status === '1');
             $permissions = $this->safe_list($market, 'permissions', array());
             for ($j = 0; $j < count($permissions); $j++) {
-                if ($permissions[$j] === 'TRD_GRP_003') {
+                if ($this->safe_string($permissions, $j) === 'TRD_GRP_003') {
                     $active = false;
                     break;
                 }
@@ -1087,7 +1090,7 @@ class tokocrypto extends Exchange {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
             if (is_array($trade) && array_key_exists('isBuyer' ?? '', $trade)) {
-                $side = ($trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
+                $side = ($this->safe_bool($trade, 'isBuyer') === true) ? 'buy' : 'sell'; // this is a true side
             }
         }
         $fee = null;
@@ -1098,10 +1101,10 @@ class tokocrypto extends Exchange {
             );
         }
         if (is_array($trade) && array_key_exists('isMaker' ?? '', $trade)) {
-            $takerOrMaker = ($trade['isMaker'] === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'isMaker') === true) ? 'maker' : 'taker';
         }
         if (is_array($trade) && array_key_exists('maker' ?? '', $trade)) {
-            $takerOrMaker = ($trade['maker'] === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'maker') === true) ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -2818,7 +2821,7 @@ class tokocrypto extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (($error === '-2015') && ($this->options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
+            if (($error === '-2015') && ($this->safe_bool($this->options, 'hasAlreadyAuthenticatedSuccessfully') === true)) {
                 throw new DDoSProtection($this->id . ' ' . $body);
             }
             $feedback = $this->id . ' ' . $body;

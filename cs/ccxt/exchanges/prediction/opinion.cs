@@ -1248,7 +1248,7 @@ public partial class opinion : PredictionExchange
             { "side", sideInt.ToString() },
             { "signatureType", signatureType.ToString() },
             { "signature", signature },
-            { "sign", slice(signatureNo0x, 0, 64) },
+            { "sign", ((signatureNo0x == null) ? null : signatureNo0x.Substring(0, Math.Min(64, signatureNo0x.Length))) },
             { "contractAddress", "" },
             { "currencyAddress", quoteTokenAddress },
             { "topicId", topicId },

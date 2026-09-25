@@ -954,12 +954,12 @@ func (this *Bitget) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	ch <- ccxt.PanicOnError((<-this.UnWatchChannelAsync(symbol, channel, "orderbook", "watchOrderBook", params)))
 	return nil
 }
-func (this *Bitget) UnWatchChannelAsync(symbol any, channel any, messageHashTopic any, methodName any, optionalArgs ...any) <-chan any {
+func (this *Bitget) UnWatchChannelAsync(symbol any, channel any, messageHashTopic any, methodName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchChannelBody(ch, symbol, channel, messageHashTopic, methodName, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, messageHashTopic any, methodName any, optionalArgs ...any) any {
+func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, messageHashTopic any, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1944,7 +1944,7 @@ func (this *Bitget) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1969,7 +1969,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subscriptionHash any = "order:trades"
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		marketId = ccxt.DerefScalar(this.SafeString(market, "id"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
@@ -2525,7 +2525,7 @@ func (this *Bitget) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2541,7 +2541,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "myTrades"
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var typeVar *string = nil

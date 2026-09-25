@@ -772,7 +772,11 @@ public partial class gate : ccxt.gate
                 cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             }
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
-            object waitAmount = isSpot ? snapshotDelay : 0;
+            object waitAmount = 0;
+            if (isSpot)
+            {
+                waitAmount = snapshotDelay;
+            }
             if (isEqual(cacheLength, waitAmount))
             {
                 // max limit is 100
@@ -1687,7 +1691,7 @@ public partial class gate : ccxt.gate
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }
@@ -2528,9 +2532,9 @@ public partial class gate : ccxt.gate
     public virtual string? getUrlByMarket(IDictionary<string, object> market)
     {
         object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null));
-        if (isEqual((market != null && market.ContainsKey("contract") ? market["contract"] : null), true))
+        if ((this.safeBool(market, "contract") == true))
         {
-            return ((string?)((object)((isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true)) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
+            return ((string?)((object)(((this.safeBool(market, "linear") == true)) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
         } else
         {
             return ((string?)((object)(baseUrl)));

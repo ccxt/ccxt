@@ -343,9 +343,12 @@ func (this *Hibachi) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "settlementSymbol")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settleId *string = this.SafeString(market, "settlementSymbol")
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
+	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
 	var created *int64 = this.SafeIntegerProduct(market, "marketCreationTimestamp", 1000)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -1520,7 +1523,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	})}
 	return nil
 }
-func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees any, address any) any {
+func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees any, address string) any {
 	// Converting them to internal representation:
 	// - Quantity: Internal = External * (10^6)
 	// - maxFees: Internal = External * (10^6)
@@ -2263,7 +2266,11 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), endpoint)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, endpoint)
 	headers = map[string]any{
 		"Hibachi-Client": "HibachiCCXT/unversioned",
 	}

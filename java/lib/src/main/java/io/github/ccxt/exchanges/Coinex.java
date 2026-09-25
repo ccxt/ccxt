@@ -1440,13 +1440,18 @@ public class Coinex extends CoinexApi
                 String quoteId = this.safeString(market, "quote_ccy");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String symbol = ((base + "/") + quote);
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", symbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1541,6 +1546,10 @@ public class Coinex extends CoinexApi
                 String quoteId = this.safeString(entry, "quote_ccy");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settleId = baseId;
                 if (java.util.Objects.equals(subType, "linear"))
                 {
@@ -1550,13 +1559,14 @@ public class Coinex extends CoinexApi
                 String symbol = ((((base + "/") + quote) + ":") + settle);
                 Integer leveragesLength = ((List<?>)leverages).size();
     final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalSettleId = settleId;
                 final Object finalLeveragesLength = leveragesLength;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", symbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -3530,21 +3540,16 @@ public class Coinex extends CoinexApi
      * @param {float} [params.triggerPrice] the price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol2, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
-        final String symbol3 = symbol2;
         final Object amount3 = amount2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
             Object amount = amount3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " editOrder() requires a symbol argument")) ;
-            }
+            this.checkRequiredArgument("editOrder", symbol, "symbol");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4388,10 +4393,10 @@ public class Coinex extends CoinexApi
         Object address = null;
         Object tag = null;
         Integer partsLength = ((List<?>)parts).size();
-        if (Helpers.isGreaterThan(partsLength, 1) && !java.util.Objects.equals(Helpers.GetValue(parts, 0), "cfx"))
+        if ((partsLength != null && partsLength > 1) && !java.util.Objects.equals((parts == null || 0 >= parts.size() ? null : parts.get(0)), "cfx"))
         {
-            address = Helpers.GetValue(parts, 0);
-            tag = Helpers.GetValue(parts, 1);
+            address = (parts == null || 0 >= parts.size() ? null : parts.get(0));
+            tag = (parts == null || 1 >= parts.size() ? null : parts.get(1));
         } else
         {
             address = coinAddress;
@@ -4540,7 +4545,7 @@ public class Coinex extends CoinexApi
                 if ((symbols instanceof List))
                 {
                     Integer symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
@@ -4833,7 +4838,7 @@ public class Coinex extends CoinexApi
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a leverage parameter")) ;
             }
-            if ((Helpers.isLessThan(leverage, 1)) || (Helpers.isGreaterThan(leverage, maxLeverage)))
+            if ((((leverage == null || leverage < 1))) || ((leverage != null && (maxLeverage == null || leverage > maxLeverage))))
             {
                 throw new BadRequest(((((this.id + " setMarginMode() leverage should be between 1 and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
             }
@@ -7336,15 +7341,20 @@ final Object finalI = i;
         path = this.implodeParams(path, parameters);
         Object version = Helpers.GetValue(api, 0);
         Object requestUrl = Helpers.GetValue(api, 1);
-        String url = Helpers.add((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), requestUrl), "/"), version) + "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), requestUrl);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((((apiUrl + "/") + version) + "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         String nonce = String.valueOf(this.nonce());
         if (java.util.Objects.equals(method, "POST"))
         {
             List<Object> parts = (List<Object>) Helpers.split(path, "/");
             String firstPart = this.safeString(parts, 0, "");
-            Integer numParts = (parts == null ? 0 : parts.size());
-            String lastPart = this.safeString(parts, Helpers.subtract(numParts, 1), "");
+            Integer numParts = ((List<?>)parts).size();
+            String lastPart = this.safeString(parts, (((long) numParts) - 1L), "");
             List<Object> lastWords = new ArrayList<Object>(Arrays.asList(((String)lastPart).split(java.util.regex.Pattern.quote("_"))));
             Integer numWords = ((List<?>)lastWords).size();
             String lastWord = this.safeString(lastWords, (((long) numWords) - 1L), "");
@@ -7363,8 +7373,8 @@ final Object finalI = i;
                 if (java.util.Objects.equals(clientOrderId, null))
                 {
                     String defaultId = "x-167673045";
-                    Object brokerId = this.safeValue(this.options, "brokerId", defaultId);
-                    Helpers.addElementToObject(query, "client_id", Helpers.add(Helpers.add(brokerId, "_"), this.uuid16()));
+                    String brokerId = this.safeString(this.options, "brokerId", defaultId);
+                    Helpers.addElementToObject(query, "client_id", ((brokerId + "_") + this.uuid16()));
                 }
             }
         }
@@ -7426,7 +7436,7 @@ final Object finalI = i;
                 this.checkRequiredCredentials();
                 query = this.keysort(query);
                 String urlencoded = this.rawencode(query);
-                Object preparedString = Helpers.add((Helpers.add(Helpers.add(method, "/"), version) + "/"), path);
+                Object preparedString = Helpers.add((((method + "/") + version) + "/"), path);
                 if (java.util.Objects.equals(method, "POST"))
                 {
                     body = (String) (this.json(query));

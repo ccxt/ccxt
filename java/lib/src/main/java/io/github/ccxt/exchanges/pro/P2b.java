@@ -658,7 +658,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 List<Object> bid = (List<Object>) this.safeList(bids, i);
                 Double price = this.safeNumber(bid, 0);
                 Double amount = this.safeNumber(bid, 1);
-                Object bookSide = Helpers.GetValue(orderbook, "bids");
+                Object bookSide = (orderbook == null ? null : orderbook.get("bids"));
                 Helpers.callDynamically(bookSide, "store", new Object[]{price, amount});
             }
         }
@@ -669,7 +669,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 List<Object> ask = (List<Object>) this.safeList(asks, i);
                 Double price = this.safeNumber(ask, 0);
                 Double amount = this.safeNumber(ask, 1);
-                Object bookside = Helpers.GetValue(orderbook, "asks");
+                Object bookside = (orderbook == null ? null : orderbook.get("asks"));
                 Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
             }
         }

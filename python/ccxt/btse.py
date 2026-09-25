@@ -645,7 +645,7 @@ class btse(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         response = self.publicGetPublicApiMarketV1Markets(params)
         data = self.safe_dict(response, 'data', {})
@@ -728,6 +728,8 @@ class btse(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         maxAmountString = self.safe_string(market, 'maxOrderSize')
         minAmountString = self.safe_string(market, 'minOrderSize')
@@ -3346,7 +3348,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.privatePostFuturesApiV3TradePositionMode(self.extend(request, params))
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes an open position for a market
 
@@ -3544,7 +3546,10 @@ class btse(Exchange, ImplicitAPI):
         return None
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None):
-        baseUrl = self.urls['api'][api]
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = apiUrl
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         # the futures v3 trading api reads DELETE params from a signed json
@@ -3598,4 +3603,4 @@ class btse(Exchange, ImplicitAPI):
         return result
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

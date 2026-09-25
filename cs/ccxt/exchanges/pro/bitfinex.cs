@@ -610,7 +610,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? takerOrMaker = null;
         if ((maker != null))
         {
-            takerOrMaker = (isEqual(maker, -1)) ? "taker" : "maker";
+            takerOrMaker = ((maker == -1)) ? "taker" : "maker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },

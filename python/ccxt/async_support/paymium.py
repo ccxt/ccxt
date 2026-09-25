@@ -604,7 +604,8 @@ class paymium(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
+        baseUrl = self.urls['api']['rest']
+        url = baseUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if len(query) > 0:

@@ -528,6 +528,9 @@ class upbit extends Exchange {
         list($quoteId, $baseId) = explode('-', $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -1336,7 +1339,7 @@ class upbit extends Exchange {
             $request['identifier'] = $clientOrderId;
         }
         if ($postOnly) {
-            if ($request['ord_type'] !== 'limit') {
+            if ($this->safe_string($request, 'ord_type') !== 'limit') {
                 throw new InvalidOrder($this->id . ' $postOnly orders are only supported for limit orders');
             }
             $request['time_in_force'] = 'post_only';
@@ -1346,7 +1349,7 @@ class upbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($request['ord_type'] === 'best' && $timeInForce === null) {
+        if ($this->safe_string($request, 'ord_type') === 'best' && $timeInForce === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
         }
         $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
@@ -1504,7 +1507,7 @@ class upbit extends Exchange {
             $request['new_smp_type'] = $selfTradePrevention;
         }
         if ($postOnly) {
-            if ($request['new_ord_type'] !== 'limit') {
+            if ($this->safe_string($request, 'new_ord_type') !== 'limit') {
                 throw new InvalidOrder($this->id . ' $postOnly orders are only supported for limit orders');
             }
             $request['new_time_in_force'] = 'post_only';
@@ -1514,7 +1517,7 @@ class upbit extends Exchange {
                 $request['new_time_in_force'] = $timeInForce;
             }
         }
-        if ($request['new_ord_type'] === 'best' && $timeInForce === null) {
+        if ($this->safe_string($request, 'new_ord_type') === 'best' && $timeInForce === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $timeInForce parameter for best $type orders');
         }
         $params = $this->omit($params, array( 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ));

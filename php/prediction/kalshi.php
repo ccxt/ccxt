@@ -2049,11 +2049,11 @@ class kalshi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(?string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_order(?string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * places a limit or market $order on kalshi for the given $outcome token
          *
@@ -2152,11 +2152,11 @@ class kalshi extends Exchange {
         return $order;
     }
 
-    public function edit_order(string $id, string $outcome, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+    public function edit_order(string $id, string $outcome, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_edit_order(string $id, string $outcome, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    private function do_edit_order(string $id, string $outcome, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edits a resting order by cancelling it and placing a new one with the updated terms
          *
@@ -2186,11 +2186,11 @@ class kalshi extends Exchange {
         return Async\await($this->create_order($outcome, $type, $side, $amount, $price, $params));
     }
 
-    public function cancel_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function cancel_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $outcome, $params);
     }
 
-    private function do_cancel_order(?string $id, ?string $outcome = null, $params = array()) {
+    private function do_cancel_order(string $id, ?string $outcome = null, $params = array()) {
         /**
          * cancels a single open $order by $id on kalshi
          *

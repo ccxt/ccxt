@@ -1040,6 +1040,9 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var numericId *int64 = this.SafeInteger(market, "id")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var callOptions bool = (typeVar != nil && *typeVar == "call_options")
 		var putOptions bool = (typeVar != nil && *typeVar == "put_options")
@@ -1061,7 +1064,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var linear bool = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
 		var optionType *string = nil
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol any = *base + "/" + *quote
 		if swap || future || option {
 			symbol = Add(Add(symbol, ":"), settle)
 			if future || option {
@@ -2739,8 +2742,8 @@ func (this *Delta) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes232915 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes232915)
+	var retRes233215 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes233215)
 	return nil
 }
 
@@ -2772,16 +2775,16 @@ func (this *Delta) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes234415 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes234415)
+	var retRes234715 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes234715)
 	return nil
 }
-func (this *Delta) FetchOrdersWithMethodAsync(method any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchOrdersWithMethodAsync(method string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrdersWithMethodBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalArgs ...any) any {
+func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2807,10 +2810,10 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalAr
 		request["page_size"] = limit
 	}
 	var response map[string]any = nil
-	if IsEqual(method, "privateGetOrders") {
+	if method == "privateGetOrders" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
-	} else if IsEqual(method, "privateGetOrdersHistory") {
+	} else if method == "privateGetOrdersHistory" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw))
 	}
@@ -3418,8 +3421,8 @@ func (this *Delta) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes289915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes289915)
+	var retRes290215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes290215)
 	return nil
 }
 
@@ -3444,16 +3447,16 @@ func (this *Delta) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes291315 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes291315)
+	var retRes291615 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes291615)
 	return nil
 }
-func (this *Delta) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Delta) ModifyMarginHelperAsync(symbol any, amount any, typeVar string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3462,7 +3465,7 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, t
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
 	amount = ToString(amount)
-	if IsEqual(typeVar, "reduce") {
+	if typeVar == "reduce" {
 		amount = Precise.StringMul(amount, "-1")
 	}
 	var request map[string]any = map[string]any{
@@ -4881,7 +4884,11 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestPath any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
@@ -5373,7 +5380,7 @@ func (this *Delta) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Ord
 	}
 	return res.Value, nil
 }
-func (this *Delta) FetchOrdersWithMethod(method any, options ...FetchOrdersWithMethodOptions) ([]Order, error) {
+func (this *Delta) FetchOrdersWithMethod(method string, options ...FetchOrdersWithMethodOptions) ([]Order, error) {
 
 	opts := FetchOrdersWithMethodOptionsStruct{}
 

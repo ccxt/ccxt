@@ -80,7 +80,11 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	}
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "?subscribe=ticker-"), market["base"]), "-"), market["quote"])
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(*wsUrl+"?subscribe=ticker-", market["base"]), "-"), market["quote"]))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
@@ -187,7 +191,11 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 		limit = ccxt.Int64PtrTyped(100)
 	}
 	var limitString *string = this.NumberToString(limit)
-	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), market["base"]), "-"), market["quote"])
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(*wsUrl+"/orderbook/"+*limitString+"?subscribe=", market["base"]), "-"), market["quote"]))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), limitString))
 	var subscription map[string]any = map[string]any{
 		"receivedSnapshot": false,

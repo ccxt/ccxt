@@ -957,15 +957,19 @@ public partial class coinsph : Exchange
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             Dictionary<string, object> limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
             IDictionary<string, object> amountLimits = this.safeDict(limits, "LOT_SIZE", new Dictionary<string, object>() {});
             IDictionary<string, object> priceLimits = this.safeDict(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
             IDictionary<string, object> costLimits = this.safeDict(limits, "NOTIONAL", new Dictionary<string, object>() {});
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -1738,7 +1742,7 @@ public partial class coinsph : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+        string? clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         if ((clientOrderId != null))
         {
             request["origClientOrderId"] = clientOrderId;
@@ -1837,7 +1841,7 @@ public partial class coinsph : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+        string? clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         if ((clientOrderId != null))
         {
             request["origClientOrderId"] = clientOrderId;
@@ -2584,7 +2588,12 @@ public partial class coinsph : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = apiUrl;
         object query = this.omit(parameters, this.extractParams(path));
         string? endpoint = this.implodeParams(path, parameters);
         url = add(add(url, "/"), endpoint);

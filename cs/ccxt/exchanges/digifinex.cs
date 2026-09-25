@@ -840,8 +840,12 @@ public partial class digifinex : Exchange
             string? baseId = this.safeString2(market, "base_asset", "base_currency");
             string? quoteId = this.safeString2(market, "quote_asset", "quote_currency");
             string? settleId = this.safeString(market, "clear_currency");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
             //
             // The status is documented in the exchange API docs as follows:
@@ -858,13 +862,13 @@ public partial class digifinex : Exchange
             bool spot = (settle == null);
             bool swap = !spot;
             bool? margin = ((marginMode != null)) ? true : null;
-            object symbol = add(add(bs, "/"), quote);
+            string symbol = ((bs + "/") + quote);
             bool? isInverse = null;
             bool? isLinear = null;
             if (swap)
             {
                 type = "swap";
-                symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+                symbol = ((((bs + "/") + quote) + ":") + settle);
                 isInverse = this.safeBool(market, "is_inverse");
                 isLinear = ((isInverse != true)) ? true : false;
                 bool? isTrading = this.safeBool(market, "isTrading");
@@ -959,11 +963,15 @@ public partial class digifinex : Exchange
             var baseIdquoteIdVariable = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             var baseId = baseIdquoteIdVariable[0];
             var quoteId = baseIdquoteIdVariable[1];
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -3399,7 +3407,7 @@ public partial class digifinex : Exchange
             request["size"] = mathMin(500, limit);
         }
         Dictionary<string, object> response = null;
-        if (isEqual(type, "deposit"))
+        if ((type == "deposit"))
         {
             response = await this.privateSpotGetDepositHistory(this.extend(request, parameters));
         } else
@@ -4765,8 +4773,8 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> tiers = new List<object>() {};
-        object brackets = this.safeValue(info, "open_max_limits", new Dictionary<string, object>() {});
-        for (int i = 0; i < getArrayLength(brackets); i++)
+        List<object> brackets = this.safeList(info, "open_max_limits", new List<object>() {});
+        for (int i = 0; i < brackets.Count; i++)
         {
             IDictionary<string, object> tier = this.safeDict(brackets, i);
             string? marketId = this.safeString(info, "instrument_id");
@@ -5155,7 +5163,7 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         marginModeVar = marginModeVar.ToLower();
-        if (isEqual(marginModeVar, "cross"))
+        if ((marginModeVar == "cross"))
         {
             marginModeVar = "crossed";
         }
@@ -5171,16 +5179,21 @@ public partial class digifinex : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        bool signed = isEqual(getValue(api, 0), "private");
-        object endpoint = getValue(api, 1);
+        bool signed = (this.safeString(api, 0) == "private");
+        string? endpoint = this.safeString(api, 1);
         string pathPart = "/swap/v2";
-        if (isEqual(endpoint, "spot"))
+        if (endpoint == "spot")
         {
             pathPart = "/v3";
         }
         string request = ("/" + this.implodeParams(path, parameters));
         string payload = (pathPart + request);
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), payload);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + payload);
         object query = this.omit(parameters, this.extractParams(path));
         string? urlencoded = null;
         if (signed && (pathPart == "/swap/v2") && ((method == "POST")))
@@ -5218,7 +5231,7 @@ public partial class digifinex : Exchange
             {
                 if (((urlencoded != null)) && (urlencoded != ""))
                 {
-                    url = add(url, ("?" + urlencoded));
+                    url = url + ("?" + urlencoded);
                 }
             } else if ((method == "POST"))
             {
@@ -5239,7 +5252,7 @@ public partial class digifinex : Exchange
         {
             if (((urlencoded != null)) && (urlencoded != ""))
             {
-                url = add(url, ("?" + urlencoded));
+                url = url + ("?" + urlencoded);
             }
         }
         return new Dictionary<string, object>() {

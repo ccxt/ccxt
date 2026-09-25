@@ -583,6 +583,9 @@ class bithumb extends Exchange {
                     }
                     $market = $data[$currencyId];
                     $base = $this->safe_currency_code($currencyId);
+                    if ($base === null) {
+                        continue;
+                    }
                     $active = true;
                     if ((gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market)))) {
                         $numElements = count($market);
@@ -2662,7 +2665,7 @@ class bithumb extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
             }
             $side = null;
-            if ($params['side'] === 'buy') {
+            if ($this->safe_string($params, 'side') === 'buy') {
                 $side = 'bid';
             } else {
                 $side = 'ask';
@@ -3451,7 +3454,11 @@ class bithumb extends Exchange {
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($apiUrl) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryKeysLength = count($queryKeys);

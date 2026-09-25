@@ -1210,9 +1210,12 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settleId any = nil
 		var marketTypeRaw *string = this.SafeString(market, "market_type")
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol any = *base + "/" + *quote
 		var typeVar *string = nil
 		var subType *string = nil
 		if marketTypeRaw != nil && *marketTypeRaw == "SPOT" {
@@ -1220,7 +1223,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		} else if marketTypeRaw != nil && *marketTypeRaw == "PERPETUAL" {
 			typeVar = SafeStringPtr("swap")
 			settleId = quoteId
-			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settleId)
+			symbol = Add(*base+"/"+*quote+":", settleId)
 			var payoffType *string = this.SafeString(market, "payoff_type")
 			if payoffType != nil && *payoffType == "Linear" {
 				subType = SafeStringPtr("linear")
@@ -2828,8 +2831,8 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes196219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
-		ch <- BoxAbsent(retRes196219)
+		var retRes196519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes196519)
 		return nil
 	}
 	if this.Markets == nil {
@@ -3801,7 +3804,11 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), "/")
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = *apiUrl + "/"
 	url = Add(url, this.Version+"/")
 	url = Add(url, this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))

@@ -484,6 +484,9 @@ class cex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quoteId = $this->safe_string($market, 'quote');
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $id = $base . '-' . $quote; // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         $symbol = $base . '/' . $quote;
         return $this->safe_market_structure(array(
@@ -1376,9 +1379,7 @@ class cex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'clientOrderId' => $this->uuid(),
             'currency1' => $market['baseId'],
@@ -1930,7 +1931,11 @@ class cex extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($method === 'GET') {

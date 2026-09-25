@@ -726,7 +726,10 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = SafeStringPtr(GetValue(parts, 1))
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+		if (base == nil) || (quote == nil) {
+			continue
+		}
+		var symbol string = *base + "/" + *quote
 		result = append(result, map[string]any{
 			"id":             marketId,
 			"symbol":         symbol,
@@ -840,8 +843,11 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = settleId
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol *string = SafeStringPtr(Add(Add(Add(Add(base, "/"), quote), ":"), settle))
+		var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
 		result = append(result, map[string]any{
 			"id":             marketId,
 			"symbol":         symbol,
@@ -1473,7 +1479,7 @@ func (this *Lbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1483,9 +1489,9 @@ func (this *Lbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market map[string]any = this.Market(symbol)
 	if limit == nil {
-		limit = 100
+		limit = Int64PtrTyped(100)
 	} else {
-		limit = mathMin(limit, 2000)
+		limit = Int64PtrTyped(mathMin(limit, 2000))
 	}
 	if since == nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
@@ -2017,8 +2023,8 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes164915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes164915)
+	var retRes165515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes165515)
 	return nil
 }
 
@@ -2335,13 +2341,13 @@ func (this *Lbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	if method != nil && *method == "fetchOrderSupplement" {
 
-		var retRes193419 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderSupplementAsync(id, symbol, params))))
-		ch <- BoxAbsent(retRes193419)
+		var retRes194019 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderSupplementAsync(id, symbol, params))))
+		ch <- BoxAbsent(retRes194019)
 		return nil
 	}
 
-	var retRes193615 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderDefaultAsync(id, symbol, params))))
-	ch <- BoxAbsent(retRes193615)
+	var retRes194215 map[string]any = MapTyped(PanicOnError((<-this.FetchOrderDefaultAsync(id, symbol, params))))
+	ch <- BoxAbsent(retRes194215)
 	return nil
 }
 func (this *Lbank) FetchOrderSupplementAsync(id any, optionalArgs ...any) <-chan any {
@@ -3802,12 +3808,20 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/"+this.Version+"/", this.ImplodeParams(path, params))
 	// Every spot endpoint ends with ".do"
 	if GetValue(api, 0) == "spot" {
 		url = Add(url, ".do")
 	} else {
-		url = Add(Add(GetValue(GetValue(this.Urls, "api"), "contract"), "/"), this.ImplodeParams(path, params))
+		var contractUrl *string = this.SafeString(GetValue(this.Urls, "api"), "contract")
+		if contractUrl == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = Add(*contractUrl+"/", this.ImplodeParams(path, params))
 	}
 	if GetValue(api, 1) == "public" {
 		if len(ObjectKeys(query)) > 0 {

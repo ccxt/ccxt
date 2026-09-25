@@ -102,7 +102,11 @@ class bullish extends \ccxt\async\bullish {
             'params' => $request,
             'id' => $id,
         );
-        $fullUrl = $this->urls['api']['ws']['public'] . $url;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
+        }
+        $fullUrl = $wsUrl . $url;
         return Async\await($this->watch($fullUrl, $messageHash, $this->deep_extend($message, $params), $messageHash));
     }
 
@@ -226,7 +230,11 @@ class bullish extends \ccxt\async\bullish {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        $url = $this->urls['api']['ws']['public'] . '/trading-api/v1/market-data/tick/' . $market['id'];
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchTicker() has no public websocket url');
+        }
+        $url = $wsUrl . '/trading-api/v1/market-data/tick/' . $market['id'];
         $messageHash = 'ticker::' . $symbol;
         return Async\await($this->watch($url, $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
     }

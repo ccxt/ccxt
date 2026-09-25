@@ -912,7 +912,7 @@ public partial class aster : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
-                { "recvWindow", multiply(10, 1000) },
+                { "recvWindow", (10L * 1000L) },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
                 { "v3ChainId", 1666 },
                 { "createOrder", new Dictionary<string, object>() {
@@ -1115,7 +1115,7 @@ public partial class aster : Exchange
     {
         if ((subType == null))
         {
-            return (isEqual(type, "delivery"));
+            return ((type == "delivery"));
         } else
         {
             return (subType == "inverse");
@@ -1325,11 +1325,15 @@ public partial class aster : Exchange
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseAsset");
         string? quoteId = this.safeString(market, "quoteAsset");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         bool active = (this.safeString(market, "status") == "TRADING");
         bool? spot = null;
-        object symbol = null;
+        string? symbol = null;
         string? settle = null;
         string? settleId = null;
         bool? swap = null;
@@ -1345,15 +1349,15 @@ public partial class aster : Exchange
             swap = true;
             settleId = this.safeString(market, "marginAsset");
             settle = this.safeCurrencyCode(settleId);
-            symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            symbol = ((((bs + "/") + quote) + ":") + settle);
             linear = (settle == quote);
-            inverse = isEqual(settle, bs);
+            inverse = (settle == bs);
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
         } else
         {
             spot = true;
             swap = false;
-            symbol = add(add(bs, "/"), quote);
+            symbol = ((bs + "/") + quote);
         }
         // filters
         List<object> filters = this.safeList(market, "filters", new List<object>() {});
@@ -2507,11 +2511,11 @@ public partial class aster : Exchange
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToUpper();
-        if (isEqual(marginModeVar, "CROSS"))
+        if ((marginModeVar == "CROSS"))
         {
             marginModeVar = "CROSSED";
         }
-        if ((!isEqual(marginModeVar, "ISOLATED")) && (!isEqual(marginModeVar, "CROSSED")))
+        if ((!(marginModeVar == "ISOLATED")) && (!(marginModeVar == "CROSSED")))
         {
             throw new BadRequest ((this.id + " marginMode must be either isolated or cross")) ;
         }
@@ -3005,7 +3009,7 @@ public partial class aster : Exchange
         }
         if ((symbol == null))
         {
-            if (isEqual(getValue((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "warnIfNoSymbol"), true))
+            if ((this.safeBool((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "warnIfNoSymbol") == true))
             {
                 throw new ExchangeError ((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
             }

@@ -666,6 +666,10 @@ public class Onetrading extends OnetradingApi
         String id = this.safeString(market, "id");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String state = this.safeString(market, "state");
         String type = this.safeString(market, "type");
         Boolean isPerp = java.util.Objects.equals(type, "PERP");
@@ -676,13 +680,14 @@ public class Onetrading extends OnetradingApi
         }
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final Object finalQuote = quote;
         final String finalState = state;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
-            put( "settle", ((Boolean.TRUE.equals(isPerp))) ? quote : null );
+            put( "quote", finalQuote );
+            put( "settle", ((Boolean.TRUE.equals(isPerp))) ? finalQuote : null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "settleId", ((Boolean.TRUE.equals(isPerp))) ? quoteId : null );
@@ -1713,12 +1718,10 @@ public class Onetrading extends OnetradingApi
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            String side = side3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1726,16 +1729,12 @@ public class Onetrading extends OnetradingApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             final String finalUppercaseType = uppercaseType;
-            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", ((Map<String, Object>)market).get("id") );
                 put( "type", finalUppercaseType );
-                put( "side", ((String)finalSide).toUpperCase() );
+                put( "side", ((String)side).toUpperCase() );
                 put( "amount", Onetrading.this.amountToPrecision(symbol, amount) );
             }};
             Boolean priceIsRequired = false;
@@ -2437,7 +2436,12 @@ public class Onetrading extends OnetradingApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.version) + "/") + this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
         {

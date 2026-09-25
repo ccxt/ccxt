@@ -388,7 +388,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function load_account(mixed $chainId, mixed $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
+    public function load_account(mixed $chainId, ?string $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
         $this->init_auth_object($accountIndex, $apiKeyIndex);
         $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
         $signer = $this->safe_value($cachedAuths, 'signer');
@@ -1209,6 +1209,9 @@ class lighter extends Exchange {
             $settleId = ($type === 'swap') ? 'USDC' : null;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
             if ($settle !== null) {

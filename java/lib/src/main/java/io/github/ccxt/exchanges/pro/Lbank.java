@@ -1321,7 +1321,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 } else
                 {
                     Long expires = this.safeInteger(authenticated, "expires", 0);
-                    if (Helpers.isLessThan(expires, now))
+                    if ((now != null && (expires == null || expires < now)))
                     {
                         final Map<String, Object> finalAuthenticated = authenticated;
                         Map<String, Object> request = new HashMap<String, Object>() {{

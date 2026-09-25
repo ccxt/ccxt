@@ -319,6 +319,8 @@ class bitbank(Exchange, ImplicitAPI):
         quoteId = self.safe_string(entry, 'quote_asset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -1044,7 +1046,10 @@ class bitbank(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_hostname(self.urls['api'][api]) + '/'
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(apiUrl) + '/'
         if (api == 'public') or (api == 'markets'):
             url += self.implode_params(path, params)
             if len(query) > 0:

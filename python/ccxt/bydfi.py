@@ -503,6 +503,8 @@ class bydfi(Exchange, ImplicitAPI):
         settleId = self.safe_string(market, 'marginAsset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         inverse = self.safe_bool(market, 'reverse')
@@ -845,7 +847,9 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': interval,
         }
         startTime = since
-        numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
+        numberOfCandles = maxLimit
+        if limit is not None and limit is not None and limit != 0:
+            numberOfCandles = limit
         until = None
         until, params = self.handle_option_integer_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
@@ -2666,7 +2670,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
-    def fetch_transactions_helper(self, type: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
+    def fetch_transactions_helper(self, type: str, code: Str, since: Int, limit: Int, params: object) -> list[Transaction]:
         methodName = 'fetchWithdrawals'
         if type == 'deposit':
             methodName = 'fetchDeposits'
@@ -2804,7 +2808,10 @@ class bydfi(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api]
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl
         endpoint = '/' + path
         query = ''
         sortedParams = self.keysort(params)

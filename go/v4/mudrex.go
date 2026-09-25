@@ -1264,12 +1264,12 @@ func (this *Mudrex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchOrdersByStateAsync(state string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ...any) any {
+func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1290,7 +1290,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs 
 	}
 	var request map[string]any = this.Extend(q, params)
 	var response map[string]any = nil
-	if IsEqual(state, "closed") {
+	if state == "closed" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesOrdersHistory(request)).Raw))
 	} else {

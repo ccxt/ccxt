@@ -554,6 +554,10 @@ public class Bitteam extends BitteamApi
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         Boolean active = (Boolean) this.safeBool(market, "active");
         String timeStart = this.safeString(market, "timeStart");
         Long created = this.parse8601(timeStart);
@@ -566,13 +570,14 @@ public class Bitteam extends BitteamApi
             minCost = this.safeNumber(settings, "limit_usd");
         }
         final String finalBase = base;
+        final String finalQuote = quote;
         final Double finalMinCost = minCost;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "numericId", numericId );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -2966,7 +2971,12 @@ public class Bitteam extends BitteamApi
     {
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), endpoint);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + endpoint);
         String query = this.urlencode(request);
         if (java.util.Objects.equals(api, "private"))
         {
@@ -2989,7 +2999,7 @@ public class Bitteam extends BitteamApi
         {
             url = (url + ("?" + query));
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

@@ -1795,18 +1795,22 @@ public partial class nado : Exchange
             }
             string? rawBaseId = this.safeString(market, "symbol");
             string? rawQuoteId = this.safeString(pair, "quote", "USDT0");
-            object bs = this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
+            string? bs = this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
             string? quote = this.safeCurrencyCode(rawQuoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             IDictionary<string, object> baseAsset = this.safeDict(assetsByCode, bs, asset);
             IDictionary<string, object> quoteAsset = this.safeDict(assetsByCode, quote);
             string? baseId = this.safeString(baseAsset, "product_id", rawBaseId);
             string? quoteId = this.safeString(quoteAsset, "product_id", rawQuoteId);
             string? settleId = contract ? quoteId : null;
             string? settle = contract ? quote : null;
-            object symbol = add(add(bs, "/"), quote);
+            string symbol = ((bs + "/") + quote);
             if (contract)
             {
-                symbol = add(symbol, (":" + settle));
+                symbol = symbol + (":" + settle);
             }
             string? tradingStatus = this.safeString(market, "trading_status");
             bool active = (tradingStatus != "not_tradable");
@@ -3215,12 +3219,12 @@ public partial class nado : Exchange
             subaccount = "default";
         }
         string address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
-        if (((address?.Length ?? 0) != 40))
+        if ((address.Length != 40))
         {
             throw new BadRequest ((this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }
         string encoded = this.remove0xPrefix(this.stringToBase16(subaccount));
-        if ((encoded?.Length ?? 0) > 24)
+        if (encoded.Length > 24)
         {
             throw new BadRequest ((this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }

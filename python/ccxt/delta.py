@@ -860,6 +860,8 @@ class delta(Exchange, ImplicitAPI):
             numericId = self.safe_integer(market, 'id')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             callOptions = (type == 'call_options')
             putOptions = (type == 'put_options')
@@ -2266,7 +2268,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_with_method('privateGetOrdersHistory', symbol, since, limit, params)
 
-    def fetch_orders_with_method(self, method: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    def fetch_orders_with_method(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         self.load_markets()
         request = {
             # 'product_ids': market['id'], // comma-separated
@@ -2809,7 +2811,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def modify_margin_helper(self, symbol: str, amount: object, type: object, params: dict = {}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
         self.load_markets()
         market = self.market(symbol)
         amount = str(amount)
@@ -4042,7 +4044,10 @@ class delta(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = {}, body: Str = None) -> dict:
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + requestPath
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + requestPath
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if len(query) > 0:

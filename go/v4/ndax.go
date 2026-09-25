@@ -891,12 +891,15 @@ func (this *Ndax) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "Product2")
 	var base *string = this.SafeCurrencyCode(this.SafeString(market, "Product1Symbol"))
 	var quote *string = this.SafeCurrencyCode(this.SafeString(market, "Product2Symbol"))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var sessionStatus *string = this.SafeString(market, "SessionStatus")
 	var isDisable *bool = this.SafeBool(market, "IsDisable")
 	var sessionRunning bool = (sessionStatus != nil && *sessionStatus == "Running")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -992,8 +995,8 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 			}
 			return bidsKey
 		}()
-		retRes71612 := GetValue(result, side)
-		AppendToArray(&retRes71612, bidask)
+		retRes71912 := GetValue(result, side)
+		AppendToArray(&retRes71912, bidask)
 	}
 	result["bids"] = this.SortBy(result["bids"], 0, true)
 	result["asks"] = this.SortBy(result["asks"], 0)
@@ -2914,8 +2917,8 @@ func (this *Ndax) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		"GenerateNewKey": true,
 	}
 
-	var retRes234315 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes234315)
+	var retRes234615 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes234615)
 	return nil
 }
 
@@ -3375,7 +3378,11 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if IsEqual(path, "Authenticate") {

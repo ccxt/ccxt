@@ -1004,7 +1004,7 @@ impl AlpacaCore {
                     m.insert("secret".to_string(), self.secret.clone());
                 m
             });
-            if is_equal(&url, &crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "trading")) {
+            if (url.as_str() == self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("trading".into()), &[]).as_str()) {
                 // this auth request is being deprecated in test environment
                 request = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1036,11 +1036,12 @@ impl AlpacaCore {
         //    }
         //
         let mut code: Value = (match message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut msg: Value = (match message.get("msg") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".into())).into()), code).into()), Value::Str(" message: ".into())).into()), &msg)));
+        let mut msg: Value = (match message.get("msg") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".into())).into()), code).into());
+        if (msg != Value::Null) {
+            errorMessage = Value::Str(format!("{}{}", Value::Str(format!("{}{}", errorMessage, Value::Str(" message: ".into())).into()), msg).into());
+        }
+        panic!("{}", crate::exchange_errors::exchange_error(errorMessage));
 
     Value::Null
 }

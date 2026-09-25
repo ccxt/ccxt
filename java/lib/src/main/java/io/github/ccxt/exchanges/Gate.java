@@ -2195,7 +2195,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -2208,7 +2208,7 @@ public class Gate extends GateApi
             List<Object> types = (List<Object>) this.safeList(fetchMarketsOptions, "types", new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")));
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object marketType = (types == null || i < 0 || i >= types.size() ? null : types.get(i));
+                String marketType = this.safeString(types, i);
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
                     // if (!sandboxMode) {
@@ -2308,6 +2308,10 @@ public class Gate extends GateApi
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String takerPercent = this.safeString(market, "fee");
                 String makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
                 Double amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
@@ -2319,12 +2323,13 @@ public class Gate extends GateApi
                 Long createdTs = ((((buyStart == null || buyStart != 0)))) ? buyStart : null;
                 Boolean active = (java.util.Objects.equals(tradeStatus, "tradable")) || (Boolean.TRUE.equals(margin) && ((marginStatus != null && marginStatus == 1)));
     final String finalBase = base;
+                final String finalQuote = quote;
                 final Boolean finalMargin = margin;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -2388,7 +2393,7 @@ public class Gate extends GateApi
 
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("sandboxMode"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "sandboxMode"), true))
             {
                 swapSettlementCurrencies = new ArrayList<Object>(Arrays.asList("usdt")); // gate sandbox only has usdt-margined swaps
             }
@@ -2403,7 +2408,10 @@ public class Gate extends GateApi
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                     Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
-                    ((List<Object>)result).add(parsedMarket);
+                    if (!java.util.Objects.equals(parsedMarket, null))
+                    {
+                        ((List<Object>)result).add(parsedMarket);
+                    }
                 }
             }
             return result;
@@ -2420,7 +2428,7 @@ public class Gate extends GateApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("sandboxMode"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "sandboxMode"), true))
             {
                 return new ArrayList<Object>(Arrays.asList());  // right now sandbox does not have inverse swaps
             }
@@ -2437,7 +2445,10 @@ public class Gate extends GateApi
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                     Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
-                    ((List<Object>)result).add(parsedMarket);
+                    if (!java.util.Objects.equals(parsedMarket, null))
+                    {
+                        ((List<Object>)result).add(parsedMarket);
+                    }
                 }
             }
             return result;
@@ -2561,6 +2572,10 @@ public class Gate extends GateApi
         String date = this.safeString(parts, 2);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settle = this.safeCurrencyCode((String) (settleId));
         Long expiry = this.safeTimestamp(market, "expire_time");
         String symbol = "";
@@ -2607,7 +2622,7 @@ public class Gate extends GateApi
             put( "margin", false );
             put( "swap", java.util.Objects.equals(finalMarketType, "swap") );
             put( "future", java.util.Objects.equals(finalMarketType, "future") );
-            put( "option", java.util.Objects.equals(finalMarketType, "option") );
+            put( "option", false );
             put( "active", java.util.Objects.equals(finalStatus, "trading") );
             put( "contract", true );
             put( "linear", isLinear );
@@ -2706,6 +2721,10 @@ public class Gate extends GateApi
                     String quoteId = this.safeString(parts, 1);
                     String base = this.safeCurrencyCode(baseId);
                     String quote = this.safeCurrencyCode(quoteId);
+                    if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                    {
+                        continue;
+                    }
                     String symbol = ((base + "/") + quote);
                     Long expiry = this.safeTimestamp(market, "expiration_time");
                     String strike = this.safeString(market, "strike_price");
@@ -2734,14 +2753,15 @@ public class Gate extends GateApi
                     }
     final String finalSymbol = symbol;
                     final String finalBase = base;
+                    final String finalQuote = quote;
                     final String finalOptionType = optionType;
                     final Long finalCreatedTs = createdTs;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
                         put( "symbol", finalSymbol );
                         put( "base", finalBase );
-                        put( "quote", quote );
-                        put( "settle", quote );
+                        put( "quote", finalQuote );
+                        put( "settle", finalQuote );
                         put( "baseId", baseId );
                         put( "quoteId", quoteId );
                         put( "settleId", quoteId );
@@ -4318,8 +4338,8 @@ public class Gate extends GateApi
             {
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(response, i);
-                    if (java.util.Objects.equals(Helpers.GetValue(entry, "name"), ((Map<String, Object>)market).get("id")))
+                    Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                    if (java.util.Objects.equals(this.safeString(entry, "name"), ((Map<String, Object>)market).get("id")))
                     {
                         ticker = entry;
                         break;
@@ -6445,7 +6465,7 @@ final String finalPointFee = pointFee;
         {
             throw new BadRequest((this.id + " createOrders() requires at least one order")) ;
         }
-        if (Helpers.isGreaterThan(ordersLength, 10))
+        if ((ordersLength != null && ordersLength > 10))
         {
             throw new BadRequest((this.id + " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
@@ -6766,7 +6786,7 @@ final String finalPointFee = pointFee;
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     Long priceType = this.safeInteger(parameters, "price_type", 0);
-                    if (Helpers.isLessThan(priceType, 0) || Helpers.isGreaterThan(priceType, 2))
+                    if (((priceType == null || priceType < 0)) || (priceType != null && priceType > 2))
                     {
                         throw new BadRequest((this.id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }
@@ -7394,7 +7414,7 @@ final Object finalRebate = rebate;
             }});
         }
         Integer numFeeCurrencies = ((List<?>)fees).size();
-        Boolean multipleFeeCurrencies = Helpers.isGreaterThan(numFeeCurrencies, 1);
+        Boolean multipleFeeCurrencies = (numFeeCurrencies != null && numFeeCurrencies > 1);
         String status = this.parseOrderStatus(rawStatus);
         String remaining = Precise.stringAbs(remainingString);
         // handle spot market buy
@@ -9087,7 +9107,7 @@ final Object finalRebate = rebate;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
@@ -9965,7 +9985,12 @@ final Object finalI = i;
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)

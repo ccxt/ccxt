@@ -474,7 +474,7 @@ func (this *Coinex) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -489,7 +489,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params, "spot")
@@ -1127,7 +1127,7 @@ func (this *Coinex) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1141,12 +1141,12 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var market any = nil
 	var marketList []any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params, "spot")
@@ -1156,13 +1156,13 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync(typeVar)))
 	if symbol != nil {
 		marketList = []any{ccxt.GetValue(market, "id")}
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		messageHash += ":" + *symbol
 	} else {
 		marketList = []any{}
 		if ccxt.IsEqual(typeVar, "spot") {
-			messageHash = ccxt.Add(messageHash, ":spot")
+			messageHash += ":spot"
 		} else {
-			messageHash = ccxt.Add(messageHash, ":swap")
+			messageHash += ":swap"
 		}
 	}
 	var method string

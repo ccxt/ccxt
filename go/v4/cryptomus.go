@@ -410,10 +410,13 @@ func (this *Cryptomus) ParseMarket(market any) any {
 	var quoteId *string = SafeStringPtr(GetValue(parts, 1))
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var fees map[string]any = SafeMapTyped(this.Fees, "trading")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"baseId":         baseId,
@@ -1435,7 +1438,11 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var endpoint any = this.ImplodeParams(path, params)
 	params = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), endpoint)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", endpoint)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var jsonParams any = ""

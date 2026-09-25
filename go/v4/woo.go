@@ -1019,7 +1019,7 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1081,9 +1081,12 @@ func (this *Woo) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(parts, 2)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settleId any = nil
 	var settle *string = nil
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	var contractSize any = nil
 	var linear any = nil
 	var inverse any = nil
@@ -1093,7 +1096,7 @@ func (this *Woo) ParseMarket(market any) any {
 		margin = false
 		settleId = DerefScalar(this.SafeString(parts, 2))
 		settle = this.SafeCurrencyCode(settleId)
-		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+		symbol = Add(*base+"/"+*quote+":", settle)
 		contractSize = this.ParseNumber("1")
 		linear = true
 		inverse = false
@@ -1670,8 +1673,8 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 
-	var retRes128415 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, 1, params))))
-	ch <- BoxAbsent(retRes128415)
+	var retRes128715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, 1, params))))
+	ch <- BoxAbsent(retRes128715)
 	return nil
 }
 
@@ -1704,8 +1707,8 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 
-	var retRes130515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, 1, params))))
-	ch <- BoxAbsent(retRes130515)
+	var retRes130815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, 1, params))))
+	ch <- BoxAbsent(retRes130815)
 	return nil
 }
 
@@ -1749,8 +1752,8 @@ func (this *Woo) createTrailingAmountOrderBody(ch chan any, symbol any, typeVar 
 	AddElementToObject(params, "trailingAmount", trailingAmount)
 	AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-	var retRes133215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params))))
-	ch <- BoxAbsent(retRes133215)
+	var retRes133515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params))))
+	ch <- BoxAbsent(retRes133515)
 	return nil
 }
 
@@ -1794,8 +1797,8 @@ func (this *Woo) createTrailingPercentOrderBody(ch chan any, symbol any, typeVar
 	AddElementToObject(params, "trailingPercent", trailingPercent)
 	AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-	var retRes135915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params))))
-	ch <- BoxAbsent(retRes135915)
+	var retRes136215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params))))
+	ch <- BoxAbsent(retRes136215)
 	return nil
 }
 
@@ -2404,8 +2407,8 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes194519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes194519)
+		var retRes194819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes194819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2483,8 +2486,8 @@ func (this *Woo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "INCOMPLETE",
 	})
 
-	var retRes208415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes208415)
+	var retRes208715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes208715)
 	return nil
 }
 
@@ -2529,8 +2532,8 @@ func (this *Woo) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "COMPLETED",
 	})
 
-	var retRes210915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes210915)
+	var retRes211215 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes211215)
 	return nil
 }
 func (this *Woo) ParseTimeInForce(timeInForce *string) *string {
@@ -3179,8 +3182,8 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes264219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes264219)
+		var retRes264519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes264519)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3741,8 +3744,8 @@ func (this *Woo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"tokenSide": "DEPOSIT",
 	}
 
-	var retRes309815 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes309815)
+	var retRes310115 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes310115)
 	return nil
 }
 
@@ -3777,8 +3780,8 @@ func (this *Woo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"tokenSide": "WITHDRAW",
 	}
 
-	var retRes311615 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes311615)
+	var retRes311915 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes311915)
 	return nil
 }
 
@@ -4245,7 +4248,7 @@ func (this *Woo) ParseMarginLoan(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Woo) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 func (this *Woo) Sign(path any, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
@@ -4430,8 +4433,8 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes364219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
-		ch <- BoxAbsent(retRes364219)
+		var retRes364519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))))
+		ch <- BoxAbsent(retRes364519)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4561,8 +4564,8 @@ func (this *Woo) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes375715 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
-	ch <- BoxAbsent(retRes375715)
+	var retRes376015 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
+	ch <- BoxAbsent(retRes376015)
 	return nil
 }
 
@@ -4717,8 +4720,8 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes386419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
-		ch <- BoxAbsent(retRes386419)
+		var retRes386719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))))
+		ch <- BoxAbsent(retRes386719)
 		return nil
 	}
 	if symbol == nil {
@@ -4992,8 +4995,8 @@ func (this *Woo) addMarginBody(ch chan any, symbol any, amount any, optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes413615 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "ADD", params))))
-	ch <- BoxAbsent(retRes413615)
+	var retRes413915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "ADD", params))))
+	ch <- BoxAbsent(retRes413915)
 	return nil
 }
 
@@ -5019,16 +5022,16 @@ func (this *Woo) reduceMarginBody(ch chan any, symbol any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes415115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "REDUCE", params))))
-	ch <- BoxAbsent(retRes415115)
+	var retRes415415 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "REDUCE", params))))
+	ch <- BoxAbsent(retRes415415)
 	return nil
 }
-func (this *Woo) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Woo) ModifyMarginHelperAsync(symbol any, amount any, typeVar string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Woo) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

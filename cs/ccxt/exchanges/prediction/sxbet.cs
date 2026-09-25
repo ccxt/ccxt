@@ -809,7 +809,7 @@ public partial class sxbet : PredictionExchange
 }, "latest"});
         string hex = this.remove0xPrefix(result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
-        string? lengthHex = slice(hex, 64, 128);
+        string? lengthHex = ((hex == null) ? null : hex.Substring(Math.Min(64, hex.Length), Math.Min(128, hex.Length) - Math.Min(64, hex.Length)));
         object length = this.hexToInt(lengthHex);
         object dataEnd = this.sum(128, multiply(length, 2));
         string? dataHex = slice(hex, 128, dataEnd);
@@ -1994,7 +1994,7 @@ public partial class sxbet : PredictionExchange
         bool? won = null;
         if (((winner != null)) && !isVoid)
         {
-            won = (isEqual(winner, heldNumber));
+            won = ((winner == heldNumber));
         }
         string usdcDecimals = "1000000";
         string? stake = Precise.stringDiv(this.safeString(trade, "totalStake", "0"), usdcDecimals, 6);

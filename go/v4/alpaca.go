@@ -771,7 +771,10 @@ func (this *Alpaca) ParseMarket(asset any) any {
 	if (quote == nil) && (assetClass != nil && *assetClass == "us_equity") {
 		quote = SafeStringPtr("USD")
 	}
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote
 	var status *string = this.SafeString(asset, "status")
 	var active bool = (status != nil && *status == "active")
 	var minAmount *float64 = this.SafeNumber(asset, "min_order_size")
@@ -1398,8 +1401,8 @@ func (this *Alpaca) createMarketOrderWithCostBody(ch chan any, symbol any, side 
 		"cost": cost,
 	}
 
-	var retRes110515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes110515)
+	var retRes110815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes110815)
 	return nil
 }
 
@@ -1431,8 +1434,8 @@ func (this *Alpaca) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		"cost": cost,
 	}
 
-	var retRes112515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", 0, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes112515)
+	var retRes112815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", 0, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes112815)
 	return nil
 }
 
@@ -1464,8 +1467,8 @@ func (this *Alpaca) createMarketSellOrderWithCostBody(ch chan any, symbol any, c
 		"cost": cost,
 	}
 
-	var retRes114515 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes114515)
+	var retRes114815 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes114815)
 	return nil
 }
 
@@ -1838,8 +1841,8 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	}
 
-	var retRes142015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes142015)
+	var retRes142315 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes142315)
 	return nil
 }
 
@@ -1876,8 +1879,8 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "closed",
 	}
 
-	var retRes144015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes144015)
+	var retRes144315 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes144315)
 	return nil
 }
 
@@ -2348,12 +2351,12 @@ func (this *Alpaca) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options.Store("sandboxMode", enable)
 }
-func (this *Alpaca) FetchTransactionsHelperAsync(typeVar any, code any, since any, limit any, params any) <-chan any {
+func (this *Alpaca) FetchTransactionsHelperAsync(typeVar string, code any, since any, limit any, params any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTransactionsHelperBody(ch, typeVar, code, since, limit, params)
 	return ch
 }
-func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code any, since any, limit any, params any) any {
+func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar string, code any, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	if this.Markets == nil {
@@ -2405,7 +2408,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 			if isIncoming {
 				entryDirection = "INCOMING"
 			}
-			if (IsEqual(typeVar, "BOTH")) || (IsEqual(entryDirection, typeVar)) {
+			if (typeVar == "BOTH") || (entryDirection == typeVar) {
 				filtered = append(filtered, entry)
 			}
 		}
@@ -2446,9 +2449,9 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 			return nil
 		}()
 		var direction *string = this.SafeString(entry, "direction")
-		if IsEqual(direction, typeVar) {
+		if direction != nil && *direction == typeVar {
 			results = append(results, entry)
-		} else if IsEqual(typeVar, "BOTH") {
+		} else if typeVar == "BOTH" {
 			results = append(results, entry)
 		}
 	}
@@ -3462,7 +3465,7 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	}
 	return res.Value, nil
 }
-func (this *Alpaca) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) ([]Transaction, error) {
+func (this *Alpaca) FetchTransactionsHelper(typeVar string, code string, since any, limit any, params any) ([]Transaction, error) {
 	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchTransactionsHelperAsync(typeVar, code, since, limit, params))
 	if res.Err != nil {
 		return nil, res.Err

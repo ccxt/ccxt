@@ -710,21 +710,21 @@ func AssertDictionaryResponse(exchange ccxt.ICoreExchange, method any, response 
 	// php cannot distinguish an empty dict from an empty list, both are a plain array
 	// there, so an empty array response is shape indeterminate and accepted, observed
 	// as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
-	hint := GetArg(optionalArgs, 0, nil)
+	var hint *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = hint
 	var isEmptyArrayResponse bool = false
 	if IsArray(response) {
 		var responseLength int = GetArrayLength(response)
 		isEmptyArrayResponse = (responseLength == 0)
 	}
-	var hintText any = ""
+	var hintText string = ""
 	if hint != nil {
-		hintText = Add(" ", hint)
+		hintText = " " + *hint
 	}
 	Assert(EvalTruthy(exchange.IsDictionary(response)) || isEmptyArrayResponse, Add(Add(Add(Add(Add(exchange.GetId(), " "), method), hintText), " must return a dict. "), exchange.Json(response)))
 }
 func AssertNonEmtpyArray(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, optionalArgs ...any) {
-	hint := GetArg(optionalArgs, 0, nil)
+	var hint *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = hint
 	var logText any = LogTemplate(exchange, method, entry)
 	if hint != nil {

@@ -1225,9 +1225,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var triggerPrice *float64 = this.SafeNumber(params, "triggerPrice")
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 		"side":          ToUpper(side),
@@ -2001,9 +1999,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
-		panic(ArgumentsRequired(this.Id + " editOrder() requires a symbol argument"))
-	}
+	this.CheckRequiredArgument("editOrder", symbol, "symbol")
 	typeVar = ToUpper(typeVar)
 	if (!IsEqual(typeVar, "LIMIT")) && (!IsEqual(typeVar, "MARKET")) && (!IsEqual(typeVar, "STOP_MARKET")) && (!IsEqual(typeVar, "INSTANT")) {
 		panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")))
@@ -2013,9 +2009,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " editOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("editOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"mode": "ALLOW_FAILURE",
 		"cancel": map[string]any{
@@ -2180,7 +2174,10 @@ func (this *Foxbit) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(quoteAssets, "symbol")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote
 	var fees map[string]any = SafeMapTyped(market, "default_fees")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -2567,7 +2564,11 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 		fullPath = "/status"
 		urlPath = "status"
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), urlPath), fullPath)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), urlPath)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, fullPath)
 	params = this.Omit(params, this.ExtractParams(path))
 	var timestamp int64 = this.Milliseconds()
 	var query string = ""

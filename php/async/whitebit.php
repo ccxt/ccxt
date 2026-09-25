@@ -490,7 +490,7 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
             Async\await($this->load_time_difference());
         }
         $markets = Async\await($this->v4PublicGetMarkets());
@@ -529,6 +529,9 @@ class whitebit extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $active = $this->safe_bool($market, 'tradesEnabled');
         $isCollateral = $this->safe_bool($market, 'isCollateral');
         $typeId = $this->safe_string($market, 'type');
@@ -1120,7 +1123,7 @@ class whitebit extends Exchange {
             if (($market === null) || ($market === null) || ($marketSymbol === null) || ($marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
-            $symbol = $market['symbol'];
+            $symbol = $marketSymbol;
             // Filter by symbols if specified
             if ($symbols !== null) {
                 $symbolFound = false;
@@ -1264,7 +1267,7 @@ class whitebit extends Exchange {
             for ($j = 0; $j < count($feeKeys); $j++) {
                 $feeKey = $feeKeys[$j];
                 $fee = $this->safe_dict($feesData, $feeKey);
-                if (($fee !== null && $fee !== null) && $fee['ticker'] === $code) {
+                if (($fee !== null && $fee !== null) && $this->safe_string($fee, 'ticker') === $code) {
                     $feeData = $fee;
                     break;
                 }
@@ -4467,7 +4470,7 @@ class whitebit extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
@@ -4479,7 +4482,11 @@ class whitebit extends Exchange {
         }
         $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
-        $url = ($this->urls['api'])[$version][$accessibility] . $pathWithParams;
+        $apiUrl = $this->safe_string($this->urls['api'][$version], $accessibility);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $pathWithParams;
         if ($accessibility === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);

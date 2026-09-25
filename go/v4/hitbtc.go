@@ -900,10 +900,13 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var feeCurrencyId *string = this.SafeString(market, "fee_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var feeCurrency *string = this.SafeCurrencyCode(feeCurrencyId)
 		var settleId any = nil
 		var settle any = nil
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol any = *base + "/" + *quote
 		var typeVar string = "spot"
 		var contractSize any = nil
 		var linear any = nil
@@ -2236,8 +2239,8 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes187519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
-		ch <- BoxAbsent(retRes187519)
+		var retRes187819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))))
+		ch <- BoxAbsent(retRes187819)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -3609,8 +3612,8 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes296519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))))
-		ch <- BoxAbsent(retRes296519)
+		var retRes296819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))))
+		ch <- BoxAbsent(retRes296819)
 		return nil
 	}
 	var market map[string]any = nil
@@ -4335,8 +4338,8 @@ func (this *Hitbtc) reduceMarginBody(ch chan any, symbol any, amount any, option
 		panic(BadRequest(this.Id + " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount"))
 	}
 
-	var retRes357715 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes357715)
+	var retRes358015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes358015)
 	return nil
 }
 
@@ -4364,8 +4367,8 @@ func (this *Hitbtc) addMarginBody(ch chan any, symbol any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes359415 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes359415)
+	var retRes359715 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes359715)
 	return nil
 }
 
@@ -4488,7 +4491,7 @@ func (this *Hitbtc) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan a
 func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4509,7 +4512,7 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
 	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, maxLeverage)) {
-		panic(BadRequest(Add(this.Id+" setLeverage() leverage should be between 1 and "+ToString(maxLeverage)+" for ", symbol)))
+		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and " + ToString(maxLeverage) + " for " + *symbol))
 	}
 	var request map[string]any = map[string]any{
 		"symbol":         market["id"],
@@ -4767,7 +4770,11 @@ func (this *Hitbtc) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var implodedPath any = this.ImplodeParams(path, params)
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), implodedPath)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", implodedPath)
 	var getRequest any = nil
 	var keys []string = ObjectKeys(query)
 	var queryLength int = len(keys)

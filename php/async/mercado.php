@@ -928,11 +928,11 @@ class mercado extends Exchange {
     private function do_fetch_ohlcv(string $symbol, string $timeframe = '15m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$limit] the maximum amount of candles $to fetch
+         * @param {array} [$params] extra parameters specific $to the exchange API endpoint
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -950,8 +950,9 @@ class mercado extends Exchange {
             $request['from'] = $this->parse_to_int($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
         } else {
-            $request['to'] = $this->seconds();
-            $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
+            $to = $this->seconds();
+            $request['to'] = $to;
+            $request['from'] = $to - ($limit * $this->parse_timeframe($timeframe));
         }
         $response = Async\await($this->v4PublicNetGetCandles($this->extend($request, $params)));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
@@ -1067,7 +1068,11 @@ class mercado extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/';
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/';
         $query = $this->omit($params, $this->extract_params($path));
         if (($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet')) {
             $url .= $this->implode_params($path, $params);

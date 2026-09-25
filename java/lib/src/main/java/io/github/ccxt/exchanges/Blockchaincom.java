@@ -379,6 +379,10 @@ public class Blockchaincom extends BlockchaincomApi
                 String quoteId = this.safeString(market, "counter_currency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 Double numericId = this.safeNumber(market, "id");
                 Boolean active = null;
                 String marketState = this.safeString(market, "status");
@@ -416,15 +420,16 @@ public class Blockchaincom extends BlockchaincomApi
                     maxOrderSize = this.parseNumber(maxOrderSizeValueString);
                 }
     final String finalBase = base;
+                final String finalQuote = quote;
                 final Boolean finalActive = active;
                 final Double finalMaxOrderSize = maxOrderSize;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", market );
                     put( "id", marketId );
                     put( "numericId", numericId );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -804,12 +809,10 @@ public class Blockchaincom extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            String side = side3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -820,16 +823,12 @@ public class Blockchaincom extends BlockchaincomApi
             String uppercaseOrderType = orderType.toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "clientOrderId", "clOrdId")));
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             final String finalUppercaseOrderType = uppercaseOrderType;
-            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ordType", finalUppercaseOrderType );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "side", ((String)finalSide).toUpperCase() );
+                put( "side", ((String)side).toUpperCase() );
                 put( "orderQty", Blockchaincom.this.amountToPrecision(symbol, amount) );
                 put( "clOrdId", clientOrderId );
             }};
@@ -852,13 +851,14 @@ public class Blockchaincom extends BlockchaincomApi
                     request.put("ordType", "STOPLIMIT");
                 }
             }
+            String ordType = this.safeString(request, "ordType");
             Boolean priceRequired = false;
             Boolean stopPriceRequired = false;
-            if (java.util.Objects.equals(((Map<String, Object>)request).get("ordType"), "LIMIT") || java.util.Objects.equals(((Map<String, Object>)request).get("ordType"), "STOPLIMIT"))
+            if (java.util.Objects.equals(ordType, "LIMIT") || java.util.Objects.equals(ordType, "STOPLIMIT"))
             {
                 priceRequired = true;
             }
-            if (java.util.Objects.equals(((Map<String, Object>)request).get("ordType"), "STOP") || java.util.Objects.equals(((Map<String, Object>)request).get("ordType"), "STOPLIMIT"))
+            if (java.util.Objects.equals(ordType, "STOP") || java.util.Objects.equals(ordType, "STOPLIMIT"))
             {
                 stopPriceRequired = true;
             }
@@ -1839,7 +1839,12 @@ public class Blockchaincom extends BlockchaincomApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String requestPath = ("/" + this.implodeParams(path, parameters));
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), requestPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
         {
@@ -1865,7 +1870,7 @@ public class Blockchaincom extends BlockchaincomApi
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

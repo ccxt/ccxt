@@ -569,6 +569,8 @@ class bittrade(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote-currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             state = self.safe_string(market, 'state')
             leverageRatio = self.safe_string(market, 'leverage-ratio', '1')
             superLeverageRatio = self.safe_string(market, 'super-margin-leverage-ratio', '1')
@@ -1177,11 +1179,11 @@ class bittrade(Exchange, ImplicitAPI):
                 account = self.account()
             if account is None:
                 raise ExchangeError(self.id + ' parseBalance() could not resolve account')
-            if balance['type'] == 'trade':
+            if self.safe_string(balance, 'type') == 'trade':
                 account['free'] = self.safe_string(balance, 'balance')
             if account is None:
                 raise ExchangeError(self.id + ' parseBalance() could not resolve account')
-            if balance['type'] == 'frozen':
+            if self.safe_string(balance, 'type') == 'frozen':
                 account['used'] = self.safe_string(balance, 'balance')
             if code is not None:
                 result[code] = account

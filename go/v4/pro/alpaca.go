@@ -497,7 +497,7 @@ func (this *Alpaca) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -512,11 +512,11 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
-		messageHash = ccxt.Add("orders:", symbol)
+		symbol = ccxt.SafeStringPtr(market["symbol"])
+		messageHash = "orders:" + *symbol
 	}
 	var request map[string]any = map[string]any{
 		"action": "listen",
@@ -761,7 +761,7 @@ func (this *Alpaca) authenticateBody(ch chan any, url any, optionalArgs ...any) 
 			"key":    this.ApiKey,
 			"secret": this.Secret,
 		}
-		if ccxt.IsEqual(url, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")) {
+		if ccxt.IsEqual(url, this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")) {
 			// this auth request is being deprecated in test environment
 			request = map[string]any{
 				"action": "authenticate",
@@ -786,8 +786,12 @@ func (this *Alpaca) HandleErrorMessage(client any, message map[string]any) any {
 	//    }
 	//
 	var code *string = this.SafeString(message, "code")
-	var msg any = this.SafeValue(message, "msg", map[string]any{})
-	panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" code: ", code), " message: "), msg)))
+	var msg *string = this.SafeString(message, "msg")
+	var errorMessage any = ccxt.Add(this.Id+" code: ", code)
+	if msg != nil {
+		errorMessage = ccxt.Add(ccxt.Add(errorMessage, " message: "), msg)
+	}
+	panic(ccxt.ExchangeError(errorMessage))
 }
 func (this *Alpaca) HandleConnected(client any, message any) any {
 	//

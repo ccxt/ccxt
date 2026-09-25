@@ -306,7 +306,7 @@ public partial class tokocrypto : Exchange
                 { "defaultTimeInForce", "GTC" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
                 { "warnOnFetchOpenOrdersWithoutSymbol", true },
-                { "recvWindow", multiply(5, 1000) },
+                { "recvWindow", (5L * 1000L) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "newOrderRespType", new Dictionary<string, object>() {
@@ -769,7 +769,7 @@ public partial class tokocrypto : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -843,7 +843,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1659492212507
         //     }
         //
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -858,10 +858,14 @@ public partial class tokocrypto : Exchange
             string? id = this.safeString(market, "symbol");
             string? lowercaseId = this.safeStringLower(market, "symbol");
             string? settleId = this.safeString(market, "marginAsset");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
+            string symbol = ((bs + "/") + quote);
             List<object> filters = this.safeList(market, "filters", new List<object>() {});
             Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             string? status = this.safeString(market, "spotTradingEnable");
@@ -869,7 +873,7 @@ public partial class tokocrypto : Exchange
             List<object> permissions = this.safeList(market, "permissions", new List<object>() {});
             for (int j = 0; j < permissions.Count; j++)
             {
-                if (isEqual(permissions[j], "TRD_GRP_003"))
+                if ((this.safeString(permissions, j) == "TRD_GRP_003"))
                 {
                     active = false;
                     break;
@@ -1156,7 +1160,7 @@ public partial class tokocrypto : Exchange
         {
             if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
-                side = (isEqual(((IDictionary<string,object>)trade)["isBuyer"], true)) ? "buy" : "sell"; // this is a true side
+                side = ((this.safeBool(trade, "isBuyer") == true)) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
@@ -1169,11 +1173,11 @@ public partial class tokocrypto : Exchange
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
-            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["isMaker"], true)) ? "maker" : "taker";
+            takerOrMaker = ((this.safeBool(trade, "isMaker") == true)) ? "maker" : "taker";
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
-            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["maker"], true)) ? "maker" : "taker";
+            takerOrMaker = ((this.safeBool(trade, "maker") == true)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -2994,7 +2998,7 @@ public partial class tokocrypto : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error == "-2015") && (isEqual((this.options.ContainsKey("hasAlreadyAuthenticatedSuccessfully") ? this.options["hasAlreadyAuthenticatedSuccessfully"] : null), true)))
+            if ((error == "-2015") && ((this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully") == true)))
             {
                 throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }

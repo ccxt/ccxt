@@ -1410,6 +1410,10 @@ public class Aster extends AsterApi
         String quoteId = this.safeString(market, "quoteAsset");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         Boolean active = java.util.Objects.equals(this.safeString(market, "status"), "TRADING");
         Boolean spot = null;
         String symbol = null;
@@ -1453,6 +1457,7 @@ public class Aster extends AsterApi
         Double amountPrecision = (((!java.util.Objects.equals(filterLotSize, null)))) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalSettleId = settleId;
         final Boolean finalSpot = spot;
@@ -1466,7 +1471,7 @@ public class Aster extends AsterApi
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -3584,7 +3589,7 @@ public class Aster extends AsterApi
             }
             if (java.util.Objects.equals(symbol, null))
             {
-                if (java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)this.options).get("fetchOpenOrders"), "warnIfNoSymbol"), true))
+                if (java.util.Objects.equals(this.safeBool(((Map<String, Object>)this.options).get("fetchOpenOrders"), "warnIfNoSymbol"), true))
                 {
                     throw new ExchangeError((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
@@ -5710,7 +5715,7 @@ public class Aster extends AsterApi
 
     public Object keccakMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
     public Object signMessage(Object message, Object privateKey)
@@ -5996,7 +6001,7 @@ public class Aster extends AsterApi
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
         Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
+        return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
     public Object signHash(Object hash, Object privateKey)
@@ -6240,7 +6245,7 @@ public class Aster extends AsterApi
             List<Object> approvedBuilders = result;
             Integer length = ((List<?>)approvedBuilders).size();
             Boolean found = false;
-            for (var i = 0; Helpers.isLessThan(i, length); i++)
+            for (var i = 0; (length != null && i < length); i++)
             {
                 Map<String, Object> builderInfo = (Map<String, Object>) this.safeDict(approvedBuilders, i, new HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builderAddress");

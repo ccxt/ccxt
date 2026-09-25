@@ -1167,8 +1167,10 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	if reference != nil {
 		id = reference
 		timestamp = this.SafeTimestamp(trade, "ticks")
-		price = DerefScalar(this.SafeString(trade, "price"))
-		price = this.RemoveCommaFromValue(price)
+		var rawPrice *string = this.SafeString(trade, "price")
+		if rawPrice != nil {
+			price = this.RemoveCommaFromValue(rawPrice)
+		}
 		amount = this.SafeString(trade, "firstAmount")
 		var reference_parts []string = strings.Split(*reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId *string = this.SafeString(trade, "pair")
@@ -1311,7 +1313,11 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
 	if IsEqual(api, "public") {
 		url = Add(url, ".json")
 	} else {

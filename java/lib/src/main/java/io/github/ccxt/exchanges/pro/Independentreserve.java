@@ -79,7 +79,12 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
-            String url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "?subscribe=ticker-"), ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+            }
+            String url = ((((wsUrl + "?subscribe=ticker-") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ("trades:" + symbol);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -202,7 +207,12 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
                 limit = 100L;
             }
             String limitString = this.numberToString(limit);
-            String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbook/"), limitString) + "?subscribe=") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+            }
+            String url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ((("orderbook:" + symbol) + ":") + limitString);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );
@@ -287,16 +297,16 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         {
             List<Object> asks = (List<Object>) this.safeList(orderBook, "Offers", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(orderBook, "Bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
         Object checksum = this.handleOption("watchOrderBook", "checksum", true);
         if ((java.util.Objects.equals(checksum, true)) && (java.util.Objects.equals(receivedSnapshot, true)))
         {
-            io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
-            io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+            io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
             Integer asksLength = ((List<?>)storedAsks).size();
             Integer bidsLength = ((List<?>)storedBids).size();
             Object payload = "";

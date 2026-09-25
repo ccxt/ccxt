@@ -1052,16 +1052,21 @@ public class Coinsph extends CoinsphApi
                 String quoteId = this.safeString(market, "quoteAsset");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 Map<String,Object> limits = this.indexBy(this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList())), "filterType");
                 Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -2053,7 +2058,7 @@ public class Coinsph extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+            String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -2212,7 +2217,7 @@ public class Coinsph extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
+            String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("origClientOrderId", clientOrderId);
@@ -3137,10 +3142,15 @@ public class Coinsph extends CoinsphApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = apiUrl;
         Object query = this.omit(parameters, this.extractParams(path));
         String endpoint = (String) this.implodeParams(path, parameters);
-        url = (Helpers.add(url, "/") + endpoint);
+        url = ((url + "/") + endpoint);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -3156,7 +3166,7 @@ public class Coinsph extends CoinsphApi
             }
             query = this.urlEncodeQuery(query);
             String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
-            url = ((Helpers.add(Helpers.add(url, "?"), query) + "&signature=") + signature);
+            url = ((Helpers.add((url + "?"), query) + "&signature=") + signature);
             headers = new HashMap<String, Object>() {{
                 put( "X-COINS-APIKEY", Coinsph.this.apiKey );
             }};
@@ -3165,10 +3175,10 @@ public class Coinsph extends CoinsphApi
             query = this.urlEncodeQuery(query);
             if ((Helpers.getArrayLength(query) != 0))
             {
-                url = Helpers.add(url, Helpers.add("?", query));
+                url = (url + Helpers.add("?", query));
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
             put( "url", finalUrl );

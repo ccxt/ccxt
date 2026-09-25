@@ -593,7 +593,7 @@ class alpaca(ccxt.async_support.alpaca):
                 'key': self.apiKey,
                 'secret': self.secret,
             }
-            if url == self.urls['api']['ws']['trading']:
+            if url == self.safe_string(self.urls['api']['ws'], 'trading'):
                 # this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',
@@ -614,8 +614,11 @@ class alpaca(ccxt.async_support.alpaca):
         #    }
         #
         code = self.safe_string(message, 'code')
-        msg = self.safe_value(message, 'msg', {})
-        raise ExchangeError(self.id + ' code: ' + code + ' message: ' + msg)
+        msg = self.safe_string(message, 'msg')
+        errorMessage = self.id + ' code: ' + code
+        if msg is not None:
+            errorMessage = errorMessage + ' message: ' + msg
+        raise ExchangeError(errorMessage)
 
     def handle_connected(self, client: Client, message: dict) -> dict:
         #

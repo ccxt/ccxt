@@ -364,7 +364,10 @@ func (this *Btcbox) ParseMarket(market any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quoteId *string = this.SafeString(market, "quote")
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol string = *base + "/" + *quote
 	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "symbol"),
 		"uppercaseId":    nil,
@@ -815,7 +818,7 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 	var datetimeString *string = this.SafeString(order, "datetime")
 	var timestamp *int64 = nil
 	if datetimeString != nil {
-		timestamp = this.Parse8601(Add(GetValue(order, "datetime"), "+09:00")) // Tokyo time
+		timestamp = this.Parse8601(*datetimeString + "+09:00") // Tokyo time
 	}
 	var amount *string = this.SafeString(order, "amount_original")
 	var remaining *string = this.SafeString(order, "amount_outstanding")
@@ -993,8 +996,8 @@ func (this *Btcbox) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes80015 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("all", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes80015)
+	var retRes80315 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("all", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes80315)
 	return nil
 }
 
@@ -1026,8 +1029,8 @@ func (this *Btcbox) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes81515 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("open", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes81515)
+	var retRes81815 []any = ListTyped(PanicOnError((<-this.FetchOrdersByTypeAsync("open", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes81815)
 	return nil
 }
 func (this *Btcbox) Nonce() any {
@@ -1044,7 +1047,11 @@ func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/"+this.Version+"/", path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))

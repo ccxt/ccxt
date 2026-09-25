@@ -742,7 +742,7 @@ func (this *Bitrue) Describe() any {
 	})
 }
 func (this *Bitrue) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 
 /**
@@ -1060,7 +1060,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1100,7 +1100,10 @@ func (this *Bitrue) ParseMarket(market any) any {
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol any = *base + "/" + *quote
 	if settle != nil {
 		symbol = Add(symbol, ":"+*settle)
 	}
@@ -2246,8 +2249,8 @@ func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-	var retRes203715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes203715)
+	var retRes204015 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes204015)
 	return nil
 }
 
@@ -3763,9 +3766,17 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 	var access *string = this.SafeString(api, 2)
 	var url any = nil
 	if ((typeVar != nil && *typeVar == "api") && (version != nil && *version == "kline")) || ((typeVar != nil && *typeVar == "open") && (GetIndexOf(path, "listenKey") >= 0)) {
-		url = GetValue(GetValue(this.Urls, "api"), typeVar)
+		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
+		if apiUrl2 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = apiUrl2
 	} else {
-		url = Add(Add(GetValue(GetValue(this.Urls, "api"), typeVar), "/"), version)
+		var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
+		if apiUrl == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = Add(*apiUrl+"/", version)
 	}
 	url = Add(Add(url, "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))
@@ -3909,7 +3920,7 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if (error != nil && *error == "-2015") && (IsEqual(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
+		if (error != nil && *error == "-2015") && (this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false) != nil && *this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
 			panic(DDoSProtection(Add(this.Id+" temporary banned: ", body)))
 		}
 		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))

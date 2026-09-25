@@ -71,19 +71,19 @@ func (this *Lighter) Describe() any {
 		},
 	})
 }
-func (this *Lighter) GetMessageHash(unifiedChannel any, optionalArgs ...any) any {
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+func (this *Lighter) GetMessageHash(unifiedChannel string, optionalArgs ...any) any {
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	extra := ccxt.GetArg(optionalArgs, 1, nil)
+	var extra *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = extra
 	var hash any = unifiedChannel
 	if symbol != nil {
-		hash = ccxt.Add(hash, ccxt.Add("::", symbol))
+		hash = ccxt.Add(hash, "::"+*symbol)
 	} else {
 		hash = ccxt.Add(hash, "s") // tickers, orderbooks, ohlcvs ...
 	}
 	if extra != nil {
-		hash = ccxt.Add(hash, ccxt.Add("::", extra))
+		hash = ccxt.Add(hash, "::"+*extra)
 	}
 	return hash
 }

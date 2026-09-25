@@ -888,14 +888,19 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 // const quoteId = this.safeString (market, 'quote_currency');
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String status = this.safeString(market, "status");
     final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalStatus = status;
                             ((List<Object>)result).add(this.extend(Helpers.GetValue(this.fees, "trading"), new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1444,8 +1449,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             put( "rate", finalFeeRate );
         }};
         String id = this.safeString(trade, "trade_id");
+        String rawSide = this.safeString(trade, "side");
         String side = "buy";
-        if (java.util.Objects.equals(((Map<String, Object>)trade).get("side"), "buy"))
+        if (java.util.Objects.equals(rawSide, "buy"))
         {
             side = "sell";
         }
@@ -1455,7 +1461,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String takerOrderId = this.safeString(trade, "taker_order_id");
         if ((!java.util.Objects.equals(orderId, null)) || ((!java.util.Objects.equals(makerOrderId, null)) && (!java.util.Objects.equals(takerOrderId, null))))
         {
-            side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("side"), "buy")))) ? "buy" : "sell";
+            side = (((java.util.Objects.equals(rawSide, "buy")))) ? "buy" : "sell";
         }
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "size");
@@ -2802,7 +2808,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                     String account_id = this.safeString((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), "account_id");
                     Map<String, Object> account = (Map<String, Object>) this.safeDict(this.accountsById, account_id);
                     String codeInner = this.safeString(account, "code");
-                    Helpers.addElementToObject(Helpers.GetValue(response, i), "currency", codeInner);
+                    Helpers.addElementToObject((response == null || i < 0 || i >= response.size() ? null : response.get(i)), "currency", codeInner);
                 }
             } else
             {
@@ -2836,7 +2842,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 response = this.toArray(accountTransfers);
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(response, i), "currency", code);
+                    Helpers.addElementToObject((response == null || i < 0 || i >= response.size() ? null : response.get(i)), "currency", code);
                 }
             }
             return this.parseTransactions(response, currency, since, limit);
@@ -3128,7 +3134,12 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request = (request + ("?" + this.urlencode(query)));
             }
         }
-        String url = (this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + request);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (this.implodeHostname(apiUrl) + request);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();

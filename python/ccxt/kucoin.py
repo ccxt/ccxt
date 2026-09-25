@@ -1530,7 +1530,7 @@ class kucoin(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_time(self, params: dict = {}) -> Int:
         """
@@ -1793,6 +1793,8 @@ class kucoin(Exchange, ImplicitAPI):
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             # const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             ticker = self.safe_dict(tickersById, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
@@ -1860,7 +1862,7 @@ class kucoin(Exchange, ImplicitAPI):
         if fetchContractMarkets:
             contractMarkets = self.safe_list(responses, contractIndex, [])
             result = self.array_concat(result, contractMarkets)
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             self.load_time_difference()
         return result
 
@@ -1941,6 +1943,8 @@ class kucoin(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'settleCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             type = 'swap'
@@ -2104,6 +2108,8 @@ class kucoin(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'settlementCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             hasMargin = self.safe_string(market, 'marginMode')
             isMarginable = False
@@ -2188,7 +2194,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
             })
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             self.load_time_difference()
         return result
 
@@ -10659,7 +10665,7 @@ class kucoin(Exchange, ImplicitAPI):
             'hedged': positionMode == 1,
         }
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -11005,7 +11011,10 @@ class kucoin(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
-        url = self.urls['api'][api]
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl
         tradeType = self.safe_string(query, 'tradeType')
         if not self.is_empty(query):
             if ((method == 'GET') or (method == 'DELETE')) and (path != 'orders/multi-cancel'):

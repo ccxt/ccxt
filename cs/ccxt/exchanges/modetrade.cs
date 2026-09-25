@@ -830,11 +830,15 @@ public partial class modetrade : Exchange
         string marketType = "swap";
         string? baseId = this.safeString(parts, 1);
         string? quoteId = this.safeString(parts, 2);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settleId = this.safeString(parts, 2);
         string? settle = this.safeCurrencyCode(settleId);
-        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
+        string symbol = ((((bs + "/") + quote) + ":") + settle);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -3226,7 +3230,7 @@ public partial class modetrade : Exchange
         if ((codeVar != null))
         {
             codeVar = codeVar.ToUpper();
-            if (!isEqual(codeVar, "USDC"))
+            if (!(codeVar == "USDC"))
             {
                 throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
             }
@@ -3597,15 +3601,20 @@ public partial class modetrade : Exchange
         object version = getValue(section, 0);
         object access = getValue(section, 1);
         string? pathWithParams = this.implodeParams(path, parameters);
-        object url = add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access), "/"), version), "/");
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (((apiUrl + "/") + (version)) + "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (isEqual(access, "public"))
         {
-            url = add(url, pathWithParams);
+            url = url + pathWithParams;
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = url + ("?" + this.urlencode(parameters));
             }
         } else
         {
@@ -3634,7 +3643,7 @@ public partial class modetrade : Exchange
             }
             object auth = "";
             string ts = this.nonce().ToString();
-            url = add(url, pathWithParams);
+            url = url + pathWithParams;
             object apiKey = this.apiKey;
             if (getIndexOf(apiKey, "ed25519:") < 0)
             {
@@ -3655,7 +3664,7 @@ public partial class modetrade : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(parameters)));
+                    url = url + ("?" + this.urlencode(parameters));
                     auth = add(auth, ("?" + this.rawencode(parameters)));
                 }
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";

@@ -660,9 +660,13 @@ public partial class deepcoin : Exchange
         string? quoteId = this.safeString(market, "quoteCcy", "");
         string? settleId = null;
         string? settle = null;
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        object symbol = ((bs + "/") + quote);
         bool? isLinear = null;
         if (swap)
         {
@@ -1737,7 +1741,7 @@ public partial class deepcoin : Exchange
 
     public virtual string? parseTransferStatus(string? status)
     {
-        if (isEqual(status, "0"))
+        if ((status == "0"))
         {
             return "ok";
         }
@@ -3570,7 +3574,12 @@ public partial class deepcoin : Exchange
                 requestPath = add(requestPath, ("?" + query));
             }
         }
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), requestPath);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + (requestPath));
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();

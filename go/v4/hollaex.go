@@ -2522,7 +2522,11 @@ func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
 			path = Add(path, "?"+this.Urlencode(query))
 		}
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(apiUrl, path))
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(Divide(this.Timeout, 1000)))

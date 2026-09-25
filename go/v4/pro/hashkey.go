@@ -60,12 +60,12 @@ func (this *Hashkey) Describe() any {
 		},
 	})
 }
-func (this *Hashkey) WathPublicAsync(market any, topic any, messageHash any, optionalArgs ...any) <-chan any {
+func (this *Hashkey) WathPublicAsync(market any, topic string, messageHash any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.wathPublicBody(ch, market, topic, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) wathPublicBody(ch chan any, market any, topic any, messageHash any, optionalArgs ...any) any {
+func (this *Hashkey) wathPublicBody(ch chan any, market any, topic string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -97,7 +97,11 @@ func (this *Hashkey) watchPrivateBody(ch chan any, messageHash any) any {
 	return nil
 }
 func (this *Hashkey) GetPrivateUrl(listenKey any) any {
-	return ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), listenKey)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " getPrivateUrl() has no private websocket url"))
+	}
+	return ccxt.Add(*wsUrl+"/", listenKey)
 }
 
 /**

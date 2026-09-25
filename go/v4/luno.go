@@ -639,6 +639,9 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var status *string = this.SafeString(market, "trading_status")
 		// Luno's published schedule is categorical, not a single pair. Entry-tier
 		// rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -668,7 +671,7 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		result = append(result, map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"taker":          taker,
 			"maker":          maker,
 			"base":           base,
@@ -1081,8 +1084,8 @@ func (this *Luno) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes90415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(nil, symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes90415)
+	var retRes90715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(nil, symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes90715)
 	return nil
 }
 
@@ -1114,8 +1117,8 @@ func (this *Luno) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes91915 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("PENDING", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes91915)
+	var retRes92215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("PENDING", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes92215)
 	return nil
 }
 
@@ -1147,8 +1150,8 @@ func (this *Luno) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes93415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("COMPLETE", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes93415)
+	var retRes93715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("COMPLETE", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes93715)
 	return nil
 }
 func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1323,16 +1326,16 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 		} else if (typeVar != nil && *typeVar == "BID") || (typeVar != nil && *typeVar == "BUY") {
 			side = SafeStringPtr("buy")
 		}
-		if (side != nil && *side == "sell") && (IsEqual(GetValue(trade, "is_buy"), true)) {
+		if (side != nil && *side == "sell") && (IsEqual(this.SafeBool(trade, "is_buy"), true)) {
 			takerOrMaker = SafeStringPtr("maker")
-		} else if (side != nil && *side == "buy") && (!IsEqual(GetValue(trade, "is_buy"), true)) {
+		} else if (side != nil && *side == "buy") && (!IsEqual(this.SafeBool(trade, "is_buy"), true)) {
 			takerOrMaker = SafeStringPtr("maker")
 		} else {
 			takerOrMaker = SafeStringPtr("taker")
 		}
 	} else {
 		side = SafeStringPtr(func() string {
-			if IsEqual(GetValue(trade, "is_buy"), true) {
+			if IsEqual(this.SafeBool(trade, "is_buy"), true) {
 				return "buy"
 			}
 			return "sell"
@@ -1668,9 +1671,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"pair": market["id"],
 	}
 	var response map[string]any = nil
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	if IsEqual(typeVar, "market") {
 		request["type"] = ToUpper(side)
 		// todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1776,8 +1777,8 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 		"max_row": this.Sum(entry, limit),
 	}
 
-	var retRes141215 []any = ListTyped(PanicOnError((<-this.FetchLedgerAsync(code, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes141215)
+	var retRes141315 []any = ListTyped(PanicOnError((<-this.FetchLedgerAsync(code, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes141315)
 	return nil
 }
 
@@ -1800,11 +1801,11 @@ func (this *Luno) FetchLedgerAsync(optionalArgs ...any) <-chan any {
 func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1826,7 +1827,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
 		var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
 		if account == nil {
-			panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
+			panic(ExchangeError(this.Id + " fetchLedger() could not find account id for " + *code))
 		}
 		id = this.SafeString(account, "id")
 	}
@@ -2148,7 +2149,11 @@ func (this *Luno) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.Version), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if len(ObjectKeys(query)) > 0 {
 		url = Add(url, "?"+this.Urlencode(query))

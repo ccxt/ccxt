@@ -521,11 +521,15 @@ public partial class cex : Exchange
     public override Dictionary<string, object> parseMarket(object market)
     {
         string? baseId = this.safeString(market, "base");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quoteId = this.safeString(market, "quote");
         string? quote = this.safeCurrencyCode(quoteId);
-        string? id = ((string)add(add(bs, "-"), quote)); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string id = ((bs + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+        string symbol = ((bs + "/") + quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1156,7 +1160,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        bool isClosedOrders = (isEqual(status, "closed"));
+        bool isClosedOrders = ((status == "closed"));
         if (isClosedOrders)
         {
             request["archived"] = true;
@@ -1177,7 +1181,7 @@ public partial class cex : Exchange
         } else if (isClosedOrders)
         {
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
-            request["serverCreateTimestampFrom"] = (this.milliseconds() - (((multiply(364, 24) * 60) * 60) * 1000));
+            request["serverCreateTimestampFrom"] = (this.milliseconds() - ((((364L * 24L) * 60) * 60) * 1000));
         }
         Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
@@ -1444,10 +1448,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
             { "currency1", (market.ContainsKey("baseId") ? market["baseId"] : null) },
@@ -2036,7 +2037,12 @@ public partial class cex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.implodeParams(path, parameters));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
@@ -2044,7 +2050,7 @@ public partial class cex : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else
             {

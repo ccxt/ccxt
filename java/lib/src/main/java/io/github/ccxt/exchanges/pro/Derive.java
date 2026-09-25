@@ -1043,10 +1043,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(id, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}}));
             if (subscription.containsKey("method"))
             {
-                if (java.util.Objects.equals(((Map<String, Object>)subscription).get("method"), "public/login"))
+                if (java.util.Objects.equals(this.safeString(subscription, "method"), "public/login"))
                 {
                     this.handleAuth(client, (Map<String, Object>) (message));
-                } else if (java.util.Objects.equals(((Map<String, Object>)subscription).get("method"), "unsubscribe"))
+                } else if (java.util.Objects.equals(this.safeString(subscription, "method"), "unsubscribe"))
                 {
                     this.handleUnSubscribe(client, (Map<String, Object>) (message));
                 }

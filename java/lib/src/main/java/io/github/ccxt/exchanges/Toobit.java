@@ -1264,9 +1264,13 @@ public class Toobit extends ToobitApi
         String baseId = this.safeString(market, "baseAsset", "");
         String quoteId = this.safeString(market, "quoteAsset");
         List<Object> baseParts = new ArrayList<Object>(Arrays.asList(((String)baseId).split(java.util.regex.Pattern.quote("-"))));
-        String baseIdClean = (String) Helpers.GetValue(baseParts, 0);
+        String baseIdClean = (String) (baseParts == null || 0 >= baseParts.size() ? null : baseParts.get(0));
         String base = this.safeCurrencyCode(baseIdClean);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settleId = this.safeString(market, "marginToken");
         String settle = this.safeCurrencyCode(settleId);
         String status = this.safeString(market, "status");
@@ -1285,12 +1289,13 @@ public class Toobit extends ToobitApi
         }
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final Object finalInverse = inverse;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -4158,7 +4163,7 @@ public class Toobit extends ToobitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer length = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(length, 1))
+                if ((length != null && length > 1))
                 {
                     throw new BadRequest((this.id + " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
                 }
@@ -4253,7 +4258,8 @@ public class Toobit extends ToobitApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.implodeParams(path, parameters));
+        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Boolean isPost = java.util.Objects.equals(method, "POST");
         Boolean isDelete = java.util.Objects.equals(method, "DELETE");
         Map<String, Object> extraQuery = new HashMap<String, Object>() {{}};
@@ -4304,7 +4310,7 @@ public class Toobit extends ToobitApi
                 url = (url + ("?" + queryString));
             } else
             {
-                body = Helpers.add(body, ("&signature=" + signature));
+                body = (body + ("&signature=" + signature));
             }
             headers = new HashMap<String, Object>() {{
                 put( "Referrer", "CCXT" );
@@ -4313,7 +4319,7 @@ public class Toobit extends ToobitApi
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
         final Object finalHeaders = headers;

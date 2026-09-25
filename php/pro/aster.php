@@ -936,9 +936,9 @@ class aster extends \ccxt\async\aster {
         $orderId = $this->safe_string($trade, 'i');
         if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
             if ($side === null) {
-                $side = ($trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = ($this->safe_bool($trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = ($trade['m'] === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'm') === true) ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');
@@ -1469,7 +1469,7 @@ class aster extends \ccxt\async\aster {
                 Async\await($this->fapiPrivatePutV3ListenKey()); // extend the expiry
             }
         } catch (Exception $error) {
-            $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
+            $url = $this->safe_string($this->urls['api']['ws']['private'], $type) . '/' . $listenKey;
             $client = $this->client($url);
             $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
             for ($i = 0; $i < count($messageHashes); $i++) {
@@ -1489,7 +1489,7 @@ class aster extends \ccxt\async\aster {
     public function get_private_url(string $type = 'spot'): string {
         $listenKeyOptions = $this->safe_dict($this->options, 'listenKey', array());
         $listenKey = $this->safe_string($listenKeyOptions, $type);
-        $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
+        $url = $this->safe_string($this->urls['api']['ws']['private'], $type) . '/' . $listenKey;
         return $url;
     }
 
@@ -1513,6 +1513,9 @@ class aster extends \ccxt\async\aster {
         }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' watchBalance() requires a market type');
+        }
         Async\await($this->authenticate($type, $params));
         $url = $this->get_private_url($type);
         $client = $this->client($url);
@@ -1528,7 +1531,7 @@ class aster extends \ccxt\async\aster {
         return Async\await($this->watch($url, $messageHash, $message, $type));
     }
 
-    public function set_balance_cache(Client $client, mixed $type) {
+    public function set_balance_cache(Client $client, string $type) {
         if ((is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             return;
         }
@@ -1545,11 +1548,11 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function load_balance_snapshot(Client $client, string $messageHash, mixed $type) {
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_balance_snapshot(Client $client, string $messageHash, mixed $type) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type) {
         $params = array(
             'type' => $type,
         );
@@ -1786,7 +1789,7 @@ class aster extends \ccxt\async\aster {
         if (!$this->is_empty($messageHashes)) {
             for ($i = 0; $i < count($newPositions); $i++) {
                 $position = $newPositions[$i];
-                $symbol = $position['symbol'];
+                $symbol = $this->safe_string($position, 'symbol');
                 $symbolMessageHash = $messageHash . '::' . $symbol;
                 $client->resolve($position, $symbolMessageHash);
             }
@@ -1878,6 +1881,9 @@ class aster extends \ccxt\async\aster {
         $messageHash = 'orders';
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' watchOrders() requires a $market type');
+        }
         Async\await($this->authenticate($type, $params));
         if ($market !== null) {
             $messageHash .= '::' . $symbol;
@@ -1921,6 +1927,9 @@ class aster extends \ccxt\async\aster {
         $messageHash = 'myTrades';
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, $type);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $market type');
+        }
         Async\await($this->authenticate($type, $params));
         if ($market !== null) {
             $messageHash .= '::' . $symbol;
@@ -1973,7 +1982,7 @@ class aster extends \ccxt\async\aster {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
                                 $orderFee = $fees[$i];
-                                if ($orderFee['currency'] === $tradeFee['currency']) {
+                                if ($this->safe_string($orderFee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
                                     $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
                                     $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
                                     $order['fees'][$i]['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
@@ -1985,11 +1994,11 @@ class aster extends \ccxt\async\aster {
                                 $order['fees'][] = $tradeFee;
                             }
                         } elseif ($fee !== null) {
-                            if ($fee['currency'] === $tradeFee['currency']) {
+                            if ($this->safe_string($fee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
                                 $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
                                 $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
                                 $order['fee']['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
-                            } elseif ($fee['currency'] === null) {
+                            } elseif ($this->safe_string($fee, 'currency') === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
                                 $order['fees'] = array( $fee, $tradeFee );

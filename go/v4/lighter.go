@@ -624,7 +624,7 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan any, optionalArgs ...any)
 	ch <- (!IsEqual(signer, nil))
 	return nil
 }
-func (this *Lighter) HandleApiKeyIndex(params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) any {
+func (this *Lighter) HandleApiKeyIndex(params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var apiKeyIndex any = nil
@@ -638,12 +638,12 @@ func (this *Lighter) HandleApiKeyIndex(params any, methodName1 any, optionName1 
 	}
 	return []any{this.ParseToInt(apiKeyIndex), params}
 }
-func (this *Lighter) HandleAccountIndexAsync(params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) <-chan any {
+func (this *Lighter) HandleAccountIndexAsync(params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.handleAccountIndexBody(ch, params, methodName1, optionName1, optionName2, optionalArgs...)
 	return ch
 }
-func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) any {
+func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	defaultValue := GetArg(optionalArgs, 0, nil)
@@ -661,7 +661,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 		}
 		if (walletAddress == nil) || (IsEqual(walletAddress, "")) {
-			panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")))
+			panic(ArgumentsRequired(this.Id + " " + methodName1 + "() requires an " + optionName1 + "/" + optionName2 + " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection."))
 		}
 
 		var res map[string]any = MapTyped(PanicOnError((<-this.PublicGetAccountsByL1Address(map[string]any{
@@ -694,7 +694,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 		if IsArray(subAccounts) {
 			var account map[string]any = SafeMapTyped(subAccounts, 0)
 			if account == nil {
-				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
+				panic(ArgumentsRequired(this.Id + " " + methodName1 + "() requires an " + optionName1 + " or " + optionName2 + " parameter"))
 			}
 			accountIndex = account["index"]
 			this.Options.Store("accountIndex", accountIndex)
@@ -780,7 +780,7 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "token", token)
 	return token
 }
-func (this *Lighter) Pow(n any, m any) any {
+func (this *Lighter) Pow(n string, m any) any {
 	var r *string = Precise.StringMul(n, "1")
 	var c int64 = this.ParseToInt(m)
 	if c < 0 {
@@ -1205,12 +1205,12 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 	ch <- this.SafeInteger(response, "nonce")
 	return nil
 }
-func (this *Lighter) SignAndCreateOrderAsync(method any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Lighter) SignAndCreateOrderAsync(method string, symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.signAndCreateOrderBody(ch, method, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Lighter) signAndCreateOrderBody(ch chan any, method any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Lighter) signAndCreateOrderBody(ch chan any, method string, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1631,8 +1631,11 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol any = *base + "/" + *quote
 		if settle != nil {
 			symbol = Add(Add(symbol, ":"), settle)
 		}
@@ -3294,8 +3297,8 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes257319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes257319)
+		var retRes257619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes257619)
 		return nil
 	}
 	var accountIndex any = nil
@@ -3430,8 +3433,8 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes267919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes267919)
+		var retRes268219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes268219)
 		return nil
 	}
 	var address *string = nil
@@ -3526,8 +3529,8 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes274519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes274519)
+		var retRes274819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes274819)
 		return nil
 	}
 	var accountIndex any = nil
@@ -3765,8 +3768,8 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate {
 
-		var retRes293019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes293019)
+		var retRes293319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes293319)
 		return nil
 	}
 	var accountIndex any = nil
@@ -3961,8 +3964,8 @@ func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires an marginMode parameter"))
 	}
 
-	var retRes308915 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
-	ch <- BoxAbsent(retRes308915)
+	var retRes309215 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
+	ch <- BoxAbsent(retRes309215)
 	return nil
 }
 
@@ -4001,8 +4004,8 @@ func (this *Lighter) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an leverage parameter"))
 	}
 
-	var retRes311315 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
-	ch <- BoxAbsent(retRes311315)
+	var retRes311615 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, params))))
+	ch <- BoxAbsent(retRes311615)
 	return nil
 }
 func (this *Lighter) ModifyLeverageAndMarginModeAsync(leverage any, marginMode any, optionalArgs ...any) <-chan any {
@@ -4067,12 +4070,12 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 	ch <- PanicOnError((<-this.PublicPostSendTx(request)).Raw)
 	return nil
 }
-func (this *Lighter) SignAndCancelOrderAsync(method any, id any, optionalArgs ...any) <-chan any {
+func (this *Lighter) SignAndCancelOrderAsync(method string, id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.signAndCancelOrderBody(ch, method, id, optionalArgs...)
 	return ch
 }
-func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, optionalArgs ...any) any {
+func (this *Lighter) signAndCancelOrderBody(ch chan any, method string, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4084,7 +4087,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if symbol == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", method), " requires a symbol argument")))
+		panic(ArgumentsRequired(this.Id + " " + method + " requires a symbol argument"))
 	}
 	var apiKeyIndex any = nil
 	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
@@ -4115,7 +4118,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 	} else if !IsEqual(id, nil) {
 		signRaw["order_index"] = this.ParseToInt(id)
 	} else {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", method), " requires order id or client order id")))
+		panic(ArgumentsRequired(this.Id + " " + method + " requires order id or client order id"))
 	}
 	txTypetxInfoVariable := this.LighterSignCancelOrder(signer, this.Extend(signRaw, params))
 	txType := GetValue(txTypetxInfoVariable, 0)
@@ -4162,12 +4165,12 @@ func (this *Lighter) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Lighter) SignAndCancelAllOrdersAsync(method any, optionalArgs ...any) <-chan any {
+func (this *Lighter) SignAndCancelAllOrdersAsync(method string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.signAndCancelAllOrdersBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Lighter) signAndCancelAllOrdersBody(ch chan any, method any, optionalArgs ...any) any {
+func (this *Lighter) signAndCancelAllOrdersBody(ch chan any, method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4330,8 +4333,8 @@ func (this *Lighter) addMarginBody(ch chan any, symbol any, amount any, optional
 		"direction": 1,
 	}
 
-	var retRes330215 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes330215)
+	var retRes330515 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes330515)
 	return nil
 }
 
@@ -4358,8 +4361,8 @@ func (this *Lighter) reduceMarginBody(ch chan any, symbol any, amount any, optio
 		"direction": 0,
 	}
 
-	var retRes331815 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes331815)
+	var retRes332115 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes332115)
 	return nil
 }
 

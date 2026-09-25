@@ -98,7 +98,7 @@ func (this *Woofipro) watchPublicBody(ch chan any, messageHash any, message any)
 	if !ccxt.IsEqual(this.AccountId, nil) && (this.AccountId != "") {
 		id = this.AccountId
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/"), id)
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/"), id))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -757,7 +757,7 @@ func (this *Woofipro) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
@@ -799,7 +799,7 @@ func (this *Woofipro) watchPrivateBody(ch chan any, messageHash any, message any
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -821,7 +821,7 @@ func (this *Woofipro) watchPrivateMultipleBody(ch chan any, messageHashes any, m
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -853,7 +853,7 @@ func (this *Woofipro) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -874,8 +874,8 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = topic
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
+		messageHash = ccxt.Add(messageHash, ":"+*symbol)
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -913,7 +913,7 @@ func (this *Woofipro) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -931,11 +931,11 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		topic = "algoexecutionreport"
 	}
 	params = ccxt.MapTyped(this.Omit(params, "stop"))
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbol = market["symbol"]
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
+		messageHash += ":" + *symbol
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -1247,7 +1247,7 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)

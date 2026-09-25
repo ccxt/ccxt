@@ -533,6 +533,9 @@ class deepcoin extends Exchange {
         $settle = null;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $isLinear = null;
         if ($swap) {
@@ -3236,7 +3239,11 @@ class deepcoin extends Exchange {
                 $requestPath .= '?' . $query;
             }
         }
-        $url = $this->urls['api'][$api] . '/' . $requestPath;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $requestPath;
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->milliseconds();

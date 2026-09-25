@@ -467,10 +467,10 @@ func (this *Zebpay) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var defaultMarkets []any = []any{"spot", "swap"}
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultMarkets)
 	for i := 0; i < GetArrayLength(types); i++ {
-		var typeVar any = GetValue(types, i)
-		if IsEqual(typeVar, "spot") {
+		var typeVar *string = this.SafeString(types, i)
+		if typeVar != nil && *typeVar == "spot" {
 			promisesUnresolved = append(promisesUnresolved, this.FetchSpotMarketsAsync(params))
-		} else if IsEqual(typeVar, "swap") {
+		} else if typeVar != nil && *typeVar == "swap" {
 			promisesUnresolved = append(promisesUnresolved, this.FetchSwapMarketsAsync(params))
 		} else {
 			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", typeVar), "\" is not a supported market type")))
@@ -1410,9 +1410,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	params = this.Omit(params, []any{"marginAsset", "takeProfitPrice", "takeProfitPrice"})
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var request any = map[string]any{
 		"symbol": market["id"],
 		"side":   ToUpper(side),
@@ -2201,7 +2199,10 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quoteAsset")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+		if (base == nil) || (quote == nil) {
+			continue
+		}
+		var symbol string = *base + "/" + *quote
 		result = append(result, map[string]any{
 			"id":         id,
 			"symbol":     symbol,
@@ -2296,12 +2297,15 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quoteAsset")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "status")
-		var symbol any = Add(Add(base, "/"), quote)
+		var symbol string = *base + "/" + *quote
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":         id,
-			"symbol":     Add(Add(symbol, ":"), settle),
+			"symbol":     Add(symbol+":", settle),
 			"base":       base,
 			"quote":      quote,
 			"baseId":     baseId,

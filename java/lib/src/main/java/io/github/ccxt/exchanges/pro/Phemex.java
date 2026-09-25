@@ -1051,8 +1051,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Map<String, Object> changes = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
                 List<Object> asks = (List<Object>) this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
                 List<Object> bids = (List<Object>) this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
-                this.customHandleDeltas(Helpers.GetValue(orderbook, "asks"), asks, market);
-                this.customHandleDeltas(Helpers.GetValue(orderbook, "bids"), bids, market);
+                this.customHandleDeltas((orderbook == null ? null : orderbook.get("asks")), asks, market);
+                this.customHandleDeltas((orderbook == null ? null : orderbook.get("bids")), bids, market);
                 Helpers.addElementToObject(orderbook, "nonce", nonce);
                 Helpers.addElementToObject(orderbook, "timestamp", timestamp);
                 Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));

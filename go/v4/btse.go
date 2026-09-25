@@ -741,7 +741,7 @@ func (this *Btse) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -829,7 +829,10 @@ func (this *Btse) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol any = *base + "/" + *quote
 	var maxAmountString *string = this.SafeString(market, "maxOrderSize")
 	var minAmountString *string = this.SafeString(market, "minOrderSize")
 	var minPriceString *string = this.SafeString(market, "minOrderPrice")
@@ -840,7 +843,7 @@ func (this *Btse) ParseMarket(market any) any {
 	var expiry any = nil
 	var contractSize *string = nil
 	if !isSpot {
-		symbol = Add(symbol, Add(":", quote))
+		symbol = Add(symbol, ":"+*quote)
 		contractSize = this.SafeString(market, "contractSize")
 		if isFuture {
 			expiry = DerefScalar(this.SafeInteger(market, "contractEndTime"))
@@ -2005,8 +2008,8 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if paginate != nil && *paginate == true {
 		params = MapTyped(this.Omit(params, "paginate"))
 
-		var retRes164919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes164919)
+		var retRes165219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes165219)
 		return nil
 	}
 	var market any = nil
@@ -2167,8 +2170,8 @@ func (this *Btse) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 		})
 	}
 
-	var retRes177815 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes177815)
+	var retRes178115 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes178115)
 	return nil
 }
 func (this *Btse) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2324,13 +2327,13 @@ func (this *Btse) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
 
-		var retRes191919 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes191919)
+		var retRes192219 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes192219)
 		return nil
 	} else {
 
-		var retRes192119 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes192119)
+		var retRes192419 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes192419)
 		return nil
 	}
 }
@@ -3423,12 +3426,12 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Btse) RequestWalletHistoryRowsAsync(methodName any, historyTypes any, optionalArgs ...any) <-chan any {
+func (this *Btse) RequestWalletHistoryRowsAsync(methodName string, historyTypes any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.requestWalletHistoryRowsBody(ch, methodName, historyTypes, optionalArgs...)
 	return ch
 }
-func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, historyTypes any, optionalArgs ...any) any {
+func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName string, historyTypes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// the helper always receives a non empty history type list, the list is
@@ -3460,7 +3463,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 		currency = this.Currency(code)
 		request["asset"] = GetValue(currency, "id")
 	} else if walletType != nil && *walletType == "SPOT" {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a code argument for the spot wallet history")))
+		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a code argument for the spot wallet history"))
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -4018,8 +4021,8 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
 		"symbol": this.FuturesRequestId(market),
 	}, params)
 
-	var retRes328915 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
-	ch <- BoxAbsent(retRes328915)
+	var retRes329215 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
+	ch <- BoxAbsent(retRes329215)
 	return nil
 }
 func (this *Btse) ParsePosition(position any, optionalArgs ...any) any {
@@ -4623,8 +4626,12 @@ func (this *Btse) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
-	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl *string = apiUrl
+	var url any = Add(*baseUrl+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	// the futures v3 trading api reads DELETE params from a signed json
 	// body like its POST and PUT counterparts, while the spot v4 and the
@@ -4687,7 +4694,7 @@ func (this *Btse) CleanPath(path any) any {
 	return result
 }
 func (this *Btse) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 
 func NewBtse(userConfig map[string]any) *Btse {

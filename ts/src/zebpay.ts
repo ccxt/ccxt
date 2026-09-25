@@ -325,7 +325,7 @@ export default class zebpay extends Exchange {
         const defaultMarkets = [ 'spot', 'swap' ];
         const types = this.safeList (fetchMarketsOptions, 'types', defaultMarkets);
         for (let i = 0; i < types.length; i++) {
-            const type = types[i];
+            const type = this.safeString (types, i);
             if (type === 'spot') {
                 promisesUnresolved.push (this.fetchSpotMarkets (params));
             } else if (type === 'swap') {
@@ -1052,9 +1052,7 @@ export default class zebpay extends Exchange {
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         params = this.omit (params, [ 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ]);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         let request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -1396,7 +1394,7 @@ export default class zebpay extends Exchange {
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1649,6 +1647,9 @@ export default class zebpay extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -1728,6 +1729,9 @@ export default class zebpay extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
             const symbol = base + '/' + quote;
@@ -1941,7 +1945,7 @@ export default class zebpay extends Exchange {
         if (isV1) {
             marketType = 'swap';
         }
-        let url = this.urls['api'][marketType];
+        let url: string = this.urls['api'][marketType];
         const tail = '/api/' + this.implodeParams (path, params);
         url += tail;
         const timestamp = this.milliseconds ().toString ();

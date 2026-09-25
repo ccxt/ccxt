@@ -2238,6 +2238,9 @@ impl CoinexCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_ccy", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            if (base == Value::Null) || (quote == Value::Null) {
+                continue;
+            }
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2351,6 +2354,9 @@ impl CoinexCore {
             let mut quoteId: Value = self.safe_string_k(entry.clone(), "quote_ccy", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            if (base == Value::Null) || (quote == Value::Null) {
+                continue;
+            }
             let mut settleId: Value = baseId.clone();
             if (subType.as_deref() == Some("linear")) {
                 settleId = Value::Str("USDT".into());
@@ -4088,9 +4094,7 @@ impl CoinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a symbol argument".into()))));
-        }
+        self.check_required_argument(Value::Str("editOrder".into()), symbol.clone(), Value::Str("symbol".into()), &[]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -7292,14 +7296,18 @@ impl CoinexCore {
         path = self.implode_params(path.clone(), params.clone());
         let mut version: Value = get_value(&api, &Value::Int(0));
         let mut requestUrl: Value = get_value(&api, &Value::Int(1));
-        let mut url: Value = add(&Value::Str(format!("{}{}", add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &requestUrl), &Value::Str("/".into())), &version), Value::Str("/".into())).into()), &path);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), requestUrl.clone(), &[]);
+        if (apiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+        }
+        let mut url: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), &path);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut nonce: Value = to_string_val(&self.nonce());
         if (method.as_str() == Some("POST")) {
             let mut parts: Value = split(&path, &Value::Str("/".into()));
             let mut firstPart: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
-            let mut numParts: Value = get_array_length(&parts);
-            let mut lastPart: Value = self.safe_string(parts, subtract(&numParts, &Value::Int(1)), &[Value::Str("".into())]);
+            let mut numParts: Value = Value::Int(parts.len() as i64);
+            let mut lastPart: Value = self.safe_string(parts, (match (&(numParts), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Str("".into())]);
             let mut lastWords: Value = split(&lastPart, &Value::Str("_".into()));
             let mut numWords: Value = Value::Int(lastWords.len() as i64);
             let mut lastWord: Option<String> = self.safe_string(lastWords, (match (&(numWords), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Str("".into())]).as_str().map(str::to_owned);
@@ -7316,8 +7324,8 @@ impl CoinexCore {
                 let mut clientOrderId: Option<String> = self.safe_string_k(params, "client_id", &[]).as_str().map(str::to_owned);
                 if (clientOrderId.is_none()) {
                     let mut defaultId: Value = Value::Str("x-167673045".into());
-                    let mut brokerId: Value = self.safe_value_k(self.options.clone(), "brokerId", &[defaultId]);
-                    add_element_to_object(&mut query, &Value::Str("client_id".into()), Value::Str(format!("{}{}", add(&brokerId, &Value::Str("_".into())), self.uuid16(&[])).into()));
+                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[defaultId]);
+                    add_element_to_object(&mut query, &Value::Str("client_id".into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", brokerId, Value::Str("_".into())).into()), self.uuid16(&[])).into()));
                 }
             }
         }
@@ -7375,7 +7383,7 @@ impl CoinexCore {
                 self.check_required_credentials(&[]);
                 query = self.keysort(query.clone(), &[]);
                 let mut urlencoded: Value = self.rawencode(query.clone(), &[]);
-                let mut preparedString: Value = add(&Value::Str(format!("{}{}", add(&add(&method, &Value::Str("/".into())), &version), Value::Str("/".into())).into()), &path);
+                let mut preparedString: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), &path);
                 if (method.as_str() == Some("POST")) {
                     body = json_stringify(&query);
                     preparedString = Value::Str(format!("{}{}", preparedString, body).into());

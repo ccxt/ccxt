@@ -115,7 +115,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $messageHash = $name . '::' . $market['symbol'];
             $productIds = array( ($market['id']) );
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
             throw new NotSupported($this->id . ' is not supported in sandbox environment');
         }
@@ -173,7 +173,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $productIds[] = $marketId;
             $messageHashes[] = $name . '::' . $symbol;
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
             throw new NotSupported($this->id . ' is not supported in sandbox environment');
         }

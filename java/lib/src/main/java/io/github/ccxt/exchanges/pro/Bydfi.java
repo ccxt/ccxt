@@ -1596,13 +1596,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
                 List<Object> balances = (List<Object>) this.safeList(account, "B", new ArrayList<Object>(Arrays.asList()));
                 Integer balancesLength = ((List<?>)balances).size();
-                if (Helpers.isGreaterThan(balancesLength, 0))
+                if ((balancesLength != null && balancesLength > 0))
                 {
                     this.handleBalance(client, (Map<String, Object>) (message));
                 }
                 List<Object> positions = (List<Object>) this.safeList(account, "p", new ArrayList<Object>(Arrays.asList()));
                 Integer positionsLength = ((List<?>)positions).size();
-                if (Helpers.isGreaterThan(positionsLength, 0))
+                if ((positionsLength != null && positionsLength > 0))
                 {
                     this.handlePositions(client, (Map<String, Object>) (message));
                 }

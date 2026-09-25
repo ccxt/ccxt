@@ -1352,6 +1352,9 @@ func (this *Aster) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
 	var spot any = nil
 	var symbol any = nil
@@ -1369,14 +1372,14 @@ func (this *Aster) ParseMarket(market any) any {
 		swap = true
 		settleId = DerefScalar(this.SafeString(market, "marginAsset"))
 		settle = DerefScalar(this.SafeCurrencyCode(settleId))
-		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+		symbol = Add(*base+"/"+*quote+":", settle)
 		linear = IsEqual(settle, quote)
 		inverse = IsEqual(settle, base)
 		contractSize = this.SafeNumber2(market, "contractSize", "unit", this.ParseNumber("1"))
 	} else {
 		spot = true
 		swap = false
-		symbol = Add(Add(base, "/"), quote)
+		symbol = *base + "/" + *quote
 	}
 	// filters
 	var filters []any = SafeListTyped(market, "filters")
@@ -3300,7 +3303,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	if symbol == nil {
-		if IsEqual(GetValue(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol"), true) {
+		if IsEqual(this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol"), true) {
 			panic(ExchangeError(this.Id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set " + this.Id + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message."))
 		}
 	} else {
@@ -4271,8 +4274,8 @@ func (this *Aster) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes338215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
-	ch <- BoxAbsent(retRes338215)
+	var retRes338515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
+	ch <- BoxAbsent(retRes338515)
 	return nil
 }
 
@@ -4297,8 +4300,8 @@ func (this *Aster) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes339615 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
-	ch <- BoxAbsent(retRes339615)
+	var retRes339915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))))
+	ch <- BoxAbsent(retRes339915)
 	return nil
 }
 func (this *Aster) ParseIncome(income any, optionalArgs ...any) any {
@@ -4801,13 +4804,13 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if defaultMethod != nil && *defaultMethod == "positionRisk" {
 
-		var retRes380619 []any = ListTyped(PanicOnError((<-this.FetchPositionsRiskAsync(symbols, params))))
-		ch <- BoxAbsent(retRes380619)
+		var retRes380919 []any = ListTyped(PanicOnError((<-this.FetchPositionsRiskAsync(symbols, params))))
+		ch <- BoxAbsent(retRes380919)
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
 
-		var retRes380819 []any = ListTyped(PanicOnError((<-this.FetchAccountPositionsAsync(symbols, params))))
-		ch <- BoxAbsent(retRes380819)
+		var retRes381119 []any = ListTyped(PanicOnError((<-this.FetchAccountPositionsAsync(symbols, params))))
+		ch <- BoxAbsent(retRes381119)
 		return nil
 	} else {
 		panic(NotSupported(this.Id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"" + *defaultMethod + "\" is invalid, please choose between \"account\" and \"positionRisk\""))
@@ -5399,9 +5402,9 @@ func (this *Aster) HashMessage(binaryMessage any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Aster) SignHash(hash any, privateKey any) any {
+func (this *Aster) SignHash(hash any, privateKey string) any {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))

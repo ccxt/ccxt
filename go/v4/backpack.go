@@ -793,7 +793,7 @@ func (this *Backpack) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -897,7 +897,10 @@ func (this *Backpack) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quoteSymbol")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = Add(Add(base, "/"), quote)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var symbol any = *base + "/" + *quote
 	var filters map[string]any = SafeMapTyped(market, "filters")
 	var priceFilter map[string]any = SafeMapTyped(filters, "price")
 	var maxPrice *float64 = this.SafeNumber(priceFilter, "maxPrice")
@@ -2947,7 +2950,11 @@ func (this *Backpack) ParseIncome(income any, optionalArgs ...any) any {
 	}
 }
 func (this *Backpack) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
+	if timeDifference == nil {
+		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
+	}
+	return Subtract(this.Milliseconds(), timeDifference)
 }
 func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -2961,7 +2968,11 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var endpoint any = Add("/", path)
-	var url any = GetValue(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = apiUrl
 	var sortedParams any = func() any {
 		if IsArray(params) {
 			return params
@@ -3014,7 +3025,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Backpack) GenerateBatchPayload(params any, ts any, recvWindow any, instruction any) any {
+func (this *Backpack) GenerateBatchPayload(params any, ts string, recvWindow any, instruction any) any {
 	var payload any = ""
 	for i := 0; i < GetArrayLength(params); i++ {
 		var order map[string]any = MapTyped(this.SafeDict(params, i, map[string]any{}))
@@ -3022,7 +3033,7 @@ func (this *Backpack) GenerateBatchPayload(params any, ts any, recvWindow any, i
 		var orderQuery string = this.Urlencode(sortedOrder)
 		payload = Add(payload, Add(Add(Add(Add("instruction=", instruction), "&"), orderQuery), "&"))
 		if i == (GetArrayLength(params) - 1) {
-			payload = Add(payload, Add(Add(Add("timestamp=", ts), "&window="), recvWindow))
+			payload = Add(payload, Add("timestamp="+ts+"&window=", recvWindow))
 		}
 	}
 	return payload

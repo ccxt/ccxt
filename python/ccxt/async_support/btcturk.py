@@ -320,6 +320,8 @@ class btcturk(Exchange, ImplicitAPI):
         quoteId = self.safe_string(entry, 'denominator')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         filters = self.safe_list(entry, 'filters', [])
         minPrice = None
         maxPrice = None
@@ -1028,7 +1030,10 @@ class btcturk(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
-        url = self.urls['api'][api] + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         if (method == 'GET') or (method == 'DELETE'):
             if len(params) > 0:
                 url += '?' + self.urlencode(params)

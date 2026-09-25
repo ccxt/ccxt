@@ -1566,8 +1566,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
@@ -2458,7 +2458,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
@@ -3361,7 +3361,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     Map<String, Object> existing = (Map<String, Object>) this.safeDict(client.subscriptions, (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i)), new HashMap<String, Object>() {{}});
                     List<Object> recordedTopics = (List<Object>) this.safeList(existing, "topics", new ArrayList<Object>(Arrays.asList()));
                     Integer recordedLength = ((List<?>)recordedTopics).size();
-                    for (var j = 0; Helpers.isLessThan(j, recordedLength); j++)
+                    for (var j = 0; (recordedLength != null && j < recordedLength); j++)
                     {
                         Helpers.addElementToObject(subscribedTopics, (recordedTopics == null || j < 0 || j >= recordedTopics.size() ? null : recordedTopics.get(j)), true);
                     }
@@ -3378,7 +3378,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Map<String, Object> message = null;
             Map<String, Object> subscription = null;
             Integer newTopicsLength = ((List<?>)newTopics).size();
-            if (Helpers.isGreaterThan(newTopicsLength, 0))
+            if ((newTopicsLength != null && newTopicsLength > 0))
             {
                 Long reqId = this.requestId();
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3808,7 +3808,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                 {
                     Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-                    Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
+                    String subHash = this.safeString(subMessageHashes, j);
                     Boolean usePrefix = (java.util.Objects.equals(subHash, "orders")) || (java.util.Objects.equals(subHash, "myTrades")) || (java.util.Objects.equals(subHash, "positions"));
                     this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), usePrefix);
                 }

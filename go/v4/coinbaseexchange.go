@@ -868,10 +868,13 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan any, optionalArgs ...any)
 		// const quoteId = this.safeString (market, 'quote_currency');
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var status *string = this.SafeString(market, "status")
 		result = append(result, this.Extend(this.Fees["trading"], map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -1364,8 +1367,9 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 		"rate":     feeRate,
 	}
 	var id *string = this.SafeString(trade, "trade_id")
+	var rawSide *string = this.SafeString(trade, "side")
 	var side string = "buy"
-	if IsEqual(GetValue(trade, "side"), "buy") {
+	if rawSide != nil && *rawSide == "buy" {
 		side = "sell"
 	}
 	var orderId *string = this.SafeString(trade, "order_id")
@@ -1374,7 +1378,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrderId *string = this.SafeString(trade, "taker_order_id")
 	if (orderId != nil) || ((makerOrderId != nil) && (takerOrderId != nil)) {
 		side = func() string {
-			if IsEqual(GetValue(trade, "side"), "buy") {
+			if rawSide != nil && *rawSide == "buy" {
 				return "buy"
 			}
 			return "sell"
@@ -1438,8 +1442,8 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes113819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))))
-		ch <- BoxAbsent(retRes113819)
+		var retRes114219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))))
+		ch <- BoxAbsent(retRes114219)
 		return nil
 	}
 	if this.Markets == nil {
@@ -1628,8 +1632,8 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes127819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
-		ch <- BoxAbsent(retRes127819)
+		var retRes128219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))))
+		ch <- BoxAbsent(retRes128219)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1915,8 +1919,8 @@ func (this *Coinbaseexchange) fetchOrdersBody(ch chan any, optionalArgs ...any) 
 		"status": "all",
 	}
 
-	var retRes149715 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes149715)
+	var retRes150115 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes150115)
 	return nil
 }
 
@@ -1959,8 +1963,8 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes152019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, 100))))
-		ch <- BoxAbsent(retRes152019)
+		var retRes152419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, 100))))
+		ch <- BoxAbsent(retRes152419)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2019,8 +2023,8 @@ func (this *Coinbaseexchange) fetchClosedOrdersBody(ch chan any, optionalArgs ..
 		"status": "done",
 	}
 
-	var retRes155915 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes155915)
+	var retRes156315 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes156315)
 	return nil
 }
 
@@ -2397,7 +2401,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2418,7 +2422,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 	var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
 	if account == nil {
-		panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
+		panic(ExchangeError(this.Id + " fetchLedger() could not find account id for " + *code))
 	}
 	var request map[string]any = map[string]any{
 		"id": account["id"],
@@ -2466,7 +2470,7 @@ func (this *Coinbaseexchange) FetchDepositsWithdrawalsAsync(optionalArgs ...any)
 func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2488,7 +2492,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 			var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
 			if IsEqual(account, nil) {
-				panic(ExchangeError(Add(this.Id+" fetchDepositsWithdrawals() could not find account id for ", code)))
+				panic(ExchangeError(this.Id + " fetchDepositsWithdrawals() could not find account id for " + *code))
 			}
 			id = this.SafeString(account, "id")
 		}
@@ -2607,10 +2611,10 @@ func (this *Coinbaseexchange) fetchDepositsBody(ch chan any, optionalArgs ...any
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes202915 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
+	var retRes203315 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
 		"type": "deposit",
 	}, params)))))
-	ch <- BoxAbsent(retRes202915)
+	ch <- BoxAbsent(retRes203315)
 	return nil
 }
 
@@ -2643,10 +2647,10 @@ func (this *Coinbaseexchange) fetchWithdrawalsBody(ch chan any, optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes204515 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
+	var retRes204915 []any = ListTyped(PanicOnError((<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(map[string]any{
 		"type": "withdraw",
 	}, params)))))
-	ch <- BoxAbsent(retRes204515)
+	ch <- BoxAbsent(retRes204915)
 	return nil
 }
 func (this *Coinbaseexchange) ParseTransactionStatus(transaction any) string {
@@ -2820,7 +2824,11 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 			request = Add(request, "?"+this.Urlencode(query))
 		}
 	}
-	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), request)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(this.ImplodeHostname(apiUrl), request)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())

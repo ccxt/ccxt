@@ -366,8 +366,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids);
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("bids")), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
@@ -1148,7 +1148,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
             Integer symbolsLength = Helpers.getArrayLength(symbols);
-            if (Helpers.isGreaterThan(symbolsLength, 0))
+            if ((symbolsLength != null && symbolsLength > 0))
             {
                 for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
                 {

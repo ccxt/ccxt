@@ -1374,9 +1374,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         let orderType = type.toUpperCase ();
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const orderSide = side.toUpperCase ();
         const orderSize = this.amountToPrecision (symbol, amount);
         let orderPrice: Str = '0';

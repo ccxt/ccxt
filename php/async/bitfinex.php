@@ -575,7 +575,7 @@ class bitfinex extends Exchange {
         return (is_array($this->options['fiat']) && array_key_exists($code ?? '', $this->options['fiat']));
     }
 
-    public function get_currency_name(mixed $code) {
+    public function get_currency_name(string $code) {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (is_array($this->options['currencyNames']) && array_key_exists($code ?? '', $this->options['currencyNames'])) {
             return $this->options['currencyNames'][$code];
@@ -694,6 +694,9 @@ class bitfinex extends Exchange {
             $splitQuote = explode('F0', $quote);
             $base = $this->safe_string($splitBase, 0);
             $quote = $this->safe_string($splitQuote, 0);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
@@ -3194,7 +3197,11 @@ class bitfinex extends Exchange {
         } else {
             $request = $this->version . $request;
         }
-        $url = $this->urls['api'][$api] . '/' . $request;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $request;
         if ($api === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);

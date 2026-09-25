@@ -2540,15 +2540,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String type3 = type2;
-        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String type = type3;
-            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -2561,15 +2559,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
             Object clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
             clientOrderId = (clientOrderId == null ? null : ((String)clientOrderId).substring(0, Math.min(17, ((String)clientOrderId).length())));
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             final Object finalClientOrderId = clientOrderId;
-            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", finalClientOrderId );
-                put( "side", ((String)finalSide).toUpperCase() );
+                put( "side", ((String)side).toUpperCase() );
                 put( "instrument", ((Map<String, Object>)market).get("id") );
                 put( "size", Coinbaseinternational.this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount) );
             }};
@@ -3428,9 +3422,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object version = Helpers.GetValue(api, 0);
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
-        String fullPath = ((Helpers.add("/", version) + "/") + this.implodeParams(path, parameters));
+        String version = this.safeString(api, 0);
+        Boolean signed = java.util.Objects.equals(this.safeString(api, 1), "private");
+        String fullPath = ((("/" + version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String savedPath = ("/api" + fullPath);
         if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
@@ -3440,7 +3434,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), fullPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + fullPath);
         if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials();

@@ -398,9 +398,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
                 Integer length = Helpers.getArrayLength(stored);
-                if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isEqual((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))
+                if (((length != null && length > 0)) && (Helpers.isEqual((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(Helpers.GetValue(stored, (((long) length) - 1L)), 0))))
                 {
-                    Object previous = Helpers.GetValue(stored, Helpers.subtract(length, 1));
+                    Object previous = Helpers.GetValue(stored, (((long) length) - 1L));
                     Object high = (parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1));
                     if (java.util.Objects.equals((parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1)), null))
                     {
@@ -417,21 +417,21 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                     {
                         low = Helpers.mathMin((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), Helpers.GetValue(previous, 2));
                     }
-                    Helpers.addElementToObject(stored, Helpers.subtract(length, 1), new ArrayList<Object>(Arrays.asList((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(previous, 1), high, low, (parsed == null || 4 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(4)), this.sum((parsed == null || 5 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(5)), Helpers.GetValue(previous, 5)))));
+                    Helpers.addElementToObject(stored, (((long) length) - 1L), new ArrayList<Object>(Arrays.asList((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(previous, 1), high, low, (parsed == null || 4 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(4)), this.sum((parsed == null || 5 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(5)), Helpers.GetValue(previous, 5)))));
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         Helpers.addElementToObject((updates == null || marketId == null ? null : updates.get(marketId)), timeframe, true);
                     }
                 } else
                 {
-                    if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isLessThan(this.parseToInt((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0))), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0)))))
+                    if (((length != null && length > 0)) && (Helpers.isLessThan(this.parseToInt((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0))), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, (((long) length) - 1L)), 0)))))
                     {
                         continue;
                     } else
                     {
                         ((List<Object>)stored).add(parsed);
                         Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                        if (Helpers.isGreaterThanOrEqual(length, limit))
+                        if ((limit == null || (length != null && length >= limit)))
                         {
                             ((List<Object>)stored).get(0);
                         }
@@ -605,7 +605,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Double amount = this.safeFloat(bidask, 8);
             Long side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            Object orderbookSide = ((((side != null && side == 0)))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
+            Object orderbookSide = ((((side != null && side == 0)))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks"));
             // 0 new, 1 update, 2 remove
             if ((type != null && type == 0))
             {

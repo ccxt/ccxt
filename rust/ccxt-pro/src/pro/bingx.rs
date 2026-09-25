@@ -1512,7 +1512,11 @@ impl BingxCore {
                 m
             });
         }
-        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut userStreamKey: Value = self.safe_string_k(self.options.clone(), "listenKey", &[]);
+        if (baseUrl == Value::Null) || (userStreamKey == Value::Null) {
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a websocket URL and a listen key".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey).into());
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1599,7 +1603,11 @@ impl BingxCore {
                 m
             });
         }
-        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut userStreamKey: Value = self.safe_string_k(self.options.clone(), "listenKey", &[]);
+        if (baseUrl == Value::Null) || (userStreamKey == Value::Null) {
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a websocket URL and a listen key".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey).into());
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1670,7 +1678,11 @@ impl BingxCore {
                 m
             });
         }
-        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut userStreamKey: Value = self.safe_string_k(self.options.clone(), "listenKey", &[]);
+        if (baseUrl == Value::Null) || (userStreamKey == Value::Null) {
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a websocket URL and a listen key".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey).into());
         let mut client: Value = self.client(&[url.clone()]);
         self.set_balance_cache(client.clone(), type_var.clone(), subType, subscriptionHash.clone(), params.clone());
         let mut fetchBalanceSnapshot: Value = Value::Null;
@@ -1698,7 +1710,7 @@ impl BingxCore {
         let mut fetchBalanceSnapshot: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_bool_and_params(params.clone(), Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]); fetchBalanceSnapshot = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&fetchBalanceSnapshot) {
-            let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".into()));
+            let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone(), subType]);
@@ -1727,7 +1739,7 @@ impl BingxCore {
         if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
-            client.resolve(&[get_value(&self.balance, &type_var), add(&type_var, &Value::Str(":balance".into()))]);
+            client.resolve(&[get_value(&self.balance, &type_var), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
         }
 
     Value::Null
@@ -1776,7 +1788,11 @@ impl BingxCore {
         let mut subscriptionHash: Value = Value::Str("swap:private".into());
         messageHash = Value::Str(format!("{}{}", Value::Str("swap:positions".into()), messageHash).into());
         let mut baseUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType, &[]);
-        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut userStreamKey: Value = self.safe_string_k(self.options.clone(), "listenKey", &[]);
+        if (baseUrl == Value::Null) || (userStreamKey == Value::Null) {
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() requires a websocket URL and a listen key".into()))));
+        }
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey).into());
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client.clone(), type_var.clone(), &[symbols.clone()]);
         let mut fetchPositionsSnapshot: Value = Value::Null;
@@ -2246,8 +2262,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         while { if !__for_first_98 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_98 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&stored).as_f64().unwrap_or(f64::NAN) } {
                         let mut previousOrder: Value = get_value(&stored, &i);
                         let mut previousOrder: Value = get_value(&stored, &i);
-                        if (is_equal(&crate::value::get_value_k(&previousOrder, "id"), &orderId)) && (is_equal(&crate::value::get_value_k(&previousOrder, "symbol"), &parsedOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))) {
-                            let mut previousTimestamp: Value = self.safe_integer_k(previousOrder.clone(), "lastUpdateTimestamp", &[]);
+                        if (self.safe_string_k(previousOrder.clone(), "id", &[]).as_str() == orderId.as_str()) && (self.safe_string_k(previousOrder.clone(), "symbol", &[]).as_str() == self.safe_string_k(parsedOrder.clone(), "symbol", &[]).as_str()) {
+                            let mut previousTimestamp: Value = self.safe_integer_k(previousOrder, "lastUpdateTimestamp", &[]);
                             if (previousTimestamp != Value::Null) && (updateTimestamp.as_f64().unwrap_or(f64::NAN) < previousTimestamp.as_f64().unwrap_or(f64::NAN)) {
                                 return;
                             }

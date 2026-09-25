@@ -4429,7 +4429,7 @@ public class Binance extends BinanceApi
             {
                 Object market = (this.markets == null ? null : ((Map<?, ?>)this.markets).get(symbol));
                 // begin diff
-                if (Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
+                if (Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(this.safeBool(market, "spot"), true)))
                 {
                     Object settle = ((Boolean.TRUE.equals(isLegacyLinear))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
                     Object futuresSymbol = Helpers.add((symbol + ":"), settle);
@@ -4509,7 +4509,12 @@ public class Binance extends BinanceApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     /**
@@ -5457,14 +5462,18 @@ public class Binance extends BinanceApi
             //         ]
             //     }
             //
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                ((List<Object>)result).add(this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i))));
+                Object parsed = this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
+                if (!java.util.Objects.equals(parsed, null))
+                {
+                    ((List<Object>)result).add(parsed);
+                }
             }
             return result;
         });
@@ -5513,6 +5522,10 @@ public class Binance extends BinanceApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String contractType = this.safeString(market, "contractType");
         Boolean contract = (((Map<?, ?>)market).containsKey("contractType"));
         Long expiry = (Long) this.safeInteger2(market, "deliveryDate", "expiryDate");
@@ -5628,6 +5641,7 @@ public class Binance extends BinanceApi
         final String finalId = id;
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalQuoteId = quoteId;
         final String finalSettleId = settleId;
@@ -5651,7 +5665,7 @@ public class Binance extends BinanceApi
             put( "lowercaseId", lowercaseId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", finalQuoteId );
@@ -7700,7 +7714,7 @@ public class Binance extends BinanceApi
         {
             if (((Map<?, ?>)trade).containsKey("isBuyer"))
             {
-                side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
+                side = (((java.util.Objects.equals(this.safeBool(trade, "isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
             }
         }
         Map<String, Object> fee = null;
@@ -7713,11 +7727,11 @@ public class Binance extends BinanceApi
         }
         if (((Map<?, ?>)trade).containsKey("isMaker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("isMaker"), true)))) ? "maker" : "taker";
+            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "isMaker"), true)))) ? "maker" : "taker";
         }
         if (((Map<?, ?>)trade).containsKey("maker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("maker"), true)))) ? "maker" : "taker";
+            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "maker"), true)))) ? "maker" : "taker";
         }
         if ((((Map<?, ?>)trade).containsKey("optionSide")) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
         {
@@ -12664,7 +12678,7 @@ public class Binance extends BinanceApi
             List<Object> results = (List<Object>) this.safeList(response, "userAssetDribblets", new ArrayList<Object>(Arrays.asList()));
             Long rows = this.safeInteger(response, "total", 0);
             List<Object> data = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, rows); i++)
+            for (var i = 0; (rows != null && i < rows); i++)
             {
                 List<Object> logs = (List<Object>) this.safeList((results == null || i < 0 || i >= results.size() ? null : results.get(i)), "userAssetDribbletDetails", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)logs).size(); j++)
@@ -14439,7 +14453,7 @@ public class Binance extends BinanceApi
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Object market = Helpers.GetValue(markets, symbol);
-                    if (java.util.Objects.equals(Helpers.GetValue(market, "linear"), true))
+                    if (java.util.Objects.equals(this.safeBool(market, "linear"), true))
                     {
                         final Object finalSymbol = symbol;
                         result.put((String)symbol, new HashMap<String, Object>() {{
@@ -14479,7 +14493,7 @@ public class Binance extends BinanceApi
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Object market = Helpers.GetValue(markets, symbol);
-                    if (java.util.Objects.equals(Helpers.GetValue(market, "inverse"), true))
+                    if (java.util.Objects.equals(this.safeBool(market, "inverse"), true))
                     {
                         final Object finalSymbol = symbol;
                         result.put((String)symbol, new HashMap<String, Object>() {{
@@ -14648,451 +14662,6 @@ public class Binance extends BinanceApi
     {
         return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
-    //         "side": "BUY",
-    //         "type": "LIMIT",
-    //         "timeInForce": "GTC",
-    //         "reduceOnly": false,
-    //         "postOnly": false,
-    //         "createTime": 1676083034462,
-    //         "updateTime": 1676083034462,
-    //         "status": "ACCEPTED",
-    //         "avgPrice": "0",
-    //         "source": "API",
-    //         "clientOrderId": "",
-    //         "priceScale": 1,
-    //         "quantityScale": 2,
-    //         "optionSide": "CALL",
-    //         "quoteAsset": "USDT",
-    //         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
-    //         "mmp": false
-    //     }
-    //
-    // cancelOrders/createOrders
-    //
-    //     {
-    //         "code": -4005,
-    //         "msg": "Quantity greater than max quantity."
-    //     }
-    //
-    // createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders: portfolio margin linear swap and future
-    //
-    //     {
-    //         "symbol": "BTCUSDT",
-    //         "side": "BUY",
-    //         "executedQty": "0.000",
-    //         "orderId": 258649539704,
-    //         "goodTillDate": 0,
-    //         "avgPrice": "0",
-    //         "origQty": "0.010",
-    //         "clientOrderId": "x-xcKtGhcu02573c6f15e544e990057b",
-    //         "positionSide": "BOTH",
-    //         "cumQty": "0.000",
-    //         "updateTime": 1707110415436,
-    //         "type": "LIMIT",
-    //         "reduceOnly": false,
-    //         "price": "35000.00",
-    //         "cumQuote": "0.00000",
-    //         "selfTradePreventionMode": "NONE",
-    //         "timeInForce": "GTC",
-    //         "status": "NEW"
-    //     }
-    //
-    // createOrder, fetchOpenOrders, fetchOrder, cancelOrder, fetchOrders: portfolio margin inverse swap and future
-    //
-    //     {
-    //         "symbol": "ETHUSD_PERP",
-    //         "side": "BUY",
-    //         "cumBase": "0",
-    //         "executedQty": "0",
-    //         "orderId": 71275227732,
-    //         "avgPrice": "0.00",
-    //         "origQty": "1",
-    //         "clientOrderId": "x-xcKtGhcuca5af3acfb5044198c5398",
-    //         "positionSide": "BOTH",
-    //         "cumQty": "0",
-    //         "updateTime": 1707110994334,
-    //         "type": "LIMIT",
-    //         "pair": "ETHUSD",
-    //         "reduceOnly": false,
-    //         "price": "2000",
-    //         "timeInForce": "GTC",
-    //         "status": "NEW"
-    //     }
-    //
-    // createOrder, fetchOpenOrders, fetchOpenOrder: portfolio margin linear swap and future conditional
-    //
-    //     {
-    //         "newClientStrategyId": "x-xcKtGhcu27f109953d6e4dc0974006",
-    //         "strategyId": 3645916,
-    //         "strategyStatus": "NEW",
-    //         "strategyType": "STOP",
-    //         "origQty": "0.010",
-    //         "price": "35000.00",
-    //         "reduceOnly": false,
-    //         "side": "BUY",
-    //         "positionSide": "BOTH",
-    //         "stopPrice": "45000.00",
-    //         "symbol": "BTCUSDT",
-    //         "timeInForce": "GTC",
-    //         "bookTime": 1707112625879,
-    //         "updateTime": 1707112625879,
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceProtect": false,
-    //         "goodTillDate": 0,
-    //         "selfTradePreventionMode": "NONE"
-    //     }
-    //
-    // createOrder, fetchOpenOrders: portfolio margin inverse swap and future conditional
-    //
-    //     {
-    //         "newClientStrategyId": "x-xcKtGhcuc6b86f053bb34933850739",
-    //         "strategyId": 1423462,
-    //         "strategyStatus": "NEW",
-    //         "strategyType": "STOP",
-    //         "origQty": "1",
-    //         "price": "2000",
-    //         "reduceOnly": false,
-    //         "side": "BUY",
-    //         "positionSide": "BOTH",
-    //         "stopPrice": "3000",
-    //         "symbol": "ETHUSD_PERP",
-    //         "timeInForce": "GTC",
-    //         "bookTime": 1707113098840,
-    //         "updateTime": 1707113098840,
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceProtect": false
-    //     }
-    //
-    // createOrder, cancelAllOrders, cancelOrder: portfolio margin spot margin
-    //
-    //     {
-    //         "clientOrderId": "x-TKT5PX2Fe9ef29d8346440f0b28b86",
-    //         "cummulativeQuoteQty": "0.00000000",
-    //         "executedQty": "0.00000000",
-    //         "fills": [],
-    //         "orderId": 24684460474,
-    //         "origQty": "0.00100000",
-    //         "price": "35000.00000000",
-    //         "selfTradePreventionMode": "EXPIRE_MAKER",
-    //         "side": "BUY",
-    //         "status": "NEW",
-    //         "symbol": "BTCUSDT",
-    //         "timeInForce": "GTC",
-    //         "transactTime": 1707113538870,
-    //         "type": "LIMIT"
-    //     }
-    //
-    // fetchOpenOrders, fetchOrder, fetchOrders: portfolio margin spot margin
-    //
-    //     {
-    //         "symbol": "BTCUSDT",
-    //         "orderId": 24700763749,
-    //         "clientOrderId": "x-TKT5PX2F6f724c2a4af6425f98c7b6",
-    //         "price": "35000.00000000",
-    //         "origQty": "0.00100000",
-    //         "executedQty": "0.00000000",
-    //         "cummulativeQuoteQty": "0.00000000",
-    //         "status": "NEW",
-    //         "timeInForce": "GTC",
-    //         "type": "LIMIT",
-    //         "side": "BUY",
-    //         "stopPrice": "0.00000000",
-    //         "icebergQty": "0.00000000",
-    //         "time": 1707199187679,
-    //         "updateTime": 1707199187679,
-    //         "isWorking": true,
-    //         "accountId": 200180970,
-    //         "selfTradePreventionMode": "EXPIRE_MAKER",
-    //         "preventedMatchId": null,
-    //         "preventedQuantity": null
-    //     }
-    //
-    // cancelOrder: portfolio margin linear and inverse swap conditional
-    //
-    //     {
-    //         "strategyId": 3733211,
-    //         "newClientStrategyId": "x-xcKtGhcuaf166172ed504cd1bc0396",
-    //         "strategyType": "STOP",
-    //         "strategyStatus": "CANCELED",
-    //         "origQty": "0.010",
-    //         "price": "35000.00",
-    //         "reduceOnly": false,
-    //         "side": "BUY",
-    //         "positionSide": "BOTH",
-    //         "stopPrice": "50000.00", // ignored with trailing orders
-    //         "symbol": "BTCUSDT",
-    //         "timeInForce": "GTC",
-    //         "activatePrice": null,  // only return with trailing orders
-    //         "priceRate": null,      // only return with trailing orders
-    //         "bookTime": 1707270098774,
-    //         "updateTime": 1707270119261,
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceProtect": false,
-    //         "goodTillDate": 0,
-    //         "selfTradePreventionMode": "NONE"
-    //     }
-    //
-    // fetchOrders: portfolio margin linear and inverse swap conditional
-    //
-    //     {
-    //         "newClientStrategyId": "x-xcKtGhcuaf166172ed504cd1bc0396",
-    //         "strategyId": 3733211,
-    //         "strategyStatus": "CANCELLED",
-    //         "strategyType": "STOP",
-    //         "origQty": "0.010",
-    //         "price": "35000",
-    //         "orderId": 0,
-    //         "reduceOnly": false,
-    //         "side": "BUY",
-    //         "positionSide": "BOTH",
-    //         "stopPrice": "50000",
-    //         "symbol": "BTCUSDT",
-    //         "type": "LIMIT",
-    //         "bookTime": 1707270098774,
-    //         "updateTime": 1707270119261,
-    //         "timeInForce": "GTC",
-    //         "triggerTime": 0,
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceProtect": false,
-    //         "goodTillDate": 0,
-    //         "selfTradePreventionMode": "NONE"
-    //     }
-    //
-    // fetchOpenOrder: linear swap
-    //
-    //     {
-    //         "orderId": 3697213934,
-    //         "symbol": "BTCUSDT",
-    //         "status": "NEW",
-    //         "clientOrderId": "x-xcKtGhcufb20c5a7761a4aa09aa156",
-    //         "price": "33000.00",
-    //         "avgPrice": "0.00000",
-    //         "origQty": "0.010",
-    //         "executedQty": "0.000",
-    //         "cumQuote": "0.00000",
-    //         "timeInForce": "GTC",
-    //         "type": "LIMIT",
-    //         "reduceOnly": false,
-    //         "closePosition": false,
-    //         "side": "BUY",
-    //         "positionSide": "BOTH",
-    //         "stopPrice": "0.00",
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceProtect": false,
-    //         "origType": "LIMIT",
-    //         "priceMatch": "NONE",
-    //         "selfTradePreventionMode": "NONE",
-    //         "goodTillDate": 0,
-    //         "time": 1707892893502,
-    //         "updateTime": 1707892893515
-    //     }
-    //
-    // fetchOpenOrder: inverse swap
-    //
-    //     {
-    //         "orderId": 597368542,
-    //         "symbol": "BTCUSD_PERP",
-    //         "pair": "BTCUSD",
-    //         "status": "NEW",
-    //         "clientOrderId": "x-xcKtGhcubbde7ba93b1a4ab881eff3",
-    //         "price": "35000",
-    //         "avgPrice": "0",
-    //         "origQty": "1",
-    //         "executedQty": "0",
-    //         "cumBase": "0",
-    //         "timeInForce": "GTC",
-    //         "type": "LIMIT",
-    //         "reduceOnly": false,
-    //         "closePosition": false,
-    //         "side": "BUY",
-    //         "positionSide": "BOTH",
-    //         "stopPrice": "0",
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceProtect": false,
-    //         "origType": "LIMIT",
-    //         "time": 1707893453199,
-    //         "updateTime": 1707893453199
-    //     }
-    //
-    // fetchOpenOrder: linear portfolio margin
-    //
-    //     {
-    //         "orderId": 264895013409,
-    //         "symbol": "BTCUSDT",
-    //         "status": "NEW",
-    //         "clientOrderId": "x-xcKtGhcu6278f1adbdf14f74ab432e",
-    //         "price": "35000",
-    //         "avgPrice": "0",
-    //         "origQty": "0.010",
-    //         "executedQty": "0",
-    //         "cumQuote": "0",
-    //         "timeInForce": "GTC",
-    //         "type": "LIMIT",
-    //         "reduceOnly": false,
-    //         "side": "BUY",
-    //         "positionSide": "LONG",
-    //         "origType": "LIMIT",
-    //         "time": 1707893839364,
-    //         "updateTime": 1707893839364,
-    //         "goodTillDate": 0,
-    //         "selfTradePreventionMode": "NONE"
-    //     }
-    //
-    // fetchOpenOrder: inverse portfolio margin
-    //
-    //     {
-    //         "orderId": 71790316950,
-    //         "symbol": "ETHUSD_PERP",
-    //         "pair": "ETHUSD",
-    //         "status": "NEW",
-    //         "clientOrderId": "x-xcKtGhcuec11030474204ab08ba2c2",
-    //         "price": "2500",
-    //         "avgPrice": "0",
-    //         "origQty": "1",
-    //         "executedQty": "0",
-    //         "cumBase": "0",
-    //         "timeInForce": "GTC",
-    //         "type": "LIMIT",
-    //         "reduceOnly": false,
-    //         "side": "BUY",
-    //         "positionSide": "LONG",
-    //         "origType": "LIMIT",
-    //         "time": 1707894181694,
-    //         "updateTime": 1707894181694
-    //     }
-    //
-    // fetchOpenOrder: inverse portfolio margin conditional
-    //
-    //     {
-    //         "newClientStrategyId": "x-xcKtGhcu2da9c765294b433994ffce",
-    //         "strategyId": 1423501,
-    //         "strategyStatus": "NEW",
-    //         "strategyType": "STOP",
-    //         "origQty": "1",
-    //         "price": "2500",
-    //         "reduceOnly": false,
-    //         "side": "BUY",
-    //         "positionSide": "LONG",
-    //         "stopPrice": "4000",
-    //         "symbol": "ETHUSD_PERP",
-    //         "bookTime": 1707894782679,
-    //         "updateTime": 1707894782679,
-    //         "timeInForce": "GTC",
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceProtect": false
-    //     }
-    //
-    // createOrder, fetchOrder, fetchOpenOrders, fetchOrders, cancelOrderWs, createOrderWs: linear swap conditional order
-    //
-    //     {
-    //         "algoId": 3358,
-    //         "clientAlgoId": "yT58zmV3DSzMBQxc5tAJXU",
-    //         "algoType": "CONDITIONAL",
-    //         "orderType": "STOP",
-    //         "symbol": "BTCUSDT",
-    //         "side": "BUY",
-    //         "positionSide": "BOTH",
-    //         "timeInForce": "GTC",
-    //         "quantity": "0.002",
-    //         "algoStatus": "NEW",
-    //         "triggerPrice": "100000.00",
-    //         "price": "102000.00",
-    //         "icebergQuantity": null,
-    //         "selfTradePreventionMode": "EXPIRE_MAKER",
-    //         "workingType": "CONTRACT_PRICE",
-    //         "priceMatch": "NONE",
-    //         "closePosition": false,
-    //         "priceProtect": false,
-    //         "reduceOnly": false,
-    //         "createTime": 1763458576201,
-    //         "updateTime": 1763458576201,
-    //         "triggerTime": 0,
-    //         "goodTillDate": 0
-    //     }
-    //
-    // cancelOrder: linear swap conditional
-    //
-    //     {
-    //         "algoId": 3358,
-    //         "clientAlgoId": "yT58zmV3DSzMBQxc5tAJXU",
-    //         "code": "200",
-    //         "msg": "success"
-    //     }
-    //
-    // createOrder: tokenized equities
-    //
-    //     {
-    //         "status": "S",
-    //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
-    //         "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4"
-    //     }
-    //
-    // cancelOrder: tokenized equities
-    //
-    //     {
-    //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
-    //         "status": "S"
-    //     }
-    //
-    // fetchOpenOrders: tokenized equities
-    //
-    //     {
-    //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
-    //         "symbol": "AAPL",
-    //         "quoteAsset": "USDC",
-    //         "side": "BUY",
-    //         "orderType": "LIMIT",
-    //         "limitPrice": "290",
-    //         "qty": "0.05",
-    //         "filledQty": "0",
-    //         "filledNotional": "0",
-    //         "totalCost": "14.67",
-    //         "filledPercent": "0",
-    //         "status": "NEW",
-    //         "session": "24H",
-    //         "createdAt": 1785924334509,
-    //         "updatedAt": 1785924334514
-    //     }
-    //
-    // fetchOrders: tokenized equities
-    //
-    //     {
-    //         "orderId": "1ef94d47-0c95-4785-9834-37376312834e",
-    //         "symbol": "AAPL",
-    //         "quote": "USDC",
-    //         "side": "BUY",
-    //         "orderType": "LIMIT",
-    //         "limitPrice": "290",
-    //         "qty": "0.05",
-    //         "filledQty": "0",
-    //         "filledTotal": "0",
-    //         "fee": "0",
-    //         "session": "24H",
-    //         "status": "CANCELED",
-    //         "createdAt": 1785925755841,
-    //         "updatedAt": 1785925792975
-    //     }
-    //
-    // fetchOrder: tokenized equities
-    //
-    //     {
-    //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
-    //         "symbol": "AAPL",
-    //         "quote": "USDC",
-    //         "side": "BUY",
-    //         "orderType": "LIMIT",
-    //         "limitPrice": "290",
-    //         "qty": "0.05",
-    //         "filledQty": "0",
-    //         "filledTotal": "0",
-    //         "session": "24H",
-    //         "status": "NEW",
-    //         "createdAt": 1785924334509,
-    //         "updatedAt": 1785924334514,
-    //         "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4",
-    //         "trades": []
-    //     }
-    //
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
         return this.fetchFundingRate(symbol, (Object) (parameters));
@@ -16310,7 +15879,7 @@ final Map<String, Object> finalMarket = market;
                 if ((symbols instanceof List))
                 {
                     Integer symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
@@ -18152,15 +17721,15 @@ final Map<String, Object> finalMarket = market;
                     query = this.rawencode(extendedParams);
                     Integer orderidlistLength = ((List<?>)orderidlist).size();
                     Integer origclientorderidlistLength = ((List<?>)origclientorderidlist).size();
-                    if (Helpers.isGreaterThan(orderidlistLength, 0))
+                    if ((orderidlistLength != null && orderidlistLength > 0))
                     {
                         query = ((((query + "&") + "orderidlist=%5B") + String.join("%2C", (List<String>)orderidlist)) + "%5D");
                     }
-                    if (Helpers.isGreaterThan(origclientorderidlistLength, 0))
+                    if ((origclientorderidlistLength != null && origclientorderidlistLength > 0))
                     {
                         // wrap clientOrderids around ""
                         List<String> newClientOrderIds = new ArrayList<String>(Arrays.asList());
-                        for (var i = 0; Helpers.isLessThan(i, origclientorderidlistLength); i++)
+                        for (var i = 0; (origclientorderidlistLength != null && i < origclientorderidlistLength); i++)
                         {
                             newClientOrderIds.add((Helpers.add("%22", (origclientorderidlist == null || i < 0 || i >= origclientorderidlist.size() ? null : origclientorderidlist.get(i))) + "%22"));
                         }
@@ -18326,7 +17895,7 @@ final Map<String, Object> finalMarket = market;
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((java.util.Objects.equals(error, "-2015")) && (java.util.Objects.equals(((Map<String, Object>)this.options).get("hasAlreadyAuthenticatedSuccessfully"), true)))
+            if ((java.util.Objects.equals(error, "-2015")) && (java.util.Objects.equals(this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
             {
                 throw new DDoSProtection(((this.id + " ") + body)) ;
             }
@@ -21647,7 +21216,7 @@ final Map<String, Object> finalMarket = market;
         {
             if (!java.util.Objects.equals(longNum, null) && !java.util.Objects.equals(shortNum, null))
             {
-                if (Helpers.isGreaterThan(longNum, shortNum))
+                if ((longNum != null && (shortNum == null || longNum > shortNum)))
                 {
                     rank = longNum;
                 } else

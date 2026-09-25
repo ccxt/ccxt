@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
+from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -1807,7 +1807,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, outcome: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         places a limit or market order on kalshi for the given outcome token
 
@@ -1894,7 +1894,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             order['status'] = resolvedStatus
         return order
 
-    async def edit_order(self, id: str, outcome: str, type: Str, side: Str, amount: Num = None, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def edit_order(self, id: str, outcome: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         edits a resting order by cancelling it and placing a new one with the updated terms
 
@@ -1921,7 +1921,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         await self.cancel_order(id, outcome)
         return await self.create_order(outcome, type, side, amount, price, params)
 
-    async def cancel_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         cancels a single open order by id on kalshi
 

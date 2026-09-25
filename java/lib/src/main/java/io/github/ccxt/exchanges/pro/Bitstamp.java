@@ -261,7 +261,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String messageHash = ("orderbook:" + symbol);
         if (java.util.Objects.equals(nonce, null))
         {
-            Object cacheLength = Helpers.getArrayLength(((List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
+            Object cacheLength = Helpers.getArrayLength(((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache"))));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
@@ -269,9 +269,9 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
-            ((List<Object>)((List<Object>)Helpers.GetValue(storedOrderBook, "cache"))).add(delta);
+            ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(delta);
             return;
-        } else if (Helpers.isGreaterThanOrEqual(nonce, deltaNonce))
+        } else if ((deltaNonce == null || (nonce != null && nonce >= deltaNonce)))
         {
             return;
         }
@@ -312,7 +312,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return -1;
         }
         Long nonce = this.safeInteger(orderbook, "nonce");
-        if ((java.util.Objects.equals(nonce, null)) || (Helpers.isLessThan(nonce, firstElementNonce)))
+        if ((java.util.Objects.equals(nonce, null)) || ((firstElementNonce != null && (nonce == null || nonce < firstElementNonce))))
         {
             return -1;
         }
@@ -698,7 +698,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
-            Object channel = Helpers.add((("private-my_orders_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
+            String userId = this.safeString(this.options, "userId");
+            if (java.util.Objects.equals(userId, null))
+            {
+                throw new AuthenticationError((this.id + " unWatchOrders() requires a userId from authenticate()")) ;
+            }
+            String channel = ((("private-my_orders_" + ((Map<String, Object>)market).get("id")) + "-") + userId);
             return (this.unWatchChannel(channel, channel, "orders", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -810,7 +815,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             (this.authenticate()).join();
-            Object channel = Helpers.add((("private-my_trades_" + ((Map<String, Object>)market).get("id")) + "-"), ((Map<String, Object>)this.options).get("userId"));
+            String userId = this.safeString(this.options, "userId");
+            if (java.util.Objects.equals(userId, null))
+            {
+                throw new AuthenticationError((this.id + " unWatchMyTrades() requires a userId from authenticate()")) ;
+            }
+            String channel = ((("private-my_trades_" + ((Map<String, Object>)market).get("id")) + "-") + userId);
             return (this.unWatchChannel(channel, channel, "myTrades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -1343,7 +1353,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             this.checkRequiredCredentials();
             Long time = this.milliseconds();
             Long expiresIn = this.safeInteger(this.options, "expiresIn");
-            if ((java.util.Objects.equals(expiresIn, null)) || (Helpers.isGreaterThan(time, expiresIn)))
+            if ((java.util.Objects.equals(expiresIn, null)) || ((time != null && (expiresIn == null || time > expiresIn))))
             {
                 // single-flight leader election on a never-dialed client, see
                 // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
@@ -1414,7 +1424,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Object messageHash = messageHash3;
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             (this.authenticate()).join();
-            messageHash = Helpers.add(messageHash, Helpers.add("-", ((Map<String, Object>)this.options).get("userId")));
+            String userId = this.safeString(this.options, "userId");
+            if (java.util.Objects.equals(userId, null))
+            {
+                throw new AuthenticationError((this.id + " subscribePrivate() requires a userId from authenticate()")) ;
+            }
+            messageHash = (messageHash + ("-" + userId));
             final Object finalMessageHash = messageHash;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );

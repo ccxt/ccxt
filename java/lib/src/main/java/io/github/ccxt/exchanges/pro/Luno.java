@@ -85,7 +85,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subscriptionHash);
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+            }
+            String url = (wsUrl + subscriptionHash);
             String messageHash = ("trades:" + symbol);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
@@ -142,7 +147,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         Object symbol = ((Map<String, Object>)subscription).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        String messageHash = Helpers.add("trades:", symbol);
+        String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -231,7 +236,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subscriptionHash);
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+            }
+            String url = (wsUrl + subscriptionHash);
             String messageHash = ("orderbook:" + symbol);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
@@ -294,9 +304,9 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object symbol = ((Map<String, Object>)subscription).get("symbol");
-        String messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = ("orderbook:" + symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
@@ -307,12 +317,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
-            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             this.handleDelta(ob, message);
             Helpers.addElementToObject(ob, "timestamp", timestamp);
             Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long nonce = this.safeInteger(message, "sequence");
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         client.resolve(orderbook, messageHash);

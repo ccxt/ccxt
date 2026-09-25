@@ -52,7 +52,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             },
         })
 
-    async def subscribe(self, channel: object, symbol: object, params: dict = {}):
+    async def subscribe(self, channel: str, symbol: str, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -77,7 +77,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 })
         return result
 
-    async def un_subscribe(self, channel: object, topic: object, symbol: object, params: dict = {}):
+    async def un_subscribe(self, channel: str, topic: str, symbol: str, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

@@ -567,6 +567,9 @@ class alpaca extends Exchange {
         if ($quote === null && $assetClass === 'us_equity') {
             $quote = 'USD';
         }
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $status = $this->safe_string($asset, 'status');
         $active = ($status === 'active');
@@ -1829,7 +1832,7 @@ class alpaca extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params): array {
+    public function fetch_transactions_helper(string $type, ?string $code, mixed $since, mixed $limit, mixed $params): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

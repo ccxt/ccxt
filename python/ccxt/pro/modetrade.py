@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
@@ -83,7 +84,10 @@ class modetrade(ccxt.async_support.modetrade):
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
         if self.accountId is not None and self.accountId != '':
             id = self.accountId
-        url = self.urls['api']['ws']['public'] + '/' + id
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
+        url = wsUrl + '/' + id
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -588,7 +592,10 @@ class modetrade(ccxt.async_support.modetrade):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' authenticate() has no private websocket url')
+        url = wsUrl + '/' + self.accountId
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
@@ -616,7 +623,10 @@ class modetrade(ccxt.async_support.modetrade):
 
     async def watch_private(self, messageHash: str, message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPrivate() has no private websocket url')
+        url = wsUrl + '/' + self.accountId
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -626,7 +636,10 @@ class modetrade(ccxt.async_support.modetrade):
 
     async def watch_private_multiple(self, messageHashes: list[str], message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPrivateMultiple() has no private websocket url')
+        url = wsUrl + '/' + self.accountId
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -964,7 +977,10 @@ class modetrade(ccxt.async_support.modetrade):
                 messageHashes.append('positions::' + symbol)
         else:
             messageHashes.append('positions')
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPositions() has no private websocket url')
+        url = wsUrl + '/' + self.accountId
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)

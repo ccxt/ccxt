@@ -84,7 +84,7 @@ class woofipro(ccxt.async_support.woofipro):
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
         if self.accountId is not None and self.accountId != '':
             id = self.accountId
-        url = self.urls['api']['ws']['public'] + '/' + id
+        url = self.safe_string(self.urls['api']['ws'], 'public') + '/' + id
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -586,7 +586,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
@@ -614,7 +614,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_private(self, messageHash: str, message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -624,7 +624,7 @@ class woofipro(ccxt.async_support.woofipro):
 
     async def watch_private_multiple(self, messageHashes: list[str], message: dict, params: dict = {}):
         await self.authenticate(params)
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
         requestId = self.request_id(url)
         subscribe = {
             'id': requestId,
@@ -964,7 +964,7 @@ class woofipro(ccxt.async_support.woofipro):
                 messageHashes.append('positions::' + symbol)
         else:
             messageHashes.append('positions')
-        url = self.urls['api']['ws']['private'] + '/' + self.accountId
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '/' + self.accountId
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)

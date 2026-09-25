@@ -348,7 +348,7 @@ func (this *Indodax) Describe() any {
 	})
 }
 func (this *Indodax) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 
 /**
@@ -442,11 +442,14 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "base_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var isMaintenance *int64 = this.SafeInteger(market, "is_maintenance")
 		var inMaintenance bool = (isMaintenance != nil) && (isMaintenance == nil || *isMaintenance != 0)
 		result = append(result, map[string]any{
 			"id":       id,
-			"symbol":   Add(Add(base, "/"), quote),
+			"symbol":   *base + "/" + *quote,
 			"base":     base,
 			"quote":    quote,
 			"settle":   nil,
@@ -1862,7 +1865,11 @@ func (this *Indodax) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = GetValue(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = apiUrl
 	if IsEqual(api, "public") {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath any = Add("/", this.ImplodeParams(path, params))

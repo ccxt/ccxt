@@ -697,7 +697,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
@@ -784,7 +784,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String symbol = this.safeSymbol(marketId, market);
         Long timestamp = this.safeInteger(contract, "created_at");
         String fundingPeriod = this.safeString(contract, "funding_period_hours");
-        final String finalFundingPeriod = fundingPeriod;
+        String interval = null;
+        if (!java.util.Objects.equals(fundingPeriod, null))
+        {
+            interval = (fundingPeriod + "h");
+        }
+        final String finalInterval = interval;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -803,7 +808,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", (finalFundingPeriod + "h") );
+            put( "interval", finalInterval );
         }};
     }
     public Map<String, Object> parseFundingRateWs(Map<String, Object> contract, Object... optionalArgs)

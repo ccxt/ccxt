@@ -469,18 +469,18 @@ func (this *Upbit) authenticateBody(ch chan any, optionalArgs ...any) any {
 		})
 		this.Options.Store("ws", wsOptions)
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/private")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"), "/private"))
 	var client ccxt.ClientInterface = this.Client(url)
 
 	ch <- client
 	return nil
 }
-func (this *Upbit) WatchPrivateAsync(symbol any, channel any, messageHash any, optionalArgs ...any) <-chan any {
+func (this *Upbit) WatchPrivateAsync(symbol any, channel string, messageHash any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPrivateBody(ch, symbol, channel, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messageHash any, optionalArgs ...any) any {
+func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -512,7 +512,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 	}
 	var channelKey any = channel
 	if !ccxt.IsEqual(symbol, nil) {
-		channelKey = ccxt.Add(ccxt.Add(channel, ":"), symbol)
+		channelKey = ccxt.Add(channel+":", symbol)
 	}
 	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)
 	var isNewChannel bool = !(ccxt.InOp(subscriptions, channelKey))

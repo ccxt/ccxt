@@ -496,7 +496,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         snapshot.put("datetime", this.iso8601(timestamp));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
-        List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+        List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var i = 0; i < ((List<?>)messages).size(); i++)
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i))), orderbook);
@@ -636,9 +636,9 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        if (java.util.Objects.equals(Helpers.GetValue(orderbook, "nonce"), null))
+        if (java.util.Objects.equals((orderbook == null ? null : orderbook.get("nonce")), null))
         {
-            ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
+            ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
         } else
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);

@@ -2367,6 +2367,10 @@ public class Nado extends NadoApi
                 String rawQuoteId = this.safeString(pair, "quote", "USDT0");
                 String base = this.safeCurrencyCode((String) (this.removeMarketSuffix(rawBaseId)));
                 String quote = this.safeCurrencyCode(rawQuoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 Object baseAsset = this.safeDict(assetsByCode, base, asset);
                 Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(assetsByCode, quote);
                 String baseId = this.safeString(baseAsset, "product_id", rawBaseId);
@@ -2385,6 +2389,7 @@ public class Nado extends NadoApi
                 Object minCost = this.parseX18(this.safeString(market, "min_size"));
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalType = type;
                 final String finalTickerId = tickerId;
                             ((List<Object>)markets).add(this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -2392,7 +2397,7 @@ public class Nado extends NadoApi
                     put( "lowercaseId", null );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -4089,16 +4094,16 @@ public class Nado extends NadoApi
             subaccount = "default";
         }
         String address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
-        if ((Helpers.getArrayLength(address) != 40))
+        if ((address.length() != 40))
         {
             throw new BadRequest((this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }
         Object encoded = this.remove0xPrefix(this.stringToBase16(subaccount));
-        if (Helpers.getArrayLength(encoded) > 24)
+        if (((String)encoded).length() > 24)
         {
             throw new BadRequest((this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }
-        return Helpers.add(("0x" + address), this.padHex(encoded, 24, false));
+        return (("0x" + address) + this.padHex(encoded, 24, false));
     }
     public Object createSubaccount(String walletAddress, Object... optionalArgs)
     {
@@ -4192,7 +4197,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, (String) (this.privateKey));
     }
 
@@ -4220,7 +4225,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, (String) (this.privateKey));
     }
 
@@ -4245,7 +4250,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, (String) (this.privateKey));
     }
 
@@ -4267,7 +4272,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, (String) (this.privateKey));
     }
 

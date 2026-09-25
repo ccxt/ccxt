@@ -1176,16 +1176,21 @@ public class Poloniex extends PoloniexApi
         String quoteId = this.safeString(market, "quoteCurrencyName");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String state = this.safeString(market, "state");
         Boolean active = java.util.Objects.equals(state, "NORMAL");
         Map<String, Object> symbolTradeLimit = (Map<String, Object>) this.safeDict(market, "symbolTradeLimit");
         // these are known defaults
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1270,10 +1275,14 @@ public class Poloniex extends PoloniexApi
         String settleId = this.safeString(market, "sCcy");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settle = this.safeCurrencyCode(settleId);
         String status = this.safeString(market, "status");
         Boolean active = java.util.Objects.equals(status, "OPEN");
-        Boolean linear = java.util.Objects.equals(((Map<String, Object>)market).get("ctType"), "LINEAR");
+        Boolean linear = java.util.Objects.equals(this.safeString(market, "ctType"), "LINEAR");
         String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(linear))
         {
@@ -1296,13 +1305,14 @@ public class Poloniex extends PoloniexApi
         }
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalMarketType = marketType;
         final String finalType = type;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1498,7 +1508,7 @@ public class Poloniex extends PoloniexApi
             {
                 symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, false));
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     if (java.util.Objects.equals(symbolsLength, 1))
@@ -1655,7 +1665,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
         Integer chainsLength = ((List<?>)chains).size();
-        for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
+        for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             String chainId = this.safeString(chain, "blockchain");
@@ -3664,7 +3674,7 @@ public class Poloniex extends PoloniexApi
             //
             List<String> keys = new ArrayList<String>(response.keySet());
             Integer length = ((List<?>)keys).size();
-            if (Helpers.isLessThan(length, 1))
+            if (((length == null || length < 1)))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
             }
@@ -4198,7 +4208,7 @@ public class Poloniex extends PoloniexApi
                 depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
                 Integer chainsLength = Helpers.getArrayLength(childChains);
-                if (Helpers.isGreaterThan(chainsLength, 0))
+                if ((chainsLength != null && chainsLength > 0))
                 {
                     for (var j = 0; j < Helpers.getArrayLength(childChains); j++)
                     {
@@ -5032,17 +5042,17 @@ public class Poloniex extends PoloniexApi
         String implodedPath = (String) this.implodeParams(path, parameters);
         if (java.util.Objects.equals(api, "public") || java.util.Objects.equals(api, "swapPublic"))
         {
-            url = Helpers.add(url, ("/" + implodedPath));
+            url = (url + ("/" + implodedPath));
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
             {
-                url = Helpers.add(url, ("?" + this.urlencode(query)));
+                url = (url + ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
             String timestamp = String.valueOf(this.nonce());
             String auth = (method + "\n"); // eslint-disable-line quotes
-            url = Helpers.add(url, ("/" + implodedPath));
+            url = (url + ("/" + implodedPath));
             auth = (auth + ("/" + implodedPath));
             if ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PUT")) || (java.util.Objects.equals(method, "DELETE")))
             {
@@ -5062,7 +5072,7 @@ public class Poloniex extends PoloniexApi
                 auth = (auth + ("\n" + this.urlencode(sortedQuery))); // eslint-disable-line quotes
                 if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
                 {
-                    url = Helpers.add(url, ("?" + this.urlencode(query)));
+                    url = (url + ("?" + this.urlencode(query)));
                 }
             }
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

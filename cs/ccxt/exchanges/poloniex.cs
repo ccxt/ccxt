@@ -1069,15 +1069,19 @@ public partial class poloniex : Exchange
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseCurrencyName");
         string? quoteId = this.safeString(market, "quoteCurrencyName");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ((Dictionary<string, object>)((object)(null)));
+        }
         string? state = this.safeString(market, "state");
         bool active = state == "NORMAL";
         IDictionary<string, object> symbolTradeLimit = this.safeDict(market, "symbolTradeLimit");
         // these are known defaults
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -1162,20 +1166,24 @@ public partial class poloniex : Exchange
         string? baseId = this.safeString(market, "bCcy");
         string? quoteId = this.safeString(market, "qCcy");
         string? settleId = this.safeString(market, "sCcy");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ((Dictionary<string, object>)((object)(null)));
+        }
         string? settle = this.safeCurrencyCode(settleId);
         string? status = this.safeString(market, "status");
         bool active = status == "OPEN";
-        bool linear = isEqual(getValue(market, "ctType"), "LINEAR");
-        object symbol = add(add(bs, "/"), quote);
+        bool linear = (this.safeString(market, "ctType") == "LINEAR");
+        string symbol = ((bs + "/") + quote);
         if (linear)
         {
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
         } else
         {
             // actually, exchange does not have any inverse future now
-            symbol = add(symbol, (":" + (bs)));
+            symbol = symbol + (":" + bs);
         }
         string? alias = this.safeString(market, "alias");
         string type = "swap";
@@ -4106,7 +4114,7 @@ public partial class poloniex : Exchange
         //     "msg": "Success"
         // }
         //
-        if (isEqual(type, "reduce"))
+        if ((type == "reduce"))
         {
             amount = Precise.stringAbs(amount);
         }

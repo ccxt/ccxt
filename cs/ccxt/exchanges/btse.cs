@@ -713,7 +713,7 @@ public partial class btse : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -798,9 +798,13 @@ public partial class btse : Exchange
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseCurrency");
         string? quoteId = this.safeString(market, "quoteCurrency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         string? maxAmountString = this.safeString(market, "maxOrderSize");
         string? minAmountString = this.safeString(market, "minOrderSize");
         string? minPriceString = this.safeString(market, "minOrderPrice");
@@ -812,12 +816,12 @@ public partial class btse : Exchange
         string? contractSize = null;
         if (!isSpot)
         {
-            symbol = add(symbol, (":" + quote));
+            symbol = symbol + (":" + quote);
             contractSize = this.safeString(market, "contractSize");
             if (isFuture)
             {
                 expiry = this.safeInteger(market, "contractEndTime");
-                symbol = add(symbol, ("-" + this.yymmdd(expiry)));
+                symbol = symbol + ("-" + this.yymmdd(expiry));
                 type = "future";
             } else
             {
@@ -930,11 +934,11 @@ public partial class btse : Exchange
             // the endpoint accepts timestamps in seconds
             request["start"] = this.parseToInt((since / 1000));
         }
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
-        until = untilparametersVariable[0];
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             if ((since != null))
             {
@@ -945,11 +949,11 @@ public partial class btse : Exchange
                 object difference = subtract(until, since);
                 if (isLessThan(difference, maxDelta))
                 {
-                    request["end"] = this.parseToInt(divide(until, 1000));
+                    request["end"] = this.parseToInt((until / 1000));
                 }
             } else
             {
-                request["end"] = this.parseToInt(divide(until, 1000));
+                request["end"] = this.parseToInt((until / 1000));
             }
         }
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Klines(this.extend(request, parameters));
@@ -1086,9 +1090,9 @@ public partial class btse : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", period },
         };
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchFundingRateHistory", "until");
-        until = untilparametersVariable[0];
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, parameters));
         //
@@ -1107,7 +1111,7 @@ public partial class btse : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         object rates = this.parseFundingRateHistories(data, market, since, limit);
-        if (isEqual(until, null))
+        if ((until == null))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(rates);
         }
@@ -1693,7 +1697,7 @@ public partial class btse : Exchange
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
-        if (((fundingIntervalMinutes != null)) && (isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
+        if (((fundingIntervalMinutes != null)) && ((fundingIntervalMinutes >= 60)))
         {
             Int64? hours = this.parseToInt((fundingIntervalMinutes / 60));
             interval = (((object)hours).ToString() + "h");
@@ -1745,9 +1749,9 @@ public partial class btse : Exchange
             request["limit"] = mathMin(limit, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "until");
-        until = untilparametersVariable[0];
+        until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Trades(this.extend(request, parameters));
         //
@@ -1770,7 +1774,7 @@ public partial class btse : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> trades = this.parseTrades(data, market, since, limit);
-        if (isEqual(until, null))
+        if ((until == null))
         {
             return ccxt.BaseExchange.ToTradeList(trades);
         }
@@ -3918,12 +3922,12 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         marginModeVar = marginModeVar.ToLower();
         string positionMode = "ONE_WAY";
-        if ((!isEqual(marginModeVar, "cross")) && (!isEqual(marginModeVar, "isolated")))
+        if ((!(marginModeVar == "cross")) && (!(marginModeVar == "isolated")))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
         }
         bool? hedged = this.safeBool(parameters, "hedged");
-        if (isEqual(marginModeVar, "cross"))
+        if ((marginModeVar == "cross"))
         {
             if (!(((IDictionary<string, object>)parameters).ContainsKey("hedged")))
             {
@@ -4201,7 +4205,12 @@ public partial class btse : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object baseUrl = apiUrl;
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
@@ -4278,6 +4287,6 @@ public partial class btse : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 }

@@ -4624,7 +4624,7 @@ public Object describe()
             }
         }
         Integer length = ((List<?>)usedProxies).size();
-        if (Helpers.isGreaterThan(length, 1))
+        if ((length != null && length > 1))
         {
             String joinedProxyNames = String.join(",", (List<String>)usedProxies);
             throw new InvalidProxySettings((((this.id + " you have multiple conflicting proxy settings (") + joinedProxyNames) + "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
@@ -4697,7 +4697,7 @@ public Object describe()
         }
         // check
         Integer length = ((List<?>)usedProxies).size();
-        if (Helpers.isGreaterThan(length, 1))
+        if ((length != null && length > 1))
         {
             String joinedProxyNames = String.join(",", (List<String>)usedProxies);
             throw new InvalidProxySettings((((this.id + " you have multiple conflicting proxy settings (") + joinedProxyNames) + "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
@@ -4741,7 +4741,7 @@ public Object describe()
         }
         // check
         Integer length = ((List<?>)usedProxies).size();
-        if (Helpers.isGreaterThan(length, 1))
+        if ((length != null && length > 1))
         {
             String joinedProxyNames = String.join(",", (List<String>)usedProxies);
             throw new InvalidProxySettings((((this.id + " you have multiple conflicting proxy settings (") + joinedProxyNames) + "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
@@ -4799,7 +4799,7 @@ public Object describe()
         if (this.valueIsDefined(limit))
         {
             Integer arrayLength = ((List<?>)array).size();
-            if (Helpers.isGreaterThan(arrayLength, 0))
+            if ((arrayLength != null && arrayLength > 0))
             {
                 Boolean ascending = true;
                 if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), key)))
@@ -5341,7 +5341,12 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
-            ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(markets, i)));
+            Object market = this.parseMarket(Helpers.GetValue(markets, i));
+            // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
+            if (!java.util.Objects.equals(market, null))
+            {
+                ((List<Object>)result).add(market);
+            }
         }
         return result;
     }
@@ -6248,6 +6253,10 @@ public Object describe()
 
     public Object orderbookChecksumMessage(String symbol)
     {
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " orderbookChecksumMessage() requires a symbol argument")) ;
+        }
         return ((symbol + " : ") + "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
@@ -6366,7 +6375,7 @@ public Object describe()
         Integer length = ((List<?>)keys).size();
         if (!java.util.Objects.equals(length, 0))
         {
-            for (var i = 0; Helpers.isLessThan(i, length); i++)
+            for (var i = 0; (length != null && i < length); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object network = (networks == null || key == null ? null : networks.get(key));
@@ -6632,7 +6641,7 @@ public Object describe()
             List<Object> keys = Helpers.objectKeys(currencies);
             numCurrencies = ((List<?>)keys).size();
         }
-        if (Helpers.isGreaterThan(numCurrencies, 0))
+        if ((numCurrencies != null && numCurrencies > 0))
         {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
@@ -6682,12 +6691,21 @@ public Object describe()
                 for (var j = 1; j < (groupedCurrenciesCode == null ? 0 : ((List<?>)groupedCurrenciesCode).size()); j++)
                 {
                     Object currentCurrency = (groupedCurrenciesCode == null || j < 0 || j >= groupedCurrenciesCode.size() ? null : groupedCurrenciesCode.get(j));
+                    Double currentPrecision = this.safeNumber(currentCurrency, "precision");
+                    Double highestPrecision = this.safeNumber(highestPrecisionCurrency, "precision");
+                    if ((java.util.Objects.equals(currentPrecision, null)) || (java.util.Objects.equals(highestPrecision, null)))
+                    {
+                        continue;
+                    }
                     if (Helpers.isEqual(this.precisionMode, TICK_SIZE))
                     {
-                        highestPrecisionCurrency = (((Helpers.isLessThan(Helpers.GetValue(currentCurrency, "precision"), Helpers.GetValue(highestPrecisionCurrency, "precision"))))) ? currentCurrency : highestPrecisionCurrency;
-                    } else
+                        if (Helpers.isLessThan(currentPrecision, highestPrecision))
+                        {
+                            highestPrecisionCurrency = currentCurrency;
+                        }
+                    } else if ((currentPrecision != null && (highestPrecision == null || currentPrecision > highestPrecision)))
                     {
-                        highestPrecisionCurrency = (((Helpers.isGreaterThan(Helpers.GetValue(currentCurrency, "precision"), Helpers.GetValue(highestPrecisionCurrency, "precision"))))) ? currentCurrency : highestPrecisionCurrency;
+                        highestPrecisionCurrency = currentCurrency;
                     }
                 }
                 ((List<Object>)resultingCurrencies).add(highestPrecisionCurrency);
@@ -6853,7 +6871,7 @@ public Object describe()
             {
                 tradesLength = ((List<?>)trades).size();
             }
-            if (Boolean.TRUE.equals(isArray) && (Helpers.isGreaterThan(tradesLength, 0)))
+            if (Boolean.TRUE.equals(isArray) && ((tradesLength != null && tradesLength > 0)))
             {
                 // move properties that are defined in trades up into the order
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("symbol"), null))
@@ -6946,7 +6964,7 @@ public Object describe()
                 reducedFees = new ArrayList<Object>(Arrays.asList());
             }
             Integer reducedLength = ((List<?>)reducedFees).size();
-            for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
+            for (var i = 0; (reducedLength != null && i < reducedLength); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "cost", this.safeNumber((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "cost"));
                 if (Helpers.inOp((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "rate"))
@@ -7425,7 +7443,7 @@ public Object describe()
                 reducedFees = new ArrayList<Object>(Arrays.asList());
             }
             Integer reducedLength = ((List<?>)reducedFees).size();
-            for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
+            for (var i = 0; (reducedLength != null && i < reducedLength); i++)
             {
                 Helpers.addElementToObject(reducedFees, i, this.parseFeeNumeric((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i))));
             }
@@ -7467,7 +7485,7 @@ public Object describe()
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         Integer length = ((List<?>)arr).size();
-        for (var i = 0; Helpers.isLessThan(i, length); i++)
+        for (var i = 0; (length != null && i < length); i++)
         {
             Object current = (arr == null || i < 0 || i >= ((List<?>)arr).size() ? null : ((List<?>)arr).get(i));
             if (Helpers.isLessThanOrEqual(providedValue, current))
@@ -7984,7 +8002,7 @@ public Object describe()
                 {
                     return null;
                 }
-                Object maxRetries = this.safeValue(options, "webApiRetries", 10);
+                Long maxRetries = this.safeInteger(options, "webApiRetries", 10);
                 Object response = null;
                 Object retry = 0;
                 Boolean shouldBreak = false;
@@ -8043,7 +8061,7 @@ public Object describe()
                 }
             } catch(Exception e)
             {
-                errorMessage = (Helpers.add((this.id + " "), method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
+                errorMessage = (((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
             }
             if (java.util.Objects.equals(muteOnFailure, true))
             {
@@ -8157,7 +8175,7 @@ public Object describe()
             return (List<Object>) symbols;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object marketType = null;
+        String marketType = null;
         Object isLinearSubType = null;
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
@@ -8180,10 +8198,10 @@ public Object describe()
             {
                 throw new BadRequest((((this.id + " symbols must be of the same type ") + type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
-            marketType = ((Map<String, Object>)market).get("type");
+            marketType = this.safeString(market, "type");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                isLinearSubType = ((Map<String, Object>)market).get("linear");
+                isLinearSubType = this.safeBool(market, "linear");
             }
             String symbol = this.safeString(market, "symbol", (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
             ((List<Object>)result).add(symbol);
@@ -8500,15 +8518,15 @@ public Object describe()
 
     public Object selectNetworkCodeFromUnifiedNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries)
     {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, true);
+        return this.selectNetworkKeyFromNetworks(currencyCode, (String) (networkCode), indexedNetworkEntries, true);
     }
 
     public Object selectNetworkIdFromRawNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries)
     {
-        return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false);
+        return this.selectNetworkKeyFromNetworks(currencyCode, (String) (networkCode), indexedNetworkEntries, false);
     }
 
-    public Object selectNetworkKeyFromNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries, Object isIndexedByUnifiedNetworkCode)
+    public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Object isIndexedByUnifiedNetworkCode)
     {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         Object chosenNetworkId = null;
@@ -8518,24 +8536,28 @@ public Object describe()
         {
             if (java.util.Objects.equals(responseNetworksLength, 0))
             {
-                throw new NotSupported(Helpers.add((Helpers.add((this.id + " - "), networkCode) + " network did not return any result for "), currencyCode)) ;
+                throw new NotSupported(((((this.id + " - ") + networkCode) + " network did not return any result for ") + currencyCode)) ;
             } else
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 Object networkIdOrCode = ((Helpers.isTrue(isIndexedByUnifiedNetworkCode))) ? networkCode : this.networkCodeToId((String) (networkCode), currencyCode);
+                if (java.util.Objects.equals(networkIdOrCode, null))
+                {
+                    throw new NotSupported(((((this.id + " - ") + networkCode) + " network was not found for ") + currencyCode)) ;
+                }
                 if (Helpers.inOp(indexedNetworkEntries, networkIdOrCode))
                 {
                     chosenNetworkId = networkIdOrCode;
                 } else
                 {
-                    throw new NotSupported(((Helpers.add((Helpers.add((this.id + " - "), networkIdOrCode) + " network was not found for "), currencyCode) + ", use one of ") + String.join(", ", (List<String>)availableNetworkIds))) ;
+                    throw new NotSupported(((((((this.id + " - ") + networkIdOrCode) + " network was not found for ") + currencyCode) + ", use one of ") + String.join(", ", (List<String>)availableNetworkIds))) ;
                 }
             }
         } else
         {
             if (java.util.Objects.equals(responseNetworksLength, 0))
             {
-                throw new NotSupported(Helpers.add((this.id + " - no networks were returned for "), currencyCode)) ;
+                throw new NotSupported(((this.id + " - no networks were returned for ") + currencyCode)) ;
             } else
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
@@ -8554,7 +8576,7 @@ public Object describe()
         }
         return chosenNetworkId;
     }
-    public Object selectNetworkKeyFromNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries, Object... optionalArgs)
+    public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Object... optionalArgs)
     {
         return this.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
@@ -8909,7 +8931,7 @@ public Object describe()
         Long currentNonce = this.nonce();
         this.lockLastNonce();
         Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        Object result = (((Helpers.isGreaterThan(currentNonce, lastNonce)))) ? currentNonce : (lastNonce + 1L);
+        Object result = ((((currentNonce != null && (lastNonce == null || currentNonce > lastNonce))))) ? currentNonce : (lastNonce + 1L);
         Helpers.addElementToObject(this.options, "lastNonce", result);
         this.unlockLastNonce();
         return result;
@@ -9383,8 +9405,17 @@ public Object describe()
             {
                 continue;
             }
-            Boolean isFirstCandle = (candle != null && candle == -1);
-            if (Boolean.TRUE.equals(isFirstCandle) || Helpers.isGreaterThanOrEqual(openingTime, this.sum(Helpers.GetValue(Helpers.GetValue(ohlcvs, candle), i_timestamp), ms)))
+            Boolean isNewCandle = (candle != null && candle == -1);
+            if (!Boolean.TRUE.equals(isNewCandle))
+            {
+                Object candleTimestamp = Helpers.GetValue(Helpers.GetValue(ohlcvs, candle), i_timestamp);
+                if (java.util.Objects.equals(candleTimestamp, null))
+                {
+                    throw new ExchangeError((this.id + " buildOHLCVC() missing candle timestamp")) ;
+                }
+                isNewCandle = Helpers.isGreaterThanOrEqual(openingTime, Helpers.add(candleTimestamp, ms));
+            }
+            if (Boolean.TRUE.equals(isNewCandle))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ((List<Object>)ohlcvs).add(new ArrayList<Object>(Arrays.asList(openingTime, price, price, price, price, ((Map<String, Object>)trade).get("amount"), 1)));
@@ -9834,18 +9865,22 @@ public Object describe()
         return this.fetchDepositWithdrawFee(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public Object getSupportedMapping(Object key, Map<String, Object> mapping)
+    public Object getSupportedMapping(String key, Map<String, Object> mapping)
     {
-        if ((key != null && ((Map<?, ?>)mapping).containsKey(key)))
+        if (java.util.Objects.equals(key, null))
+        {
+            throw new ArgumentsRequired((this.id + " getSupportedMapping() requires a key argument")) ;
+        }
+        if (((Map<?, ?>)mapping).containsKey(key))
         {
             return Helpers.GetValue(mapping, key);
         } else
         {
             List<String> keys = new ArrayList<String>(((Map<String, Object>)mapping).keySet());
-            throw new NotSupported((((Helpers.add((this.id + " "), key) + " does not have a value in mapping") + ", must be one of ") + String.join(", ", (List<String>)keys))) ;
+            throw new NotSupported((((((this.id + " ") + key) + " does not have a value in mapping") + ", must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
     }
-    public Object getSupportedMapping(Object key, Object... optionalArgs)
+    public Object getSupportedMapping(String key, Object... optionalArgs)
     {
         return this.getSupportedMapping(key, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
@@ -10219,14 +10254,14 @@ public Object describe()
 
     public void throwBroadlyMatchedException(Object broad, Object str, Object message)
     {
-        Object broadKey = this.findBroadlyMatchedKey(broad, str);
+        Object broadKey = this.findBroadlyMatchedKey(broad, (String) (str));
         if (!java.util.Objects.equals(broadKey, null))
         {
             Helpers.throwDynamicException(Helpers.GetValue(broad, broadKey), message);
         }
     }
 
-    public Object findBroadlyMatchedKey(Object broad, Object str)
+    public Object findBroadlyMatchedKey(Object broad, String str)
     {
         // a helper for matching error strings exactly vs broadly
         List<Object> keys = Helpers.objectKeys(broad);
@@ -10235,7 +10270,7 @@ public Object describe()
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!java.util.Objects.equals(str, null))
             {
-                if (Helpers.getIndexOf(str, key) >= 0)
+                if (((String)str).indexOf(((String)key)) >= 0)
                 {
                     return key;
                 }
@@ -11086,7 +11121,12 @@ public Object describe()
         String result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            throw new InvalidOrder(((((this.id + " price of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum price precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price")))) ;
+            String pricePrecision = this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"));
+            if (java.util.Objects.equals(pricePrecision, null))
+            {
+                throw new BadSymbol((((this.id + " priceToPrecision() market ") + ((Map<String, Object>)market).get("symbol")) + " has no price precision")) ;
+            }
+            throw new InvalidOrder(((((this.id + " price of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum price precision of ") + pricePrecision)) ;
         }
         return result;
     }
@@ -11101,7 +11141,12 @@ public Object describe()
         String result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
-            throw new InvalidOrder(((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
+            String amountPrecision = this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"));
+            if (java.util.Objects.equals(amountPrecision, null))
+            {
+                throw new BadSymbol((((this.id + " amountToPrecision() market ") + ((Map<String, Object>)market).get("symbol")) + " has no amount precision")) ;
+            }
+            throw new InvalidOrder(((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
         }
         return result;
     }
@@ -12142,10 +12187,10 @@ public Object describe()
          * @returns {undefined}
          */
         Integer optionsLength = ((List<?>)options).size();
-        if ((java.util.Objects.equals(argument, null)) || ((Helpers.isGreaterThan(optionsLength, 0)) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))
+        if ((java.util.Objects.equals(argument, null)) || (((optionsLength != null && optionsLength > 0)) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))
         {
             String messageOptions = String.join(", ", (List<String>)options);
-            String message = (Helpers.add((((this.id + " ") + methodName) + "() requires a "), argumentName) + " argument");
+            String message = (((((this.id + " ") + methodName) + "() requires a ") + argumentName) + " argument");
             if (!java.util.Objects.equals(messageOptions, ""))
             {
                 message = (message + (((", one of " + "(") + messageOptions) + ")"));
@@ -12260,7 +12305,7 @@ public Object describe()
             return fee;
         }
         String currencyCode = this.safeString(currency, "code");
-        for (var i = 0; Helpers.isLessThan(i, numNetworks); i++)
+        for (var i = 0; (numNetworks != null && i < numNetworks); i++)
         {
             Object network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
             if (java.util.Objects.equals(network, currencyCode))
@@ -12558,7 +12603,7 @@ public Object describe()
                         }
                         errors = 0;
                         result = (List<Object>) this.arrayConcat(result, response);
-                        Object last = this.safeValue(response, Helpers.subtract(responseLength, 1));
+                        Object last = this.safeValue(response, (((long) responseLength) - 1L));
                         Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
                         if (java.util.Objects.equals(lastTimestamp, null))
                         {
@@ -12712,7 +12757,7 @@ public Object describe()
                     break;
                 }
                 ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, parameters));
-                currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
+                currentSince = Helpers.subtract(Helpers.add(currentSince, step), 1);
             }
             Object results = (Helpers.promiseAll(tasks)).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -12823,7 +12868,7 @@ public Object describe()
                     Map<String, Object> last = (Map<String, Object>) this.safeDict(response, (((long) responseLength) - 1L));
                     // cursorValue = this.safeValue (last['info'], cursorReceived);
                     cursorValue = null; // search for the cursor
-                    for (var j = 0; Helpers.isLessThan(j, responseLength); j++)
+                    for (var j = 0; (responseLength != null && j < responseLength); j++)
                     {
                         Object index = Helpers.subtract(Helpers.subtract(responseLength, j), 1);
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index);
@@ -12905,7 +12950,7 @@ public Object describe()
                     if (this.verbose)
                     {
                         String iteration = String.valueOf((Helpers.add(i, 1)));
-                        String incrementalMessage = Helpers.add((((("Incremental pagination call " + iteration) + " method ") + method) + " response length "), String.valueOf(responseLength));
+                        String incrementalMessage = ((((("Incremental pagination call " + iteration) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
                     if ((responseLength != null && responseLength == 0))
@@ -12966,7 +13011,7 @@ public Object describe()
             }
         }
         Integer valuesLength = ((List<?>)uniqueResult).size();
-        if (Helpers.isGreaterThan(valuesLength, 0))
+        if ((valuesLength != null && valuesLength > 0))
         {
             return uniqueResult;
         }
@@ -12995,7 +13040,22 @@ public Object describe()
                 {
                     throw new ExchangeError((this.id + " removeRepeatedTradesFromArray() missing timestamp")) ;
                 }
-                id = ((((((("t_" + String.valueOf(timestamp)) + "_") + side) + "_") + price) + "_") + amount);
+                // optional parts are appended only when present, separators keep positions distinct
+                id = (("t_" + String.valueOf(timestamp)) + "_");
+                if (!java.util.Objects.equals(side, null))
+                {
+                    id = (id + side);
+                }
+                id = (id + "_");
+                if (!java.util.Objects.equals(price, null))
+                {
+                    id = (id + price);
+                }
+                id = (id + "_");
+                if (!java.util.Objects.equals(amount, null))
+                {
+                    id = (id + amount);
+                }
             }
             if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
             {
@@ -13358,6 +13418,10 @@ public Object describe()
         {
             month = "DEC";
         }
+        if (java.util.Objects.equals(month, null))
+        {
+            throw new BadSymbol(((this.id + " invalid expiry date ") + date)) ;
+        }
         String reconstructedDate = ((day + month) + year);
         return reconstructedDate;
     }
@@ -13392,6 +13456,10 @@ public Object describe()
         String monthName = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(5, ((String)date).length())));
         String month = this.safeString(monthMappping, monthName);
         Object day = (date == null ? null : ((String)date).substring(Math.min(5, ((String)date).length()), Math.min(7, ((String)date).length())));
+        if (java.util.Objects.equals(month, null))
+        {
+            throw new BadSymbol(((this.id + " invalid expiry date ") + date)) ;
+        }
         String reconstructedDate = ((day + month) + year);
         return reconstructedDate;
     }
@@ -13617,7 +13685,7 @@ public Object describe()
                     }
                 }
             }
-        } else if (Helpers.isGreaterThan(symbolsLength, 0))
+        } else if ((symbolsLength != null && symbolsLength > 0))
         {
             for (var i = 0; i < (symbols == null ? 0 : ((List<?>)symbols).size()); i++)
             {

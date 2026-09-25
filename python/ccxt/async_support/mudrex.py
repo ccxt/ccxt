@@ -1062,7 +1062,7 @@ class mudrex(Exchange, ImplicitAPI):
             'percentage': None,
         }
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes an open position for a market
 

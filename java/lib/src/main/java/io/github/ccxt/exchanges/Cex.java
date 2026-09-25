@@ -591,15 +591,20 @@ public class Cex extends CexApi
         String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String id = ((base + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         String symbol = ((base + "/") + quote);
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
             put( "baseId", baseId );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "quoteId", quoteId );
             put( "settle", null );
             put( "settleId", null );
@@ -1781,14 +1786,12 @@ public class Cex extends CexApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final String type3 = type2;
-        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String type = type3;
-            String side = side3;
             Map<String, Object> parameters = parameters3;
             String accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
@@ -1803,20 +1806,16 @@ public class Cex extends CexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             final String finalAccountId = accountId;
             final String finalType = type;
-            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "clientOrderId", Cex.this.uuid() );
                 put( "currency1", ((Map<String, Object>)market).get("baseId") );
                 put( "currency2", ((Map<String, Object>)market).get("quoteId") );
                 put( "accountId", finalAccountId );
                 put( "orderType", Cex.this.capitalize(((String)finalType).toLowerCase()) );
-                put( "side", ((String)finalSide).toUpperCase() );
+                put( "side", ((String)side).toUpperCase() );
                 put( "timestamp", Cex.this.milliseconds() );
                 put( "amountCcy1", Cex.this.amountToPrecision(symbol, amount) );
             }};
@@ -2580,7 +2579,12 @@ public class Cex extends CexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
         {
@@ -2611,7 +2615,7 @@ public class Cex extends CexApi
                 put( "X-AGGR-SIGNATURE", signature );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

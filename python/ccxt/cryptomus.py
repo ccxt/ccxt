@@ -337,6 +337,8 @@ class cryptomus(Exchange, ImplicitAPI):
         quoteId = parts[1]
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         fees = self.safe_dict(self.fees, 'trading')
         return self.safe_market_structure({
             'id': marketId,
@@ -1128,7 +1130,10 @@ class cryptomus(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
-        url = self.urls['api'][api] + '/' + endpoint
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + endpoint
         if api == 'private':
             self.check_required_credentials()
             jsonParams = ''

@@ -1089,9 +1089,7 @@ func (this *Coinspot) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var sideUpper string = ToUpper(side)
 	if IsEqual(typeVar, "market") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
@@ -1214,7 +1212,11 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 	if !IsEqual(version, nil) {
 		fullPath = Add(Add("/", version), endpoint)
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), accessType), fullPath)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), accessType)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(apiUrl, fullPath))
 	if IsEqual(accessType, "private") {
 		this.CheckRequiredCredentials()
 		// coinspot requires an increasing nonce

@@ -696,7 +696,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{}
 	promises = append(promises, EndpointRaw(this.PublicGetAssetPairs(params)))
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
 		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
 
@@ -766,6 +766,9 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeCurrencyCode(quoteIdRaw)
 		var base *string = baseId
 		var quote *string = quoteId
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var makerFees []any = SafeListTyped(market, "fees_maker")
 		var firstMakerFee []any = SafeListTyped(makerFees, 0)
 		var firstMakerFeeRate *string = this.SafeString(firstMakerFee, 1)
@@ -786,9 +789,6 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var precisionAmount *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals"))))
 		var spot bool = true
 		// fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-		if base == nil {
-			panic(ExchangeError(this.Id + " method() missing base"))
-		}
 		if spot && (func() bool {
 			if base == nil {
 				return false
@@ -808,9 +808,9 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var status *string = this.SafeString(market, "status")
 		var isActive bool = (status != nil && *status == "online")
-		var symbol any = id
+		var symbol string = id
 		if !isSynthetic {
-			symbol = (Add(*base+"/", quote))
+			symbol = (*base + "/" + *quote)
 		}
 		result = append(result, map[string]any{
 			"id":             id,
@@ -1778,13 +1778,13 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
 		side = SafeStringPtr(func() string {
-			if IsEqual(GetValue(trade, 3), "s") {
+			if this.SafeString(trade, 3) != nil && *this.SafeString(trade, 3) == "s" {
 				return "sell"
 			}
 			return "buy"
 		}())
 		typeVar = SafeStringPtr(func() string {
-			if IsEqual(GetValue(trade, 4), "l") {
+			if this.SafeString(trade, 4) != nil && *this.SafeString(trade, 4) == "l" {
 				return "limit"
 			}
 			return "market"
@@ -2255,11 +2255,11 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	var baseIdEnd int = 3
 	var quoteIdStart int = 3
 	var quoteIdEnd int = 6
-	if IsEqual(GetArrayLength(id), 8) {
+	if GetArrayLength(id) == 8 {
 		baseIdEnd = 4
 		quoteIdStart = 4
 		quoteIdEnd = 8
-	} else if IsEqual(GetArrayLength(id), 7) {
+	} else if GetArrayLength(id) == 7 {
 		baseIdEnd = 4
 		quoteIdStart = 4
 		quoteIdEnd = 7
@@ -2594,7 +2594,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              trades,
 	}, market)
 }
-func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request any, amount any, optionalArgs ...any) any {
+func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2710,7 +2710,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 		}
 	}
 	if reduceOnly != nil && *reduceOnly == true {
-		if IsEqual(method, "createOrderWs") {
+		if method == "createOrderWs" {
 			AddElementToObject(request, "reduce_only", true) // ws request can't have stringified bool
 		} else {
 			AddElementToObject(request, "reduce_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
@@ -4549,7 +4549,11 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 	} else {
 		url = Add("/", path)
 	}
-	url = Add(GetValue(GetValue(this.Urls, "api"), api), url)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	url = Add(apiUrl, url)
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -4558,7 +4562,7 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Kraken) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 func (this *Kraken) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 520) {

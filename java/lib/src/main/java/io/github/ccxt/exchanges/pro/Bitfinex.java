@@ -83,7 +83,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Client client = this.client(url);
-            Object messageHash = (Helpers.add(channel, ":") + marketId);
+            String messageHash = ((channel + ":") + marketId);
             final Object finalChannel = channel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -128,9 +128,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Client client = this.client(url);
-            Object subMessageHash = (Helpers.add(channel, ":") + marketId);
-            String messageHash = ((Helpers.add("unsubscribe:", channel) + ":") + marketId);
-            String unSubTopic = Helpers.add((Helpers.add(("unsubscribe" + ":"), topic) + ":"), symbol);
+            String subMessageHash = ((channel + ":") + marketId);
+            String messageHash = ((("unsubscribe:" + channel) + ":") + marketId);
+            String unSubTopic = (((("unsubscribe" + ":") + topic) + ":") + symbol);
             String channelId = this.safeString(client.subscriptions, unSubTopic);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "unsubscribe" );
@@ -370,7 +370,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
         Integer ohlcvsLength = ((List<?>)ohlcvs).size();
-        for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
+        for (var i = 0; (ohlcvsLength != null && i < ohlcvsLength); i++)
         {
             Object ohlcv = Helpers.GetValue(ohlcvs, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
@@ -665,7 +665,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             List<Object> trades = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
             // needs to be reversed to make chronological order
             Integer length = ((List<?>)trades).size();
-            for (var i = 0; Helpers.isLessThan(i, length); i++)
+            for (var i = 0; (length != null && i < length); i++)
             {
                 Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
                 Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
@@ -733,7 +733,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //    ]
         //
         Integer numFields = Helpers.getArrayLength(trade);
-        Boolean isPublic = Helpers.isLessThanOrEqual(numFields, 8);
+        Boolean isPublic = (numFields == null || numFields <= 8);
         Object marketId = null;
         if (!Boolean.TRUE.equals(isPublic))
         {
@@ -1080,7 +1080,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Boolean isRaw = (java.util.Objects.equals(prec, "R0"));
         Integer idToCheck = ((Boolean.TRUE.equals(isRaw))) ? 2 : 0;
         // pepperoni pizza from bitfinex
-        for (var i = 0; Helpers.isLessThan(i, depth); i++)
+        for (var i = 0; (depth != null && i < depth); i++)
         {
             List<Object> bid = (List<Object>) this.safeList(bids, i);
             List<Object> ask = (List<Object>) this.safeList(asks, i);

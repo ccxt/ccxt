@@ -1477,7 +1477,7 @@ class bybit(Exchange, ImplicitAPI):
         self.options['enableDemoTrading'] = enable
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def add_pagination_cursor_to_result(self, response: dict) -> list[object]:
         result = self.safe_dict(response, 'result', {})
@@ -1506,7 +1506,7 @@ class bybit(Exchange, ImplicitAPI):
         enableUnifiedMargin = self.safe_bool(self.options, 'enableUnifiedMargin')
         enableUnifiedAccount = self.safe_bool(self.options, 'enableUnifiedAccount')
         if enableUnifiedMargin is None or enableUnifiedAccount is None:
-            if self.options['enableDemoTrading'] is True:
+            if self.safe_bool(self.options, 'enableDemoTrading', False):
                 # info endpoint is not available in demo trading
                 # so we're assuming UTA is enabled
                 self.options['enableUnifiedMargin'] = False
@@ -1816,7 +1816,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         if not self.check_required_credentials(False):
             return {}
-        if self.options['enableDemoTrading'] is True:
+        if self.safe_bool(self.options, 'enableDemoTrading', False):
             return {}
         response = self.privateGetV5AssetCoinQueryInfo(params)
         #
@@ -1921,7 +1921,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         promisesUnresolved = []
         types = None
@@ -2019,6 +2019,8 @@ class bybit(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteCoin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             status = self.safe_string(market, 'status')
             active = (status == 'Trading')
@@ -2183,6 +2185,8 @@ class bybit(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'settleCoin', defaultSettledId)
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = None
             if linearPerpetual and (settleId == 'USD'):
                 settle = 'USDC'
@@ -2340,6 +2344,8 @@ class bybit(Exchange, ImplicitAPI):
             settleId = self.safe_string(market, 'settleCoin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             lotSizeFilter = self.safe_dict(market, 'lotSizeFilter', {})
             priceFilter = self.safe_dict(market, 'priceFilter', {})
@@ -4540,8 +4546,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        self.check_required_argument('editOrder', symbol, 'symbol')
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = self.privatePostV5OrderAmend(self.extend(request, params))
@@ -9476,7 +9481,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         return self.safe_string(marginModes, marginMode, marginMode)
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(apiUrl) + '/' + path
         if api == 'public':
             if len(params) > 0:
                 url += '?' + self.rawencode(params)

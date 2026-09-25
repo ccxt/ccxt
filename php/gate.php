@@ -1377,7 +1377,7 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
             $this->load_time_difference();
         }
         if ($this->check_required_credentials(false)) {
@@ -1387,7 +1387,7 @@ class gate extends Exchange {
         $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
         $types = $this->safe_list($fetchMarketsOptions, 'types', array( 'spot', 'swap', 'future', 'option' ));
         for ($i = 0; $i < count($types); $i++) {
-            $marketType = $types[$i];
+            $marketType = $this->safe_string($types, $i);
             if ($marketType === 'spot') {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets
@@ -1457,6 +1457,9 @@ class gate extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $takerPercent = $this->safe_string($market, 'fee');
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
@@ -1526,7 +1529,7 @@ class gate extends Exchange {
     public function fetch_swap_markets($params = array()): array {
         $result = array();
         $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
-        if ($this->options['sandboxMode'] === true) {
+        if ($this->safe_bool($this->options, 'sandboxMode') === true) {
             $swapSettlementCurrencies = array( 'usdt' ); // gate sandbox only has usdt-margined swaps
         }
         for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
@@ -1538,14 +1541,16 @@ class gate extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $contract = $this->safe_dict($response, $i, array());
                 $parsedMarket = $this->parse_contract_market($contract, $settleId);
-                $result[] = $parsedMarket;
+                if ($parsedMarket !== null) {
+                    $result[] = $parsedMarket;
+                }
             }
         }
         return $result;
     }
 
     public function fetch_future_markets($params = array()): array {
-        if ($this->options['sandboxMode'] === true) {
+        if ($this->safe_bool($this->options, 'sandboxMode') === true) {
             return array(); // right now sandbox does not have inverse swaps
         }
         $result = array();
@@ -1559,7 +1564,9 @@ class gate extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $contract = $this->safe_dict($response, $i, array());
                 $parsedMarket = $this->parse_contract_market($contract, $settleId);
-                $result[] = $parsedMarket;
+                if ($parsedMarket !== null) {
+                    $result[] = $parsedMarket;
+                }
             }
         }
         return $result;
@@ -1676,6 +1683,9 @@ class gate extends Exchange {
         $date = $this->safe_string($parts, 2);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $expiry = $this->safe_timestamp($market, 'expire_time');
         $symbol = '';
@@ -1713,7 +1723,7 @@ class gate extends Exchange {
             'margin' => false,
             'swap' => $marketType === 'swap',
             'future' => $marketType === 'future',
-            'option' => $marketType === 'option',
+            'option' => false,
             'active' => $status === 'trading',
             'contract' => true,
             'linear' => $isLinear,
@@ -1806,6 +1816,9 @@ class gate extends Exchange {
                 $quoteId = $this->safe_string($parts, 1);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
+                if (($base === null) || ($quote === null)) {
+                    continue;
+                }
                 $symbol = $base . '/' . $quote;
                 $expiry = $this->safe_timestamp($market, 'expiration_time');
                 $strike = $this->safe_string($market, 'strike_price');
@@ -2995,7 +3008,7 @@ class gate extends Exchange {
         if ($market['option'] === true) {
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
-                if ($entry['name'] === $market['id']) {
+                if ($this->safe_string($entry, 'name') === $market['id']) {
                     $ticker = $entry;
                     break;
                 }
@@ -7154,7 +7167,11 @@ class gate extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
     public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {

@@ -937,8 +937,11 @@ func (this *Phemex) ParseSwapMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quoteCurrency")
 	var settleId *string = this.SafeString(market, "settleCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
-	base = SafeStringPtr(Replace(base, " ", "")) // replace space for junction codes, eg. `1000 SHIB`
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	base = SafeStringPtr(strings.Replace(*base, " ", "", 1)) // replace space for junction codes, eg. `1000 SHIB`
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var inverse bool = false
 	if settleId != quoteId && (settleId == nil || quoteId == nil || *settleId != *quoteId) {
@@ -1073,12 +1076,15 @@ func (this *Phemex) ParseSpotMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var status *string = this.SafeString(market, "status")
 	var precisionAmount any = this.ParseSafeNumber(this.SafeString(market, "baseTickSize"))
 	var precisionPrice any = this.ParseSafeNumber(this.SafeString(market, "quoteTickSize"))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -1371,7 +1377,9 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			})
 			market = this.ParseSpotMarket(market)
 		}
-		result = append(result, market)
+		if !IsEqual(market, nil) {
+			result = append(result, market)
+		}
 	}
 
 	ch <- result
@@ -3160,7 +3168,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		if qtyType != nil && *qtyType == "ByQuote" {
 			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
-			if IsEqual(GetValue(this.Options, "createOrderByQuoteRequiresPrice"), true) {
+			if IsEqual(this.SafeBool(this.Options, "createOrderByQuoteRequiresPrice"), true) {
 				if price != nil {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
@@ -3650,7 +3658,7 @@ func (this *Phemex) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3689,9 +3697,9 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		var numOrders int = GetArrayLength(data)
 		if numOrders < 1 {
 			if clientOrderId != nil {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
+				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with clientOrderId " + *clientOrderId + " not found"))
 			} else {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with id "), id), " not found")))
+				panic(OrderNotFound(Add(Add(this.Id+" fetchOrder() "+*symbol+" order with id ", id), " not found")))
 			}
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
@@ -3700,9 +3708,9 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		var numRows int = len(rows)
 		if numRows < 1 {
 			if clientOrderId != nil {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
+				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with clientOrderId " + *clientOrderId + " not found"))
 			} else {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with id "), id), " not found")))
+				panic(OrderNotFound(Add(Add(this.Id+" fetchOrder() "+*symbol+" order with id ", id), " not found")))
 			}
 		}
 		order = this.SafeDict(rows, 0, map[string]any{})
@@ -5976,8 +5984,8 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes506919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
-		ch <- BoxAbsent(retRes506919)
+		var retRes507719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
+		ch <- BoxAbsent(retRes507719)
 		return nil
 	}
 	var customSymbol any = nil

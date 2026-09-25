@@ -397,9 +397,9 @@ impl DeepcoinCore {
     pub fn create_public_request(&self, mut market: Value, mut requestId: Value, mut topicID: Value, optional_args: &[Value]) -> Value {
         let mut suffix = get_arg(optional_args, 0, Value::Str("".into()));
         let mut unWatch = get_arg(optional_args, 1, Value::Bool(false));
-        let mut marketId: Value = crate::value::get_value_k(&market, "symbol"); // spot markets use symbol with slash
-        if (crate::value::get_value_k(&market, "type").as_str() == Some("swap")) {
-            marketId = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".into())])).into()); // swap markets use symbol without slash
+        let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]); // spot markets use symbol with slash
+        if (self.safe_string_k(market.clone(), "type", &[]).as_str() == Some("swap")) {
+            marketId = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market, "quoteId", &[Value::Str("".into())])).into()); // swap markets use symbol without slash
         }
         let mut action: Value = Value::Str("1".into()); // subscribe
         if is_true(&unWatch) {
@@ -410,7 +410,7 @@ impl DeepcoinCore {
                 m.insert("sendTopicAction".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("Action".to_string(), action);
-        m.insert("FilterValue".to_string(), Value::Str(format!("{}{}", add(&Value::Str("DeepCoin_".into()), &marketId), suffix).into()));
+        m.insert("FilterValue".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("DeepCoin_".into()), marketId).into()), suffix).into()));
         m.insert("LocalNo".to_string(), requestId);
         m.insert("ResumeNo".to_string(), Value::Int(-1));
         m.insert("TopicID".to_string(), topicID);
@@ -484,7 +484,7 @@ impl DeepcoinCore {
     m
 }));
         let mut listenKey: Value = self.authenticate(&[]).await;
-        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".into())), listenKey).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]), Value::Str("?listenKey=".into())).into()), listenKey).into());
         return self.watch(url, messageHash, &[Value::Null, Value::Str("private".into()), params]).await;
 
     Value::Null
@@ -1306,7 +1306,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut timestamp: Value = (match message.get("mt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) });
-        if timestamp.as_f64().unwrap_or(f64::NAN) > crate::value::get_value_k(&orderbook, "timestamp").as_f64().unwrap_or(f64::NAN) {
+        let mut currentTimestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
+        if (currentTimestamp != Value::Null) && (timestamp.as_f64().unwrap_or(f64::NAN) > currentTimestamp.as_f64().unwrap_or(f64::NAN)) {
             let mut response: Value = (match message.get("r") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             self.handle_deltas(orderbook.clone(), response);
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
@@ -1634,7 +1635,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             append_to_array(&mut messageHashes, messageHash);
         }
-        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".into())), listenKey).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]), Value::Str("?listenKey=".into())).into()), listenKey).into());
         let mut positions: Value = self.watch_multiple(url, messageHashes, &[params, Value::from(vec![Value::Str("private".into())])]).await;
         if is_true(&self.newUpdates) {
             return positions;

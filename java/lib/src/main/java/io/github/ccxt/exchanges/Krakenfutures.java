@@ -599,6 +599,10 @@ public class Krakenfutures extends KrakenfuturesApi
                 String quoteId = "usd"; // always USD
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 // swap == perpetual
                 String settle = null;
                 Object settleId = null;
@@ -630,6 +634,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 }
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalSettle = settle;
                 final Object finalSettleId = settleId;
                 final String finalType = type;
@@ -641,7 +646,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "id", id );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", finalSettle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1392,7 +1397,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 // we need to reverse the list to fix chronology
                 rawTrades = new ArrayList<Object>(Arrays.asList());
                 Integer length = ((List<?>)elements).size();
-                for (var i = 0; Helpers.isLessThan(i, length); i++)
+                for (var i = 0; (length != null && i < length); i++)
                 {
                     Object index = Helpers.subtract((((long) length) - 1L), i);
                     Map<String, Object> element = (Map<String, Object>) this.safeDict(elements, index);
@@ -2083,7 +2088,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
             Integer clientOrderIdsLength = ((List<?>)clientOrderIds).size();
-            if (Helpers.isGreaterThan(clientOrderIdsLength, 0))
+            if ((clientOrderIdsLength != null && clientOrderIdsLength > 0))
             {
                 for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
                 {
@@ -3075,7 +3080,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String statusId = null;
         String price = null;
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isGreaterThan(orderEventsLength, 0))
+        if ((orderEventsLength != null && orderEventsLength > 0))
         {
             List<Object> executions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orderEvents).size(); i++)
@@ -3139,7 +3144,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String average = null;
         String filled2 = "0.0";
         Integer tradesLength = ((List<?>)trades).size();
-        if (Helpers.isGreaterThan(tradesLength, 0))
+        if ((tradesLength != null && tradesLength > 0))
         {
             String vwapSum = "0.0";
             for (var i = 0; i < ((List<?>)trades).size(); i++)
@@ -3947,7 +3952,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             List<Object> splitCode = new ArrayList<Object>(Arrays.asList(((String)code).split(java.util.regex.Pattern.quote("_"))));
             Integer codeLength = ((List<?>)splitCode).size();
-            if (Helpers.isGreaterThan(codeLength, 1))
+            if ((codeLength != null && codeLength > 1))
             {
                 continue;
             }
@@ -4802,7 +4807,7 @@ final Object finalI = i;
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount2, String toAccount2, Object parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount2, String toAccount2, Map<String, Object> parameters)
     {
         final String fromAccount3 = fromAccount2;
         final String toAccount3 = toAccount2;
@@ -4869,11 +4874,7 @@ final Object finalI = i;
      */
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
     {
-        return this.transfer(code, amount, fromAccount, toAccount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
-    {
-        return this.transfer(code, amount, fromAccount, toAccount, (Object) (parameters));
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -5115,7 +5116,12 @@ final Object finalI = i;
             }
             query = (query + ("?" + postData));
         }
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), query);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + query);
         if (java.util.Objects.equals(api, "private") || java.util.Objects.equals(access, "private"))
         {
             this.checkRequiredCredentials();

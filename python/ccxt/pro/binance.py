@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import hashlib
 from ccxt.base.types import Balances, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -251,7 +252,7 @@ class binance(ccxt.async_support.binance):
             self.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions
         return stream
 
-    def get_ws_url(self, type: object, category: object):
+    def get_ws_url(self, type: object, category: str) -> str:
         if (type == 'option') or (type == 'optionMarket') or (type == 'optionPrivate'):
             # eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             # see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -281,9 +282,14 @@ class binance(ccxt.async_support.binance):
         return 'market'
 
     def get_private_ws_url(self, type: Str, listenKey: Str) -> str:
+        if listenKey is None:
+            raise AuthenticationError(self.id + ' getPrivateWsUrl() requires a listenKey from authenticate()')
         if type == 'future':
             return self.get_ws_url(type, 'private') + '?listenKey=' + listenKey
-        return self.urls['api']['ws'][type] + '/' + listenKey
+        wsUrl = self.safe_string(self.urls['api']['ws'], type)
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' getPrivateWsUrl() has no websocket url for self market type')
+        return wsUrl + '/' + listenKey
 
     def get_stock_ws_url(self, streamType: Str = 'market'):
         baseUrl = self.urls['api']['ws']['stock']
@@ -1436,8 +1442,8 @@ class binance(ccxt.async_support.binance):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if (trade['m'] is True) else 'buy'  # this is reversed intentionally
-            takerOrMaker = 'maker' if (trade['m'] is True) else 'taker'
+                side = 'sell' if (self.safe_bool(trade, 'm') is True) else 'buy'  # this is reversed intentionally
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm') is True) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
@@ -2121,7 +2127,7 @@ class binance(ccxt.async_support.binance):
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    async def watch_multi_ticker_helper(self, methodName: object, channelName: Str, symbols: Strings = None, params: dict = {}, isUnsubscribe: bool = False):
+    async def watch_multi_ticker_helper(self, methodName: str, channelName: Str, symbols: Strings = None, params: dict = {}, isUnsubscribe: bool = False):
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
@@ -2488,7 +2494,7 @@ class binance(ccxt.async_support.binance):
     def handle_mark_prices(self, client: Client, message: object):
         self.handle_tickers_and_bids_asks(client, message, 'markPrices')
 
-    def handle_tickers_and_bids_asks(self, client: Client, message: object, methodType: object):
+    def handle_tickers_and_bids_asks(self, client: Client, message: object, methodType: str):
         isBidAsk = (methodType == 'bidasks')
         isMarkPrice = (methodType == 'markPrices')
         unifiedPrefix = None
@@ -2656,7 +2662,7 @@ class binance(ccxt.async_support.binance):
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
         listenTokenRefreshRate = self.safe_integer(self.options, 'listenTokenRefreshRate', 82800000)  # 23 hours default
         time = self.milliseconds()
-        delay = self.sum(listenTokenRefreshRate, 10000)
+        delay = listenTokenRefreshRate + 10000
         if time - lastAuthenticatedTime > delay:
             # the future covers the REST create plus the ws subscribe, including the
             # renewal timer re-entry through renewListenToken, so a concurrent caller
@@ -2772,7 +2778,7 @@ class binance(ccxt.async_support.binance):
         if isStock:
             refreshRateKey = 'stockListenKeyRefreshRate'
         listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
-        delay = self.sum(listenKeyRefreshRate, 10000)
+        delay = listenKeyRefreshRate + 10000
         if time - lastAuthenticatedTime > delay:
             # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
             # the flight is registered on a never-dialed client because the
@@ -2938,7 +2944,7 @@ class binance(ccxt.async_support.binance):
                     self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, delayParams)
                     return
 
-    def set_balance_cache(self, client: Client, type: object, isPortfolioMargin: bool = False):
+    def set_balance_cache(self, client: Client, type: str, isPortfolioMargin: bool = False):
         if (type in client.subscriptions) and (type in self.balance):
             return
         options = self.safe_dict(self.options, 'watchBalance')
@@ -2951,7 +2957,7 @@ class binance(ccxt.async_support.binance):
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client: Client, messageHash: object, type: object, isPortfolioMargin: object):
+    async def load_balance_snapshot(self, client: Client, messageHash: str, type: str, isPortfolioMargin: bool):
         params = {
             'type': type,
         }
@@ -4602,7 +4608,7 @@ class binance(ccxt.async_support.binance):
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type: object, symbols: Strings = None, isPortfolioMargin: bool = False):
+    def set_positions_cache(self, client: Client, type: str, symbols: Strings = None, isPortfolioMargin: bool = False):
         if type == 'spot':
             return
         if self.positions is None:
@@ -4618,7 +4624,7 @@ class binance(ccxt.async_support.binance):
         else:
             self.positions[type] = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: object, type: object, isPortfolioMargin: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str, type: str, isPortfolioMargin: bool):
         params = {
             'type': type,
         }
@@ -5011,7 +5017,7 @@ class binance(ccxt.async_support.binance):
                             insertNewFeeCurrency = True
                             for i in range(0, len(fees)):
                                 orderFee = fees[i]
-                                if orderFee['currency'] == tradeFee['currency']:
+                                if self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                     feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
                                     feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                     if feeCostString is None:
@@ -5022,7 +5028,7 @@ class binance(ccxt.async_support.binance):
                             if insertNewFeeCurrency:
                                 order['fees'].append(tradeFee)
                         elif fee is not None:
-                            if fee['currency'] == tradeFee['currency']:
+                            if self.safe_string(fee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                 feeCost = self.sum(fee['cost'], tradeFee['cost'])
                                 feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                 if feeCostString is None:

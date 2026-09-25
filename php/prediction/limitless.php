@@ -2064,11 +2064,11 @@ class limitless extends Exchange {
         return $this->parse_accounts($responseList);
     }
 
-    public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * places a limit or market order on limitless for the given $outcome token
          *
@@ -2135,9 +2135,7 @@ class limitless extends Exchange {
             'buy' => 0,
             'sell' => 1,
         );
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $sideValue = $this->safe_integer($sides, strtolower($side));
         $rank = $this->safe_dict($accountInfo, 'rank');
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2363,11 +2361,11 @@ class limitless extends Exchange {
         return Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
     }
 
-    public function cancel_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function cancel_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $outcome, $params);
     }
 
-    private function do_cancel_order(?string $id, ?string $outcome = null, $params = array()) {
+    private function do_cancel_order(string $id, ?string $outcome = null, $params = array()) {
         /**
          * cancels a single open $order by $id
          *

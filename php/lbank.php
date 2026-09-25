@@ -562,6 +562,9 @@ class lbank extends Exchange {
             $quoteId = $parts[1];
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $result[] = array(
                 'id' => $marketId,
@@ -659,6 +662,9 @@ class lbank extends Exchange {
             $quoteId = $settleId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
             $result[] = array(
@@ -3063,12 +3069,20 @@ class lbank extends Exchange {
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' $sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every spot endpoint ends with ".do"
         if ($api[0] === 'spot') {
             $url .= '.do';
         } else {
-            $url = $this->urls['api']['contract'] . '/' . $this->implode_params($path, $params);
+            $contractUrl = $this->safe_string($this->urls['api'], 'contract');
+            if ($contractUrl === null) {
+                throw new ExchangeError($this->id . ' $sign() has no API URL for this endpoint');
+            }
+            $url = $contractUrl . '/' . $this->implode_params($path, $params);
         }
         if ($api[1] === 'public') {
             if (count($query) > 0) {

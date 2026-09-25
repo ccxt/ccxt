@@ -572,10 +572,13 @@ func (this *Bitvavo) ParseMarkets(markets any) any {
 		var quoteId *string = this.SafeString(market, "quote")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var status *string = this.SafeString(market, "status")
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -985,8 +988,8 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes82819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes82819)
+		var retRes83119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes83119)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -1390,8 +1393,8 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes116319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))))
-		ch <- BoxAbsent(retRes116319)
+		var retRes116619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))))
+		ch <- BoxAbsent(retRes116619)
 		return nil
 	}
 	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
@@ -2413,8 +2416,8 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes194219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes194219)
+		var retRes194519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes194519)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2730,8 +2733,8 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes221419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes221419)
+		var retRes221719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes221719)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -3355,7 +3358,11 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
 	}
-	url = Add(GetValue(GetValue(this.Urls, "api"), api), url)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	url = Add(apiUrl, url)
 	return map[string]any{
 		"url":     url,
 		"method":  method,

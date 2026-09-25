@@ -118,8 +118,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
-                Object currencyCode = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-                channels.add(Helpers.add("user.portfolio.", currencyCode));
+                String currencyCode = this.safeString(currencies, i);
+                channels.add(("user.portfolio." + currencyCode));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -922,8 +922,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
-        this.handleDeltas(Helpers.GetValue(storedOrderBook, "bids"), bids);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
         Helpers.addElementToObject(storedOrderBook, "nonce", timestamp);
         Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
         Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
@@ -956,10 +956,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     {
         Object price = Helpers.GetValue(delta, 1);
         Object amount = Helpers.GetValue(delta, 2);
-        if (java.util.Objects.equals(Helpers.GetValue(delta, 0), "new") || java.util.Objects.equals(Helpers.GetValue(delta, 0), "change"))
+        String action = this.safeString(delta, 0);
+        if (java.util.Objects.equals(action, "new") || java.util.Objects.equals(action, "change"))
         {
             Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount, 1))});
-        } else if (java.util.Objects.equals(Helpers.GetValue(delta, 0), "delete"))
+        } else if (java.util.Objects.equals(action, "delete"))
         {
             Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount, 0))});
         }
@@ -1320,7 +1321,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Map<String,Object> extendedRequest = this.deepExtend(request, parameters);
             Long maxMessageByteLimit = (32768L - 1L); // 'Message Too Big: limit 32768B'
             String jsonedText = this.json(extendedRequest);
-            if (Helpers.isGreaterThanOrEqual(jsonedText.length(), maxMessageByteLimit))
+            if ((maxMessageByteLimit == null || jsonedText.length() >= maxMessageByteLimit))
             {
                 throw new ExchangeError((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
             }

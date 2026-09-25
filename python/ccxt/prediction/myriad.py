@@ -8,7 +8,7 @@ from ccxt.abstract.prediction.myriad import ImplicitAPI
 import asyncio
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionTradingFee, PredictionOrderRequest
+from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionTradingFee, PredictionOrderRequest
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -742,7 +742,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         await self.wait_for_transaction_receipt(rpcUrl, approveHash)
         return None
 
-    async def create_order(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         create a trade order. Myriad has two trading models: a gasless order book(CLOB) where an EIP-712 signed order is posted off-chain and settled by the operator, and an on-chain AMM. Order-book markets are used by default; the model can be forced via params.tradingModel
 
@@ -920,7 +920,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             result.append(placed)
         return result
 
-    async def edit_order(self, id: str, outcome: str, type: Str, side: Str, amount: Num = None, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def edit_order(self, id: str, outcome: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         edits an open order by cancelling it and placing a replacement(gasless). Myriad's
  batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially

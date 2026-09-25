@@ -1257,6 +1257,9 @@ impl BittradeCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote-currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            if (base == Value::Null) || (quote == Value::Null) {
+                continue;
+            }
             let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
             let mut leverageRatio: Value = self.safe_string_k(market.clone(), "leverage-ratio", &[Value::Str("1".into())]);
             let mut superLeverageRatio: Value = self.safe_string_k(market.clone(), "super-margin-leverage-ratio", &[Value::Str("1".into())]);
@@ -2063,13 +2066,13 @@ impl BittradeCore {
             if (account == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseBalance() could not resolve account".into()))));
             }
-            if (balance.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("trade")) {
+            if (self.safe_string_k(balance.clone(), "type", &[]).as_str() == Some("trade")) {
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(balance.clone(), "balance", &[]));
             }
             if (account == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseBalance() could not resolve account".into()))));
             }
-            if (balance.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("frozen")) {
+            if (self.safe_string_k(balance.clone(), "type", &[]).as_str() == Some("frozen")) {
                 add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(balance, "balance", &[]));
             }
             if (code != Value::Null) {

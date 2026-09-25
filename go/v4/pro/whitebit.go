@@ -1053,12 +1053,12 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Whitebit) WatchPublicAsync(messageHash any, method any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) WatchPublicAsync(messageHash any, method string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPublicBody(ch, messageHash, method, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method any, optionalArgs ...any) any {
+func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var reqParams []any = ccxt.GetArgAnySlice(optionalArgs, 0, []any{})
@@ -1077,12 +1077,12 @@ func (this *Whitebit) watchPublicBody(ch chan any, messageHash any, method any, 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
-func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash any, method any, symbol any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash any, method string, symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMultipleSubscriptionBody(ch, messageHash, method, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any, method any, symbol any, optionalArgs ...any) any {
+func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any, method string, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isNested bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -1156,12 +1156,12 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		}
 	}
 }
-func (this *Whitebit) WatchPrivateAsync(messageHash any, method any, optionalArgs ...any) <-chan any {
+func (this *Whitebit) WatchPrivateAsync(messageHash string, method any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPrivateBody(ch, messageHash, method, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchPrivateBody(ch chan any, messageHash any, method any, optionalArgs ...any) any {
+func (this *Whitebit) watchPrivateBody(ch chan any, messageHash string, method any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var reqParams []any = ccxt.GetArgAnySlice(optionalArgs, 0, []any{})

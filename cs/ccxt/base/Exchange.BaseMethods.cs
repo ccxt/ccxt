@@ -1212,7 +1212,12 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(markets); i++)
         {
-            result.Add(this.parseMarket(getValue(markets, i)));
+            Dictionary<string, object> market = this.parseMarket(getValue(markets, i));
+            // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
+            if ((market != null))
+            {
+                result.Add(market);
+            }
         }
         return result;
     }
@@ -1812,6 +1817,10 @@ public partial class BaseExchange
 
     public virtual string? orderbookChecksumMessage(object symbol)
     {
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " orderbookChecksumMessage() requires a symbol argument")) ;
+        }
         return ((string?)((object)(add(add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false"))));
     }
 
@@ -2232,12 +2241,21 @@ public partial class BaseExchange
                 for (int j = 1; j < (groupedCurrenciesCode?.Count ?? 0); j++)
                 {
                     object currentCurrency = groupedCurrenciesCode[j];
+                    double? currentPrecision = this.safeNumber(currentCurrency, "precision");
+                    double? highestPrecision = this.safeNumber(highestPrecisionCurrency, "precision");
+                    if (((currentPrecision == null)) || ((highestPrecision == null)))
+                    {
+                        continue;
+                    }
                     if (isEqual(this.precisionMode, TICK_SIZE))
                     {
-                        highestPrecisionCurrency = (isLessThan(getValue(currentCurrency, "precision"), getValue(highestPrecisionCurrency, "precision"))) ? currentCurrency : highestPrecisionCurrency;
-                    } else
+                        if (isLessThan(currentPrecision, highestPrecision))
+                        {
+                            highestPrecisionCurrency = currentCurrency;
+                        }
+                    } else if (isGreaterThan(currentPrecision, highestPrecision))
                     {
-                        highestPrecisionCurrency = (isGreaterThan(getValue(currentCurrency, "precision"), getValue(highestPrecisionCurrency, "precision"))) ? currentCurrency : highestPrecisionCurrency;
+                        highestPrecisionCurrency = currentCurrency;
                     }
                 }
                 resultingCurrencies.Add(highestPrecisionCurrency);
@@ -3391,7 +3409,7 @@ public partial class BaseExchange
             {
                 return null;
             }
-            object maxRetries = this.safeValue(options, "webApiRetries", 10);
+            Int64? maxRetries = this.safeInteger(options, "webApiRetries", 10);
             object response = null;
             object retry = 0;
             bool shouldBreak = false;
@@ -3549,8 +3567,8 @@ public partial class BaseExchange
             return this.toArray(symbols);
         }
         List<object> result = new List<object>() {};
-        object marketType = null;
-        object isLinearSubType = null;
+        string? marketType = null;
+        bool? isLinearSubType = null;
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
@@ -3558,10 +3576,10 @@ public partial class BaseExchange
             {
                 if (!isEqual((market.ContainsKey("type") ? market["type"] : null), marketType))
                 {
-                    throw new BadRequest ((((((this.id + " symbols must be of the same type, either ") + (marketType)) + " or ") + ((market.ContainsKey("type") ? market["type"] : null))) + ".")) ;
+                    throw new BadRequest ((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + ((market.ContainsKey("type") ? market["type"] : null))) + ".")) ;
                 }
             }
-            if (isTrue(sameSubTypeOnly) && (!isEqual(isLinearSubType, null)))
+            if (isTrue(sameSubTypeOnly) && ((isLinearSubType != null)))
             {
                 if (!isEqual((market.ContainsKey("linear") ? market["linear"] : null), isLinearSubType))
                 {
@@ -3572,10 +3590,10 @@ public partial class BaseExchange
             {
                 throw new BadRequest ((((this.id + " symbols must be of the same type ") + (type)) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
-            marketType = (market.ContainsKey("type") ? market["type"] : null);
+            marketType = this.safeString(market, "type");
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
             {
-                isLinearSubType = (market.ContainsKey("linear") ? market["linear"] : null);
+                isLinearSubType = this.safeBool(market, "linear");
             }
             string? symbol = this.safeString(market, "symbol", getValue(symbols, i));
             result.Add(symbol);
@@ -3881,6 +3899,10 @@ public partial class BaseExchange
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 object networkIdOrCode = isTrue(isIndexedByUnifiedNetworkCode) ? networkCode : this.networkCodeToId(networkCode, currencyCode);
+                if ((networkIdOrCode == null))
+                {
+                    throw new NotSupported ((string)((((this.id + " - ") + (networkCode)) + " network was not found for ") + (currencyCode))) ;
+                }
                 if (inOp(indexedNetworkEntries, networkIdOrCode))
                 {
                     chosenNetworkId = networkIdOrCode;
@@ -4217,10 +4239,10 @@ public partial class BaseExchange
         Int64 currentNonce = this.nonce();
         this.lockLastNonce();
         Int64? lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        object result = (isGreaterThan(currentNonce, lastNonce)) ? currentNonce : (lastNonce + 1);
+        Int64? result = (isGreaterThan(currentNonce, lastNonce)) ? currentNonce : (lastNonce + 1);
         this.options["lastNonce"] = result;
         this.unlockLastNonce();
-        return ((Int64?)((object)(result)));
+        return result;
     }
 
     public virtual object setHeaders(object headers)
@@ -4622,7 +4644,7 @@ public partial class BaseExchange
                 continue;
             }
             int ohlcv_length = (ohlcvs?.Count ?? 0);
-            object candle = (ohlcv_length - 1);
+            int candle = (ohlcv_length - 1);
             if (isEqual(price, null))
             {
                 throw new ArgumentsRequired ((this.id + " buildOHLCVC() requires a price argument")) ;
@@ -4631,23 +4653,32 @@ public partial class BaseExchange
             {
                 continue;
             }
-            bool isFirstCandle = isEqual(candle, -1);
-            if (isFirstCandle || isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms)))
+            bool isNewCandle = (candle == -1);
+            if (!isNewCandle)
+            {
+                object candleTimestamp = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_timestamp);
+                if (isEqual(candleTimestamp, null))
+                {
+                    throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
+                }
+                isNewCandle = isGreaterThanOrEqual(openingTime, add(candleTimestamp, ms));
+            }
+            if (isNewCandle)
             {
                 // moved to a new timeframeVar -> create a new candle from opening trade
                 ohlcvs.Add(new List<object>() {openingTime, price, price, price, price, (trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null), 1});
             } else
             {
                 // still processing the same timeframeVar -> update opening trade
-                object prevHigh = getValue(getValue(ohlcvs, candle), i_high);
-                object prevLow = getValue(getValue(ohlcvs, candle), i_low);
+                object prevHigh = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_high);
+                object prevLow = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_low);
                 object prevHighValue = (isEqual(prevHigh, null)) ? price : prevHigh;
                 object prevLowValue = (isEqual(prevLow, null)) ? price : prevLow;
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(prevHighValue, price);
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(prevLowValue, price);
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = price;
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_volume)] = this.sum(getValue(getValue(ohlcvs, candle), i_volume), (trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null));
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_count)] = this.sum(getValue(getValue(ohlcvs, candle), i_count), 1);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(prevHighValue, price);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(prevLowValue, price);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_close)] = price;
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_volume)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_volume), (trade != null && ((IDictionary<string, object>)trade).ContainsKey("amount") ? ((IDictionary<string, object>)trade)["amount"] : null));
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_count)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_count), 1);
             }
         }
         return ohlcvs;
@@ -4939,6 +4970,10 @@ public partial class BaseExchange
     public virtual string getSupportedMapping(object key, object mapping = null)
     {
         mapping ??= new Dictionary<string, object>();
+        if ((key == null))
+        {
+            throw new ArgumentsRequired ((this.id + " getSupportedMapping() requires a key argument")) ;
+        }
         if (inOp(mapping, key))
         {
             return ((string)((object)(getValue(mapping, key))));
@@ -5251,7 +5286,7 @@ public partial class BaseExchange
             string? key = ((string)keys[i]);
             if ((str != null))
             {
-                if (getIndexOf(str, key) >= 0)
+                if (((string)str).IndexOf(key, StringComparison.Ordinal) >= 0)
                 {
                     return key;
                 }
@@ -5792,7 +5827,12 @@ public partial class BaseExchange
         string result = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode, this.paddingMode);
         if (result == "0")
         {
-            throw new InvalidOrder (((((this.id + " price of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum price precision of ") + this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "price")))) ;
+            string? pricePrecision = this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"));
+            if ((pricePrecision == null))
+            {
+                throw new BadSymbol ((((this.id + " priceToPrecision() market ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " has no price precision")) ;
+            }
+            throw new InvalidOrder (((((this.id + " price of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum price precision of ") + pricePrecision)) ;
         }
         return result;
     }
@@ -5807,7 +5847,12 @@ public partial class BaseExchange
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), this.precisionMode, this.paddingMode);
         if (result == "0")
         {
-            throw new InvalidOrder (((((this.id + " amount of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum amount precision of ") + this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount")))) ;
+            string? amountPrecision = this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"));
+            if ((amountPrecision == null))
+            {
+                throw new BadSymbol ((((this.id + " amountToPrecision() market ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " has no amount precision")) ;
+            }
+            throw new InvalidOrder (((((this.id + " amount of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
         }
         return result;
     }
@@ -5899,7 +5944,7 @@ public partial class BaseExchange
         {
             return ((string?)((object)("1")));
         }
-        if (isGreaterThan(precisionNumber, 0))
+        if ((precisionNumber > 0))
         {
             string parsedPrecision = "0.";
             for (int i = 0; isLessThan(i, subtract(precisionNumber, 1)); i++)
@@ -7034,7 +7079,7 @@ public partial class BaseExchange
                     {
                         break;
                     }
-                    object nextPaginationTimestamp = (lastTimestamp + 1);
+                    Int64? nextPaginationTimestamp = (lastTimestamp + 1);
                     paginationTimestamp = nextPaginationTimestamp;
                     if (((until != null)) && (isGreaterThanOrEqual(nextPaginationTimestamp, until)))
                     {
@@ -7156,7 +7201,7 @@ public partial class BaseExchange
                 break;
             }
             tasks.Add(this.safeDeterministicCall(method,((string)symbol), currentSince, maxEntriesPerRequest,timeframe, parameters));
-            currentSince = subtract(this.sum(currentSince, step), 1);
+            currentSince = subtract(add(currentSince, step), 1);
         }
         List<object> results = await promiseAll(tasks);
         List<object> result = new List<object>() {};
@@ -7386,7 +7431,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(input); i++)
         {
             object entry = getValue(input, i);
-            string? id = this.safeString(entry, "id");
+            object id = this.safeString(entry, "id");
             if ((id == null))
             {
                 string? price = this.safeString(entry, "price");
@@ -7398,9 +7443,24 @@ public partial class BaseExchange
                 {
                     throw new ExchangeError ((this.id + " removeRepeatedTradesFromArray() missing timestamp")) ;
                 }
-                id = ((((((("t_" + ((object)timestamp).ToString()) + "_") + side) + "_") + price) + "_") + amount);
+                // optional parts are appended only when present, separators keep positions distinct
+                id = (("t_" + ((object)timestamp).ToString()) + "_");
+                if ((side != null))
+                {
+                    id = add(id, side);
+                }
+                id = add(id, "_");
+                if ((price != null))
+                {
+                    id = add(id, price);
+                }
+                id = add(id, "_");
+                if ((amount != null))
+                {
+                    id = add(id, amount);
+                }
             }
-            if ((id != null) && !(((id != null) && (uniqueResult?.ContainsKey(id) == true))))
+            if ((id != null) && !(inOp(uniqueResult, id)))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -7708,6 +7768,10 @@ public partial class BaseExchange
         {
             month = "DEC";
         }
+        if ((month == null))
+        {
+            throw new BadSymbol ((string)((this.id + " invalid expiry date ") + (date))) ;
+        }
         string? reconstructedDate = ((string)add(add(day, month), year));
         return reconstructedDate;
     }
@@ -7742,6 +7806,10 @@ public partial class BaseExchange
         string? monthName = ((date == null) ? null : ((string)date).Substring(Math.Min(2, ((string)date).Length), Math.Min(5, ((string)date).Length) - Math.Min(2, ((string)date).Length)));
         string? month = this.safeString(monthMappping, monthName);
         object day = ((date == null) ? null : ((string)date).Substring(Math.Min(5, ((string)date).Length), Math.Min(7, ((string)date).Length) - Math.Min(5, ((string)date).Length)));
+        if ((month == null))
+        {
+            throw new BadSymbol ((string)((this.id + " invalid expiry date ") + (date))) ;
+        }
         string? reconstructedDate = ((string)add(add(day, month), year));
         return reconstructedDate;
     }

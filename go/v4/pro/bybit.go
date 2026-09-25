@@ -2959,7 +2959,7 @@ func (this *Bybit) watchTopicsBody(ch chan any, url any, messageHashes any, topi
 	var newTopics []any = []any{}
 	var topicsLength int = ccxt.GetArrayLength(topics)
 	var messageHashesLength int = ccxt.GetArrayLength(messageHashes)
-	if ccxt.IsEqual(topicsLength, messageHashesLength) {
+	if topicsLength == messageHashesLength {
 		for i := 0; i < topicsLength; i++ {
 			var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, i))
 			if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
@@ -3012,12 +3012,12 @@ func (this *Bybit) watchTopicsBody(ch chan any, url any, messageHashes any, topi
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription)))
 	return nil
 }
-func (this *Bybit) UnWatchTopicsAsync(url any, topic any, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) <-chan any {
+func (this *Bybit) UnWatchTopicsAsync(url any, topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unWatchTopicsBody(ch, url, topic, symbols, messageHashes, subMessageHashes, topics, optionalArgs...)
 	return ch
 }
-func (this *Bybit) unWatchTopicsBody(ch chan any, url any, topic any, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) any {
+func (this *Bybit) unWatchTopicsBody(ch chan any, url any, topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3408,13 +3408,8 @@ func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) any {
 					}
 					return nil
 				}())
-				var subHash any = func() any {
-					if j >= 0 && j < len(subMessageHashes) {
-						return ccxt.DerefScalar(subMessageHashes[j])
-					}
-					return nil
-				}()
-				var usePrefix bool = (ccxt.IsEqual(subHash, "orders")) || (ccxt.IsEqual(subHash, "myTrades")) || (ccxt.IsEqual(subHash, "positions"))
+				var subHash *string = this.SafeString(subMessageHashes, j)
+				var usePrefix bool = (subHash != nil && *subHash == "orders") || (subHash != nil && *subHash == "myTrades") || (subHash != nil && *subHash == "positions")
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, usePrefix)
 			}
 			this.CleanCache(subscription)

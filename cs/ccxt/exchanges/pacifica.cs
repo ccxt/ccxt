@@ -894,10 +894,14 @@ public partial class pacifica : Exchange
             crossMargin = (isolatedOnly != true);
             isolatedMargin = true;
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = ((bs + "/") + quote);
         if (isSwap)
         {
             symbol = add(add(symbol, ":"), settle);
@@ -2003,11 +2007,11 @@ public partial class pacifica : Exchange
         //
         int lenActions = getArrayLength(actions);
         object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax");
-        if ((maxLen != null))
+        if (!isEqual(maxLen, null))
         {
             if (isGreaterThan(lenActions, maxLen))
             {
-                throw new ExchangeError ((string)((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + (maxLen))) ;
+                throw new ExchangeError (((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + this.numberToString(maxLen))) ;
             }
         }
         return new Dictionary<string, object>() {
@@ -4066,7 +4070,7 @@ public partial class pacifica : Exchange
         string? cost = this.safeString(config, "cost", "1");
         double? costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-        if (isGreaterThan(costNumber, 1))
+        if ((costNumber > 1))
         {
             if (!isEqual(this.handleOption(method, "apiKey"), null))
             {

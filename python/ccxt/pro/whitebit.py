@@ -728,7 +728,7 @@ class whitebit(ccxt.async_support.whitebit):
         # listing all tickers explicitly is rejected with "invalid argument"
         return await self.watch_private(messageHash, method, [], params)
 
-    def set_balance_cache(self, client: Client, type: object, subscriptionHash: object):
+    def set_balance_cache(self, client: Client, type: Str, subscriptionHash: object):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)

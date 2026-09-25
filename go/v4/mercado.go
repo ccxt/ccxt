@@ -1135,8 +1135,9 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["from"] = this.ParseToInt(Divide(since, 1000))
 		request["to"] = this.Sum(request["from"], Multiply(limit, this.ParseTimeframe(timeframe)))
 	} else {
-		request["to"] = this.Seconds()
-		request["from"] = Subtract(request["to"], (Multiply(limit, this.ParseTimeframe(timeframe))))
+		var to int64 = this.Seconds()
+		request["to"] = to
+		request["from"] = Subtract(to, (Multiply(limit, this.ParseTimeframe(timeframe))))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicNetGetCandles(this.Extend(request, params))).Raw))
@@ -1318,7 +1319,11 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), "/")
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if (IsEqual(api, "public")) || (IsEqual(api, "v4Public")) || (IsEqual(api, "v4PublicNet")) {
 		url = Add(url, this.ImplodeParams(path, params))

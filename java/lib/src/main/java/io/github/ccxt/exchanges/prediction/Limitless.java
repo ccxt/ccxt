@@ -344,7 +344,7 @@ public class Limitless extends LimitlessApi
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
             List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
             Integer queriesLength = ((List<?>)queries).size();
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 Long requestedLimit = this.safeInteger(parameters, "limit", 50);
                 // the search endpoint rejects limit > 50 - cap the per-query request and let
@@ -397,7 +397,7 @@ public class Limitless extends LimitlessApi
                 }
                 Object responses = (Helpers.promiseAll(promises)).join();
                 Integer length = ((List<?>)responses).size();
-                for (var j = 0; Helpers.isLessThan(j, length); j++)
+                for (var j = 0; (length != null && j < length); j++)
                 {
                     Map<String, Object> response = (Map<String, Object>) this.safeDict(responses, j);
                     List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -407,7 +407,7 @@ public class Limitless extends LimitlessApi
                 List<Object> lastPageData = (List<Object>) this.safeList(lastPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Integer lastPageLength = ((List<?>)lastPageData).size();
                 Integer allRawLength = ((List<?>)allRaw).size();
-                if (Helpers.isGreaterThanOrEqual(lastPageLength, pageSize) && Helpers.isLessThan(allRawLength, maxMarkets))
+                if ((pageSize == null || (lastPageLength != null && lastPageLength >= pageSize)) && (maxMarkets != null && (allRawLength == null || allRawLength < maxMarkets)))
                 {
                     while (true)
                     {
@@ -432,7 +432,7 @@ public class Limitless extends LimitlessApi
                             ((List<Object>)allRaw).add(raw);
                         }
                         Integer allRawCount = ((List<?>)allRaw).size();
-                        if (Helpers.isLessThan(pageMarketsLength, pageSize) || Helpers.isGreaterThanOrEqual(allRawCount, maxMarkets))
+                        if ((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize)) || (maxMarkets == null || (allRawCount != null && allRawCount >= maxMarkets)))
                         {
                             break;
                         }
@@ -486,7 +486,7 @@ public class Limitless extends LimitlessApi
             }
             this.events = eventsDict;
             Integer marketsLength = ((List<?>)markets).size();
-            if (Helpers.isGreaterThan(marketsLength, maxMarkets))
+            if ((marketsLength != null && (maxMarkets == null || marketsLength > maxMarkets)))
             {
                 return this.arraySlice(markets, 0, maxMarkets);
             }
@@ -810,7 +810,7 @@ public class Limitless extends LimitlessApi
                 String groupSlug = this.safeString(raw, "slug");
                 String groupTitle = this.safeString(raw, "title", groupSlug);
                 Integer nestedMarketsLength = ((List<?>)nestedMarkets).size();
-                for (var j = 0; Helpers.isLessThan(j, nestedMarketsLength); j++)
+                for (var j = 0; (nestedMarketsLength != null && j < nestedMarketsLength); j++)
                 {
                     // extend copies — the raw child stays untouched
                     Map<String, Object> tagged = this.extend((nestedMarkets == null || j < 0 || j >= nestedMarkets.size() ? null : nestedMarkets.get(j)), new HashMap<String, Object>() {{
@@ -1325,8 +1325,8 @@ public class Limitless extends LimitlessApi
             List<Object> rawAsks = (List<Object>) this.safeList(book, "asks", new ArrayList<Object>(Arrays.asList()));
             Integer rawBidsLength = ((List<?>)rawBids).size();
             Integer rawAsksLength = ((List<?>)rawAsks).size();
-            Object yesBestBid = (((Helpers.isGreaterThan(rawBidsLength, 0)))) ? (rawBids == null || 0 >= ((List<?>)rawBids).size() ? null : ((List<?>)rawBids).get(0)) : null;
-            Object yesBestAsk = (((Helpers.isGreaterThan(rawAsksLength, 0)))) ? (rawAsks == null || 0 >= ((List<?>)rawAsks).size() ? null : ((List<?>)rawAsks).get(0)) : null;
+            Object yesBestBid = ((((rawBidsLength != null && rawBidsLength > 0)))) ? (rawBids == null || 0 >= ((List<?>)rawBids).size() ? null : ((List<?>)rawBids).get(0)) : null;
+            Object yesBestAsk = ((((rawAsksLength != null && rawAsksLength > 0)))) ? (rawAsks == null || 0 >= ((List<?>)rawAsks).size() ? null : ((List<?>)rawAsks).get(0)) : null;
             String yesBidPrice = this.safeString(yesBestBid, "price");
             String yesBidSize = this.safeString(yesBestBid, "size");
             String yesAskPrice = this.safeString(yesBestAsk, "price");
@@ -1365,7 +1365,7 @@ public class Limitless extends LimitlessApi
         }
         List<Object> prices = (List<Object>) this.safeList(raw, "prices", new ArrayList<Object>(Arrays.asList()));
         Integer pricesLength = ((List<?>)prices).size();
-        if ((java.util.Objects.equals(lastStr, null)) && (Helpers.isGreaterThan(pricesLength, 0)))
+        if ((java.util.Objects.equals(lastStr, null)) && ((pricesLength != null && pricesLength > 0)))
         {
             lastStr = ((Boolean.TRUE.equals(isYes))) ? this.safeString(prices, 0) : this.safeString(prices, 1);
         }
@@ -1801,7 +1801,7 @@ public class Limitless extends LimitlessApi
             Object rawHistory = (((!java.util.Objects.equals(rawHistoryList, null)))) ? rawHistoryList : new ArrayList<Object>(Arrays.asList());
             Object history = rawHistory;
             Integer rawHistoryLength = ((List<?>)rawHistory).size();
-            if (Helpers.isGreaterThan(rawHistoryLength, 0))
+            if ((rawHistoryLength != null && rawHistoryLength > 0))
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(rawHistory, 0, new HashMap<String, Object>() {{}});
                 List<Object> firstPrices = (List<Object>) this.safeList(first, "prices");
@@ -2102,12 +2102,12 @@ public class Limitless extends LimitlessApi
                 (this.loadOutcome((String) (outcome))).join();
             }
             Integer length = Helpers.getArrayLength(ids);
-            if (Helpers.isGreaterThan(length, 50))
+            if ((length != null && length > 50))
             {
                 throw new BadRequest((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
             }
             List<Object> items = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, length); i++)
+            for (var i = 0; (length != null && i < length); i++)
             {
                 String id = this.safeString(ids, i);
                 Map<String, Object> item = new HashMap<String, Object>() {{
@@ -2726,10 +2726,7 @@ public class Limitless extends LimitlessApi
                 put( "buy", 0 );
                 put( "sell", 1 );
             }};
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             Long sideValue = this.safeInteger(sides, ((String)side).toLowerCase());
             Map<String, Object> rank = (Map<String, Object>) this.safeDict(accountInfo, "rank");
             // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2930,7 +2927,7 @@ public class Limitless extends LimitlessApi
 
     public Object hashMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
     public Object signHash(Object hash, Object privateKey)
@@ -3181,7 +3178,7 @@ public class Limitless extends LimitlessApi
             List<Object> canceled = (List<Object>) this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
             List<Object> failed = (List<Object>) this.safeList(response, "failed", new ArrayList<Object>(Arrays.asList()));
             Integer failedLethgn = ((List<?>)failed).size();
-            if (Helpers.isGreaterThan(failedLethgn, 0))
+            if ((failedLethgn != null && failedLethgn > 0))
             {
                 String message = this.json(response);
                 String feedback = ((this.id + " cancelOrders failed: ") + message);
@@ -3621,7 +3618,7 @@ public class Limitless extends LimitlessApi
             {
                 symbolsLength = ((List<?>)outcomes).size();
             }
-            if (Helpers.isGreaterThan(symbolsLength, 0))
+            if ((symbolsLength != null && symbolsLength > 0))
             {
                 (this.loadOutcomes(outcomes)).join();
             }
@@ -3877,7 +3874,7 @@ public class Limitless extends LimitlessApi
             // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
             // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
             List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 Long requestedLimit = this.safeInteger(parameters, "limit", 50);
                 // the search endpoint rejects limit > 50 - cap the per-query request
@@ -3920,7 +3917,7 @@ public class Limitless extends LimitlessApi
                 List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
                 Object listRaw = (this.fetchRawMarketsByTags(requestedTags, parameters)).join();
                 Integer listRawLength = ((List<?>)listRaw).size();
-                for (var i = 0; Helpers.isLessThan(i, listRawLength); i++)
+                for (var i = 0; (listRawLength != null && i < listRawLength); i++)
                 {
                     ((List<Object>)rawMarkets).add((listRaw == null || i < 0 || i >= ((List<?>)listRaw).size() ? null : ((List<?>)listRaw).get(i)));
                 }
@@ -3938,7 +3935,7 @@ public class Limitless extends LimitlessApi
             // into regular rows before parsing (a group row itself has no tokens)
             Object expandedMarkets = this.expandGroupRows(rawMarkets);
             Integer rawMarketsLength = ((List<?>)expandedMarkets).size();
-            for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+            for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
             {
                 Object raw = (expandedMarkets == null || i < 0 || i >= ((List<?>)expandedMarkets).size() ? null : ((List<?>)expandedMarkets).get(i));
                 String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
@@ -3977,7 +3974,7 @@ public class Limitless extends LimitlessApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
             Integer eventKeysLength = ((List<?>)eventKeys).size();
-            for (var i = 0; Helpers.isLessThan(i, eventKeysLength); i++)
+            for (var i = 0; (eventKeysLength != null && i < eventKeysLength); i++)
             {
                 Object g = Helpers.GetValue(eventGroups, (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i)));
                 Object ev = this.parseEvent((Map<String, Object>) (g));
@@ -4061,7 +4058,7 @@ public class Limitless extends LimitlessApi
                 {
                     break;
                 }
-                for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+                for (var i = 0; (dataLength != null && i < dataLength); i++)
                 {
                     if (Helpers.isLessThan(collected, maxMarkets))
                     {
@@ -4070,7 +4067,7 @@ public class Limitless extends LimitlessApi
                     }
                 }
                 page = this.sum(page, 1);
-                if (Helpers.isLessThan(dataLength, pageSize) || Helpers.isGreaterThanOrEqual(collected, maxMarkets))
+                if ((pageSize != null && (dataLength == null || dataLength < pageSize)) || Helpers.isGreaterThanOrEqual(collected, maxMarkets))
                 {
                     break;
                 }
@@ -4122,7 +4119,7 @@ public class Limitless extends LimitlessApi
             }
             List<Object> categoryIds = new ArrayList<Object>(Arrays.asList());
             Integer categoriesLength = ((List<?>)categories).size();
-            for (var i = 0; Helpers.isLessThan(i, categoriesLength); i++)
+            for (var i = 0; (categoriesLength != null && i < categoriesLength); i++)
             {
                 Map<String, Object> category = (Map<String, Object>) this.safeDict(categories, i);
                 String name = this.safeStringLower(category, "name", "");
@@ -4152,11 +4149,11 @@ public class Limitless extends LimitlessApi
             }
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
-            for (var ci = 0; Helpers.isLessThan(ci, categoryIdsLength); ci++)
+            for (var ci = 0; (categoryIdsLength != null && ci < categoryIdsLength); ci++)
             {
                 Object categoryMarkets = (this.fetchRawActiveMarkets(parameters, (categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci)))).join();
                 Integer categoryMarketsLength = ((List<?>)categoryMarkets).size();
-                for (var mi = 0; Helpers.isLessThan(mi, categoryMarketsLength); mi++)
+                for (var mi = 0; (categoryMarketsLength != null && mi < categoryMarketsLength); mi++)
                 {
                     Object raw = (categoryMarkets == null || mi < 0 || mi >= ((List<?>)categoryMarkets).size() ? null : ((List<?>)categoryMarkets).get(mi));
                     String slug = this.safeString(raw, "slug");

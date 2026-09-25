@@ -128,12 +128,12 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) any {
 	}
 	return ccxt.Add(ccxt.Add(url, "/private"), sandboxSuffix)
 }
-func (this *Okx) SubscribeMultipleAsync(access any, channel any, optionalArgs ...any) <-chan any {
+func (this *Okx) SubscribeMultipleAsync(access string, channel any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeMultipleBody(ch, access, channel, optionalArgs...)
 	return ch
 }
-func (this *Okx) subscribeMultipleBody(ch chan any, access any, channel any, optionalArgs ...any) any {
+func (this *Okx) subscribeMultipleBody(ch chan any, access string, channel any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -177,12 +177,12 @@ func (this *Okx) subscribeMultipleBody(ch chan any, access any, channel any, opt
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes)))
 	return nil
 }
-func (this *Okx) SubscribeAsync(access any, messageHash any, channel any, symbol any, optionalArgs ...any) <-chan any {
+func (this *Okx) SubscribeAsync(access string, messageHash any, channel string, symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeBody(ch, access, messageHash, channel, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) subscribeBody(ch chan any, access any, messageHash any, channel any, symbol any, optionalArgs ...any) any {
+func (this *Okx) subscribeBody(ch chan any, access string, messageHash any, channel string, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1035,7 +1035,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	_ = since
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -1056,7 +1056,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	params = ccxt.MapTyped(ccxt.GetValue(typeVarparamsVariable, 1))
 	var channel string = "liquidation-orders"
 	if ccxt.IsEqual(typeVar, "spot") {
 		typeVar = "SWAP"
@@ -2285,7 +2285,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// By default, receive order updates from any instrument type
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2319,7 +2319,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		typeVar = this.SafeString(market, "type")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
 	}
@@ -2510,7 +2510,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 			return nil
 		}()
 		var position map[string]any = ccxt.MapTyped(this.ParsePosition(rawPosition))
-		if ccxt.IsEqual(position["contracts"], 0) && ccxt.IsEqual(ccxt.GetValue(rawPosition, "posSide"), "net") {
+		if ccxt.IsEqual(position["contracts"], 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
 			position["side"] = "long"
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")

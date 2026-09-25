@@ -954,9 +954,7 @@ class foxbit extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         $triggerPrice = $this->safe_number($params, 'triggerPrice');
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'market_symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1528,9 +1526,7 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-        }
+        $this->check_required_argument('editOrder', $symbol, 'symbol');
         $type = strtoupper($type);
         if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'INSTANT') {
             throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
@@ -1539,9 +1535,7 @@ class foxbit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
-        }
+        $this->check_required_argument('editOrder', $side, 'side');
         $request = array(
             'mode' => 'ALLOW_FAILURE',
             'cancel' => array(
@@ -1666,6 +1660,9 @@ class foxbit extends Exchange {
         $quoteId = $this->safe_string($quoteAssets, 'symbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $fees = $this->safe_dict($market, 'default_fees');
         return $this->safe_market_structure(array(
@@ -2045,7 +2042,11 @@ class foxbit extends Exchange {
             $fullPath = '/status';
             $urlPath = 'status';
         }
-        $url = $this->urls['api'][$urlPath] . $fullPath;
+        $apiUrl = $this->safe_string($this->urls['api'], $urlPath);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
         $params = $this->omit($params, $this->extract_params($path));
         $timestamp = $this->milliseconds();
         $query = '';

@@ -347,10 +347,10 @@ public partial class hyperliquid : PredictionExchange
                         if (isLessThanOrEqual(index, 0))
                         {
                             bucketLabel = ("BELOW_" + ((thresholds != null && 0 < thresholds.Count ? thresholds[0] : null)));
-                        } else if (isGreaterThanOrEqual(index, thresholdsLength))
+                        } else if ((index >= thresholdsLength))
                         {
-                            object lastIdx = (thresholdsLength - 1);
-                            bucketLabel = ("ABOVE_" + (getValue(thresholds, lastIdx)));
+                            int lastIdx = (thresholdsLength - 1);
+                            bucketLabel = ("ABOVE_" + ((thresholds != null && lastIdx < thresholds.Count ? thresholds[lastIdx] : null)));
                         } else
                         {
                             bucketLabel = ((("BETWEEN_" + (getValue(thresholds, subtract(index, 1)))) + "_") + (getValue(thresholds, index)));
@@ -1950,7 +1950,7 @@ public partial class hyperliquid : PredictionExchange
             { "stop limit", "limit" },
             { "stop market", "market" },
         };
-        string? statusLower = ((status != null) && !isEqual(status, "")) ? status.ToLower() : null;
+        string? statusLower = ((status != null) && !(status == "")) ? status.ToLower() : null;
         return this.safeString(statuses, statusLower, statusLower);
     }
 
@@ -1962,7 +1962,7 @@ public partial class hyperliquid : PredictionExchange
             { "fok", "FOK" },
             { "alo", "PO" },
         };
-        string? tifLower = ((timeInForce != null) && !isEqual(timeInForce, "")) ? timeInForce.ToLower() : null;
+        string? tifLower = ((timeInForce != null) && !(timeInForce == "")) ? timeInForce.ToLower() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 
@@ -2357,7 +2357,7 @@ public partial class hyperliquid : PredictionExchange
         {
             throw new ExchangeError ((this.id + " amountToPrecision() missing prec")) ;
         }
-        if (isGreaterThan(prec, 0))
+        if ((prec > 0))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -2373,7 +2373,7 @@ public partial class hyperliquid : PredictionExchange
         {
             throw new ExchangeError ((this.id + " priceToPrecision() missing prec")) ;
         }
-        if (isGreaterThan(prec, 0))
+        if ((prec > 0))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }

@@ -97,7 +97,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 	if ccxt.EvalTruthy(isContract) {
 		tradeType = "contract"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType)
+	var url any = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType)
 	if !ccxt.EvalTruthy(isContract) {
 		url = ccxt.Add(url, "/private")
 	}
@@ -238,12 +238,12 @@ func (this *Xt) HandleDelta(orderbook any, delta any) {
  * @param {object} params extra parameters specific to the xt api
  * @returns {object} data from the websocket stream
  */
-func (this *Xt) SubscribeAsync(name any, access any, methodName any, optionalArgs ...any) <-chan any {
+func (this *Xt) SubscribeAsync(name any, access string, methodName string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeBody(ch, name, access, methodName, optionalArgs...)
 	return ch
 }
-func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any, optionalArgs ...any) any {
+func (this *Xt) subscribeBody(ch chan any, name any, access string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -252,7 +252,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var privateAccess bool = (ccxt.IsEqual(access, "private"))
+	var privateAccess bool = (access == "private")
 	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
@@ -291,7 +291,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.Join(symbols, ","))
 	}
 	var request map[string]any = this.Extend(subscribe, params)
-	var tail any = access
+	var tail string = access
 	if isContract {
 		tail = func() string {
 			if privateAccess {
@@ -303,7 +303,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	var subscription map[string]any = map[string]any{
 		"id": id,
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail)
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
@@ -326,12 +326,12 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
  * @param {object} subscriptionParams extra parameters specific to the subscription
  * @returns {object} data from the websocket stream
  */
-func (this *Xt) UnSubscribeAsync(messageHash any, name any, access any, methodName any, topic any, optionalArgs ...any) <-chan any {
+func (this *Xt) UnSubscribeAsync(messageHash any, name any, access string, methodName string, topic any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.unSubscribeBody(ch, messageHash, name, access, methodName, topic, optionalArgs...)
 	return ch
 }
-func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access any, methodName any, topic any, optionalArgs ...any) any {
+func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access string, methodName string, topic any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -342,7 +342,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	_ = params
 	var subscriptionParams map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = subscriptionParams
-	var privateAccess bool = (ccxt.IsEqual(access, "private"))
+	var privateAccess bool = (access == "private")
 	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.SafeStringPtr(ccxt.GetValue(typeVarparamsVariable, 0))
@@ -378,7 +378,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	}
 	var subMessageHash any = ccxt.Add(ccxt.Add(name, "::"), tradeType)
 	var request map[string]any = this.Extend(unsubscribe, params)
-	var tail any = access
+	var tail string = access
 	if isContract {
 		tail = func() string {
 			if privateAccess {
@@ -387,7 +387,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 			return "market"
 		}()
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail)
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail))
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"id":               id,
@@ -968,7 +968,7 @@ func (this *Xt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/"), "user")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/"), "user"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)

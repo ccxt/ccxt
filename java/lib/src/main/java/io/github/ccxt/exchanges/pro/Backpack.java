@@ -1444,7 +1444,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String messageHash = ("orderbook:" + symbol);
         if (java.util.Objects.equals(nonce, null))
         {
-            Object cacheLength = ((List<?>)((List<Object>)Helpers.GetValue(storedOrderBook, "cache"))).size();
+            Object cacheLength = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
             // the rest API is very delayed
             // usually it takes at least 9 deltas to resolve
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
@@ -1452,9 +1452,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
-            ((List<Object>)((List<Object>)Helpers.GetValue(storedOrderBook, "cache"))).add(data);
+            ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(data);
             return;
-        } else if ((!java.util.Objects.equals(deltaNonce, null)) && (Helpers.isGreaterThan(nonce, deltaNonce)))
+        } else if ((!java.util.Objects.equals(deltaNonce, null)) && ((nonce != null && (deltaNonce == null || nonce > deltaNonce))))
         {
             return;
         }
@@ -1513,7 +1513,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 return Helpers.getArrayLength(cache);
             }
-            if ((Helpers.isGreaterThanOrEqual(nonce, (deltaStart - 1L))) && (Helpers.isLessThan(nonce, deltaEnd)))
+            if ((Helpers.isGreaterThanOrEqual(nonce, (deltaStart - 1L))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
                 return i;
             }

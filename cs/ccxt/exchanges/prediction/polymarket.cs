@@ -1079,7 +1079,7 @@ public partial class polymarket : PredictionExchange
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
-                    if (isGreaterThanOrEqual(outcomePrice, 0.99))
+                    if ((outcomePrice >= 0.99))
                     {
                         winnerRaw = true;
                         settleFractionRaw = 1;
@@ -1702,7 +1702,7 @@ public partial class polymarket : PredictionExchange
         IList<object> history = (IList<object>)(this.safeList(response, "history", new List<object>() {}));
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
-        object resolutionMs = ((fidelityMin * 60) * 1000);
+        Int64? resolutionMs = ((fidelityMin * 60) * 1000);
         Dictionary<string, object> buckets = new Dictionary<string, object>() {};
         for (int i = 0; i < (history?.Count ?? 0); i++)
         {
@@ -1714,7 +1714,7 @@ public partial class polymarket : PredictionExchange
                 continue;
             }
             Int64? rawMs = (t * 1000);
-            object snappedMs = multiply((Math.Floor(Double.Parse((divide(rawMs, resolutionMs)).ToString()))), resolutionMs);
+            object snappedMs = multiply((Math.Floor(Double.Parse(((rawMs / resolutionMs)).ToString()))), resolutionMs);
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             double? vol = this.safeNumber(item, "s");
@@ -2581,7 +2581,7 @@ public partial class polymarket : PredictionExchange
         if ((builderRaw != null))
         {
             object builderHex = this.remove0xPrefix(builderRaw);
-            if (getArrayLength(builderHex) <= 40)
+            if (((string)builderHex).Length <= 40)
             {
                 bool? builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 object feeRate = 0;
@@ -2727,7 +2727,7 @@ public partial class polymarket : PredictionExchange
         string rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
         string? makerRaw = null;
         string? takerRaw = null;
-        if (((cost != null)) && (isEqual(side, "BUY")))
+        if (((cost != null)) && ((side == "BUY")))
         {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
@@ -2735,7 +2735,7 @@ public partial class polymarket : PredictionExchange
             string? costStr = this.numberToString(cost);
             makerRaw = this.decimalToPrecision(costStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
             takerRaw = this.decimalToPrecision(Precise.stringDiv(makerRaw, rawPrice), TRUNCATE, amountDecimals, DECIMAL_PLACES);
-        } else if (isEqual(side, "BUY"))
+        } else if ((side == "BUY"))
         {
             string? sizeStr = this.numberToString(size);
             takerRaw = this.decimalToPrecision(sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);

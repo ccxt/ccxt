@@ -8,7 +8,7 @@ from ccxt.abstract.prediction.limitless import ImplicitAPI
 import asyncio
 import hashlib
 import math
-from ccxt.base.types import Account, Bool, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
+from ccxt.base.types import Account, Bool, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -1899,7 +1899,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         responseList = [response]
         return self.parse_accounts(responseList)
 
-    async def create_order(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         places a limit or market order on limitless for the given outcome token
 
@@ -1960,8 +1960,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'buy': 0,
             'sell': 1,
         }
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         sideValue = self.safe_integer(sides, side.lower())
         rank = self.safe_dict(accountInfo, 'rank')
         # signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -2162,7 +2161,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         txHash = await self.send_evm_transaction(rpcUrl, chainId, owner, token, '0x0', approveData, gasLimit)
         return await self.wait_for_transaction_receipt(rpcUrl, txHash)
 
-    async def cancel_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         cancels a single open order by id
 

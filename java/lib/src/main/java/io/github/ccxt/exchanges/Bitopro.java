@@ -544,6 +544,10 @@ public class Bitopro extends BitoproApi
         String quoteId = this.safeString(market, "quote");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         Map<String, Object> limits = new HashMap<String, Object>() {{
             put( "amount", new HashMap<String, Object>() {{
@@ -565,14 +569,15 @@ public class Bitopro extends BitoproApi
         }};
         final String finalId = id;
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalId );
             put( "uppercaseId", uppercaseId );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "baseId", finalBase );
-            put( "quoteId", quote );
+            put( "quoteId", finalQuote );
             put( "settle", null );
             put( "settleId", null );
             put( "type", "spot" );
@@ -2606,7 +2611,12 @@ final Object finalJ = j;
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), url);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        url = (apiUrl + url);
         final Object finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;

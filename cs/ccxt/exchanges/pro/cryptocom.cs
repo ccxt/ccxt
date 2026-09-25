@@ -127,7 +127,7 @@ public partial class cryptocom : ccxt.cryptocom
         symbols = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        if (((limitVar == null)) || (isEqual(limitVar, 0)))
+        if (((limitVar == null)) || ((limitVar == 0)))
         {
             limitVar = ((Int64?)50);
         }
@@ -1104,7 +1104,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }

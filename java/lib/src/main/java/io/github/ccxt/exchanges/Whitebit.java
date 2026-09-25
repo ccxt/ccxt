@@ -788,7 +788,7 @@ public class Whitebit extends WhitebitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -844,6 +844,10 @@ public class Whitebit extends WhitebitApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         Boolean active = (Boolean) this.safeBool(market, "tradesEnabled");
         Boolean isCollateral = (Boolean) this.safeBool(market, "isCollateral");
         String typeId = this.safeString(market, "type");
@@ -877,6 +881,7 @@ public class Whitebit extends WhitebitApi
         Boolean isSpot = !Boolean.TRUE.equals(swap);
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalQuoteId = quoteId;
         final String finalSettleId = settleId;
@@ -888,7 +893,7 @@ public class Whitebit extends WhitebitApi
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", finalQuoteId );
@@ -1326,7 +1331,7 @@ public class Whitebit extends WhitebitApi
         {
             Object entry = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             List<Object> splitEntry = new ArrayList<Object>(Arrays.asList(((String)entry).split(java.util.regex.Pattern.quote(" "))));
-            Object currencyId = Helpers.GetValue(splitEntry, 0);
+            Object currencyId = (splitEntry == null || 0 >= splitEntry.size() ? null : splitEntry.get(0));
             Object feeInfo = Helpers.GetValue(response, entry);
             String code = this.safeCurrencyCode((String) (currencyId));
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
@@ -1538,7 +1543,7 @@ public class Whitebit extends WhitebitApi
                 {
                     continue;
                 }
-                Object symbol = Helpers.GetValue(market, "symbol");
+                String symbol = marketSymbol;
                 // Filter by symbols if specified
                 if (!java.util.Objects.equals(symbols, null))
                 {
@@ -1571,7 +1576,7 @@ public class Whitebit extends WhitebitApi
                     final Map<String, Object> finalAmountLimits = amountLimits;
                     final Map<String, Object> finalPriceLimits = priceLimits;
                     final Map<String, Object> finalCostLimits = costLimits;
-                    Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                    result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", finalMarket );
         put( "limits", new HashMap<String, Object>() {{
             put( "amount", new HashMap<String, Object>() {{
@@ -1708,7 +1713,7 @@ public class Whitebit extends WhitebitApi
                 {
                     String feeKey = (feeKeys == null || j < 0 || j >= feeKeys.size() ? null : feeKeys.get(j));
                     Map<String, Object> fee = (Map<String, Object>) this.safeDict(feesData, feeKey);
-                    if ((!java.util.Objects.equals(fee, null) && !java.util.Objects.equals(fee, null)) && java.util.Objects.equals(((Map<String, Object>)fee).get("ticker"), code))
+                    if ((!java.util.Objects.equals(fee, null) && !java.util.Objects.equals(fee, null)) && java.util.Objects.equals(this.safeString(fee, "ticker"), code))
                     {
                         feeData = fee;
                         break;
@@ -6055,7 +6060,7 @@ public class Whitebit extends WhitebitApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -6069,7 +6074,12 @@ public class Whitebit extends WhitebitApi
         }
         ((Map<String, Object>)headers).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
-        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), version), accessibility), pathWithParams);
+        String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), version), accessibility);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + pathWithParams);
         if (java.util.Objects.equals(accessibility, "public"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -6101,7 +6111,7 @@ public class Whitebit extends WhitebitApi
                 put( "X-TXC-SIGNATURE", signature );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
@@ -6150,12 +6160,12 @@ public class Whitebit extends WhitebitApi
                     Map<String, Object> errorObject = (Map<String, Object>) this.safeDict(response, "errors", new HashMap<String, Object>() {{}});
                     List<String> errorKeys = new ArrayList<String>(errorObject.keySet());
                     Integer errorsLength = ((List<?>)errorKeys).size();
-                    if (Helpers.isGreaterThan(errorsLength, 0))
+                    if ((errorsLength != null && errorsLength > 0))
                     {
                         Object errorKey = (errorKeys == null || 0 >= ((List<?>)errorKeys).size() ? null : ((List<?>)errorKeys).get(0));
                         List<Object> errorMessageArray = (List<Object>) this.safeList(errorObject, errorKey, new ArrayList<Object>(Arrays.asList()));
                         Integer errorMessageLength = ((List<?>)errorMessageArray).size();
-                        errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
+                        errorInfo = ((((errorMessageLength != null && errorMessageLength > 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
                     }
                 }
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);
@@ -6170,12 +6180,12 @@ public class Whitebit extends WhitebitApi
                 List<String> errKeys = new ArrayList<String>(errMsg.keySet());
                 Integer errKeysLength = ((List<?>)errKeys).size();
                 Object errorInfo = body;
-                if (Helpers.isGreaterThan(errKeysLength, 0))
+                if ((errKeysLength != null && errKeysLength > 0))
                 {
                     Object errorKey = (errKeys == null || 0 >= ((List<?>)errKeys).size() ? null : ((List<?>)errKeys).get(0));
                     List<Object> errorMessageArray = (List<Object>) this.safeList(errMsg, errorKey, new ArrayList<Object>(Arrays.asList()));
                     Integer errorMessageLength = ((List<?>)errorMessageArray).size();
-                    errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
+                    errorInfo = ((((errorMessageLength != null && errorMessageLength > 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
                 }
                 String feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);

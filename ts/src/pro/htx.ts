@@ -568,7 +568,7 @@ export default class htx extends htxRest {
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);
             if ((sequence === undefined) || (nonce < sequence)) {
-                const maxAttempts = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+                const maxAttempts: number = this.handleOption ('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
@@ -745,7 +745,7 @@ export default class htx extends htxRest {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger (orderbook, 'nonce', 0)) {
-            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }
@@ -2576,7 +2576,7 @@ export default class htx extends htxRest {
                 }
             }
             if ('ch' in message) {
-                if (message['ch'] === 'auth') {
+                if (this.safeString (message, 'ch') === 'auth') {
                     this.handleAuthenticate (client, message);
                     return;
                 } else {

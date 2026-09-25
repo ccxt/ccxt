@@ -1544,7 +1544,7 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         let types: NullableDict = undefined;
@@ -1762,6 +1762,9 @@ export default class htx extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote;
             let expiry: Int = undefined;
@@ -1914,6 +1917,9 @@ export default class htx extends Exchange {
             const info = this.safeDict (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
             const contractSuffix = this.safeString (futuresCharsMaps, contractType);
+            if (contractSuffix === undefined) {
+                continue; // unknown contract_type: no id to construct
+            }
             // see comment on formats a bit above
             let constructedId: Str = undefined;
             if (market['linear'] === true) {
@@ -3890,13 +3896,13 @@ export default class htx extends Exchange {
         if (account === undefined) {
             throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
-        if (balance['type'] === 'trade') {
+        if (this.safeString (balance, 'type') === 'trade') {
             account['free'] = this.safeString (balance, 'balance');
         }
         if (account === undefined) {
             throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
-        if (balance['type'] === 'frozen') {
+        if (this.safeString (balance, 'type') === 'frozen') {
             account['used'] = this.safeString (balance, 'balance');
         }
         return account;
@@ -6496,8 +6502,8 @@ export default class htx extends Exchange {
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
-            const noteMatch = (note === undefined) || (address['note'] === note);
-            const networkMatch = (networkCode === undefined) || (address['network'] === networkCode);
+            const noteMatch = (note === undefined) || (this.safeString (address, 'note') === note);
+            const networkMatch = (networkCode === undefined) || (this.safeString (address, 'network') === networkCode);
             if (noteMatch && networkMatch) {
                 addresses.push (address);
             }
@@ -7591,7 +7597,7 @@ export default class htx extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -8447,7 +8453,7 @@ export default class htx extends Exchange {
         if ((market['future'] === true) && (market['inverse'] === true)) {
             for (let i = 0; i < positions.length; i++) {
                 const entry = positions[i];
-                if (entry['contract_code'] === market['id']) {
+                if (this.safeString (entry, 'contract_code') === market['id']) {
                     position = entry;
                     break;
                 }
@@ -9766,7 +9772,7 @@ export default class htx extends Exchange {
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

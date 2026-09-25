@@ -575,9 +575,12 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		result = append(result, map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -1582,8 +1585,8 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var value any = walletAddress[key]
-		if (IsEqual(value, nil)) || (IsEqual(value, nil)) || (IsEqual(value, "")) || (IsEqual(value, "-1")) {
+		var value *string = this.SafeString(walletAddress, key)
+		if (value == nil) || (value != nil && *value == "") || (value != nil && *value == "-1") {
 			continue
 		}
 		var parts []string = strings.Split(key, "_")
@@ -1629,14 +1632,30 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var request any = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/")
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = *apiUrl + "/"
 	if IsEqual(api, "v2Public") {
-		url = Add(GetValue(GetValue(this.Urls, "api"), "v2Public"), "/")
+		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Public")
+		if apiUrl2 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = *apiUrl2 + "/"
 		api = "public"
 	} else if IsEqual(api, "v2Private") {
-		url = Add(GetValue(GetValue(this.Urls, "api"), "v2Private"), "/")
+		var apiUrl3 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Private")
+		if apiUrl3 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = *apiUrl3 + "/"
 	} else if IsEqual(api, "v2_1Private") {
-		url = Add(GetValue(GetValue(this.Urls, "api"), "v2_1Private"), "/")
+		var apiUrl4 *string = this.SafeString(GetValue(this.Urls, "api"), "v2_1Private")
+		if apiUrl4 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = *apiUrl4 + "/"
 	}
 	if IsEqual(api, "public") {
 		url = Add(url, request)
