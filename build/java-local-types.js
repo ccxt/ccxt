@@ -1572,6 +1572,28 @@ function syncCoreCallType (printer, node) {
     return printedDeclarationAgrees (printer, node, type) ? type : undefined;
 }
 
+// bare `f(...)` of a ts/src/base function prints the inherited BaseExchange method of that name:
+// the same on-disk declaration read as this-calls (a venue redeclaration with another type fails closed)
+function bareBaseFunctionCallType (printer, node) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    const name = String (node.expression.text);
+    if (declaration === undefined || !/(^|[\\/])ts[\\/]src[\\/]base[\\/]/.test (declaration.getSourceFile ().fileName)
+        || JAVA_CORE_SYNC_DECLINED.has (name)) {
+        return undefined;
+    }
+    const entry = javaCoreDeclarationTable (node)?.get (name);
+    if (entry === undefined || entry.future || entry.types.size !== 1) {
+        return undefined;
+    }
+    const type = [ ...entry.types ][0];
+    return type !== 'Object' && JAVA_CORE_TYPE_OK.test (type) ? type : undefined;
+}
+
 function printedDeclarationAgrees (printer, call, type) {
     let declaration;
     try {
@@ -2738,6 +2760,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
 
     const assertedCall = unwrapNoCastAssertion (initializer);
     const asserted = assertedCall !== initializer;
+    if (!asserted && ts.isCallExpression (initializer) && ts.isIdentifier (initializer.expression)) {
+        const bare = bareBaseFunctionCallType (printer, initializer);
+        if (bare !== undefined) {
+            return { type: bare, valuePrefix: String (initializer.expression.text) + '(' };
+        }
+    }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
     }
@@ -3622,7 +3650,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
             return false;
         }
-        if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)) {
+        // a venue-own async callee that overrides nothing has no typed wrapper overload to capture the argument
+        if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)
+            && !literalFeedsVenueOwnAsyncCall (printer, n, scope)) {
             return false;
         }
     }
