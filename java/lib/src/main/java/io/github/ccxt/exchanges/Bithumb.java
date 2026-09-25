@@ -1692,7 +1692,7 @@ public class Bithumb extends BithumbApi
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if ((!java.util.Objects.equals(timestamp, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isGenerationTwo))))
+        if ((!java.util.Objects.equals(timestamp, null)) && (!Boolean.TRUE.equals(isGenerationTwo)))
         {
             timestamp = Helpers.subtract(timestamp, (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
         }
@@ -1983,7 +1983,7 @@ public class Bithumb extends BithumbApi
                 Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(0);
                 var paramsRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
                 paramsOrder = paramsRequiresPrice;
-                if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                     {

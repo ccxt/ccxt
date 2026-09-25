@@ -2525,7 +2525,7 @@ public class Okx extends OkxApi
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = ((partsLength != null && partsLength > 3)) && (Helpers.isTrue(((String)marketId).endsWith("-C")) || Helpers.isTrue(((String)marketId).endsWith("-P")));
+            isOption = ((partsLength != null && partsLength > 3)) && (((String)marketId).endsWith("-C") || ((String)marketId).endsWith("-P"));
         }
         if (Boolean.TRUE.equals(isOption) && (!java.util.Objects.equals(marketId, null)) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
@@ -4524,7 +4524,7 @@ public class Okx extends OkxApi
                     Map<String, Object> paramsRequiresPrice = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable).get(1);
                     Object notional = this.safeNumber2(paramsRequiresPrice, "cost", "sz", (Object) null);
                     orderParams = this.omit(paramsRequiresPrice, new ArrayList<Object>(Arrays.asList("cost", "sz")));
-                    if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (!java.util.Objects.equals(price, null))
                         {
@@ -4552,7 +4552,7 @@ public class Okx extends OkxApi
             }
         } else
         {
-            if (Helpers.isTrue((!Boolean.TRUE.equals(trigger))) && Helpers.isTrue((!Boolean.TRUE.equals(conditional))))
+            if ((!Boolean.TRUE.equals(trigger)) && (!Boolean.TRUE.equals(conditional)))
             {
                 Helpers.addElementToObject(request, "px", this.priceToPrecision(symbol, price));
             }
@@ -4595,7 +4595,7 @@ public class Okx extends OkxApi
                 {
                     Boolean stopLossLimitOrderType = (java.util.Objects.equals(stopLossOrderType, "limit"));
                     Boolean stopLossMarketOrderType = (java.util.Objects.equals(stopLossOrderType, "market"));
-                    if (Helpers.isTrue((!Boolean.TRUE.equals(stopLossLimitOrderType))) && Helpers.isTrue((!Boolean.TRUE.equals(stopLossMarketOrderType))))
+                    if ((!Boolean.TRUE.equals(stopLossLimitOrderType)) && (!Boolean.TRUE.equals(stopLossMarketOrderType)))
                     {
                         throw new InvalidOrder((this.id + " createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"")) ;
                     } else if (Boolean.TRUE.equals(stopLossLimitOrderType))
@@ -4644,7 +4644,7 @@ public class Okx extends OkxApi
                 {
                     Boolean takeProfitLimitOrderType = (java.util.Objects.equals(takeProfitOrderType, "limit"));
                     Boolean takeProfitMarketOrderType = (java.util.Objects.equals(takeProfitOrderType, "market"));
-                    if (Helpers.isTrue((!Boolean.TRUE.equals(takeProfitLimitOrderType))) && Helpers.isTrue((!Boolean.TRUE.equals(takeProfitMarketOrderType))))
+                    if ((!Boolean.TRUE.equals(takeProfitLimitOrderType)) && (!Boolean.TRUE.equals(takeProfitMarketOrderType)))
                     {
                         throw new InvalidOrder((this.id + " createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"")) ;
                     } else if (Boolean.TRUE.equals(takeProfitLimitOrderType))

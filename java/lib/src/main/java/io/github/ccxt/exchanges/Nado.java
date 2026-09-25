@@ -3568,7 +3568,7 @@ public class Nado extends NadoApi
         {
             return null;
         }
-        if (Helpers.isTrue(((String)marketId).endsWith("-PERP")))
+        if (((String)marketId).endsWith("-PERP"))
         {
             return (marketId == null ? null : ((String)marketId).substring(0, Math.max(((String)marketId).length() - 5, 0)));
         }

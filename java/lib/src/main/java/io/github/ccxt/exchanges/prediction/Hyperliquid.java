@@ -1369,7 +1369,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         Object sideHint = this.parseOutcomeInputSideHint(outcomeInput);
         List<Object> candidates = new ArrayList<Object>(Arrays.asList(outcomeInput));
-        if (Helpers.isTrue(((String)outcomeInput).startsWith("+")))
+        if (((String)outcomeInput).startsWith("+"))
         {
             ((List<Object>)candidates).add(("#" + (outcomeInput == null ? null : ((String)outcomeInput).substring(Math.min(1, ((String)outcomeInput).length())))));
         }
@@ -2019,11 +2019,11 @@ public class Hyperliquid extends HyperliquidApi
         {
             return null;
         }
-        if (Helpers.isTrue(((String)status).endsWith("Rejected")))
+        if (((String)status).endsWith("Rejected"))
         {
             return "rejected";
         }
-        if (Helpers.isTrue(((String)status).endsWith("Canceled")))
+        if (((String)status).endsWith("Canceled"))
         {
             return "canceled";
         }
@@ -2697,7 +2697,7 @@ public class Hyperliquid extends HyperliquidApi
             return null;
         }
         Object normalized = address;
-        if (Helpers.isTrue(((String)normalized).startsWith("0x")) || Helpers.isTrue(((String)normalized).startsWith("0X")))
+        if (((String)normalized).startsWith("0x") || ((String)normalized).startsWith("0X"))
         {
             normalized = (normalized == null ? null : ((String)normalized).substring(Math.min(2, ((String)normalized).length())));
         }

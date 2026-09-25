@@ -2490,7 +2490,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 continue;
             }
-            if (Helpers.isTrue(((String)messageHash).startsWith("unsubscribe")))
+            if (((String)messageHash).startsWith("unsubscribe"))
             {
                 Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
                 String subId = this.safeString(subscription, "id");

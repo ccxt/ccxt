@@ -4192,7 +4192,7 @@ public class Htx extends HtxApi
                 List<Object> useHistoricalparamsHistoricalVariable = (List<Object>) this.handleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
                 Boolean useHistorical = (Boolean) ((List<Object>) useHistoricalparamsHistoricalVariable).get(0);
                 var paramsHistorical = ((List<Object>) useHistoricalparamsHistoricalVariable).get(1);
-                if (!Helpers.isTrue(useHistorical))
+                if (!Boolean.TRUE.equals(useHistorical))
                 {
                     if (!java.util.Objects.equals(limit, null))
                     {
@@ -4566,7 +4566,7 @@ public class Htx extends HtxApi
             List<Object> isUnifiedAccountparamsUnifiedVariable = (List<Object>) this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
             Boolean isUnifiedAccount = (Boolean) ((List<Object>) isUnifiedAccountparamsUnifiedVariable).get(0);
             Map<String, Object> paramsUnified = (Map<String, Object>) ((List<Object>) isUnifiedAccountparamsUnifiedVariable).get(1);
-            if (Helpers.isTrue(isUnifiedAccount))
+            if (Boolean.TRUE.equals(isUnifiedAccount))
             {
                 throw new NotSupported((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
             }
@@ -4593,7 +4593,7 @@ public class Htx extends HtxApi
             Boolean cross = (java.util.Objects.equals(marginMode, "cross"));
             Boolean margin = (java.util.Objects.equals(type, "margin")) || (Boolean.TRUE.equals(spot) && (Boolean.TRUE.equals(cross) || Boolean.TRUE.equals(isolated)));
             Map<String, Object> response = null;
-            if (Helpers.isTrue(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
+            if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
             {
                 response = (this.contractPrivateGetV5AccountBalance(this.extend(request, paramsMarginMode))).join();
             } else if (Boolean.TRUE.equals(spot) || Boolean.TRUE.equals(margin))
@@ -4770,7 +4770,7 @@ public class Htx extends HtxApi
                 put( "info", finalResponse );
             }};
             Object data = this.safeValue(response, "data");
-            if (Helpers.isTrue(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
+            if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
             {
                 List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)details).size(); i++)
@@ -9368,7 +9368,7 @@ public class Htx extends HtxApi
                     String id = this.safeString(options, "id", "AA03022abc");
                     if (!Boolean.TRUE.equals(isArrayParams))
                     {
-                        if (((((String)pathString).indexOf("cancel") == -1)) && Helpers.isTrue(((String)pathString).endsWith("order")))
+                        if (((((String)pathString).indexOf("cancel") == -1)) && ((String)pathString).endsWith("order"))
                         {
                             // swap order placement
                             String channelCode = this.safeString(parameters, "channel_code");
@@ -9376,7 +9376,7 @@ public class Htx extends HtxApi
                             {
                                 ((Map<String, Object>)parameters).put("channel_code", id);
                             }
-                        } else if (Helpers.isTrue(((String)pathString).endsWith("orders/place")))
+                        } else if (((String)pathString).endsWith("orders/place"))
                         {
                             // spot order placement
                             String clientOrderId = this.safeString(parameters, "client-order-id");

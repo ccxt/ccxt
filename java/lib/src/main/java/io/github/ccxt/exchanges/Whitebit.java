@@ -2849,7 +2849,7 @@ public class Whitebit extends WhitebitApi
                 Boolean isMargin = (Boolean) ((List<Object>) isMarginparamsIsMarginVariable).get(0);
                 Map<String, Object> paramsIsMargin = (Map<String, Object>) ((List<Object>) isMarginparamsIsMarginVariable).get(1);
                 requestParams = paramsIsMargin;
-                if (Helpers.isTrue(isMargin))
+                if (Boolean.TRUE.equals(isMargin))
                 {
                     requestType.add("margin");
                 } else

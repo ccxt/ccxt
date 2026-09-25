@@ -307,7 +307,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (Helpers.isTrue(((String)baseUrl).endsWith("/ws")))
+            if (((String)baseUrl).endsWith("/ws"))
             {
                 String prefix = Helpers.slice(baseUrl, 0, (((long) ((String)baseUrl).length()) - 3L));
                 return (((prefix + "/") + category) + "/ws");
@@ -894,7 +894,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> rpiparamsRpiVariable = (List<Object>) this.handleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false);
             Boolean rpi = (Boolean) ((List<Object>) rpiparamsRpiVariable).get(0);
             Map<String, Object> paramsRpi = (Map<String, Object>) ((List<Object>) rpiparamsRpiVariable).get(1);
-            if (Helpers.isTrue(rpi) && java.util.Objects.equals(type, "future"))
+            if (Boolean.TRUE.equals(rpi) && java.util.Objects.equals(type, "future"))
             {
                 name = "rpiDepth";
                 watchOrderBookRate = "500";
@@ -1981,7 +1981,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
             Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
             var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
-            if (Helpers.isTrue(stock))
+            if (Boolean.TRUE.equals(stock))
             {
                 List<Object> stockStreams = new ArrayList<Object>(Arrays.asList());
                 List<String> stockMessageHashes = new ArrayList<String>(Arrays.asList());
@@ -2570,7 +2570,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
             var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
             List<String> symbolsNormalized = symbols;
-            if (Helpers.isTrue(stock))
+            if (Boolean.TRUE.equals(stock))
             {
                 if (java.util.Objects.equals(symbols, null))
                 {
@@ -2754,7 +2754,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "stock", false);
             Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
             var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
-            if (Helpers.isTrue(stock))
+            if (Boolean.TRUE.equals(stock))
             {
                 if (java.util.Objects.equals(symbols, null))
                 {
@@ -3677,7 +3677,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     {
                         Object requestParams = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
                         response = (this.sapiPostEquityListenKey(requestParams)).join();
-                    } else if (Helpers.isTrue(isPortfolioMargin))
+                    } else if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
                         response = (this.papiPostListenKey(paramsOmitted)).join();
                     } else if (java.util.Objects.equals(type, "future"))
@@ -3711,7 +3711,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                             put( "type", "stock" );
                             put( "defaultType", "stock" );
                         }});
-                    } else if (Helpers.isTrue(isPortfolioMargin))
+                    } else if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
                         delayParams = this.extend(paramsOmitted, new HashMap<String, Object>() {{
                             put( "portfolioMargin", true );
@@ -3792,7 +3792,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     // POST extends io.github.ccxt.exchanges.Binance validity of that same key
                     Object requestParams = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("stock", "name", "callerMethodName", "subType", "timeframe")));
                     (this.sapiPostEquityListenKey(requestParams)).join();
-                } else if (Helpers.isTrue(isPortfolioMargin))
+                } else if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     (this.papiPutListenKey(this.extend(request, paramsOmitted))).join();
                 } else if (java.util.Objects.equals(type, "future"))
@@ -3820,7 +3820,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 } else
                 {
                     String urlType = type;
-                    if (Helpers.isTrue(isPortfolioMargin))
+                    if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
                         urlType = "papi";
                     }
@@ -3863,7 +3863,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 delayParams = this.extend(paramsOmitted, new HashMap<String, Object>() {{
                     put( "type", "stock" );
                 }});
-            } else if (Helpers.isTrue(isPortfolioMargin))
+            } else if (Boolean.TRUE.equals(isPortfolioMargin))
             {
                 delayParams = this.extend(paramsOmitted, new HashMap<String, Object>() {{
                     put( "portfolioMargin", true );
@@ -5188,7 +5188,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOrders", "stock", false);
             Boolean stock = (Boolean) ((List<Object>) stockparamsStockVariable).get(0);
             Map<String, Object> paramsStock = (Map<String, Object>) ((List<Object>) stockparamsStockVariable).get(1);
-            if (Helpers.isTrue(stock))
+            if (Boolean.TRUE.equals(stock))
             {
                 // literal on top: a stray type in the caller params must not override
                 // the forced stock, the removed authenticateStock ignored it entirely
