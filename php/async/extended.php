@@ -2035,7 +2035,7 @@ class extended extends Exchange {
         }
         $toVault = $this->safe_string_2($params, 'toVault', 'receiverPositionId');
         $toL2Key = $this->safe_string_2($params, 'toL2Key', 'receiverPublicKey');
-        if (($toAccount === null) || ($toVault === null) || ($toL2Key === null)) {
+        if (($toVault === null) || ($toL2Key === null)) {
             throw new ArgumentsRequired($this->id . ' transfer() requires a $toAccount argument and $params["toVault"] and $params["toL2Key"]');
         }
         $amountString = $this->currency_to_precision($code, $amount);

@@ -1489,7 +1489,7 @@ class apex extends Exchange {
         $accountId = $this->safe_string($accountData, 'id', '');
         $currency = array();
         $assets = array();
-        if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
+        if (strtolower($fromAccount) === 'contract') {
             $assets = $contractAssets;
         } else {
             $assets = $spotAssets;
@@ -1511,7 +1511,7 @@ class apex extends Exchange {
         }
         $finalClientOrderId = $clientOrderId; // java req
         $paramsOmitted = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-        if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
+        if (strtolower($fromAccount) === 'contract') {
             $formattedUint32 = '4294967295';
             $zkSignAccountId = Precise::string_mod($accountId, $formattedUint32);
             $expireTime = $timestampSeconds + 3600 * 24 * 28;
