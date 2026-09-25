@@ -883,12 +883,12 @@ func (this *Cryptomus) ParseBalance(balance any) any {
  * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Cryptomus) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -910,7 +910,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		params = this.Omit(params, "clientOrderId")
 		request["client_order_id"] = clientOrderId
 	}
-	var sideBuy bool = (IsEqual(side, "buy"))
+	var sideBuy bool = (side == "buy")
 	var amountToString *string = this.NumberToString(amount)
 	var priceToString *string = this.NumberToString(price)
 	var cost any = nil
@@ -918,7 +918,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	cost = GetValue(costparamsVariable, 0)
 	params = GetValue(costparamsVariable, 1)
 	var response map[string]any = nil
-	if IsEqual(typeVar, "market") {
+	if typeVar == "market" {
 		if sideBuy {
 			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -944,9 +944,9 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		}
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, params))).Raw))
-	} else if IsEqual(typeVar, "limit") {
+	} else if typeVar == "limit" {
 		if price == nil {
-			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price parameter for a ", typeVar), " order")))
+			panic(ArgumentsRequired(this.Id + " createOrder() requires a price parameter for a " + typeVar + " order"))
 		}
 		request["quantity"] = amountToString
 		request["price"] = price

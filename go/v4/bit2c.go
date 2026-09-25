@@ -728,12 +728,12 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bit2c) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bit2c) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -750,8 +750,8 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		"Pair":   market["id"],
 	}
 	var response map[string]any = nil
-	if IsEqual(typeVar, "market") {
-		if IsEqual(side, "buy") {
+	if typeVar == "market" {
+		if side == "buy" {
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))).Raw))
 		} else {
@@ -763,7 +763,7 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)
 		request["Total"] = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
-		request["IsBid"] = (IsEqual(side, "buy"))
+		request["IsBid"] = (side == "buy")
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrder(this.Extend(request, params))).Raw))
 	}

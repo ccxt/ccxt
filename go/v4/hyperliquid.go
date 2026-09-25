@@ -1908,8 +1908,8 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey string) any {
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	return map[string]any{
 		"r": Add("0x", signature["r"]),
 		"s": Add("0x", signature["s"]),
@@ -2605,12 +2605,12 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan any, abstraction any, o
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2646,12 +2646,12 @@ func (this *Hyperliquid) createOrderBody(ch chan any, symbol any, typeVar any, s
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateTwapOrderAsync(symbol any, side any, amount any, duration any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CreateTwapOrderAsync(symbol any, side string, amount any, duration any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side any, amount any, duration any, optionalArgs ...any) any {
+func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side string, amount any, duration any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2664,7 +2664,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side any, 
 	PanicOnError((<-this.InitializeClientAsync()))
 	var market map[string]any = this.Market(symbol)
 	var nonce any = this.IncrementingNonce()
-	var isBuy bool = (IsEqual(side, "BUY"))
+	var isBuy bool = (side == "BUY")
 	var vaultAddress any = nil
 	var randomize *bool = this.SafeBool(params, "randomize", false)
 	params = MapTyped(this.Omit(params, "randomize"))

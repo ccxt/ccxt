@@ -1231,12 +1231,12 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Independentreserve) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Independentreserve) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1250,7 +1250,7 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 	var market map[string]any = this.Market(symbol)
 	var orderType any = this.Capitalize(typeVar)
 	orderType = Add(orderType, func() string {
-		if IsEqual(side, "sell") {
+		if side == "sell" {
 			return "Offer"
 		}
 		return "Bid"
@@ -1262,7 +1262,7 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 	}
 	var response map[string]any = nil
 	request["volume"] = amount
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["price"] = price
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params))).Raw))

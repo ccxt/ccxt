@@ -4,6 +4,7 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
+import "strings"
 
 type Zebpay struct {
 	Exchange
@@ -1389,12 +1390,12 @@ func (this *Zebpay) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.positionId] PositionId of the order.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Zebpay) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1406,14 +1407,14 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var upperCaseType string = ToUpper(typeVar)
+	var upperCaseType string = strings.ToUpper(typeVar)
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	params = this.Omit(params, []any{"marginAsset", "takeProfitPrice", "takeProfitPrice"})
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request any = map[string]any{
 		"symbol": market["id"],
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(side),
 	}
 	var response map[string]any = nil
 	if GetValue(market, "spot") == true {
@@ -1441,7 +1442,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			response = MapTyped(PanicOnError((<-this.PrivateSwapPostV1TradeOrderAddTPSL(this.Extend(request, params))).Raw))
 		} else {
 			AddElementToObject(request, "type", upperCaseType)
-			if IsEqual(typeVar, "limit") {
+			if typeVar == "limit" {
 				if price == nil {
 					panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit orders"))
 				}
@@ -1463,12 +1464,12 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Zebpay) OrderRequest(symbol any, typeVar any, amount any, request any, optionalArgs ...any) any {
+func (this *Zebpay) OrderRequest(symbol any, typeVar string, amount any, request any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var upperCaseType string = ToUpper(typeVar)
+	var upperCaseType string = strings.ToUpper(typeVar)
 	var triggerPrice *string = this.SafeString(params, "stopLossPrice")
 	var quoteOrderQty *string = this.SafeString2(params, "quoteOrderQty", "cost", nil)
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")

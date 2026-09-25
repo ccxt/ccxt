@@ -976,12 +976,12 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coincheck) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coincheck) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -996,9 +996,9 @@ func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
-	if IsEqual(typeVar, "market") {
-		request["order_type"] = Add(Add(typeVar, "_"), side)
-		if IsEqual(side, "sell") {
+	if typeVar == "market" {
+		request["order_type"] = typeVar + "_" + side
+		if side == "sell" {
 			request["amount"] = amount
 		} else {
 			var cost *float64 = this.SafeNumber(params, "cost")

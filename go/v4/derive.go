@@ -4,6 +4,7 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
+import "strings"
 
 type Derive struct {
 	Exchange
@@ -1702,12 +1703,12 @@ func (this *Derive) ParseUnits(num *string, optionalArgs ...any) *string {
  * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Derive) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Derive) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1730,7 +1731,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var postOnly *bool = this.SafeBool(params, "postOnly")
-	var orderType string = ToLower(typeVar)
+	var orderType string = strings.ToLower(typeVar)
 	var orderSide string = ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce any = this.IncrementingNonce()

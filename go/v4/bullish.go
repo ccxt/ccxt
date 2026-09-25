@@ -2296,12 +2296,12 @@ func (this *Bullish) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bullish) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bullish) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2320,9 +2320,9 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"quantity":         this.AmountToPrecision(symbol, amount),
 		"tradingAccountId": tradingAccountId,
 	}
-	var isMarketOrder bool = ((IsEqual(typeVar, "market")) || (IsEqual(typeVar, "MARKET")))
+	var isMarketOrder bool = ((typeVar == "market") || (typeVar == "MARKET"))
 	var postOnly bool = false
-	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "POST_ONLY")), params)
+	var postOnlyparamsVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar == "POST_ONLY"), params)
 	postOnly = GetValueBool(postOnlyparamsVariable, 0, false)
 	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
 	if postOnly {
@@ -2345,7 +2345,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		typeVar = "STOP_LIMIT"
 		params = MapTyped(this.Omit(params, "triggerPrice"))
 	}
-	request["type"] = ToUpper(typeVar)
+	request["type"] = strings.ToUpper(typeVar)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2Orders(this.Extend(request, params))).Raw))
 

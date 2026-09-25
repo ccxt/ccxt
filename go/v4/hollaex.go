@@ -1631,12 +1631,12 @@ func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) any {
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Hollaex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1657,7 +1657,7 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
 	var meta map[string]any = SafeMapTyped(params, "meta")
 	var exchangeSpecificParam *bool = this.SafeBool(meta, "post_only", false)
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (typeVar == "market")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)

@@ -3848,12 +3848,12 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
  * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbase) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3895,11 +3895,11 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	}
 	var endTime *string = this.SafeString(params, "end_time")
 	var stopDirection *string = this.SafeString(params, "stop_direction")
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		if isStop {
 			if stopDirection == nil {
 				stopDirection = SafeStringPtr(func() string {
-					if IsEqual(side, "buy") {
+					if side == "buy" {
 						return "STOP_DIRECTION_STOP_DOWN"
 					}
 					return "STOP_DIRECTION_STOP_UP"
@@ -3933,7 +3933,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			if isStopLoss {
 				if stopDirection == nil {
 					stopDirection = SafeStringPtr(func() string {
-						if IsEqual(side, "buy") {
+						if side == "buy" {
 							return "STOP_DIRECTION_STOP_UP"
 						}
 						return "STOP_DIRECTION_STOP_DOWN"
@@ -3943,7 +3943,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			} else {
 				if stopDirection == nil {
 					stopDirection = SafeStringPtr(func() string {
-						if IsEqual(side, "buy") {
+						if side == "buy" {
 							return "STOP_DIRECTION_STOP_DOWN"
 						}
 						return "STOP_DIRECTION_STOP_UP"
@@ -4000,7 +4000,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		if isStop || isStopLoss || isTakeProfit {
 			panic(NotSupported(this.Id + " createOrder() only stop limit orders are supported"))
 		}
-		if (GetValue(market, "spot") == true) && (IsEqual(side, "buy")) {
+		if (GetValue(market, "spot") == true) && (side == "buy") {
 			var total any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)

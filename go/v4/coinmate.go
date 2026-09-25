@@ -1519,12 +1519,12 @@ func (this *Coinmate) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinmate) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinmate) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1540,8 +1540,8 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var request map[string]any = map[string]any{
 		"currencyPair": market["id"],
 	}
-	if IsEqual(typeVar, "market") {
-		if IsEqual(side, "buy") {
+	if typeVar == "market" {
+		if side == "buy" {
 			request["total"] = this.AmountToPrecision(symbol, amount) // amount in fiat
 		} else {
 			request["amount"] = this.AmountToPrecision(symbol, amount) // amount in fiat
@@ -1567,7 +1567,7 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostSellLimit(requestParams)).Raw))
 	} else {
-		panic(InvalidOrder(Add(this.Id+" createOrder() does not support order type ", typeVar)))
+		panic(InvalidOrder(this.Id + " createOrder() does not support order type " + typeVar))
 	}
 	var id *string = this.SafeString(response, "data")
 

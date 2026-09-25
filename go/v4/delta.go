@@ -2372,12 +2372,12 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
  * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Delta) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2386,7 +2386,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var orderType any = Add(typeVar, "_order")
+	var orderType string = typeVar + "_order"
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
@@ -2394,7 +2394,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		"side":       side,
 		"order_type": orderType,
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")

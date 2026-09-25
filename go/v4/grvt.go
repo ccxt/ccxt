@@ -2647,12 +2647,12 @@ func (this *Grvt) withdrawBody(ch chan any, code any, amount any, address any, o
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Grvt) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Grvt) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2671,9 +2671,9 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	} else {
 		orderLeg["limit_price"] = nil
 	}
-	if IsEqual(side, "sell") {
+	if side == "sell" {
 		orderLeg["is_buying_asset"] = false
-	} else if IsEqual(side, "buy") {
+	} else if side == "buy" {
 		orderLeg["is_buying_asset"] = true
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder(): order side must be either \"buy\" or \"sell\""))
@@ -2683,7 +2683,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		clientOrderId = SafeStringPtr(ToString(this.Nonce()) + "000" + strconv.FormatInt(this.RequestId(), 10))
 	}
 	params = MapTyped(this.Omit(params, []any{"clientOrderId"}))
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (typeVar == "market")
 	var subAccountId any = this.GetSubAccountId(params)
 	var isReduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
 	var orderRequest map[string]any = map[string]any{
@@ -2743,7 +2743,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		}
 		// trigger type
 		var selectedType *string = nil
-		var isBuy bool = (IsEqual(side, "buy"))
+		var isBuy bool = (side == "buy")
 		if stopLossPrice != nil {
 			selectedType = SafeStringPtr(func() string {
 				if isBuy {

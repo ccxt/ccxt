@@ -2320,12 +2320,12 @@ func (this *Coinbaseinternational) transferBody(ch chan any, code any, amount an
  * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbaseinternational) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2337,7 +2337,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var typeId string = ToUpper(typeVar)
+	var typeId string = strings.ToUpper(typeVar)
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var clientOrderIdprefix *string = this.SafeString(this.Options, "brokerId", "nfqkvdjp")
 	var clientOrderId string = *clientOrderIdprefix + "-" + this.Uuid()
@@ -2345,12 +2345,12 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"client_order_id": clientOrderId,
-		"side":            ToUpper(side),
+		"side":            strings.ToUpper(side),
 		"instrument":      market["id"],
 		"size":            this.AmountToPrecision(market["symbol"], amount),
 	}
 	if triggerPrice != nil {
-		if IsEqual(typeVar, "limit") {
+		if typeVar == "limit" {
 			typeId = "STOP_LIMIT"
 		} else {
 			typeId = "STOP"
@@ -2358,7 +2358,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 		request["stop_price"] = triggerPrice
 	}
 	request["type"] = typeId
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		if price == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a price parameter for a limit order types"))
 		}

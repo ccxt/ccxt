@@ -3101,12 +3101,12 @@ func (this *Phemex) ParseOrder(order any, optionalArgs ...any) any {
  * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Phemex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3151,15 +3151,15 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	params = this.Omit(params, []any{"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"})
 	if GetValue(market, "spot") == true {
 		var qtyType *string = this.SafeString(params, "qtyType", "ByBase")
-		if (IsEqual(typeVar, "Market")) || (IsEqual(typeVar, "Stop")) || (IsEqual(typeVar, "MarketIfTouched")) {
+		if (typeVar == "Market") || (typeVar == "Stop") || (typeVar == "MarketIfTouched") {
 			if price != nil {
 				qtyType = SafeStringPtr("ByQuote")
 			}
 		}
 		if triggerPrice != nil {
-			if IsEqual(typeVar, "Limit") {
+			if typeVar == "Limit" {
 				request["ordType"] = "StopLimit"
-			} else if IsEqual(typeVar, "Market") {
+			} else if typeVar == "Market" {
 				request["ordType"] = "Stop"
 			}
 			request["trigger"] = "ByLastPrice"
@@ -3199,7 +3199,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 				if reduceOnly != nil && *reduceOnly == true {
 					side = func() string {
-						if IsEqual(side, "buy") {
+						if side == "buy" {
 							return "sell"
 						}
 						return "buy"
@@ -3207,7 +3207,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 					params = this.Omit(params, "reduceOnly")
 				}
 				posSide = SafeStringPtr(func() string {
-					if IsEqual(side, "buy") {
+					if side == "buy" {
 						return "Long"
 					}
 					return "Short"
@@ -3236,32 +3236,32 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			}
 			// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
 			if (triggerDirection != nil && *triggerDirection == "ascending") || (triggerDirection != nil && *triggerDirection == "up") {
-				if IsEqual(side, "sell") {
+				if side == "sell" {
 					request["ordType"] = func() string {
-						if IsEqual(typeVar, "Market") {
+						if typeVar == "Market" {
 							return "MarketIfTouched"
 						}
 						return "LimitIfTouched"
 					}()
-				} else if IsEqual(side, "buy") {
+				} else if side == "buy" {
 					request["ordType"] = func() string {
-						if IsEqual(typeVar, "Market") {
+						if typeVar == "Market" {
 							return "Stop"
 						}
 						return "StopLimit"
 					}()
 				}
 			} else if (triggerDirection != nil && *triggerDirection == "descending") || (triggerDirection != nil && *triggerDirection == "down") {
-				if IsEqual(side, "sell") {
+				if side == "sell" {
 					request["ordType"] = func() string {
-						if IsEqual(typeVar, "Market") {
+						if typeVar == "Market" {
 							return "Stop"
 						}
 						return "StopLimit"
 					}()
-				} else if IsEqual(side, "buy") {
+				} else if side == "buy" {
 					request["ordType"] = func() string {
-						if IsEqual(typeVar, "Market") {
+						if typeVar == "Market" {
 							return "MarketIfTouched"
 						}
 						return "LimitIfTouched"
@@ -3310,7 +3310,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			}
 		}
 	}
-	if (IsEqual(typeVar, "Limit")) || (IsEqual(typeVar, "StopLimit")) || (IsEqual(typeVar, "LimitIfTouched")) {
+	if (typeVar == "Limit") || (typeVar == "StopLimit") || (typeVar == "LimitIfTouched") {
 		if isStableSettled {
 			request["priceRp"] = this.PriceToPrecision(symbol, price)
 		} else {

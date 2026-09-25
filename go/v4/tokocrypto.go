@@ -2061,12 +2061,12 @@ func (this *Tokocrypto) ParseOrderType(status *string) *string {
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Tokocrypto) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2085,7 +2085,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		typeVar = "LIMIT_MAKER"
 	}
 	params = MapTyped(this.Omit(params, []any{"clientId", "clientOrderId"}))
-	var initialUppercaseType string = ToUpper(typeVar)
+	var initialUppercaseType string = strings.ToUpper(typeVar)
 	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
 	if !IsEqual(triggerPrice, nil) {
@@ -2101,7 +2101,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		if initialUppercaseType != uppercaseType {
 			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
 		} else {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), symbol), " market")))
+			panic(InvalidOrder(Add(Add(this.Id+" "+typeVar+" is not a valid order type for the ", symbol), " market")))
 		}
 	}
 	var reverseOrderTypeMapping map[string]any = map[string]any{
@@ -2117,9 +2117,9 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		"symbol": Add(Add(market["baseId"], "_"), market["quoteId"]),
 		"type":   this.SafeString(reverseOrderTypeMapping, uppercaseType),
 	}
-	if IsEqual(side, "buy") {
+	if side == "buy" {
 		request["side"] = 0
-	} else if IsEqual(side, "sell") {
+	} else if side == "sell" {
 		request["side"] = 1
 	}
 	if clientOrderId == nil {
@@ -2149,7 +2149,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	//     LIMIT_MAKER          quantity, price
 	//
 	if uppercaseType == "MARKET" {
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			var precision any = GetValue(market["precision"], "price")
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
@@ -2197,13 +2197,13 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	if priceIsRequired {
 		if price == nil {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(InvalidOrder(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if triggerPriceIsRequired {
 		if IsEqual(triggerPrice, nil) {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a triggerPrice extra param for a ", typeVar), " order")))
+			panic(InvalidOrder(this.Id + " createOrder() requires a triggerPrice extra param for a " + typeVar + " order"))
 		} else {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}

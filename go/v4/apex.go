@@ -1630,12 +1630,12 @@ func (this *Apex) getAccountIdBody(ch chan any) any {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Apex) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1647,9 +1647,9 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderType string = ToUpper(typeVar)
+	var orderType string = strings.ToUpper(typeVar)
 	this.CheckRequiredArgument("createOrder", side, "side")
-	var orderSide string = ToUpper(side)
+	var orderSide string = strings.ToUpper(side)
 	var orderSize *string = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"
 	if price != nil {

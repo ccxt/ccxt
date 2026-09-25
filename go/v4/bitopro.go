@@ -1349,12 +1349,12 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
  * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitopro) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Bitopro) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1373,7 +1373,7 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"amount":    this.AmountToPrecision(symbol, amount),
 		"timestamp": this.Milliseconds(),
 	}
-	var orderType string = ToUpper(typeVar)
+	var orderType string = strings.ToUpper(typeVar)
 	if orderType == "LIMIT" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}

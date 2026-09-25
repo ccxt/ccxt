@@ -2665,12 +2665,12 @@ func (this *Deribit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deribit) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Deribit) CreateOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2696,18 +2696,18 @@ func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trigger_offset")
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
-	var isStopLimit bool = (IsEqual(typeVar, "stop_limit"))
-	var isStopMarket bool = (IsEqual(typeVar, "stop_market"))
-	var isTakeLimit bool = (IsEqual(typeVar, "take_limit"))
-	var isTakeMarket bool = (IsEqual(typeVar, "take_market"))
+	var isStopLimit bool = (typeVar == "stop_limit")
+	var isStopMarket bool = (typeVar == "stop_market")
+	var isTakeLimit bool = (typeVar == "take_limit")
+	var isTakeMarket bool = (typeVar == "take_market")
 	var isStopLossOrder bool = isStopLimit || isStopMarket || (!IsEqual(stopLossPrice, nil))
 	var isTakeProfitOrder bool = isTakeLimit || isTakeMarket || (!IsEqual(takeProfitPrice, nil))
 	if isStopLossOrder && isTakeProfitOrder {
 		panic(InvalidOrder(this.Id + " createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified"))
 	}
 	var isStopOrder bool = isStopLossOrder || isTakeProfitOrder
-	var isLimitOrder bool = (IsEqual(typeVar, "limit")) || isStopLimit || isTakeLimit
-	var isMarketOrder bool = (IsEqual(typeVar, "market")) || isStopMarket || isTakeMarket
+	var isLimitOrder bool = (typeVar == "limit") || isStopLimit || isTakeLimit
+	var isMarketOrder bool = (typeVar == "market") || isStopMarket || isTakeMarket
 	var exchangeSpecificPostOnly any = this.SafeValue(params, "post_only")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificPostOnly, params)
 	if isLimitOrder {
