@@ -2830,12 +2830,12 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Coinbase) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2852,12 +2852,12 @@ func (this *Coinbase) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- BoxAbsent(retRes225315)
 	return nil
 }
-func (this *Coinbase) FetchTickerV2Async(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchTickerV2Async(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerV2Body(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) fetchTickerV2Body(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2900,12 +2900,12 @@ func (this *Coinbase) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ..
 	ch <- this.ParseTicker(bidAskLast, market)
 	return nil
 }
-func (this *Coinbase) FetchTickerV3Async(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchTickerV3Async(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerV3Body(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) fetchTickerV3Body(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4886,12 +4886,12 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the candles
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Coinbase) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -5190,12 +5190,12 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Coinbase) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbase) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

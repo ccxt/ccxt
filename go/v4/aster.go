@@ -1543,12 +1543,12 @@ func (this *Aster) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Aster) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Aster) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1883,12 +1883,12 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Aster) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Aster) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2048,12 +2048,12 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Aster) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Aster) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Aster) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2409,17 +2409,17 @@ func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Aster) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Aster) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Aster) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRate() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -2838,12 +2838,12 @@ func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Aster) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Aster) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Aster) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

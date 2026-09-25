@@ -1059,17 +1059,17 @@ func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Paradex) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Paradex) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " fetchTradingFee() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -1182,12 +1182,12 @@ func (this *Paradex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.price] "last", "mark", "index", default is "last"
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Paradex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Paradex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1334,12 +1334,12 @@ func (this *Paradex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Paradex) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Paradex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1491,12 +1491,12 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Paradex) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Paradex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1510,7 +1510,7 @@ func (this *Paradex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	var rates map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRatesAsync([]any{market["symbol"]}, params))))
 	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
 	if rate == nil {
-		panic(BadSymbol(Add(this.Id+" fetchFundingRate() could not find a funding rate for ", symbol)))
+		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
 	}
 
 	ch <- rate
@@ -1590,12 +1590,12 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Paradex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Paradex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

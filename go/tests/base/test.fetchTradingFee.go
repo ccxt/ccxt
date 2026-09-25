@@ -15,7 +15,7 @@ func testFetchTradingFeeBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	defer ReturnPanicError(ch)
 	var method string = "fetchTradingFee"
 
-	fee := (<-exchange.FetchTradingFeeAsync(symbol))
+	fee := (<-exchange.FetchTradingFeeAsync(StringArg(symbol)))
 	PanicOnError(fee)
 	AssertDictionaryResponse(exchange, method, fee, symbol)
 	TestTradingFee(exchange, skippedProperties, method, symbol, fee)

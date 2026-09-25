@@ -1531,12 +1531,12 @@ func (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Phemex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Phemex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Phemex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1698,12 +1698,12 @@ func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Phemex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Phemex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Phemex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1897,12 +1897,12 @@ func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Phemex) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Phemex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Phemex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5073,12 +5073,12 @@ func (this *Phemex) ParseFundingFeeToPrecision(value any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Phemex) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Phemex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Phemex) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

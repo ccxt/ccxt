@@ -694,12 +694,12 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] exchange specific params
  * @returns An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Krakenfutures) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Krakenfutures) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -762,12 +762,12 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan any, symbol any, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Krakenfutures) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Krakenfutures) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1088,12 +1088,12 @@ func (this *Krakenfutures) ParseTradingFee(fee map[string]any, optionalArgs ...a
  * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Krakenfutures) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Krakenfutures) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")

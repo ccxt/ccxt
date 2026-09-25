@@ -25,7 +25,7 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	var duration int64 = exchange.ParseTimeframe(chosenTimeframeKey)
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
 
-	ohlcvs := (<-exchange.FetchOHLCVAsync(symbol, chosenTimeframeKey, since, limit))
+	ohlcvs := (<-exchange.FetchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit))
 	PanicOnError(ohlcvs)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol)
 	var now int64 = exchange.Milliseconds()

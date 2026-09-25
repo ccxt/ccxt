@@ -193,12 +193,12 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Luno) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Luno) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Luno) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

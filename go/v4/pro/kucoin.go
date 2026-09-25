@@ -511,12 +511,12 @@ func (this *Kucoin) unSubscribeMultipleBody(ch chan any, url any, messageHashes 
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Kucoin) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1821,12 +1821,12 @@ func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) a
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Kucoin) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Kucoin) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Kucoin) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//

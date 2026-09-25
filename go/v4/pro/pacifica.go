@@ -541,12 +541,12 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Pacifica) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -562,7 +562,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var aggLevelparamsAggLevelVariable []any = this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 0)
 	paramsAggLevel := ccxt.GetValue(aggLevelparamsAggLevelVariable, 1)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
+	var messageHash string = "orderbook:" + symbol
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -702,12 +702,12 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Pacifica) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

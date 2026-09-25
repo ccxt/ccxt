@@ -273,12 +273,12 @@ func (this *Hitbtc) tradeRequestBody(ch chan any, name string, optionalArgs ...a
  * @param {int} [params.speed] 100 (default), 500, or 1000
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hitbtc) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -394,12 +394,12 @@ func (this *Hitbtc) HandleDeltas(bookside any, deltas any) {
  * @param {string} [params.speed] '1s' (default), or '3s'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hitbtc) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Hitbtc) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

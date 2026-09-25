@@ -15,7 +15,7 @@ func testFetchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	defer ReturnPanicError(ch)
 	var method string = "fetchOrderBook"
 
-	orderbook := (<-exchange.FetchOrderBookAsync(symbol))
+	orderbook := (<-exchange.FetchOrderBookAsync(StringArg(symbol)))
 	PanicOnError(orderbook)
 	TestOrderBook(exchange, skippedProperties, method, orderbook, symbol)
 

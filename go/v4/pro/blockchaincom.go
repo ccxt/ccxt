@@ -255,12 +255,12 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Blockchaincom) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Blockchaincom) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Blockchaincom) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -748,12 +748,12 @@ func (this *Blockchaincom) ParseWsOrderStatus(status *string) *string {
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Blockchaincom) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Blockchaincom) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -768,7 +768,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol any, optionalA
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var typeVar *string = this.SafeString(params, "type", "l2")
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "type"))
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), typeVar))
+	var messageHash string = "orderbook:" + symbol + ":" + *typeVar
 	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": typeVar,

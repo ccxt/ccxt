@@ -196,12 +196,12 @@ func (this *Bydfi) watchPrivateBody(ch chan any, messageHashes any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bydfi) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bydfi) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bydfi) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -212,7 +212,7 @@ func (this *Bydfi) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = this.Market(symbol)
 	var marketId *string = ccxt.SafeStringPtr(market["id"])
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", symbol))
+	var messageHash string = "ticker::" + symbol
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add(marketId, "@ticker"))
 
 	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync([]any{messageHash}, []any{channel}, params)))
@@ -604,12 +604,12 @@ func (this *Bydfi) HandleOHLCV(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bydfi) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Bydfi) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Bydfi) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

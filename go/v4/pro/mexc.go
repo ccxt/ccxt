@@ -101,12 +101,12 @@ func (this *Mexc) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Mexc) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mexc) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mexc) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -882,12 +882,12 @@ func (this *Mexc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Mexc) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mexc) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mexc) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

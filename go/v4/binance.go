@@ -5976,12 +5976,12 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Binance) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Binance) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Binance) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -6327,12 +6327,12 @@ func (this *Binance) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Binance) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Binance) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Binance) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6863,12 +6863,12 @@ func (this *Binance) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Binance) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Binance) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Binance) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -13026,12 +13026,12 @@ func (this *Binance) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Binance) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Binance) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Binance) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13385,12 +13385,12 @@ func (this *Binance) futuresTransferBody(ch chan any, code any, amount any, type
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Binance) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Binance) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Binance) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

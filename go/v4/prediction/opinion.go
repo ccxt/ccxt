@@ -809,12 +809,12 @@ func (this *Opinion) ParseEvent(rawEvent any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Opinion) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Opinion) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Opinion) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Opinion) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -976,12 +976,12 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Opinion) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Opinion) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Opinion) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Opinion) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1032,12 +1032,12 @@ func (this *Opinion) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Opinion) FetchOHLCVAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Opinion) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Opinion) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1d")
@@ -2395,12 +2395,12 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId any, outcomeSide any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Opinion) WatchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Opinion) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Opinion) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Opinion) watchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2442,12 +2442,12 @@ func (this *Opinion) watchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Opinion) SeedOrderBookAsync(outcome any, sym any, optionalArgs ...any) <-chan any {
+func (this *Opinion) SeedOrderBookAsync(outcome string, sym any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.seedOrderBookBody(ch, outcome, sym, optionalArgs...)
 	return ch
 }
-func (this *Opinion) seedOrderBookBody(ch chan any, outcome any, sym any, optionalArgs ...any) any {
+func (this *Opinion) seedOrderBookBody(ch chan any, outcome string, sym any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
@@ -2508,12 +2508,12 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Opinion) WatchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Opinion) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Opinion) watchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Opinion) watchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

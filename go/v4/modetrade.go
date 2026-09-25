@@ -1341,12 +1341,12 @@ func (this *Modetrade) fetchFundingIntervalBody(ch chan any, symbol string, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Modetrade) FetchFundingRateAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Modetrade) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Modetrade) fetchFundingRateBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1751,12 +1751,12 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Modetrade) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Modetrade) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Modetrade) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1817,12 +1817,12 @@ func (this *Modetrade) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Modetrade) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Modetrade) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Modetrade) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")

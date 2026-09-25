@@ -2420,12 +2420,12 @@ func (this *Sxbet) fetchSxbetBookSnapshotBody(ch chan any, marketHash any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Sxbet) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Sxbet) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Sxbet) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2715,12 +2715,12 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Sxbet) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Sxbet) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Sxbet) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3082,12 +3082,12 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Sxbet) WatchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Sxbet) WatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) watchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Sxbet) watchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3227,12 +3227,12 @@ func (this *Sxbet) HandleOrderBook(client any, rows any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Sxbet) WatchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Sxbet) WatchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) watchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Sxbet) watchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

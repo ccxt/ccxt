@@ -42,7 +42,7 @@ func testWatchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 				}()
 				// try block:
 
-				response = (UnWrapType(<-exchange.WatchTickerAsync(symbol)))
+				response = (UnWrapType(<-exchange.WatchTickerAsync(StringArg(symbol))))
 				PanicOnError(response)
 				return nil
 			}()

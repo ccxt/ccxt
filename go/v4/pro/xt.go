@@ -411,12 +411,12 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access s
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
-func (this *Xt) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -740,12 +740,12 @@ func (this *Xt) unWatchTradesBody(ch chan any, symbol string, optionalArgs ...an
  * @param {int} [params.levels] 5, 10, 20, or 50
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Xt) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Xt) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Xt) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

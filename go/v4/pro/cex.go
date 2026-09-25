@@ -301,12 +301,12 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
  * @param {string} [params.method] public or private
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Cex) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Cex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Cex) watchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1110,12 +1110,12 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Cex) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Cex) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Cex) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

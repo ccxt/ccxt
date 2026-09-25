@@ -1412,12 +1412,12 @@ func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting map[string]
  * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Pacifica) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1596,12 +1596,12 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Pacifica) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1615,7 +1615,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	if since == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"since\" argument"))
 	}
-	if IsEqual(symbol, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"symbol\" argument"))
 	}
 	var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
@@ -3772,12 +3772,12 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Pacifica) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Pacifica) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

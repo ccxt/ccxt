@@ -740,12 +740,12 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.region] the region to fetch the ticker for
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Revolutx) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Revolutx) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Revolutx) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -758,7 +758,7 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var tickers map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync([]any{symbol}, params))))
 	var ticker map[string]any = SafeMapTyped(tickers, symbol)
 	if ticker == nil {
-		panic(ExchangeError(Add(this.Id+" fetchTicker() could not find ticker for symbol ", symbol)))
+		panic(ExchangeError(this.Id + " fetchTicker() could not find ticker for symbol " + symbol))
 	}
 
 	ch <- ticker
@@ -776,12 +776,12 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.region] the region to fetch the order book for
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Revolutx) FetchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Revolutx) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -857,12 +857,12 @@ func (this *Revolutx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.region] the region to fetch candles for
  * @returns {int[][]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
  */
-func (this *Revolutx) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Revolutx) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")

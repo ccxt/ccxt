@@ -608,12 +608,12 @@ func (this *Coinbaseinternational) ParseAccount(account any) any {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  */
-func (this *Coinbaseinternational) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -2067,12 +2067,12 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Coinbaseinternational) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

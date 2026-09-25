@@ -47,7 +47,7 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 				}()
 				// try block:
 
-				response = (UnWrapType(<-exchange.WatchOrderBookAsync(symbol)))
+				response = (UnWrapType(<-exchange.WatchOrderBookAsync(StringArg(symbol))))
 				PanicOnError(response)
 				return nil
 			}()

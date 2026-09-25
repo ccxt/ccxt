@@ -701,12 +701,12 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Hyperliquid) FetchTickerAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchTickerBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchTickerBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -935,12 +935,12 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Hyperliquid) FetchOrderBookAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOrderBookBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1004,12 +1004,12 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, outcome any, optionalAr
  * @param {int} [params.until] end timestamp in ms
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hyperliquid) FetchOHLCVAsync(outcome any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) FetchOHLCVAsync(outcome string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
