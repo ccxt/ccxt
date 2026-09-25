@@ -1539,7 +1539,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             defaultType = (((!java.util.Objects.equals(posMode, null)))) ? "contract" : "spot";
         }
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(instId, (Map<String, Object>) null, (String) null, defaultType) : market;
+        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? instId : null), market, (String) null, defaultType);
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("uTime", "cTime", "ts", "T", "execTime")));
         List<Object> feeDetail = (List<Object>) this.safeList(trade, "feeDetail", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = (Map<String, Object>) this.safeDict(feeDetail, 0, (Object) null);
@@ -1559,7 +1559,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             "order", this.safeString2(trade, "orderId", "L"),
             "timestamp", timestamp,
             "datetime", this.iso8601(timestamp),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "symbol", marketResolved.get("symbol"),
             "type", this.safeString(trade, "orderType"),
             "side", this.safeString2(trade, "side", "S"),
             "takerOrMaker", this.safeString(trade, "tradeScope"),
@@ -1567,7 +1567,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             "amount", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("size", "baseVolume", "execQty", "v"))),
             "cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "quoteVolume", "execValue"))),
             "fee", fee
-        ), Helpers.toMapArg(marketResolved)));
+        ), marketResolved));
     }
 
     /**
