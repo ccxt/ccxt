@@ -1,0 +1,15 @@
+import fs from 'fs';
+const WT = process.env.WT, AST = process.env.AST;
+const { Transpiler } = await import(AST + '/dist/transpiler.js');
+const m = await import(WT + '/build/go-local-types.js');
+const src = fs.readFileSync(WT + '/build/goTranspiler.ts', 'utf8');
+const a = src.indexOf('const GO_UNIFIED_STRING_PARAMS'); const b = src.indexOf('};', a);
+const usp = new Function('return ' + src.substring(src.indexOf('{', src.indexOf('=', a)), b + 1))();
+const id = process.argv[2].replace(/^.*\//, '').replace('.ts', '');
+const cap = id[0].toUpperCase() + id.slice(1);
+const t = new Transpiler({ verbose: false, go: { classNameMap: { [id]: cap, [id + 'Rest']: cap }, asyncMethodSuffix: 'Async', unifiedStringParams: usp } });
+m.installCcxtGoLocalTypes(t.goTranspiler); m.installCcxtGoIndexableTypes?.(t.goTranspiler);
+for (const pre of (process.env.PRE ?? "").split(",").filter(Boolean)) t.transpileGoByPath(pre);
+const out = t.transpileGoByPath(process.argv[2]).content;
+const re = process.argv[3] ? new RegExp(process.argv[3]) : undefined;
+for (const l of out.split('\n')) if (!re || re.test(l)) console.log(l);

@@ -1,0 +1,1 @@
+fetchOrderBook:0 fetchTicker:0 fetchOHLCV:0 watchOrderBook:0 watchTicker:0 fetchTradingFee:0 fetchFundingRate:0

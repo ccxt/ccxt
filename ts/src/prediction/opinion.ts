@@ -778,7 +778,7 @@ export default class opinion extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const request: Dict = {
@@ -1791,7 +1791,7 @@ export default class opinion extends Exchange {
         return orderbook.limit ();
     }
 
-    async seedOrderBook (outcome: Str, sym: Str, limit: Int = undefined) {
+    async seedOrderBook (outcome: string, sym: Str, limit: Int = undefined) {
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         const snapshot = await this.fetchOrderBook (outcome, limit);
         const orderbook = this.orderBook ({});
