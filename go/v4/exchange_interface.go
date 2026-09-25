@@ -54,7 +54,7 @@ type ICancelOrderWs interface {
 	CancelOrderWsAsync(id any, optionalArgs ...any) <-chan any
 }
 type ICreateOrderWs interface {
-	CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any
+	CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any
 }
 type IFetchOrdersWs interface {
 	FetchOrdersWsAsync(optionalArgs ...any) <-chan any

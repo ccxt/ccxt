@@ -3094,12 +3094,12 @@ func (this *Mexc) createSpotOrderBody(ch chan any, market any, typeVar string, s
  * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateSwapOrderAsync(market any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mexc) CreateSwapOrderAsync(market any, typeVar any, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createSwapOrderBody(ch, market, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3170,14 +3170,14 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	if hedged != nil && *hedged == true {
 		if reduceOnly != nil && *reduceOnly == true {
 			sideInteger = func() int {
-				if IsEqual(side, "buy") {
+				if side == "buy" {
 					return 4
 				}
 				return 2
 			}() // close short, close long
 		} else {
 			sideInteger = func() int {
-				if IsEqual(side, "buy") {
+				if side == "buy" {
 					return 1
 				}
 				return 3
@@ -3187,14 +3187,14 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	} else {
 		if reduceOnly != nil && *reduceOnly == true {
 			sideInteger = func() int {
-				if IsEqual(side, "buy") {
+				if side == "buy" {
 					return 2
 				}
 				return 4
 			}()
 		} else {
 			sideInteger = func() int {
-				if IsEqual(side, "buy") {
+				if side == "buy" {
 					return 1
 				}
 				return 3

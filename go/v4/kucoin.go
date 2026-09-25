@@ -5485,16 +5485,16 @@ func (this *Kucoin) createUtaOrderBody(ch chan any, symbol any, typeVar string, 
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var isSpot *bool = SafeBoolPtr(market["spot"])
@@ -5517,14 +5517,14 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		"tradeType":   tradeType,
 		"clientOid":   clientOrderId,
 		"symbol":      market["id"],
-		"side":        ToUpper(side),
-		"orderType":   ToUpper(typeVar),
+		"side":        strings.ToUpper(side),
+		"orderType":   strings.ToUpper(typeVar),
 	}
 	if tradeType != nil {
 		request["tradeType"] = tradeType
 	}
 	request["clientOid"] = clientOrderId
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (typeVar == "market")
 	var cost *string = this.SafeString(paramsRequest, "cost")
 	if cost != nil {
 		paramsRequest = this.Omit(paramsRequest, "cost")
@@ -5582,7 +5582,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 			paramsOmitted = GetValue(hedgedparamsOmittedVariable, 1)
 			if hedged == true {
 				var positionSide string = "SHORT"
-				if IsEqual(side, "buy") {
+				if side == "buy" {
 					positionSide = "LONG"
 				}
 				if reduceOnly != nil && *reduceOnly == true {
@@ -5642,7 +5642,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	} else if ((stopLossPrice != nil)) || ((takeProfitPrice != nil)) {
 		if stopLossPrice != nil {
 			request["triggerDirection"] = func() string {
-				if IsEqual(side, "buy") {
+				if side == "buy" {
 					return "UP"
 				}
 				return "DOWN"
@@ -5654,7 +5654,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 			}
 		} else {
 			request["triggerDirection"] = func() string {
-				if IsEqual(side, "buy") {
+				if side == "buy" {
 					return "DOWN"
 				}
 				return "UP"

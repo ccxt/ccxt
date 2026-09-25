@@ -2484,7 +2484,7 @@ class extended(Exchange, ImplicitAPI):
         }
         return settlement
 
-    async def create_extended_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    async def create_extended_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:

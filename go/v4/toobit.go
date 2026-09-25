@@ -2165,22 +2165,22 @@ func (this *Toobit) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Toobit) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Toobit) CreateOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var id *string = SafeStringPtr(market["id"])
 	var request map[string]any = map[string]any{
 		"symbol": id,
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(side),
 	}
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2188,7 +2188,7 @@ func (this *Toobit) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
 	cost := GetValue(costparamsCostVariable, 0)
 	var paramsCost map[string]any = MapTyped(GetValue(costparamsCostVariable, 1))
-	if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
+	if (typeVar == "market") && (side == "buy") {
 		if IsEqual(cost, nil) {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires params[\"cost\"] for market buy order"))
 		}
@@ -2196,25 +2196,25 @@ func (this *Toobit) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	} else {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsCost)
+	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsCost)
 	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(GetValue(isPostOnlyparamsPostOnlyVariable, 1))
 	if isPostOnly == true {
 		request["type"] = "LIMIT_MAKER"
 	} else {
-		request["type"] = ToUpper(typeVar)
+		request["type"] = strings.ToUpper(typeVar)
 	}
 	return []any{request, paramsPostOnly}
 }
-func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2225,14 +2225,14 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any
 	var reduceOnlyparamsReduceOnlyVariable []any = this.HandleParamBool(params, "reduceOnly")
 	reduceOnly := GetValue(reduceOnlyparamsReduceOnlyVariable, 0)
 	var paramsReduceOnly map[string]any = MapTyped(GetValue(reduceOnlyparamsReduceOnlyVariable, 1))
-	if IsEqual(side, "buy") {
+	if side == "buy" {
 		request["side"] = func() string {
 			if IsEqual(reduceOnly, true) {
 				return "BUY_CLOSE"
 			}
 			return "BUY_OPEN"
 		}()
-	} else if IsEqual(side, "sell") {
+	} else if side == "sell" {
 		request["side"] = func() string {
 			if IsEqual(reduceOnly, true) {
 				return "SELL_CLOSE"
@@ -2246,13 +2246,13 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if this.InArray(typeVar, []any{"limit", "LIMIT"}) {
-		request["type"] = ToUpper(typeVar)
+		request["type"] = strings.ToUpper(typeVar)
 		request["price"] = this.PriceToPrecision(symbol, price)
-	} else if IsEqual(typeVar, "market") {
+	} else if typeVar == "market" {
 		request["type"] = "LIMIT" // weird, but exchange works this way
 		request["priceType"] = "MARKET"
 	}
-	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsReduceOnly)
+	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsReduceOnly)
 	var isPostOnly bool = GetValueBool(isPostOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(GetValue(isPostOnlyparamsPostOnlyVariable, 1))
 	if isPostOnly == true {

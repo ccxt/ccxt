@@ -276,12 +276,12 @@ func (this *Poloniex) tradeRequestBody(ch chan any, name string, optionalArgs ..
  * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
  * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CreateOrderWsAsync(symbol any, typeVar string, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) CreateOrderWsAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar string, side any, amount any, optionalArgs ...any) any {
+func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -296,17 +296,17 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar string,
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = this.Market(symbol)
 	var uppercaseType string = strings.ToUpper(typeVar)
-	if ccxt.IsEqual(side, nil) {
+	if false {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
 	}
-	var uppercaseSide string = ccxt.ToUpper(side)
+	var uppercaseSide string = strings.ToUpper(side)
 	var isPostOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), (uppercaseType == "LIMIT_MAKER"), params)
 	if isPostOnly {
 		uppercaseType = "LIMIT_MAKER"
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"side":   ccxt.ToUpper(side),
+		"side":   strings.ToUpper(side),
 		"type":   strings.ToUpper(typeVar),
 	}
 	var isMarketBuy bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY")

@@ -938,11 +938,11 @@ class lighter extends Exchange {
         return $this->safe_integer($response, 'nonce');
     }
 
-    public function sign_and_create_order(string $method, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function sign_and_create_order(string $method, ?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_sign_and_create_order(...))($method, $symbol, $type, $side, $amount, $price, $params);
     }
 
-    private function do_sign_and_create_order(string $method, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_sign_and_create_order(string $method, ?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

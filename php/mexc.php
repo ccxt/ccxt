@@ -2498,7 +2498,7 @@ class mexc extends Exchange {
         return $order;
     }
 
-    public function create_swap_order(mixed $market, mixed $type, ?string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
+    public function create_swap_order(mixed $market, mixed $type, string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
         /**
          * @ignore
          * create a trade order

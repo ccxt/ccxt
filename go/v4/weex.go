@@ -2778,28 +2778,28 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol any, typeVar string, s
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " createSpotOrderRequest() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
-		"side":     ToUpper(side),
-		"type":     ToUpper(typeVar),
+		"side":     strings.ToUpper(side),
+		"type":     strings.ToUpper(typeVar),
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -2885,28 +2885,28 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol any, typeVar strin
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Weex) CreateContractOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " createContractOrderRequest() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol":   this.ToSandboxMarketId(market),
-		"side":     ToUpper(side),
+		"side":     strings.ToUpper(side),
 		"quantity": this.AmountToPrecision(symbol, amount),
-		"type":     ToUpper(typeVar),
+		"type":     strings.ToUpper(typeVar),
 	}
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (typeVar == "market")
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
@@ -2928,10 +2928,10 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 	var isReduceOnly bool = (IsEqual(reduceOnly, true))
 	var positionSide string = "LONG"
 	if isReduceOnly {
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			positionSide = "SHORT"
 		}
-	} else if IsEqual(side, "sell") {
+	} else if side == "sell" {
 		positionSide = "SHORT"
 	}
 	request["positionSide"] = positionSide

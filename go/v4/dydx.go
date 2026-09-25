@@ -1626,24 +1626,24 @@ func (this *Dydx) Pow(n string, m any) any {
 	}
 	return r
 }
-func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
-	var orderType string = ToUpper(typeVar)
+	var orderType string = strings.ToUpper(typeVar)
 	var market map[string]any = this.Market(symbol)
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " createOrderRequest() requires a side argument"))
 	}
-	var orderSide string = ToUpper(side)
+	var orderSide string = strings.ToUpper(side)
 	var subaccountId int = 0
 	var subaccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParams(params, "createOrder", "subAccountId", subaccountId)
 	subaccountIdOption := GetValue(subaccountIdOptionparamsSubAccountIdVariable, 0)
