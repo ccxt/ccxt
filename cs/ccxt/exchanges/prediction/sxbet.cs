@@ -3152,7 +3152,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "sxbet";
         method ??= "GET";
@@ -3161,7 +3161,7 @@ public partial class sxbet : PredictionExchange
         object accessLevel = (api is string) ? "public" : getValue(api, 1);
         if ((isEqual(accessLevel, "private")) && ((this.apiKey == null)))
         {
-            throw new AuthenticationError ((((this.id + " ") + (path)) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
+            throw new AuthenticationError ((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sxbet")));

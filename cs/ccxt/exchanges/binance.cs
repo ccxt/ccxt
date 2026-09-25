@@ -15559,7 +15559,7 @@ public partial class binance : Exchange
         return (((scheme + "//") + domain) + "/");
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -15570,10 +15570,10 @@ public partial class binance : Exchange
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
         object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
-        url = add(url, ("/" + (path)));
+        url = add(url, ("/" + path));
         Dictionary<string, object> signedHeaders = null;
         object signedBody = null;
-        if (isEqual(path, "historicalTrades"))
+        if ((path == "historicalTrades"))
         {
             if (((this.apiKey != null)) && (!isEqual(this.apiKey, "")))
             {
@@ -15585,7 +15585,7 @@ public partial class binance : Exchange
                 throw new AuthenticationError ((this.id + " historicalTrades endpoint requires `apiKey` credential")) ;
             }
         }
-        bool userDataStream = (isEqual(path, "userDataStream")) || (isEqual(path, "listenKey")) || (isEqual(path, "userListenToken"));
+        bool userDataStream = ((path == "userDataStream")) || ((path == "listenKey")) || ((path == "userListenToken"));
         if (userDataStream)
         {
             if (((this.apiKey != null)) && (!isEqual(this.apiKey, "")))
@@ -15603,14 +15603,14 @@ public partial class binance : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && !isEqual(path, "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || isEqual(api, "papi") && !isEqual(path, "ping")))
+        } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || isEqual(api, "papi") && (path != "ping")))
         {
             this.checkRequiredCredentials();
             if ((getIndexOf(url, "testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            if ((method == "POST") && ((isEqual(path, "order")) || (isEqual(path, "sor/order"))))
+            if ((method == "POST") && (((path == "order")) || ((path == "sor/order"))))
             {
                 // inject in implicit API calls
                 string? newClientOrderId = this.safeString(parameters, "newClientOrderId");
@@ -15634,7 +15634,7 @@ public partial class binance : Exchange
             }
             object query = null;
             // handle batchOrders
-            if ((isEqual(path, "batchOrders")) && (((method == "POST")) || ((method == "PUT"))))
+            if (((path == "batchOrders")) && (((method == "POST")) || ((method == "PUT"))))
             {
                 List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
                 List<object> checkedBatchOrders = batchOrders;
@@ -15673,12 +15673,12 @@ public partial class binance : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if ((isEqual(api, "sapi")) && (isEqual(path, "asset/dust")))
+            if ((isEqual(api, "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((isEqual(path, "batchOrders")) || (((string)path).IndexOf("sub-account", StringComparison.Ordinal) >= 0) || (isEqual(path, "capital/withdraw/apply")) || (((string)path).IndexOf("staking", StringComparison.Ordinal) >= 0) || (((string)path).IndexOf("simple-earn", StringComparison.Ordinal) >= 0))
+            } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0) || (path.IndexOf("simple-earn", StringComparison.Ordinal) >= 0))
             {
-                if (((method == "DELETE")) && (isEqual(path, "batchOrders")))
+                if (((method == "DELETE")) && ((path == "batchOrders")))
                 {
                     List<object> orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
                     List<object> origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
@@ -15919,7 +15919,7 @@ public partial class binance : Exchange
         return this.safeNumber(config, "cost", 1);
     }
 
-    public async override Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
+    public async override Task<object> request(string path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
     {
         api ??= "public";
         method ??= "GET";

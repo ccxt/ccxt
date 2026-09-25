@@ -4237,7 +4237,7 @@ public partial class krakenfutures : Exchange
         throw new ExchangeError (feedback) ;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4254,7 +4254,7 @@ public partial class krakenfutures : Exchange
         object paramsOmitted2 = this.omit(paramsOmitted, this.extractParams(path));
         object query = endpoint;
         string postData = "";
-        if (isEqual(path, "batchorder"))
+        if ((path == "batchorder"))
         {
             postData = ("json=" + this.json(paramsOmitted2));
         } else if ((new List<object>(((IDictionary<string,object>)paramsOmitted2).Keys)).Count > 0)
@@ -4274,7 +4274,7 @@ public partial class krakenfutures : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string? url = ((string)add(apiUrl, query));
-        object requestBody = (isEqual(path, "batchorder")) ? postData : body;
+        object requestBody = ((path == "batchorder")) ? postData : body;
         Dictionary<string, object> privateHeaders = null;
         if (isEqual(api, "private") || access == "private")
         {

@@ -3375,7 +3375,7 @@ public partial class bydfi : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3386,7 +3386,7 @@ public partial class bydfi : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         object url = apiUrl;
-        string endpoint = ("/" + (path));
+        string endpoint = ("/" + path);
         string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);
         if ((method == "GET"))

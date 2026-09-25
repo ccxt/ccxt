@@ -4028,18 +4028,18 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object version = this.version;
         object pathValue = path;
-        if ((((string)path).IndexOf("v2/", StringComparison.Ordinal) == 0))
+        if ((path.IndexOf("v2/", StringComparison.Ordinal) == 0))
         {
-            pathValue = ((string)path).Replace("v2/", (string)"");
+            pathValue = path.Replace("v2/", (string)"");
         }
-        if ((((string)path).IndexOf("v2/", StringComparison.Ordinal) == 0))
+        if ((path.IndexOf("v2/", StringComparison.Ordinal) == 0))
         {
             version = "v2";
         }

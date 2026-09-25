@@ -3349,7 +3349,7 @@ public partial class bitstamp : Exchange
         object name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        object response = await this.request(add(name, "_address/"), "private", "POST", parameters);
+        object response = await this.request(((string)add(name, "_address/")), "private", "POST", parameters);
         string? address = this.safeString(response, "address");
         string? tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
@@ -3406,7 +3406,7 @@ public partial class bitstamp : Exchange
             request["address"] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request(add(name, "_withdrawal/"), "private", "POST", this.extend(request, paramsWithdrawTag));
+            response = await this.request(((string)add(name, "_withdrawal/")), "private", "POST", this.extend(request, paramsWithdrawTag));
         } else
         {
             currency = this.currency(code);
@@ -3503,7 +3503,7 @@ public partial class bitstamp : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";

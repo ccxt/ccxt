@@ -2183,7 +2183,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2191,7 +2191,7 @@ public partial class zebpay : Exchange
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
         object paramsOmitted = this.omit(parameters, "defaultType");
-        bool isV1 = ((string)path).IndexOf("v1/", StringComparison.Ordinal) > -1;
+        bool isV1 = path.IndexOf("v1/", StringComparison.Ordinal) > -1;
         string marketType = "spot";
         if (isV1)
         {

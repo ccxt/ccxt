@@ -3593,7 +3593,7 @@ public partial class modetrade : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -3619,14 +3619,14 @@ public partial class modetrade : Exchange
         {
             this.checkRequiredCredentials();
             bool isPostOrPut = (method == "POST") || (method == "PUT");
-            bool isOrder = isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order");
+            bool isOrder = (path == "algo/order") || (path == "order") || (path == "batch-order");
             if (isPostOrPut && isOrder)
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if ((isSandboxMode != true))
                 {
                     string? brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
-                    if (isEqual(path, "batch-order"))
+                    if ((path == "batch-order"))
                     {
                         List<object> ordersList = this.safeList(paramsSorted, "orders", new List<object>() {});
                         for (int i = 0; i < ordersList.Count; i++)

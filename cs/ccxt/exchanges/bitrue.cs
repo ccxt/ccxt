@@ -3494,7 +3494,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3505,7 +3505,7 @@ public partial class bitrue : Exchange
         string? version = this.safeString(api, 1);
         string? access = this.safeString(api, 2);
         object url = null;
-        if ((type == "api" && version == "kline") || (type == "open" && ((string)path).IndexOf("listenKey", StringComparison.Ordinal) >= 0))
+        if ((type == "api" && version == "kline") || (type == "open" && path.IndexOf("listenKey", StringComparison.Ordinal) >= 0))
         {
             string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
             if ((apiUrl2 == null))

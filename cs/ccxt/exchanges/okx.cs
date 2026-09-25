@@ -8108,7 +8108,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit, parameters));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -8131,7 +8131,7 @@ public partial class okx : Exchange
         {
             this.checkRequiredCredentials();
             // inject id in implicit api call
-            if ((method == "POST") && (isEqual(path, "trade/batch-orders") || isEqual(path, "trade/order-algo") || isEqual(path, "trade/order")))
+            if ((method == "POST") && ((path == "trade/batch-orders") || (path == "trade/order-algo") || (path == "trade/order")))
             {
                 string brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
                 if (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))

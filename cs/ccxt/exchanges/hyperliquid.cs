@@ -5647,7 +5647,7 @@ public partial class hyperliquid : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -5657,7 +5657,7 @@ public partial class hyperliquid : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = ((this.implodeHostname(apiUrl) + "/") + (path));
+        string url = ((this.implodeHostname(apiUrl) + "/") + path);
         bool isPost = ((method == "POST"));
         Dictionary<string, object> postHeaders = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },

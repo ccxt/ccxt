@@ -4927,7 +4927,7 @@ public partial class aster : Exchange
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4981,7 +4981,7 @@ public partial class aster : Exchange
             }, parameters);
             object paramString = null;
             Dictionary<string, object> paramsToEncode = null;
-            bool isApproveBuilder = (((string)path).IndexOf("/approveBuilder", StringComparison.Ordinal) >= 0);
+            bool isApproveBuilder = (path.IndexOf("/approveBuilder", StringComparison.Ordinal) >= 0);
             if (isApproveBuilder)
             {
                 // domain['name'] = 'Aster';

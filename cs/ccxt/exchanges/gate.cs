@@ -8615,7 +8615,7 @@ public partial class gate : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -8626,8 +8626,8 @@ public partial class gate : Exchange
         string? pathImploded = null;
         string? bodyJson = null;
         Dictionary<string, object> signedHeaders = null;
-        bool containsSettle = ((string)path).IndexOf("settle", StringComparison.Ordinal) > -1;
-        if (containsSettle && ((((string)path).EndsWith("batch_cancel_orders") == true)))
+        bool containsSettle = path.IndexOf("settle", StringComparison.Ordinal) > -1;
+        if (containsSettle && ((path.EndsWith("batch_cancel_orders") == true)))
         {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings

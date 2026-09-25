@@ -2671,12 +2671,12 @@ public partial class backpack : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = ("/" + (path));
+        string endpoint = ("/" + path);
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         if ((apiUrl == null))
         {
@@ -2695,7 +2695,7 @@ public partial class backpack : Exchange
             IDictionary<string, object> optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});
             string? instruction = this.safeString(optionPathInstructions, method, "");
             string payload = "";
-            if ((isEqual(path, "api/v1/orders")) && ((method == "POST")))
+            if (((path == "api/v1/orders")) && ((method == "POST")))
             {
                 payload = this.generateBatchPayload(sortedParams, ts, recvWindow, instruction);
             } else
