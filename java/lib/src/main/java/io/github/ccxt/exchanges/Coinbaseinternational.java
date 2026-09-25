@@ -1764,6 +1764,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         Boolean isSpot = (java.util.Objects.equals(typeId, "SPOT"));
         Object fees = this.fees;
+        if ((java.util.Objects.equals(baseId, null)) || (java.util.Objects.equals(quoteId, null)))
+        {
+            return null;
+        }
         String symbol = ((baseId + "/") + quoteId);
         String settleId = null;
         if (!Boolean.TRUE.equals(isSpot))

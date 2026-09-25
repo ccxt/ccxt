@@ -431,7 +431,6 @@ export default class bitfinex extends bitfinexRest {
         const channel = this.safeString (subscription, 'channel');
         const marketId = this.safeString (subscription, 'symbol');
         const market = this.safeMarket (marketId);
-        const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -462,7 +461,10 @@ export default class bitfinex extends bitfinexRest {
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
         }
-        client.resolve (stored, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + ':' + marketId;
+            client.resolve (stored, messageHash);
+        }
     }
 
     override parseWsTrade (trade: any, market: Market = undefined): Trade {

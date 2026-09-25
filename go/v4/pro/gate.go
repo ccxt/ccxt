@@ -1970,13 +1970,16 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 		var side *string = this.SafeString(position, "side")
 		// Control when position is closed no side is returned
 		if side == nil {
-			var prevLongPosition any = this.SafeDict(cache, ccxt.Add(symbol, "long"))
+			if symbol == nil {
+				continue
+			}
+			var prevLongPosition any = this.SafeDict(cache, *symbol+"long")
 			if !ccxt.IsEqual(prevLongPosition, nil) {
 				position["side"] = ccxt.GetValue(prevLongPosition, "side")
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
-			var prevShortPosition any = this.SafeDict(cache, ccxt.Add(symbol, "short"))
+			var prevShortPosition any = this.SafeDict(cache, *symbol+"short")
 			if !ccxt.IsEqual(prevShortPosition, nil) {
 				position["side"] = ccxt.GetValue(prevShortPosition, "side")
 				newPositions = append(newPositions, position)

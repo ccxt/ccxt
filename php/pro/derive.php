@@ -675,8 +675,10 @@ class derive extends \ccxt\async\derive {
                     $parsed['datetime'] = $this->safe_string($order, 'datetime');
                 }
                 $cachedOrders->append($parsed);
-                $messageHashSymbol = $topic . ':' . $symbol;
-                $client->resolve($this->orders, $messageHashSymbol);
+                if ($topic !== null) {
+                    $messageHashSymbol = $topic . ':' . $symbol;
+                    $client->resolve($this->orders, $messageHashSymbol);
+                }
             }
         }
         $client->resolve($this->orders, $topic);
@@ -745,8 +747,10 @@ class derive extends \ccxt\async\derive {
             $trade = $this->parse_trade($message);
             $myTrades->append($trade);
             $client->resolve($myTrades, $topic);
-            $messageHash = $topic . $this->safe_string($trade, 'symbol', '');
-            $client->resolve($myTrades, $messageHash);
+            if ($topic !== null) {
+                $messageHash = $topic . $this->safe_string($trade, 'symbol', '');
+                $client->resolve($myTrades, $messageHash);
+            }
         }
     }
 

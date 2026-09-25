@@ -139,13 +139,17 @@ public partial class kucoin : ccxt.kucoin
             List<object> instanceServers = this.safeList(data, "instanceServers", new List<object>() {});
             IDictionary<string, object> firstInstanceServer = this.safeDict(instanceServers, 0);
             Int64? pingInterval = this.safeInteger(firstInstanceServer, "pingInterval");
-            object endpoint = this.safeString(firstInstanceServer, "endpoint");
+            string? endpoint = this.safeString(firstInstanceServer, "endpoint");
+            if ((endpoint == null))
+            {
+                throw new ExchangeError ((this.id + " negotiate() response has no websocket endpoint")) ;
+            }
             string? token = this.safeString(data, "token");
-            string? result = ((string)add(add(endpoint, "?"), this.urlencode(new Dictionary<string, object>() {
+            string result = ((endpoint + "?") + this.urlencode(new Dictionary<string, object>() {
     { "token", token },
     { "privateChannel", privateChannel },
     { "connectId", connectId },
-})));
+}));
             var client = this.client(result);
             client.keepAlive = pingInterval;
             return result;

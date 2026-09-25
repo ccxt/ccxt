@@ -433,7 +433,6 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
-            String messageHash = Helpers.add((channel + ":"), symbol);
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
             {
@@ -441,7 +440,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
             stored.append(trade);
-            client.resolve(stored, messageHash);
+            if (!java.util.Objects.equals(channel, null))
+            {
+                String messageHash = ((channel + ":") + symbol);
+                client.resolve(stored, messageHash);
+            }
         }
     }
 
@@ -793,8 +796,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             newTickers.put((String)symbol, ticker);
         }
-        String messageHash = ((channel + "::") + symbol);
-        client.resolve(newTickers, messageHash);
+        if (!java.util.Objects.equals(channel, null))
+        {
+            String messageHash = ((channel + "::") + symbol);
+            client.resolve(newTickers, messageHash);
+        }
     }
 
     /**
@@ -2533,8 +2539,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             client.resolve(stored, channel);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                String messageHash = Helpers.add((channel + ":"), (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
-                client.resolve(stored, messageHash);
+                if (!java.util.Objects.equals(channel, null))
+                {
+                    String messageHash = Helpers.add((channel + ":"), (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                    client.resolve(stored, messageHash);
+                }
             }
         }
     }
@@ -2633,13 +2642,16 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 symbols.put((String)symbol, true);
             }
         }
-        String messageHash = (channel + "::myTrades");
-        client.resolve(this.myTrades, messageHash);
-        List<Object> tradeSymbols = new ArrayList<Object>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)tradeSymbols).size(); i++)
+        if (!java.util.Objects.equals(channel, null))
         {
-            String symbolMessageHash = ((messageHash + "::") + (tradeSymbols == null || i < 0 || i >= tradeSymbols.size() ? null : tradeSymbols.get(i)));
-            client.resolve(this.myTrades, symbolMessageHash);
+            String messageHash = (channel + "::myTrades");
+            client.resolve(this.myTrades, messageHash);
+            List<Object> tradeSymbols = new ArrayList<Object>(symbols.keySet());
+            for (var i = 0; i < ((List<?>)tradeSymbols).size(); i++)
+            {
+                String symbolMessageHash = ((messageHash + "::") + (tradeSymbols == null || i < 0 || i >= tradeSymbols.size() ? null : tradeSymbols.get(i)));
+                client.resolve(this.myTrades, symbolMessageHash);
+            }
         }
     }
 

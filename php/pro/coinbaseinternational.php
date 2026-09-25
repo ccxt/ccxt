@@ -326,7 +326,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $ticker = $this->parse_ws_instrument($message);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($ticker, $channel);
-        $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        if ($channel !== null) {
+            $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        }
     }
 
     public function parse_ws_instrument(array $ticker, ?array $market = null): array {
@@ -437,7 +439,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $ticker = $this->parse_ws_ticker($message);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($ticker, $channel);
-        $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        if ($channel !== null) {
+            $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+        }
     }
 
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
@@ -548,7 +552,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $parsed = $this->parse_ohlcv($tick, $market);
             $stored->append($parsed);
         }
-        $client->resolve($stored, $messageHash . '::' . $symbol);
+        if ($messageHash !== null) {
+            $client->resolve($stored, $messageHash . '::' . $symbol);
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -619,7 +625,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $tradesArray->append($trade);
         $this->trades[$symbol] = $tradesArray;
         $client->resolve($tradesArray, $channel);
-        $client->resolve($tradesArray, $channel . '::' . $trade['symbol']);
+        if ($channel !== null) {
+            $client->resolve($tradesArray, $channel . '::' . $trade['symbol']);
+        }
         return $message;
     }
 
@@ -741,7 +749,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $orderbook['datetime'] = $datetime;
         $orderbook['timestamp'] = $this->parse8601($datetime);
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve($orderbook, $channel . '::' . $symbol);
+        if ($channel !== null) {
+            $client->resolve($orderbook, $channel . '::' . $symbol);
+        }
     }
 
     public function handle_delta(mixed $orderbook, mixed $delta) {
@@ -816,7 +826,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channel = $this->safe_string($message, 'channel');
         $fundingRate = $this->parse_funding_rate($message);
         $this->fundingRates[$fundingRate['symbol']] = $fundingRate;
-        $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
+        if ($channel !== null) {
+            $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
+        }
     }
 
     public function handle_error_message(Client $client, array $message): ?bool {

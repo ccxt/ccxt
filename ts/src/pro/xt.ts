@@ -741,8 +741,10 @@ export default class xt extends xtRest {
             const symbol = fundingRate['symbol'];
             this.fundingRates[(symbol as string)] = fundingRate;
             const event = this.safeString (message, 'event');
-            const messageHash = event + '::contract';
-            client.resolve (fundingRate, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '::contract';
+                client.resolve (fundingRate, messageHash);
+            }
         }
         return message;
     }
@@ -908,8 +910,10 @@ export default class xt extends xtRest {
             if (isSpot) {
                 messageHashTail = 'spot';
             }
-            const messageHash = event + '::' + messageHashTail;
-            client.resolve (ticker, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '::' + messageHashTail;
+                client.resolve (ticker, messageHash);
+            }
         }
         return message;
     }
@@ -1075,8 +1079,10 @@ export default class xt extends xtRest {
             }
             stored.append (parsed);
             const event = this.safeString (message, 'event');
-            const messageHash = event + '::' + tradeType;
-            client.resolve (stored, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '::' + tradeType;
+                client.resolve (stored, messageHash);
+            }
         }
         return message;
     }
@@ -1131,8 +1137,10 @@ export default class xt extends xtRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
-            const messageHash = event + '::' + tradeType;
-            client.resolve (tradesArray, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '::' + tradeType;
+                client.resolve (tradesArray, messageHash);
+            }
         }
         return message;
     }

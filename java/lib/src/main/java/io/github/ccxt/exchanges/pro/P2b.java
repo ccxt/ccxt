@@ -365,7 +365,6 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
-        String messageHash = Helpers.add((channel + "::"), symbol);
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -378,7 +377,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
             }
             stored.append(parsed);
-            client.resolve(stored, messageHash);
+            if (!java.util.Objects.equals(channel, null))
+            {
+                String messageHash = ((channel + "::") + symbol);
+                client.resolve(stored, messageHash);
+            }
         }
         return message;
     }
@@ -483,8 +486,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-        String messageHash = Helpers.add((messageHashStart + "::"), symbol);
-        client.resolve(ticker, messageHash);
+        if (!java.util.Objects.equals(messageHashStart, null))
+        {
+            String messageHash = ((messageHashStart + "::") + symbol);
+            client.resolve(ticker, messageHash);
+        }
         return message;
     }
 

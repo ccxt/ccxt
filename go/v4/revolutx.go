@@ -459,7 +459,10 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var market map[string]any = MapTyped(this.SafeDict(markets, key, map[string]any{}))
 		var base *string = this.SafeString(market, "base")
 		var quote *string = this.SafeString(market, "quote")
-		var marketId *string = SafeStringPtr(Add(Add(base, "-"), quote))
+		if (base == nil) || (quote == nil) {
+			continue
+		}
+		var marketId string = *base + "-" + *quote
 		var marketData map[string]any = this.Extend(market, map[string]any{
 			"id": marketId,
 		})
@@ -1627,8 +1630,8 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"order_states": orderStates,
 	})
 
-	var retRes127415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
-	ch <- BoxAbsent(retRes127415)
+	var retRes127715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, requestParams))))
+	ch <- BoxAbsent(retRes127715)
 	return nil
 }
 

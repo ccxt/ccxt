@@ -1085,8 +1085,10 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) any {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 		var event *string = this.SafeString(message, "event")
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(event, "::contract"))
-		client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
+		if event != nil {
+			var messageHash string = *event + "::contract"
+			client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
+		}
 	}
 	return message
 }
@@ -1263,8 +1265,10 @@ func (this *Xt) HandleTicker(client any, message map[string]any) any {
 		if isSpot {
 			messageHashTail = "spot"
 		}
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, "::"), messageHashTail))
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		if event != nil {
+			var messageHash string = *event + "::" + messageHashTail
+			client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		}
 	}
 	return message
 }
@@ -1438,8 +1442,10 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 		}
 		stored.(ccxt.Appender).Append(parsed)
 		var event *string = this.SafeString(message, "event")
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, "::"), tradeType))
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		if event != nil {
+			var messageHash string = *event + "::" + tradeType
+			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		}
 	}
 	return message
 }
@@ -1493,8 +1499,10 @@ func (this *Xt) HandleTrade(client any, message map[string]any) any {
 			ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
 		}
 		tradesArray.(ccxt.Appender).Append(trade)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, "::"), tradeType))
-		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+		if event != nil {
+			var messageHash string = *event + "::" + tradeType
+			client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+		}
 	}
 	return message
 }

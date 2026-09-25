@@ -587,7 +587,6 @@ class poloniex(ccxt.async_support.poloniex):
         market = self.safe_market(symbol)
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframe = self.find_timeframe(channel, timeframes)
-        messageHash = channel + '::' + symbol
         parsed = self.parse_ws_ohlcv(data, market)
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = None if (timeframe is None) else self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
@@ -598,7 +597,9 @@ class poloniex(ccxt.async_support.poloniex):
                 if symbol is not None and timeframe is not None:
                     self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
-            client.resolve(stored, messageHash)
+            if channel is not None:
+                messageHash = channel + '::' + symbol
+                client.resolve(stored, messageHash)
         return message
 
     def handle_trade(self, client: Client, message: dict) -> dict:

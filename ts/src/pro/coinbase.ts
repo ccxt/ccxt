@@ -480,9 +480,11 @@ export default class coinbase extends coinbaseRest {
                     this.tickers[symbol] = result;
                 }
                 newTickers.push (result);
-                const messageHash = channel + '::' + symbol;
-                client.resolve (result, messageHash);
-                this.tryResolveUsdc (client, messageHash, result);
+                if (channel !== undefined) {
+                    const messageHash = channel + '::' + symbol;
+                    client.resolve (result, messageHash);
+                    this.tryResolveUsdc (client, messageHash, result);
+                }
             }
         }
     }

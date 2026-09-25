@@ -350,14 +350,16 @@ export default class okx extends okxRest {
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i]);
-            const messageHash = channel + ':' + symbol;
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache (tradesLimit);
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
-            client.resolve (stored, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + symbol;
+                client.resolve (stored, messageHash);
+            }
         }
     }
 
@@ -632,8 +634,10 @@ export default class okx extends okxRest {
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
         }
-        const messageHash = channel + '::' + symbol;
-        client.resolve (newTickers, messageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + '::' + symbol;
+            client.resolve (newTickers, messageHash);
+        }
     }
 
     /**
@@ -2132,8 +2136,10 @@ export default class okx extends okxRest {
             }
             client.resolve (stored, channel);
             for (let i = 0; i < marketIds.length; i++) {
-                const messageHash = channel + ':' + marketIds[i];
-                client.resolve (stored, messageHash);
+                if (channel !== undefined) {
+                    const messageHash = channel + ':' + marketIds[i];
+                    client.resolve (stored, messageHash);
+                }
             }
         }
     }
@@ -2225,12 +2231,14 @@ export default class okx extends okxRest {
                 symbols[symbol] = true;
             }
         }
-        const messageHash = channel + '::myTrades';
-        client.resolve (this.myTrades, messageHash);
-        const tradeSymbols = Object.keys (symbols);
-        for (let i = 0; i < tradeSymbols.length; i++) {
-            const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
-            client.resolve (this.myTrades, symbolMessageHash);
+        if (channel !== undefined) {
+            const messageHash = channel + '::myTrades';
+            client.resolve (this.myTrades, messageHash);
+            const tradeSymbols = Object.keys (symbols);
+            for (let i = 0; i < tradeSymbols.length; i++) {
+                const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
+                client.resolve (this.myTrades, symbolMessageHash);
+            }
         }
     }
 

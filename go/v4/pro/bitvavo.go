@@ -240,12 +240,14 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 		}()
 		var marketId *string = this.SafeString(data, "market")
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, "@"), marketId))
 		var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(data, market))
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		result = append(result, ticker)
-		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		if event != nil {
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*event+"@", marketId))
+			client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+		}
 	}
 	client.(ccxt.ClientInterface).Resolve(result, event)
 }

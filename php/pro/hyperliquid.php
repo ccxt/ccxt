@@ -1206,7 +1206,6 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $this->balance = array();
         }
         $topic = $this->safe_string($message, 'channel');
-        $messageHash = $topic . '::balance';
         $info = null;
         $rawBalances = array();
         $account = null;
@@ -1236,7 +1235,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $this->balance[$account]['timestamp'] = $timestamp;
         $this->balance[$account]['datetime'] = $this->iso8601($timestamp);
         $this->balance[$account] = $this->safe_balance($this->balance[$account]);
-        $client->resolve($this->balance[$account], $messageHash);
+        if ($topic !== null) {
+            $messageHash = $topic . '::balance';
+            $client->resolve($this->balance[$account], $messageHash);
+        }
     }
 
     public function parse_ws_balance(array $balance, ?string $accountType = null) {

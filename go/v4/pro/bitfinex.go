@@ -576,7 +576,6 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var channel *string = this.SafeString(subscription, "channel")
 	var marketId *string = this.SafeString(subscription, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -607,7 +606,10 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 		var parsed any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	if channel != nil {
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+":", marketId))
+		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	}
 }
 func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//

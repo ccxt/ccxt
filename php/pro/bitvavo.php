@@ -199,12 +199,14 @@ class bitvavo extends \ccxt\async\bitvavo {
             $data = $tickers[$i];
             $marketId = $this->safe_string($data, 'market');
             $market = $this->safe_market($marketId, null, '-');
-            $messageHash = $event . '@' . $marketId;
             $ticker = $this->parse_ticker($data, $market);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
             $result[] = $ticker;
-            $client->resolve($ticker, $messageHash);
+            if ($event !== null) {
+                $messageHash = $event . '@' . $marketId;
+                $client->resolve($ticker, $messageHash);
+            }
         }
         $client->resolve($result, $event);
     }

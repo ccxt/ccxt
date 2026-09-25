@@ -147,8 +147,11 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         }
-        String messageHash = Helpers.add((channel + ":"), marketId);
-        client.resolve(orderbook, messageHash);
+        if (!java.util.Objects.equals(channel, null))
+        {
+            String messageHash = ((channel + ":") + marketId);
+            client.resolve(orderbook, messageHash);
+        }
     }
 
     /**
@@ -219,8 +222,11 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         {
             stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
         }
-        String messageHash = Helpers.add((channel + ":"), marketId);
-        client.resolve(stored, messageHash);
+        if (!java.util.Objects.equals(channel, null))
+        {
+            String messageHash = ((channel + ":") + marketId);
+            client.resolve(stored, messageHash);
+        }
         client.resolve(stored, channel);
     }
 
@@ -323,8 +329,11 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            String messageHash = ((channel + ":") + marketId);
-            client.resolve(this.myTrades, messageHash);
+            if (!java.util.Objects.equals(channel, null))
+            {
+                String messageHash = ((channel + ":") + marketId);
+                client.resolve(this.myTrades, messageHash);
+            }
         }
     }
 
@@ -469,8 +478,11 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            String messageHash = ((channel + ":") + marketId);
-            client.resolve(this.orders, messageHash);
+            if (!java.util.Objects.equals(channel, null))
+            {
+                String messageHash = ((channel + ":") + marketId);
+                client.resolve(this.orders, messageHash);
+            }
         }
     }
 

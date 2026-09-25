@@ -700,7 +700,6 @@ class poloniex extends \ccxt\async\poloniex {
         $market = $this->safe_market($symbol);
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($channel, $timeframes);
-        $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = ($timeframe === null) ? null : $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
@@ -713,7 +712,10 @@ class poloniex extends \ccxt\async\poloniex {
                 }
             }
             $stored->append($parsed);
-            $client->resolve($stored, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . '::' . $symbol;
+                $client->resolve($stored, $messageHash);
+            }
         }
         return $message;
     }

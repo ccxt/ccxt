@@ -165,8 +165,10 @@ class blofin extends \ccxt\async\blofin {
                 $this->trades[$symbol] = $stored;
             }
             $stored->append($trade);
-            $messageHash = $channelName . ':' . $symbol;
-            $client->resolve($stored, $messageHash);
+            if ($channelName !== null) {
+                $messageHash = $channelName . ':' . $symbol;
+                $client->resolve($stored, $messageHash);
+            }
         }
     }
 
@@ -245,7 +247,6 @@ class blofin extends \ccxt\async\blofin {
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $messageHash = $channelName . ':' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
@@ -265,7 +266,10 @@ class blofin extends \ccxt\async\blofin {
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve($orderbook, $messageHash);
+        if ($channelName !== null) {
+            $messageHash = $channelName . ':' . $symbol;
+            $client->resolve($orderbook, $messageHash);
+        }
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -336,9 +340,11 @@ class blofin extends \ccxt\async\blofin {
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_ticker($data[$i]);
             $symbol = $ticker['symbol'];
-            $messageHash = $channelName . ':' . $symbol;
             $this->tickers[$symbol] = $ticker;
-            $client->resolve($this->tickers[$symbol], $messageHash);
+            if ($channelName !== null) {
+                $messageHash = $channelName . ':' . $symbol;
+                $client->resolve($this->tickers[$symbol], $messageHash);
+            }
         }
     }
 
@@ -641,9 +647,11 @@ class blofin extends \ccxt\async\blofin {
         for ($i = 0; $i < count($data); $i++) {
             $order = $this->parse_ws_order($data[$i]);
             $symbol = $order['symbol'];
-            $messageHash = $channelName . ':' . $symbol;
             $orders->append($order);
-            $client->resolve($orders, $messageHash);
+            if ($channelName !== null) {
+                $messageHash = $channelName . ':' . $symbol;
+                $client->resolve($orders, $messageHash);
+            }
             $client->resolve($orders, $channelName);
         }
     }
@@ -700,8 +708,10 @@ class blofin extends \ccxt\async\blofin {
             $position = $this->parse_ws_position($data[$i]);
             $newPositions[] = $position;
             $cache->append($position);
-            $messageHash = $channelName . ':' . $position['symbol'];
-            $client->resolve($position, $messageHash);
+            if ($channelName !== null) {
+                $messageHash = $channelName . ':' . $position['symbol'];
+                $client->resolve($position, $messageHash);
+            }
         }
     }
 

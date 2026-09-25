@@ -500,7 +500,7 @@ public partial class coinbase : ccxt.coinbase
         //    }
         //
         //
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         List<object> events = this.safeList(message, "events", new List<object>() {});
         string? datetime = this.safeString(message, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
@@ -526,9 +526,12 @@ public partial class coinbase : ccxt.coinbase
                     this.tickers[(string)symbol] = result;
                 }
                 newTickers.Add(result);
-                string? messageHash = ((string)add(add(channel, "::"), symbol));
-                client.resolve(result, messageHash);
-                this.tryResolveUsdc(client, messageHash, result);
+                if ((channel != null))
+                {
+                    string messageHash = ((channel + "::") + symbol);
+                    client.resolve(result, messageHash);
+                    this.tryResolveUsdc(client, messageHash, result);
+                }
             }
         }
     }

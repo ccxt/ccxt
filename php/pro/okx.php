@@ -369,14 +369,16 @@ class okx extends \ccxt\async\okx {
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         for ($i = 0; $i < count($data); $i++) {
             $trade = $this->parse_trade($data[$i]);
-            $messageHash = $channel . ':' . $symbol;
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
                 $stored = new ArrayCache($tradesLimit);
                 $this->trades[$symbol] = $stored;
             }
             $stored->append($trade);
-            $client->resolve($stored, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . ':' . $symbol;
+                $client->resolve($stored, $messageHash);
+            }
         }
     }
 
@@ -679,8 +681,10 @@ class okx extends \ccxt\async\okx {
             $this->tickers[$symbol] = $ticker;
             $newTickers[$symbol] = $ticker;
         }
-        $messageHash = $channel . '::' . $symbol;
-        $client->resolve($newTickers, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . '::' . $symbol;
+            $client->resolve($newTickers, $messageHash);
+        }
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2231,8 +2235,10 @@ class okx extends \ccxt\async\okx {
             }
             $client->resolve($stored, $channel);
             for ($i = 0; $i < count($marketIds); $i++) {
-                $messageHash = $channel . ':' . $marketIds[$i];
-                $client->resolve($stored, $messageHash);
+                if ($channel !== null) {
+                    $messageHash = $channel . ':' . $marketIds[$i];
+                    $client->resolve($stored, $messageHash);
+                }
             }
         }
     }
@@ -2324,12 +2330,14 @@ class okx extends \ccxt\async\okx {
                 $symbols[$symbol] = true;
             }
         }
-        $messageHash = $channel . '::myTrades';
-        $client->resolve($this->myTrades, $messageHash);
-        $tradeSymbols = is_array($symbols) ? array_keys($symbols) : array();
-        for ($i = 0; $i < count($tradeSymbols); $i++) {
-            $symbolMessageHash = $messageHash . '::' . $tradeSymbols[$i];
-            $client->resolve($this->myTrades, $symbolMessageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . '::myTrades';
+            $client->resolve($this->myTrades, $messageHash);
+            $tradeSymbols = is_array($symbols) ? array_keys($symbols) : array();
+            for ($i = 0; $i < count($tradeSymbols); $i++) {
+                $symbolMessageHash = $messageHash . '::' . $tradeSymbols[$i];
+                $client->resolve($this->myTrades, $symbolMessageHash);
+            }
         }
     }
 

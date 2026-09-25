@@ -1854,11 +1854,14 @@ func (this *Coinbaseinternational) ParseMarket(market any) any {
 	var typeId *string = this.SafeString(market, "type") // 'SPOT', 'PERP'
 	var isSpot bool = (typeId != nil && *typeId == "SPOT")
 	var fees any = this.Fees
-	var symbol any = Add(Add(baseId, "/"), quoteId)
+	if (baseId == nil) || (quoteId == nil) {
+		return nil
+	}
+	var symbol string = *baseId + "/" + *quoteId
 	var settleId any = nil
 	if !isSpot {
 		settleId = quoteId
-		symbol = Add(symbol, Add(":", quoteId))
+		symbol += ":" + *quoteId
 	}
 	var isLinear any = func() any {
 		if isSpot {
@@ -2775,8 +2778,8 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
-		var retRes216919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption))))
-		ch <- BoxAbsent(retRes216919)
+		var retRes217219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption))))
+		ch <- BoxAbsent(retRes217219)
 		return nil
 	}
 	var page any = Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
@@ -2883,8 +2886,8 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
 	if paginate {
 
-		var retRes225119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest))))
-		ch <- BoxAbsent(retRes225119)
+		var retRes225419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest))))
+		ch <- BoxAbsent(retRes225419)
 		return nil
 	}
 	var market map[string]any = nil

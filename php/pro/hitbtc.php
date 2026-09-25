@@ -1019,7 +1019,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         $parsed = $this->parse_order($order);
         $orders->append($parsed);
         $client->resolve($orders, $messageHash);
-        $client->resolve($orders, $messageHash . '::' . $symbol);
+        if ($messageHash !== null) {
+            $client->resolve($orders, $messageHash . '::' . $symbol);
+        }
     }
 
     public function parse_ws_order_trade(array $trade, ?array $market = null): array {

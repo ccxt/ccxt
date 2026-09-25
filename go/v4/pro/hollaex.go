@@ -139,8 +139,10 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		}
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
-	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	if channel != nil {
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+":", marketId))
+		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+	}
 }
 
 /**
@@ -216,8 +218,10 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
-	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	if channel != nil {
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+":", marketId))
+		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
 
@@ -325,8 +329,10 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = ccxt.GetValue(keys, i).(string)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
-		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
+		if channel != nil {
+			var messageHash string = *channel + ":" + marketId
+			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
+		}
 	}
 }
 
@@ -474,8 +480,10 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = ccxt.GetValue(keys, i).(string)
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
-		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+		if channel != nil {
+			var messageHash string = *channel + ":" + marketId
+			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+		}
 	}
 }
 

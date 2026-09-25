@@ -1048,7 +1048,6 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.balance is None:
             self.balance = {}
         topic = self.safe_string(message, 'channel')
-        messageHash = topic + '::balance'
         info = None
         rawBalances = []
         account = None
@@ -1074,7 +1073,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         self.balance[account]['timestamp'] = timestamp
         self.balance[account]['datetime'] = self.iso8601(timestamp)
         self.balance[account] = self.safe_balance(self.balance[account])
-        client.resolve(self.balance[account], messageHash)
+        if topic is not None:
+            messageHash = topic + '::balance'
+            client.resolve(self.balance[account], messageHash)
 
     def parse_ws_balance(self, balance: dict, accountType: Str = None):
         #

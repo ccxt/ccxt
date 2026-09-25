@@ -408,7 +408,7 @@ public class Bitbns extends BitbnsApi
                 String quoteId = this.safeString(market, "quote");
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                if ((java.util.Objects.equals(baseId, null)) || (java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     continue;
                 }

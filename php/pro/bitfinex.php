@@ -449,7 +449,6 @@ class bitfinex extends \ccxt\async\bitfinex {
         $channel = $this->safe_string($subscription, 'channel');
         $marketId = $this->safe_string($subscription, 'symbol');
         $market = $this->safe_market($marketId);
-        $messageHash = $channel . ':' . $marketId;
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $symbol = $market['symbol'];
         $stored = $this->safe_value($this->trades, $symbol);
@@ -480,7 +479,10 @@ class bitfinex extends \ccxt\async\bitfinex {
             $parsed = $this->parse_ws_trade($trade, $market);
             $stored->append($parsed);
         }
-        $client->resolve($stored, $messageHash);
+        if ($channel !== null) {
+            $messageHash = $channel . ':' . $marketId;
+            $client->resolve($stored, $messageHash);
+        }
     }
 
     public function parse_ws_trade(mixed $trade, ?array $market = null): array {

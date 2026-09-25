@@ -320,7 +320,6 @@ class p2b extends \ccxt\async\p2b {
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($channel, $timeframes);
         $symbol = $this->safe_string($market, 'symbol');
-        $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -331,7 +330,10 @@ class p2b extends \ccxt\async\p2b {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $stored->append($parsed);
-            $client->resolve($stored, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . '::' . $symbol;
+                $client->resolve($stored, $messageHash);
+            }
         }
         return $message;
     }
@@ -429,8 +431,10 @@ class p2b extends \ccxt\async\p2b {
         }
         $symbol = $ticker['symbol'];
         $this->tickers[$symbol] = $ticker;
-        $messageHash = $messageHashStart . '::' . $symbol;
-        $client->resolve($ticker, $messageHash);
+        if ($messageHashStart !== null) {
+            $messageHash = $messageHashStart . '::' . $symbol;
+            $client->resolve($ticker, $messageHash);
+        }
         return $message;
     }
 

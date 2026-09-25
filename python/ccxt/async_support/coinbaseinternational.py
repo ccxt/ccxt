@@ -1379,6 +1379,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         typeId = self.safe_string(market, 'type')  # 'SPOT', 'PERP'
         isSpot = (typeId == 'SPOT')
         fees = self.fees
+        if (baseId is None) or (quoteId is None):
+            return None
         symbol = baseId + '/' + quoteId
         settleId = None
         if not isSpot:

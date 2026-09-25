@@ -377,6 +377,8 @@ class revolutx(Exchange, ImplicitAPI):
             market = self.safe_dict(markets, key, {})
             base = self.safe_string(market, 'base')
             quote = self.safe_string(market, 'quote')
+            if (base is None) or (quote is None):
+                continue
             marketId = base + '-' + quote
             marketData = self.extend(market, {'id': marketId})
             result.append(self.parse_market(marketData))

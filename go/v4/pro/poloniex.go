@@ -916,7 +916,6 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var market map[string]any = this.SafeMarket(symbol)
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
 	var parsed any = this.ParseWsOHLCV(data, market)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = func() any {
@@ -934,7 +933,10 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		if channel != nil {
+			var messageHash string = *channel + "::" + *symbol
+			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		}
 	}
 	return message
 }
@@ -1187,8 +1189,8 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes89920 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes89920, trade)
+				retRes90120 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes90120, trade)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"

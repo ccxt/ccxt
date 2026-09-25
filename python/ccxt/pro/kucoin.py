@@ -148,6 +148,8 @@ class kucoin(ccxt.async_support.kucoin):
             firstInstanceServer = self.safe_dict(instanceServers, 0)
             pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
             endpoint = self.safe_string(firstInstanceServer, 'endpoint')
+            if endpoint is None:
+                raise ExchangeError(self.id + ' negotiate() response has no websocket endpoint')
             token = self.safe_string(data, 'token')
             result = endpoint + '?' + self.urlencode({
                 'token': token,

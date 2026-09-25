@@ -605,7 +605,6 @@ impl P2bCore {
         })]);
         let mut timeframe: Value = self.find_timeframe(channel.clone(), &[timeframes]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
         let mut parsed: Value = self.parse_ohlcv(data, &[market]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -619,7 +618,10 @@ impl P2bCore {
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
             stored.append(parsed);
-            client.resolve(&[stored, messageHash]);
+            if (channel != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
+                client.resolve(&[stored, messageHash]);
+            }
         }
         return message;
 
@@ -732,8 +734,10 @@ impl P2bCore {
         }
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart, Value::Str("::".into())).into()), symbol).into());
-        client.resolve(&[ticker, messageHash]);
+        if (messageHashStart != Value::Null) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart, Value::Str("::".into())).into()), symbol).into());
+            client.resolve(&[ticker, messageHash]);
+        }
         return message;
 
     Value::Null

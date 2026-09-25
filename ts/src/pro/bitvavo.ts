@@ -183,12 +183,14 @@ export default class bitvavo extends bitvavoRest {
             const data = tickers[i];
             const marketId = this.safeString (data, 'market');
             const market = this.safeMarket (marketId, undefined, '-');
-            const messageHash = event + '@' + marketId;
             const ticker = this.parseTicker (data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol as string] = ticker;
             result.push (ticker);
-            client.resolve (ticker, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '@' + marketId;
+                client.resolve (ticker, messageHash);
+            }
         }
         client.resolve (result, event);
     }
