@@ -9900,11 +9900,11 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentage *string = nil
 	var maintenanceMargin *string = nil
 	var marginRatio *string = nil
-	var maintenanceMarginPercentageResult any = nil
+	var maintenanceMarginPercentageResult *float64 = nil
 	if maintenanceMarginLinear == nil {
 		maintenanceMarginPercentage = Precise.StringDiv(adjustmentFactor, leverage)
 		maintenanceMargin = Precise.StringMul(maintenanceMarginPercentage, notional)
-		maintenanceMarginPercentageResult = this.ParseNumber(maintenanceMarginPercentage)
+		maintenanceMarginPercentageResult = Float64PtrTyped(this.ParseNumber(maintenanceMarginPercentage))
 	} else {
 		maintenanceMargin = maintenanceMarginLinear
 	}

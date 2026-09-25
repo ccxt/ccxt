@@ -1296,17 +1296,17 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome string, typeVar string, 
 	// CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
 	var matchOutcome map[string]any = ccxt.SafeMapTyped(first, "outcome")
 	var usdcDecimals string = "1000000"
-	var filled any = nil
-	var remaining any = nil
+	var filled *float64 = nil
+	var remaining *float64 = nil
 	var orderStatus *string = nil
 	if matchOutcome != nil {
 		var fillAmountRaw *string = this.SafeString(matchOutcome, "fillAmount")
 		var remainingRaw *string = this.SafeString(matchOutcome, "remainingAmount")
 		if fillAmountRaw != nil {
-			filled = this.ParseNumber(ccxt.Precise.StringDiv(fillAmountRaw, usdcDecimals, 6))
+			filled = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(fillAmountRaw, usdcDecimals, 6)))
 		}
 		if remainingRaw != nil {
-			remaining = this.ParseNumber(ccxt.Precise.StringDiv(remainingRaw, usdcDecimals, 6))
+			remaining = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(remainingRaw, usdcDecimals, 6)))
 		}
 		var state *string = this.SafeStringUpper(matchOutcome, "state")
 		if (state != nil && *state == "RESTED") || (state != nil && *state == "PARTIAL_FILL_RESTED") {
@@ -2674,9 +2674,9 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 		}
 		return ccxt.Int64PtrTyped(now)
 	}()
-	var average any = nil
+	var average *float64 = nil
 	if ((bid != nil)) && ((ask != nil)) {
-		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
+		average = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2")))
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":     this.SafeString(outcomeObj, "outcome"),

@@ -10752,15 +10752,15 @@ func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var balanceString *string = this.SafeString(item, "balance")
 	var after *float64 = Float64PtrTyped(this.ParseNumber(balanceString))
 	var feeCostString *string = this.SafeString2(item, "fees", "fee")
-	var feeCost any = nil
+	var feeCost *float64 = nil
 	if feeCostString != nil {
-		feeCost = this.ParseNumber(Precise.StringAbs(feeCostString)) // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+		feeCost = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(feeCostString))) // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
 	}
 	var amountRaw *string = this.SafeString2(item, "size", "amount", "")
 	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
-	var before any = nil
+	var before *float64 = nil
 	if (balanceString != nil) && (amountRaw == nil || *amountRaw != "") {
-		before = this.ParseNumber(Precise.StringSub(balanceString, amountRaw)) // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+		before = Float64PtrTyped(this.ParseNumber(Precise.StringSub(balanceString, amountRaw))) // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
 	}
 	var direction string = "in"
 	if func() int {

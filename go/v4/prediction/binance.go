@@ -1003,12 +1003,12 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 		isMirrored = (label != nil && *label == "NO") || (label != nil && *label == "DOWN")
 	}
 	var lastString *string = this.SafeString(raw, "lastTradePrice")
-	var last any = nil
+	var last *float64 = nil
 	if lastString != nil {
 		if isMirrored {
-			last = this.ParseNumber(ccxt.Precise.StringSub("1", lastString))
+			last = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", lastString)))
 		} else {
-			last = this.ParseNumber(lastString)
+			last = ccxt.Float64PtrTyped(this.ParseNumber(lastString))
 		}
 	}
 	return this.SafePredictionTicker(map[string]any{

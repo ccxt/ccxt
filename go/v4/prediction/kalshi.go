@@ -1305,17 +1305,17 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	}
 	// kalshi occasionally reports a negative size for settling/closed markets; a size
 	// can't be negative, so drop it rather than emit an invalid volume
-	var bidVolume any = nil
+	var bidVolume *float64 = nil
 	if (bidSizeString != nil) && ccxt.Precise.StringGe(bidSizeString, "0") {
-		bidVolume = this.ParseNumber(bidSizeString)
+		bidVolume = ccxt.Float64PtrTyped(this.ParseNumber(bidSizeString))
 	}
-	var askVolume any = nil
+	var askVolume *float64 = nil
 	if (askSizeString != nil) && ccxt.Precise.StringGe(askSizeString, "0") {
-		askVolume = this.ParseNumber(askSizeString)
+		askVolume = ccxt.Float64PtrTyped(this.ParseNumber(askSizeString))
 	}
-	var average any = nil
+	var average *float64 = nil
 	if ((bid != nil)) && ((ask != nil)) {
-		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
+		average = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2")))
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       outcome,
@@ -2405,7 +2405,7 @@ func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) a
 	var outcomeObj map[string]any = this.SafeOutcome(ticker, market)
 	var yesContracts *float64 = this.SafeNumber(position, "position") // positive = long YES
 	var positionSide *string = nil
-	var contractsValue any = nil
+	var contractsValue *float64 = nil
 	if yesContracts != nil {
 		positionSide = ccxt.SafeStringPtr(func() string {
 			if *yesContracts >= 0 {
@@ -2413,7 +2413,7 @@ func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) a
 			}
 			return "short"
 		}())
-		contractsValue = this.ParseNumber(ccxt.Precise.StringAbs(this.NumberToString(yesContracts)))
+		contractsValue = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringAbs(this.NumberToString(yesContracts))))
 	}
 	return this.SafePredictionPosition(map[string]any{
 		"id":                          nil,

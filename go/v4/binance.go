@@ -14119,11 +14119,11 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		var unrounded *string = Precise.StringMul(initialMarginString, "1")
 		initialMarginPercentageString = Precise.StringDiv(unrounded, notionalStringAbs, 8)
 	}
-	var marginRatio any = nil
-	var percentage any = nil
+	var marginRatio *float64 = nil
+	var percentage *float64 = nil
 	if !Precise.StringEquals(collateralString, "0") {
-		marginRatio = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4))
-		percentage = this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100"))
+		marginRatio = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4)))
+		percentage = Float64PtrTyped(this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")))
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")
