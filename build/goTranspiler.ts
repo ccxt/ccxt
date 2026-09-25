@@ -2022,6 +2022,13 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) {
         keyOut = '*' + key;
     }
+    // a nil *string key makes the helper a no-op: guard the write when the value reads no call
+    let nilKeyGuard = false;
+    if ((keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string') && notRebound (key) && (lastLine === k)
+        && /^(?:\w+|"[^"\\\n]*"|-?\d+(?:\.\d+)?)$/.test (value)) {
+        keyOut = '*' + key;
+        nilKeyGuard = true;
+    }
     const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
     // SafeString with a string default never answers nil (exchange_safe.go)
     const defaulted = /^this\.SafeString\((\w+(?:\[\"[^\"\\\n]*\"\])?|this\.\w+), (\w+|"[^"\\\n]*"), (\w+|"[^"\\\n]*")\)$/.exec (value);
@@ -2042,11 +2049,20 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = '*' + value;
     } else if (defaultedOk) {
         valueOut = '*' + value;
+    } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
+        valueOut = value; // every return of the producer is a fresh non-nil map
+    } else if (!nilKeyGuard && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
+        valueOut = value;
     }
     if ((keyOut === undefined) || (valueOut === undefined)) {
         return;
     }
     const suffix = lines[lastLine].substring (lines[lastLine].length - (tail.substring (close).split ('\n')[0].length));
+    if (nilKeyGuard) {
+        lines[k] = head[1] + 'if ' + key + ' != nil {\n' + head[1] + '\t' + name + '[' + keyOut + '] = ' + valueOut + suffix + '\n' + head[1] + '}';
+        masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
+        return;
+    }
     const rewritten = (head[1] + name + '[' + keyOut + '] = ' + valueOut + suffix).split ('\n');
     lines.splice (k, rewritten.length, ...rewritten);
     masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
@@ -2141,6 +2157,54 @@ function goMapWriteTopLevelParts (condition: string, op: string): string[] {
     }
     parts.push (condition.substring (from));
     return parts;
+}
+
+// `// AddElementToObject(m, k, v) -> m[k] = v` producers: base methods whose every return is a fresh map
+const GO_MAPWRITE_MAP_RESULT_BASE = [ 'SafeCurrencyStructure', 'SafeTicker', 'SafeOrder', 'SafeOpenInterest', 'SafeLedgerEntry', 'DepositWithdrawFee', 'Account', 'Extend' ];
+
+// `this.M(...)` where M is a base map producer or the single method M of this file whose every
+// return (outside func literals) is a map literal or such a producer call
+function goMapWriteMapResultCall (lines: string[], text: string, depth: number = 0): boolean {
+    const call = /^this\.(\w+)\(/.exec (text);
+    if ((call === null) || (depth > 3)) {
+        return false;
+    }
+    const defs = lines.map ((l, i) => (new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(').test (l) ? i : -1)).filter ((i) => i >= 0);
+    if (defs.length === 0) {
+        return GO_MAPWRITE_MAP_RESULT_BASE.indexOf (call[1]) >= 0;
+    }
+    if (defs.length !== 1) {
+        return false;
+    }
+    let returns = 0;
+    let depthFunc = 0;
+    for (let j = defs[0] + 1; (j < lines.length) && (lines[j] !== '}'); j++) {
+        const line = goTextMaskLiteralsAndComments (lines[j]);
+        if (/\bfunc\s*\(/.test (line) || (depthFunc > 0)) {
+            for (const c of line) {
+                depthFunc += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+            }
+            continue;
+        }
+        const ret = /^\s*return\b\s*(.*)$/.exec (line);
+        if (ret !== null) {
+            returns++;
+            const r = ret[1].trim ();
+            if (!/^(?:ccxt\.)?map\[string\]any\{/.test (r) && !goMapWriteMapResultCall (lines, r, depth + 1)) {
+                return false;
+            }
+        }
+    }
+    return returns > 0;
+}
+
+// a single-declaration `any` local initialised by a map producer call
+function goMapWriteMapResultLocal (lines: string[], decl: any): boolean {
+    if ((decl === undefined) || (decl.index === undefined)) {
+        return false;
+    }
+    const init = /^\s*var\s+\w+\s+any\s*=\s*(.*)$/.exec (decl.line);
+    return (init !== null) && /\)$/.test (init[1].trim ()) && goMapWriteMapResultCall (lines, init[1].trim ());
 }
 
 // `GetValue(m, "lit")` -> `m["lit"]` for a map local whose every write is a Market/SafeMarket
