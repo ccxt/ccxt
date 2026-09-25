@@ -6859,11 +6859,6 @@ function ccxtGoTupleStringReadIsSafe (goTranspiler, node) {
     if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.operatorToken.kind === ts.SyntaxKind.PlusToken)) {
         return true; // Add derefScalars; a native `+` prints `*x` only for a nil-proven operand
     }
-    if ((parent.kind === ts.SyntaxKind.BinaryExpression) && (parent.right === current) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)
-        && (parent.left.kind === ts.SyntaxKind.ElementAccessExpression) && (parent.parent?.kind === ts.SyntaxKind.ExpressionStatement)) {
-        // `m["k"] = x` on a map[string]any stores the pointer as AddElementToObject's box would; readers deref
-        return /^\w+\["[^"\n]*"\] = /.test ((goTranspiler.printNode (parent, 0) ?? '').trim ());
-    }
     if ((parent.kind === ts.SyntaxKind.ElementAccessExpression) && (parent.argumentExpression === current)) {
         // `c[x]` prints GetValue(c, x) / AddElementToObject(c, x, v): both derefScalar the key
         const printed = (goTranspiler.printNode (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent ? parent.parent : parent, 0) ?? '').trim ();
