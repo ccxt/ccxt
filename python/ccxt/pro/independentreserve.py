@@ -190,6 +190,8 @@ class independentreserve(ccxt.async_support.independentreserve):
         quoteId = self.safe_string(parts, 3)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = base + '/' + quote
         orderBook = self.safe_dict(message, 'Data', {})
         messageHash = 'orderbook:' + symbol + ':' + depth
