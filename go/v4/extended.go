@@ -4595,7 +4595,6 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = this.ImplodeHostname(baseApiUrl)
 	if accessibility != nil && *accessibility == "private" {
 		// this.checkRequiredCredentials ();
 		if IsEqual(this.ApiKey, nil) {
@@ -4609,7 +4608,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	}
-	url = Add(Add(Add(url, "/api/"), version), endpoint)
+	var url any = Add(Add(this.ImplodeHostname(baseApiUrl)+"/api/", version), endpoint)
 	if ((method == "GET") || (method == "DELETE") || queryPost) && (len(ObjectKeys(query)) > 0) {
 		url = Add(url, "?"+this.UrlencodeWithArrayRepeat(query))
 	}

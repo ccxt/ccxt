@@ -4253,8 +4253,8 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders any = nil
 	var requestBody any = nil
-	var version any = GetValue(section, 0)
-	var access any = GetValue(section, 1)
+	var version *string = this.SafeString(section, 0)
+	var access *string = this.SafeString(section, 1)
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), access)
 	if baseApiUrl == nil {
@@ -4263,12 +4263,12 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	var url any = this.ImplodeHostname(baseApiUrl)
 	url = Add(url, Add(Add("/", version), "/"))
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if access == "public" {
-		url = Add(url, Add(Add(access, "/"), pathWithParams))
+	if access != nil && *access == "public" {
+		url = Add(url, "public/"+pathWithParams)
 		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
-	} else if access == "pub" {
+	} else if access != nil && *access == "pub" {
 		url = Add(url, pathWithParams)
 		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
@@ -4296,8 +4296,8 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 			"x-api-key":       this.ApiKey,
 			"x-api-timestamp": ts,
 		}
-		if version == "v3" {
-			auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
+		if version != nil && *version == "v3" {
+			auth = ts + method + "/" + *version + "/" + pathWithParams
 			if (method == "POST") || (method == "PUT") {
 				requestBody = this.Json(paramsSigned)
 				auth = Add(auth, requestBody)

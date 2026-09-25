@@ -3777,21 +3777,15 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(api, 0)
 	var version *string = this.SafeString(api, 1)
 	var access *string = this.SafeString(api, 2)
-	var url any = nil
-	if ((typeVar != nil && *typeVar == "api") && (version != nil && *version == "kline")) || ((typeVar != nil && *typeVar == "open") && (strings.Index(path, "listenKey") >= 0)) {
-		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
-		if apiUrl2 == nil {
-			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
-		}
-		url = apiUrl2
-	} else {
-		var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
-		if apiUrl == nil {
-			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
-		}
-		url = Add(*apiUrl+"/", version)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = Add(Add(url, "/"), this.ImplodeParams(path, params))
+	var url any = apiUrl
+	if !(((typeVar != nil && *typeVar == "api") && (version != nil && *version == "kline")) || ((typeVar != nil && *typeVar == "open") && (strings.Index(path, "listenKey") >= 0))) {
+		url = Add(url, Add("/", version))
+	}
+	url = Add(url, "/"+this.ImplodeParams(path, params))
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	if access != nil && *access == "private" {
 		this.CheckRequiredCredentials()

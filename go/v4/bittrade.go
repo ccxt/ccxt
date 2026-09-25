@@ -2846,15 +2846,15 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var requestHeaders any = nil
 	var requestBody any = nil
-	var url any = "/"
+	var url string = "/"
 	if api == "market" {
-		url = Add(url, api)
+		url += "market"
 	} else if ((api == "public")) || ((api == "private")) {
-		url = Add(url, this.Version)
+		url += this.Version
 	} else if ((api == "v2Public")) || ((api == "v2Private")) {
-		url = Add(url, "v2")
+		url += "v2"
 	}
-	url = Add(url, "/"+this.ImplodeParams(path, params))
+	url += "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if ((api == "private")) || ((api == "v2Private")) {
 		this.CheckRequiredCredentials()
@@ -2878,7 +2878,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 		auth += "&" + this.Urlencode(map[string]any{
 			"Signature": signature,
 		})
-		url = Add(url, "?"+auth)
+		url += "?" + auth
 		if method == "POST" {
 			requestBody = this.Json(query)
 			requestHeaders = map[string]any{
@@ -2891,16 +2891,16 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 		}
 	} else {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+			url += "?" + this.Urlencode(params)
 		}
 	}
 	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = Add(this.ImplodeParams(baseApiUrl, map[string]any{
+	url = this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
-	}), url)
+	}) + url
 	var headersResult any = func() any {
 		if requestHeaders != nil {
 			return requestHeaders

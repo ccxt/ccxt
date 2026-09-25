@@ -2888,7 +2888,6 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url string = this.ImplodeHostname(baseApiUrl)
 	var headersValue any = map[string]any{}
 	if headers != nil {
 		headersValue = headers
@@ -2908,7 +2907,7 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(headersValue, "Content-Type", "application/json")
 		}
 	}
-	url = url + endpoint
+	var url string = this.ImplodeHostname(baseApiUrl) + endpoint
 	var bodyResolved any = func() any {
 		if bodyJson == nil {
 			return body

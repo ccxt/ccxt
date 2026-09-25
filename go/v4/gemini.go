@@ -2714,7 +2714,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = *apiUrl + url
+	var fullUrl string = *apiUrl + url
 	var headersResolved any = func() any {
 		if api == "private" {
 			return headersSigned
@@ -2726,7 +2726,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 		bodyResolved = this.Json(query)
 	}
 	return map[string]any{
-		"url":     url,
+		"url":     fullUrl,
 		"method":  method,
 		"body":    bodyResolved,
 		"headers": headersResolved,

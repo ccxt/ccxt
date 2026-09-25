@@ -14357,7 +14357,6 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = apiUrl
 	var tradeType *string = this.SafeString(query, "tradeType")
 	if !this.IsEmpty(query) {
 		if ((method == "GET") || (method == "DELETE")) && (path != "orders/multi-cancel") {
@@ -14371,7 +14370,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(headersBase, "Content-Type", "application/json")
 		}
 	}
-	url = Add(url, endpoint)
+	var headersResult any = headersBase
 	var isFuturePrivate bool = ((api == "futuresPrivate"))
 	var isPrivate bool = ((api == "private"))
 	var isBroker bool = ((api == "broker"))
@@ -14418,18 +14417,13 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 				headersSigned["KC-BROKER-NAME"] = brokerName
 			}
 		}
-		return map[string]any{
-			"url":     url,
-			"method":  method,
-			"body":    bodyJson,
-			"headers": headersSigned,
-		}
+		headersResult = headersSigned
 	}
 	return map[string]any{
-		"url":     url,
+		"url":     Add(apiUrl, endpoint),
 		"method":  method,
 		"body":    bodyJson,
-		"headers": headersBase,
+		"headers": headersResult,
 	}
 }
 func (this *Kucoin) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -14491,8 +14485,8 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	paginate, paramsRequest := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 
-		var retRes1186219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes1186219)
+		var retRes1186119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes1186119)
 		return nil
 	}
 	var request map[string]any = map[string]any{

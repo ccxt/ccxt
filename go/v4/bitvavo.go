@@ -3336,9 +3336,9 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = *apiUrl + url
+	var fullUrl string = *apiUrl + url
 	return map[string]any{
-		"url":     url,
+		"url":     fullUrl,
 		"method":  method,
 		"body":    requestBody,
 		"headers": requestHeaders,

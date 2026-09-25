@@ -1414,11 +1414,9 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 		var requestTime string = strconv.FormatInt(this.Milliseconds(), 10)
 		var timeWindow *string = this.SafeString(this.Options, "timeWindow", "5000")
 		var nonce string = ToString(this.IncrementingNonce())
-		var auth any = nil
+		var auth any = nonce
 		if isTimeWindow {
 			auth = requestTime + *timeWindow
-		} else {
-			auth = nonce
 		}
 		url = Add(url, this.Version+"/"+this.ImplodeParams(path, params))
 		if method == "POST" {

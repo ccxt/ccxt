@@ -4607,9 +4607,8 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	url = Add(apiUrl, url)
 	return map[string]any{
-		"url":     url,
+		"url":     Add(apiUrl, url),
 		"method":  method,
 		"body":    body,
 		"headers": headers,
