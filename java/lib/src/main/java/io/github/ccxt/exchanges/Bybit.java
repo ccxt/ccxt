@@ -4401,7 +4401,7 @@ public class Bybit extends BybitApi
         //
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execId", "id", "tradeId")));
         String marketId = this.safeString(trade, "symbol");
-        Object marketType = "spot";
+        String marketType = "spot";
         if (((Map<?, ?>)trade).containsKey("createType"))
         {
             marketType = "contract";
@@ -4413,9 +4413,9 @@ public class Bybit extends BybitApi
         }
         if (!java.util.Objects.equals(market, null))
         {
-            marketType = ((Map<String, Object>)market).get("type");
+            marketType = this.safeString(market, "type");
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, Helpers.toStringArg(marketType));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = (String) marketResolved.get("symbol");
         String amountString = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execQty", "orderQty", "size")));
         String priceString = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execPrice", "orderPrice", "price")));
@@ -5207,15 +5207,15 @@ public class Bybit extends BybitApi
         }
         String marketId = this.safeString(order, "symbol");
         Boolean isContract = (((Map<?, ?>)order).containsKey("tpslMode"));
-        Object marketType = null;
+        String marketType = null;
         if (!java.util.Objects.equals(market, null))
         {
-            marketType = ((Map<String, Object>)market).get("type");
+            marketType = this.safeString(market, "type");
         } else
         {
             marketType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, Helpers.toStringArg(marketType));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = (String) marketResolved.get("symbol");
         Long timestamp = (Long) this.safeInteger2(order, "createdTime", "createdAt");
         String marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
@@ -9909,12 +9909,12 @@ public class Bybit extends BybitApi
         //     }
         //
         String marketId = this.safeString(fee, "symbol");
-        Object defaultType = "contract";
+        String defaultType = "contract";
         if (!java.util.Objects.equals(market, null))
         {
-            defaultType = ((Map<String, Object>)market).get("type");
+            defaultType = this.safeString(market, "type");
         }
-        String symbol = this.safeSymbol(marketId, market, (String) null, Helpers.toStringArg(defaultType));
+        String symbol = this.safeSymbol(marketId, market, (String) null, defaultType);
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -10876,7 +10876,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbol = null;
+            String symbol = null;
             if (!java.util.Objects.equals(symbols, null))
             {
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -10884,9 +10884,9 @@ public class Bybit extends BybitApi
                 {
                     throw new NotSupported((this.id + " fetchLeverageTiers() is not supported for spot market")) ;
                 }
-                symbol = market.get("symbol");
+                symbol = this.safeString(market, "symbol");
             }
-            Object data = (this.getLeverageTiersPaginated(Helpers.toStringArg(symbol), Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            Object data = (this.getLeverageTiersPaginated(symbol, Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
                 put( "paginate", true );
                 put( "paginationCalls", 200 );
             }}, parameters)))).join();

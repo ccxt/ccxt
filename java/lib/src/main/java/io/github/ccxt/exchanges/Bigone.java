@@ -1775,7 +1775,7 @@ public class Bigone extends BigoneApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -2712,7 +2712,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("gateway_name", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("gateway_name", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             // requires write permission on the wallet
             Map<String, Object> response = (this.privatePostWithdrawals(this.extend(request, paramsNetworkCode))).join();

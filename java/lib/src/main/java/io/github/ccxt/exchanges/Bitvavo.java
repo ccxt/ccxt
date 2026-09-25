@@ -3189,11 +3189,11 @@ public class Bitvavo extends BitvavoApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noMarket")) && !(Helpers.inOp(parameters, "market")))
+        if ((config.containsKey("noMarket")) && !(Helpers.inOp(parameters, "market")))
         {
-            return Helpers.GetValue(config, "noMarket");
+            return config.get("noMarket");
         }
         return this.safeNumber(config, "cost", 1);
     }

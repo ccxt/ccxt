@@ -2958,7 +2958,7 @@ public class Myriad extends MyriadApi
         //         "externalSources": []
         //     }
         //
-        String outcomeId = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(((Map<String, Object>)market).get("info"), "outcomeId") : null;
+        String outcomeId = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(market.get("info"), "outcomeId") : null;
         List<Object> outcomes = (List<Object>) this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList()));
         Double price = null;
         Double change = null;

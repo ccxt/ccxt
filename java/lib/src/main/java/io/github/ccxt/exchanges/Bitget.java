@@ -3626,8 +3626,8 @@ public class Bitget extends BitgetApi
         String productType = this.safeString2(paramsSubType, "productType", "category", defaultProductType);
         if ((java.util.Objects.equals(productType, null)) && (!java.util.Objects.equals(market, null)))
         {
-            String settle = (String) ((Map<String, Object>)market).get("settle");
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            String settle = (String) market.get("settle");
+            if (java.util.Objects.equals(market.get("spot"), true))
             {
                 String marginMode = null;
                 List<Object> marginModeparamsSubTypeVariable = (List<Object>) this.handleMarginModeAndParams("handleProductTypeAndParams", Helpers.toMapArg(paramsSubType), (String) null);
@@ -7413,17 +7413,17 @@ public class Bitget extends BitgetApi
         }
         String posSide = this.safeString(order, "posSide");
         Boolean isContractOrder = (!java.util.Objects.equals(posSide, null));
-        Object marketType = "spot";
+        String marketType = "spot";
         if (Boolean.TRUE.equals(isContractOrder))
         {
             marketType = "contract";
         }
         if (!java.util.Objects.equals(market, null))
         {
-            marketType = ((Map<String, Object>)market).get("type");
+            marketType = this.safeString(market, "type");
         }
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, Helpers.toStringArg(marketType));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("cTime", "ctime", "createdTime")));
         Long updateTimestamp = (Long) this.safeInteger2(order, "uTime", "updatedTime");
         String rawStatus = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("status", "state", "orderStatus", "planStatus")));
@@ -11926,7 +11926,7 @@ public class Bitget extends BitgetApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -12353,12 +12353,12 @@ public class Bitget extends BitgetApi
             ((List<Object>)result).add(this.parseFundingHistory(contract, market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        Object symbol = null;
+        String symbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
-        return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbol), since, limit, false);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)

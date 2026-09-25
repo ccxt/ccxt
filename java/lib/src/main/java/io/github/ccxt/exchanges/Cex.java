@@ -2113,7 +2113,7 @@ public class Cex extends CexApi
             Map<String, Object> request = Helpers.newMap(
                 "accountId", accountId,
                 "currency", currency.get("id"),
-                "blockchain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))
+                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
             );
             Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //
@@ -2142,7 +2142,7 @@ public class Cex extends CexApi
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", currencyResolved.get("code") );
-            put( "network", Cex.this.networkIdToCode(Cex.this.safeString(depositAddress, "blockchain"), Helpers.toStringArg(currencyResolved.get("code"))) );
+            put( "network", Cex.this.networkIdToCode(Cex.this.safeString(depositAddress, "blockchain"), Cex.this.safeString(currencyResolved, "code")) );
             put( "address", address );
             put( "tag", null );
         }};

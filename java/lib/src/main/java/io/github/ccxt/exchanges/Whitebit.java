@@ -3151,7 +3151,7 @@ public class Whitebit extends WhitebitApi
                 market = this.market(symbol);
                 request.put("market", market.get("id"));
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", Math.min(limit, 100)); // default 50 max 100
@@ -3190,7 +3190,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
             results = this.sortBy(results, "timestamp");
-            results = this.filterBySymbolSinceLimit(results, Helpers.toStringArg(symbolResolved), since, limit, false);
+            results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit, false);
             return results;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

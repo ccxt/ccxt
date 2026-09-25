@@ -364,7 +364,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
-                ((Map<String, Object>)parameters).put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
+                parameters.put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
             }
             List<Order> orders = (this.cancelOrdersWs(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);

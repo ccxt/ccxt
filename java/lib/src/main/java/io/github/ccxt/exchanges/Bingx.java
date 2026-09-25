@@ -2100,14 +2100,14 @@ public class Bingx extends BingxApi
             takeOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("qty", "amount", "q")));
-        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (((Map<?, ?>)trade).containsKey("volume")))
+        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("swap"), true)) && (((Map<?, ?>)trade).containsKey("volume")))
         {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
         String price = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
-        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(this.safeString(trade, "x"), "TRADE")))
+        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("linear"), true)) && (java.util.Objects.equals(this.safeString(trade, "x"), "TRADE")))
         {
             String lastAmount = this.safeString(trade, "l");
             String lastPrice = this.safeString(trade, "L");
@@ -3629,7 +3629,7 @@ public class Bingx extends BingxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3649,7 +3649,7 @@ public class Bingx extends BingxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3669,7 +3669,7 @@ public class Bingx extends BingxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", "sell", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -6731,7 +6731,7 @@ public class Bingx extends BingxApi
             String network = this.safeStringUpper(paramsWalletType, "network");
             if (!java.util.Objects.equals(network, null))
             {
-                request.put("network", this.networkCodeToId(network, Helpers.toStringArg(currency.get("code"))));
+                request.put("network", this.networkCodeToId(network, this.safeString(currency, "code")));
             }
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
@@ -7356,7 +7356,7 @@ public class Bingx extends BingxApi
         //         "makerCommissionRate": 0.001
         //     }
         //
-        Object symbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
+        Object symbol = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );

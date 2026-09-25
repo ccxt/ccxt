@@ -1747,7 +1747,7 @@ public class Aster extends AsterApi
             }
             List<Object> response = null;
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
-            Boolean untilDefined = (((Map<?, ?>)parameters).containsKey("until"));
+            Boolean untilDefined = (parameters.containsKey("until"));
             if (Boolean.TRUE.equals(sinceDefined))
             {
                 ((Map<String, Object>)request).put("startTime", since);

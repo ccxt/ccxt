@@ -1064,11 +1064,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 "type", messageHash,
                 "codes", codes
             ));
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = ((messageHash + ":") + symbolResolved);
             }
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
@@ -1077,7 +1077,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

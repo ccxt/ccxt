@@ -4028,7 +4028,7 @@ public class Delta extends DeltaApi
         Object symbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return Helpers.newMap(
             "info", marginMode,
