@@ -5403,11 +5403,21 @@ public partial class bingx : Exchange
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, paramsStandard));
         } else if ((type == "spot"))
         {
+            if ((since != null))
+            {
+                request["startTime"] = since;
+            }
+            Int64? until = this.safeInteger2(paramsStandard, "until", "till");
+            if (!(until == null))
+            {
+                request["endTime"] = until;
+            }
+            Dictionary<string, object> paramsSpot = this.omit(paramsStandard, new List<object>() {"until", "till"});
             if ((limit != null))
             {
                 request["pageSize"] = limit;
             }
-            response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, paramsStandard));
+            response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, paramsSpot));
         } else
         {
             bool? isTwapOrder = this.safeBool(paramsStandard, "twap", false);

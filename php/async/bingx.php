@@ -5228,10 +5228,18 @@ class bingx extends Exchange {
         if ($standard) {
             $response = Async\await($this->contractV1PrivateGetAllOrders($this->extend($request, $paramsStandard)));
         } elseif ($type === 'spot') {
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $until = $this->safe_integer_2($paramsStandard, 'until', 'till');
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            $paramsSpot = $this->omit($paramsStandard, array( 'until', 'till' ));
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders($this->extend($request, $paramsStandard)));
+            $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders($this->extend($request, $paramsSpot)));
             //
             //    {
             //        "code": 0,

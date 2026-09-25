@@ -5722,11 +5722,19 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 
 		response = MapTyped(PanicOnError((<-this.ContractV1PrivateGetAllOrders(this.Extend(request, paramsStandard))).Raw))
 	} else if typeVar != nil && *typeVar == "spot" {
+		if since != nil {
+			request["startTime"] = since
+		}
+		var until *int64 = this.SafeInteger2(paramsStandard, "until", "till")
+		if until != nil {
+			request["endTime"] = until
+		}
+		var paramsSpot map[string]any = MapTyped(this.Omit(paramsStandard, []any{"until", "till"}))
 		if limit != nil {
 			request["pageSize"] = limit
 		}
 
-		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, paramsStandard))).Raw))
+		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, paramsSpot))).Raw))
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsStandard, "twap", false)
 		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsStandard, "twap"))
@@ -5905,8 +5913,8 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
 
-		var retRes537819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes537819)
+		var retRes538619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes538619)
 		return nil
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"fromAccount", "toAccount"}))
@@ -6452,8 +6460,8 @@ func (this *Bingx) addMarginBody(ch chan any, symbol string, amount any, optiona
 		"type": 1,
 	}
 
-	var retRes581815 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes581815)
+	var retRes582615 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes582615)
 	return nil
 }
 func (this *Bingx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
@@ -6470,8 +6478,8 @@ func (this *Bingx) reduceMarginBody(ch chan any, symbol string, amount any, opti
 		"type": 2,
 	}
 
-	var retRes582515 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes582515)
+	var retRes583315 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes583315)
 	return nil
 }
 

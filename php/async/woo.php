@@ -2310,7 +2310,6 @@ class woo extends Exchange {
         $symbol = $marketResolved['symbol'];
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'quantity'); // This is base amount
-        $cost = $this->safe_string($order, 'amount'); // This is quote amount
         $orderType = $this->safe_string_lower($order, 'type');
         $status = $this->safe_string_2($order, 'status', 'algoStatus');
         $side = $this->safe_string_lower($order, 'side');
@@ -2355,7 +2354,8 @@ class woo extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => null, // computed by safeOrder from amount minus filled
-            'cost' => $cost,
+            // safeOrder derives the cost from filled and average; `amount` is the quote the order reserved
+            'cost' => null,
             'trades' => null,
             'fee' => array(
                 'cost' => $fee,

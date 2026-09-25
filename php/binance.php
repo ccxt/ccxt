@@ -3795,6 +3795,7 @@ class binance extends Exchange {
         $fees = $this->fees;
         $linear = null;
         $inverse = null;
+        $subType = null;
         $symbol = $base . '/' . $quote;
         $strike = null;
         if ($contract) {
@@ -3809,6 +3810,11 @@ class binance extends Exchange {
             $contractSize = $this->safe_number_2($market, 'contractSize', 'unit', $this->parse_number('1'));
             $linear = $settle === $quote;
             $inverse = $settle === $base;
+            if ($linear === true) {
+                $subType = 'linear';
+            } elseif ($inverse === true) {
+                $subType = 'inverse';
+            }
             $feesType = 'inverse';
             if ($linear) {
                 $feesType = 'linear';
@@ -3883,6 +3889,7 @@ class binance extends Exchange {
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,
+            'subType' => $subType,
             'taker' => $fees['trading']['taker'],
             'maker' => $fees['trading']['maker'],
             'contractSize' => $contractSize,

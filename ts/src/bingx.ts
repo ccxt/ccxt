@@ -5106,10 +5106,18 @@ export default class bingx extends Exchange {
         if (standard) {
             response = await this.contractV1PrivateGetAllOrders (this.extend (request, paramsStandard));
         } else if (type === 'spot') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            const until = this.safeInteger2 (paramsStandard, 'until', 'till');
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
+            const paramsSpot = this.omit (paramsStandard, [ 'until', 'till' ]);
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
-            response = await this.spotV1PrivateGetTradeHistoryOrders (this.extend (request, paramsStandard));
+            response = await this.spotV1PrivateGetTradeHistoryOrders (this.extend (request, paramsSpot));
             //
             //    {
             //        "code": 0,
