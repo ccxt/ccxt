@@ -2044,6 +2044,10 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         string? error = this.safeString(message, "error");
+        if ((error == null))
+        {
+            return ((bool?)((object)(null)));
+        }
         Int64? code = this.safeInteger(error, "errorCode");
         string? action = this.safeString(message, "action");
         object buildMessage = this.buildMessageHash(action, message);
@@ -2051,7 +2055,7 @@ public partial class bitvavo : ccxt.bitvavo
         bool rejected = false;
         try
         {
-            this.handleErrors(code, error,((string)client.url), "", new Dictionary<string, object>() {}, error, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(code,error,((string)client.url), "", new Dictionary<string, object>() {}, error, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             rejected = true;
