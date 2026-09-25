@@ -5792,7 +5792,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = response;
         if (matches!(&data, Value::Dict(__d) if __d.contains_key("balances"))) {
             let mut flatBalances: Value = Value::from(vec![]);
-            let mut balances: Value = self.safe_value_k(data.clone(), "balances", &[Value::from(vec![])]);
+            let mut balances: Value = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             let mut keys: Value = object_keys(&balances);
