@@ -2850,6 +2850,7 @@ class NewTranspiler {
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
         content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
+        content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public Object describe\(\))/g, `${constructor}$1`)
         // `for (var i = <ident>; Helpers.isLessThan(i, end); i++)` — when the loop
         // initializer is a bare identifier (an Object-typed local, e.g. a running
