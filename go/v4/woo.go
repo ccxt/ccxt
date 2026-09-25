@@ -2654,7 +2654,6 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity") // This is base amount
-	var cost *string = this.SafeString(order, "amount")     // This is quote amount
 	var orderType *string = this.SafeStringLower(order, "type")
 	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var side *string = this.SafeStringLower(order, "side")
@@ -2704,7 +2703,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) any {
 		"amount":              amount,
 		"filled":              filled,
 		"remaining":           nil,
-		"cost":                cost,
+		"cost":                nil,
 		"trades":              nil,
 		"fee": map[string]any{
 			"cost":     fee,

@@ -2467,7 +2467,6 @@ public partial class woo : Exchange
         string? symbol = ((string)(marketResolved != null && ((IDictionary<string, object>)marketResolved).ContainsKey("symbol") ? ((IDictionary<string, object>)marketResolved)["symbol"] : null));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity"); // This is base amount
-        string? cost = this.safeString(order, "amount"); // This is quote amount
         string? orderType = this.safeStringLower(order, "type");
         string? status = this.safeString2(order, "status", "algoStatus");
         string? side = this.safeStringLower(order, "side");
@@ -2516,7 +2515,7 @@ public partial class woo : Exchange
             { "amount", amount },
             { "filled", filled },
             { "remaining", null },
-            { "cost", cost },
+            { "cost", null },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "cost", fee },

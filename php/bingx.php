@@ -5068,6 +5068,14 @@ class bingx extends Exchange {
         if ($standard) {
             $response = $this->contractV1PrivateGetAllOrders($this->extend($request, $paramsStandard));
         } elseif ($type === 'spot') {
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
+            $params = $this->omit($params, array( 'until', 'till' ));
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
