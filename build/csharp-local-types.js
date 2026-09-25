@@ -15459,7 +15459,12 @@ function dictionaryParameterType (csharp, declaration) {
 // Read in this file by stringListParameterElementType (a narrowed list parameter's element
 // reads) and by build/csharpTranspiler.ts#typeCoreArgs (the narrowing itself) -- one table.
 export const CORE_LIST_ARGS = {
+    'cancelOrders': { 0: 'IList<object>' },
+    'cancelOrdersRequest': { 0: 'IList<object>' },
+    'cancelOrdersWs': { 0: 'IList<object>' },
+    'cancelUtaOrders': { 0: 'IList<object>' },
     'checkNoStockSymbols': { 0: 'IList<object>' },
+    'fetchAccountPositions': { 0: 'IList<object>' },
     'fetchAllGreeks': { 0: 'IList<object>' },  // FetchAllGreeks
     'fetchBidsAsks': { 0: 'IList<object>' },  // FetchBidsAsks
     'fetchContractTickers': { 0: 'IList<object>' },  // FetchContractTickers
@@ -15471,9 +15476,12 @@ export const CORE_LIST_ARGS = {
     'fetchMarginModes': { 0: 'IList<object>' },  // FetchMarginModes
     'fetchMarkPrices': { 0: 'IList<object>' },  // FetchMarkPrices
     'fetchOpenInterests': { 0: 'IList<object>' },  // FetchOpenInterests
+    'fetchOptionPositions': { 0: 'IList<object>' },
     'fetchOrderBooks': { 0: 'IList<object>' },  // FetchOrderBooks
+    'fetchPositions': { 0: 'IList<object>' },
     'fetchPositionsADLRank': { 0: 'IList<object>' },  // FetchPositionsADLRank
     'fetchPositionsHistory': { 0: 'IList<object>' },  // FetchPositionsHistory
+    'fetchPositionsRisk': { 0: 'IList<object>' },
     'fetchPositionsWs': { 0: 'IList<object>' },  // FetchPositionsWs
     'fetchSpotTickers': { 0: 'IList<object>' },  // FetchSpotTickers
     'fetchTickers': { 0: 'IList<object>' },  // FetchTickers
@@ -15481,12 +15489,17 @@ export const CORE_LIST_ARGS = {
     'fetchTickersV3': { 0: 'IList<object>' },  // FetchTickersV3
     'fetchTickersWs': { 0: 'IList<object>' },  // FetchTickersWs
     'fetchTradingLimits': { 0: 'IList<object>' },  // FetchTradingLimits
+    'filterByOutcomesSinceLimit': { 1: 'IList<object>' },
+    'filterBySymbolsSinceLimit': { 1: 'IList<object>' },
+    'getDexFromSymbols': { 1: 'IList<object>' },
     'getSubscriptionRequest': { 0: 'IList<object>' },
     'handleOrderBookSubscriptions': { 2: 'IList<object>' },
+    'idsQueryStrings': { 0: 'IList<object>' },
     'loadTradingLimits': { 0: 'IList<object>' },
     'parseADLRanks': { 1: 'IList<object>' },
     'parseAllGreeks': { 1: 'IList<object>' },
     'parseBidsAsksCustom': { 1: 'IList<object>' },
+    'parseDepositMethodIds': { 0: 'IList<object>' },
     'parseFundingRates': { 1: 'IList<object>' },
     'parseLastPrices': { 1: 'IList<object>' },
     'parseLeverageTiers': { 1: 'IList<object>' },
@@ -15494,9 +15507,11 @@ export const CORE_LIST_ARGS = {
     'parseMarginModes': { 1: 'IList<object>' },
     'parseMarginModifications': { 1: 'IList<object>' },
     'parseOpenInterests': { 1: 'IList<object>' },
+    'parsePositions': { 1: 'IList<object>' },
     'parseTickers': { 1: 'IList<object>' },
     'parseTickersForRolling': { 1: 'IList<object>' },
     'pruneCachedBySymbols': { 2: 'IList<object>' },
+    'setPositionsCache': { 2: 'IList<object>' },
     'subscribePrivateUta': { 0: 'IList<object>' },
     'subscribePublicMultipleUta': { 0: 'IList<object>', 2: 'IList<object>' },
     'unSubscribe': { 6: 'IList<object>' },
@@ -15519,11 +15534,15 @@ export const CORE_LIST_ARGS = {
     'watchMarkPrices': { 0: 'IList<object>' },  // WatchMarkPrices
     'watchMyLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchMyLiquidationsForSymbols
     'watchMyTradesForSymbols': { 0: 'IList<object>' },  // WatchMyTradesForSymbols
+    'watchOHLCVForSymbols': { 0: 'IList<object>' },
+    'watchOrderBookForSymbols': { 0: 'IList<object>' },
     'watchOrdersForSymbols': { 0: 'IList<object>' },  // WatchOrdersForSymbols
     'watchPositionForSymbols': { 0: 'IList<object>' },  // WatchPositionForSymbols
+    'watchPositions': { 0: 'IList<object>' },
     'watchPrivateMultiple': { 0: 'IList<object>' },
     'watchStockMarketStream': { 1: 'IList<object>' },
     'watchTopics': { 1: 'IList<object>' },
+    'watchTradesForSymbols': { 0: 'IList<object>' },
     'watchUtaTickers': { 0: 'IList<object>' },  // WatchUtaTickers
 };
 
