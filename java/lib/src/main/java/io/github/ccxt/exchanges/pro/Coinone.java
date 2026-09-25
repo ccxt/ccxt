@@ -87,7 +87,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
@@ -105,20 +105,6 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name coinone#watchOrderBook
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.coinone.co.kr/reference/public-websocket-orderbook
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
-    {
-        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -150,8 +136,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeStringUpper(data, "target_currency");
         String quoteId = this.safeStringUpper(data, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId));
-        String quote = this.safeCurrencyCode((String) (quoteId));
+        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
         String symbol = this.symbol(Helpers.add((base + "/"), quote));
         Long timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
@@ -176,7 +162,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
     public void handleDelta(Object bookside, Object delta)
     {
-        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "qty");
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "qty", 2);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -196,7 +182,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
@@ -213,19 +199,6 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name coinone#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -260,7 +233,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, (Map<String, Object>) null);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         String messageHash = ("ticker:" + symbol);
@@ -298,8 +271,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String last = this.safeString(ticker, "last");
         String baseId = this.safeString(ticker, "target_currency");
         String quoteId = this.safeString(ticker, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId));
-        String quote = this.safeCurrencyCode((String) (quoteId));
+        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
         String symbol = this.symbol(Helpers.add((base + "/"), quote));
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -307,10 +280,10 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             put( "datetime", Coinone.this.iso8601(timestamp) );
             put( "high", Coinone.this.safeString(ticker, "high") );
             put( "low", Coinone.this.safeString(ticker, "low") );
-            put( "bid", Coinone.this.safeNumber(ticker, "bid_best_price") );
-            put( "bidVolume", Coinone.this.safeNumber(ticker, "bid_best_qty") );
-            put( "ask", Coinone.this.safeNumber(ticker, "ask_best_price") );
-            put( "askVolume", Coinone.this.safeNumber(ticker, "ask_best_qty") );
+            put( "bid", Coinone.this.safeNumber(ticker, "bid_best_price", (Object) null) );
+            put( "bidVolume", Coinone.this.safeNumber(ticker, "bid_best_qty", (Object) null) );
+            put( "ask", Coinone.this.safeNumber(ticker, "ask_best_price", (Object) null) );
+            put( "askVolume", Coinone.this.safeNumber(ticker, "ask_best_qty", (Object) null) );
             put( "vwap", null );
             put( "open", Coinone.this.safeString(ticker, "first") );
             put( "close", last );
@@ -324,10 +297,6 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             put( "info", ticker );
         }}, market);
     }
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseWsTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -340,14 +309,14 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
@@ -362,28 +331,14 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             }};
             Map<String, Object> message = this.extend(request, parameters);
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, ((Map<String, Object>)market).get("symbol"), limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, ((Map<String, Object>)market).get("symbol"), limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name coinone#watchTrades
-     * @description watches information on multiple trades made in a market
-     * @see https://docs.coinone.co.kr/reference/public-websocket-trade
-     * @param {string} symbol unified market symbol of the market trades were made in
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -404,7 +359,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
         Object symbol = ((Map<String, Object>)trade).get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -433,12 +388,12 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //
         String baseId = this.safeStringUpper(trade, "target_currency");
         String quoteId = this.safeStringUpper(trade, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId));
-        String quote = this.safeCurrencyCode((String) (quoteId));
+        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
         String symbol = Helpers.add((base + "/"), quote);
         Long timestamp = this.safeInteger(trade, "timestamp");
-        market = (Map<String, Object>) (this.safeMarket(symbol, market));
-        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(symbol, market, (String) null, (String) null);
+        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {
@@ -446,27 +401,21 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
-        final Map<String, Object> finalMarket = market;
-        final String finalSide = side;
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", Coinone.this.safeString(trade, "id") );
-            put( "info", trade );
-            put( "timestamp", timestamp );
-            put( "datetime", Coinone.this.iso8601(timestamp) );
-            put( "order", null );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", null );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", null );
-            put( "fee", null );
-        }}, market));
-    }
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
-    {
-        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
+            "id", this.safeString(trade, "id"),
+            "info", trade,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "order", null,
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", null,
+            "side", side,
+            "takerOrMaker", null,
+            "price", priceString,
+            "amount", amountString,
+            "cost", null,
+            "fee", null
+        ), Helpers.toMapArg(marketResolved)));
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

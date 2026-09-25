@@ -81,7 +81,7 @@ public class TestCurrency extends BaseTest {
             TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         } catch(Exception e)
         {
-            Object message = exchange.exceptionMessage(e);
+            Object message = exchange.exceptionMessage(e, true);
             // check structure if key is numeric, not string
             if (((String)message).indexOf("\"id\" key") >= 0)
             {

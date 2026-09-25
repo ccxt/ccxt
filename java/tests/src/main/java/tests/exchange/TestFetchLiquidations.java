@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -24,7 +25,7 @@ public class TestFetchLiquidations extends BaseTest {
         {
             return true;
         }
-        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLiquidations", new Object[]{code})).join();
+        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLiquidations", new Object[]{code, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         Assert((items instanceof List), ((((((exchange.id + " ") + method) + " ") + code) + " must return an array. ") + exchange.json(items)));
         // const now = exchange.milliseconds ();
         for (var i = 0; i < ((List<?>)items).size(); i++)

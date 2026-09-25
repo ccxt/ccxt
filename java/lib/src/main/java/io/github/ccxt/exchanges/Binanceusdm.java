@@ -71,10 +71,6 @@ public class Binanceusdm extends BinanceusdmApi
         });
 
     }
-    public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
-    {
-        return this.transferIn(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
     {
@@ -85,9 +81,5 @@ public class Binanceusdm extends BinanceusdmApi
             return (this.futuresTransfer(code, amount, 2, parameters)).join();
         });
 
-    }
-    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
-    {
-        return this.transferOut(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 }

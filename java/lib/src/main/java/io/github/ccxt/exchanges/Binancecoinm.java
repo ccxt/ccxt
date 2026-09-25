@@ -61,10 +61,6 @@ public class Binancecoinm extends BinancecoinmApi
         });
 
     }
-    public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
-    {
-        return this.transferIn(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
     {
@@ -75,9 +71,5 @@ public class Binancecoinm extends BinancecoinmApi
             return (this.futuresTransfer(code, amount, 4, parameters)).join();
         });
 
-    }
-    public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
-    {
-        return this.transferOut(code, amount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 }

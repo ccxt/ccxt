@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -43,7 +44,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         {
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchLiquidationsForSymbols", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchLiquidationsForSymbols", new Object[]{new ArrayList<Object>(Arrays.asList(symbol)), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
                 now = System.currentTimeMillis();
                 Boolean isArray = (response instanceof List);
                 Assert(isArray, "response must be an array");

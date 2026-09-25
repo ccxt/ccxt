@@ -348,10 +348,6 @@ public class Bitflyer extends BitflyerApi
         // Since they're the same we just need to return one
         return super.safeMarket(marketId, market, delimiter, "spot");
     }
-    public Object safeMarket(Object... optionalArgs)
-    {
-        return this.safeMarket(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, null), Helpers.getArgString(optionalArgs, 2, null), Helpers.getArgString(optionalArgs, 3, null));
-    }
 
     /**
      * @method
@@ -448,8 +444,8 @@ public class Bitflyer extends BitflyerApi
                     }
                     type = "future";
                 }
-                String base = this.safeCurrencyCode((String) (baseId));
-                String quote = this.safeCurrencyCode((String) (quoteId));
+                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
                 String symbol = ((base + "/") + quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
@@ -465,47 +461,37 @@ public class Bitflyer extends BitflyerApi
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
                     }
                 }
-    final String finalSymbol = symbol;
-                final String finalBase = base;
-                final String finalSettle = settle;
-                final Object finalBaseId = baseId;
-                final Object finalQuoteId = quoteId;
-                final String finalType = type;
-                final Boolean finalSwap = swap;
-                final Object finalTaker = taker;
-                final Object finalMaker = maker;
-                final Object finalExpiry = expiry;
-                            ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", id );
-                    put( "symbol", finalSymbol );
-                    put( "base", finalBase );
-                    put( "quote", quote );
-                    put( "settle", finalSettle );
-                    put( "baseId", finalBaseId );
-                    put( "quoteId", finalQuoteId );
-                    put( "settleId", null );
-                    put( "type", finalType );
-                    put( "spot", spot );
-                    put( "margin", false );
-                    put( "swap", finalSwap );
-                    put( "future", future );
-                    put( "option", false );
-                    put( "active", true );
-                    put( "contract", contract );
-                    put( "linear", ((Boolean.TRUE.equals(spot))) ? null : true );
-                    put( "inverse", ((Boolean.TRUE.equals(spot))) ? null : false );
-                    put( "taker", finalTaker );
-                    put( "maker", finalMaker );
-                    put( "contractSize", null );
-                    put( "expiry", finalExpiry );
-                    put( "expiryDatetime", Bitflyer.this.iso8601(finalExpiry) );
-                    put( "strike", null );
-                    put( "optionType", null );
-                    put( "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(Helpers.newMap(
+                    "id", id,
+                    "symbol", symbol,
+                    "base", base,
+                    "quote", quote,
+                    "settle", settle,
+                    "baseId", baseId,
+                    "quoteId", quoteId,
+                    "settleId", null,
+                    "type", type,
+                    "spot", spot,
+                    "margin", false,
+                    "swap", swap,
+                    "future", future,
+                    "option", false,
+                    "active", true,
+                    "contract", contract,
+                    "linear", ((Boolean.TRUE.equals(spot))) ? null : true,
+                    "inverse", ((Boolean.TRUE.equals(spot))) ? null : false,
+                    "taker", taker,
+                    "maker", maker,
+                    "contractSize", null,
+                    "expiry", expiry,
+                    "expiryDatetime", this.iso8601(expiry),
+                    "strike", null,
+                    "optionType", null,
+                    "precision", new HashMap<String, Object>() {{
                         put( "amount", null );
                         put( "price", null );
-                    }} );
-                    put( "limits", new HashMap<String, Object>() {{
+                    }},
+                    "limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -522,26 +508,14 @@ public class Bitflyer extends BitflyerApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }} );
-                    put( "created", null );
-                    put( "info", market );
-                }});
+                    }},
+                    "created", null,
+                    "info", market
+                ));
             }
             return result;
         });
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchMarkets
-     * @description retrieves data on all markets for bitflyer
-     * @see https://lightning.bitflyer.com/docs?lang=en#market-list
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -551,9 +525,9 @@ public class Bitflyer extends BitflyerApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency_code");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("total", this.safeString(balance, "amount"));
             account.put("free", this.safeString(balance, "available"));
@@ -580,7 +554,7 @@ public class Bitflyer extends BitflyerApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetGetbalance(parameters)).join();
             //
@@ -606,18 +580,6 @@ public class Bitflyer extends BitflyerApi
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name bitflyer#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -636,35 +598,21 @@ public class Bitflyer extends BitflyerApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> orderbook = (this.publicGetGetboard(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "size");
+            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", "price", "size", 2);
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://lightning.bitflyer.com/docs?lang=en#order-book
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
     {
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "ltp");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -690,10 +638,6 @@ public class Bitflyer extends BitflyerApi
             put( "info", ticker );
         }}, market);
     }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -711,29 +655,16 @@ public class Bitflyer extends BitflyerApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetGetticker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, market);
+            return this.parseTicker(response, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://lightning.bitflyer.com/docs?lang=en#ticker
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -789,29 +720,22 @@ public class Bitflyer extends BitflyerApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         String id = this.safeString(trade, "id");
-        market = (Map<String, Object>) (this.safeMarket(null, market));
-        final Map<String, Object> finalMarket = market;
-        final String finalOrder = order;
-        final String finalSide = side;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", trade );
-            put( "timestamp", timestamp );
-            put( "datetime", Bitflyer.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "order", finalOrder );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", null );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", null );
-            put( "fee", null );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        return this.safeTrade(Helpers.newMap(
+            "id", id,
+            "info", trade,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "order", order,
+            "type", null,
+            "side", side,
+            "takerOrMaker", null,
+            "price", priceString,
+            "amount", amountString,
+            "cost", null,
+            "fee", null
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -825,14 +749,14 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -856,24 +780,9 @@ public class Bitflyer extends BitflyerApi
             //     },
             //    ]
             //
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://lightning.bitflyer.com/docs?lang=en#list-executions
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -892,7 +801,7 @@ public class Bitflyer extends BitflyerApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -904,7 +813,7 @@ public class Bitflyer extends BitflyerApi
             //       commission_rate: '0.0020'
             //   }
             //
-            Double fee = this.safeNumber(response, "commission_rate");
+            Double fee = this.safeNumber(response, "commission_rate", (Object) null);
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", ((Map<String, Object>)market).get("symbol") );
@@ -915,19 +824,6 @@ public class Bitflyer extends BitflyerApi
             }};
         }).thenApply(TradingFeeInterface::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchTradingFee
-     * @description fetch the trading fees for a market
-     * @see https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -950,7 +846,7 @@ public class Bitflyer extends BitflyerApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", Bitflyer.this.marketId((String) (symbol)) );
@@ -965,26 +861,9 @@ public class Bitflyer extends BitflyerApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "info", result );
-            }});
+            }}, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#createOrder
-     * @description create a trade order
-     * @see https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -997,47 +876,32 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            final String finalSymbol = symbol;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", Bitflyer.this.marketId((String) (finalSymbol)) );
-                put( "child_order_acceptance_id", id );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "product_code", this.marketId((String) (symbol)),
+                "child_order_acceptance_id", id
+            );
             Map<String, Object> response = (this.privatePostCancelchildorder(this.extend(request, parameters))).join();
             //
             //    200 OK.
             //
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }});
+            }}, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#cancelOrder
-     * @description cancels an open order
-     * @see https://lightning.bitflyer.com/docs?lang=en#cancel-order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -1063,47 +927,41 @@ public class Bitflyer extends BitflyerApi
         String type = this.safeStringLower(order, "child_order_type");
         String side = this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "product_code");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> fee = null;
-        Double feeCost = this.safeNumber(order, "total_commission");
+        Double feeCost = this.safeNumber(order, "total_commission", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Double finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
-                put( "currency", null );
-                put( "rate", null );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCost,
+                "currency", null,
+                "rate", null
+            );
         }
         String id = this.safeString(order, "child_order_acceptance_id");
-        final Map<String, Object> finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "clientOrderId", null );
-            put( "info", order );
-            put( "timestamp", timestamp );
-            put( "datetime", Bitflyer.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "status", status );
-            put( "symbol", symbol );
-            put( "type", type );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "side", side );
-            put( "price", price );
-            put( "triggerPrice", null );
-            put( "cost", null );
-            put( "amount", amount );
-            put( "filled", filled );
-            put( "remaining", remaining );
-            put( "fee", finalFee );
-            put( "average", null );
-            put( "trades", null );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeOrder(Helpers.newMap(
+            "id", id,
+            "clientOrderId", null,
+            "info", order,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", null,
+            "status", status,
+            "symbol", symbol,
+            "type", type,
+            "timeInForce", null,
+            "postOnly", null,
+            "side", side,
+            "price", price,
+            "triggerPrice", null,
+            "cost", null,
+            "amount", amount,
+            "filled", filled,
+            "remaining", remaining,
+            "fee", fee,
+            "average", null,
+            "trades", null
+        ), market);
     }
 
     /**
@@ -1117,26 +975,26 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_code", ((Map<String, Object>)market).get("id") );
-                put( "count", limit );
+                put( "count", java.util.Objects.requireNonNullElse(limit, 100L) );
             }};
             List<Object> response = (this.privateGetGetchildorders(this.extend(request, parameters))).join();
-            Object orders = this.parseOrders(response, market, since, limit);
+            Object orders = this.parseOrders(response, Helpers.toMapArg(market), since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(symbol, null))
             {
                 orders = this.filterBy(orders, "symbol", symbol);
@@ -1144,21 +1002,6 @@ public class Bitflyer extends BitflyerApi
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, 100L), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1180,24 +1023,9 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "child_order_state", "ACTIVE" );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, 100L), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1219,24 +1047,9 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "child_order_state", "COMPLETED" );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, 100L), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1249,18 +1062,16 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id2, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final Object id3 = id2;
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object id = id3;
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
             }
-            List<Order> orders = (this.fetchOrders((Object)(symbol))).join();
+            List<Order> orders = (this.fetchOrders(symbol, (Long) null, 100L, new HashMap<String, Object>() {{}})).join();
             Map<String,Object> ordersById = this.indexBy(orders, "id");
             if (ordersById.containsKey(id))
             {
@@ -1269,20 +1080,6 @@ public class Bitflyer extends BitflyerApi
             throw new OrderNotFound(((this.id + " No order found with id ") + id)) ;
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
-     * @param {string} id the order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1296,20 +1093,18 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1334,24 +1129,9 @@ public class Bitflyer extends BitflyerApi
             //     },
             //    ]
             //
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://lightning.bitflyer.com/docs?lang=en#list-executions
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1363,23 +1143,22 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(symbols, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            final List<String> finalSymbols = symbols;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "product_code", Bitflyer.this.marketIds(finalSymbols) );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "product_code", this.marketIds(symbols)
+            );
             Object response = (this.privateGetGetpositions(this.extend(request, parameters))).join();
             //
             //     [
@@ -1403,19 +1182,6 @@ public class Bitflyer extends BitflyerApi
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name bitflyer#fetchPositions
-     * @description fetch all open positions
-     * @see https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary
-     * @param {string[]} symbols list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1429,15 +1195,15 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code2, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final String code3 = code2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
+
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (!java.util.Objects.equals(code, "JPY") && !java.util.Objects.equals(code, "USD") && !java.util.Objects.equals(code, "EUR"))
             {
@@ -1454,25 +1220,9 @@ public class Bitflyer extends BitflyerApi
             //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
         }).thenApply(Transaction::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#withdraw
-     * @description make a withdrawal
-     * @see https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1486,16 +1236,14 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1522,24 +1270,9 @@ public class Bitflyer extends BitflyerApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit);
+            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1553,16 +1286,14 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1591,24 +1322,9 @@ public class Bitflyer extends BitflyerApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit);
+            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String parseDepositStatus(String status)
@@ -1671,7 +1387,7 @@ public class Bitflyer extends BitflyerApi
         String currencyId = this.safeString(transaction, "currency_code");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "event_date"));
-        Double amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount", (Object) null);
         String txId = this.safeString(transaction, "tx_hash");
         String rawStatus = this.safeString(transaction, "status");
         String type = null;
@@ -1692,35 +1408,28 @@ public class Bitflyer extends BitflyerApi
             type = "deposit";
             status = this.parseDepositStatus(rawStatus);
         }
-        final String finalType = type;
-        final String finalStatus = status;
-        final Map<String, Object> finalFee = fee;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", id );
-            put( "txid", txId );
-            put( "timestamp", timestamp );
-            put( "datetime", Bitflyer.this.iso8601(timestamp) );
-            put( "network", null );
-            put( "address", address );
-            put( "addressTo", address );
-            put( "addressFrom", null );
-            put( "tag", null );
-            put( "tagTo", null );
-            put( "tagFrom", null );
-            put( "type", finalType );
-            put( "amount", amount );
-            put( "currency", code );
-            put( "status", finalStatus );
-            put( "updated", null );
-            put( "comment", null );
-            put( "internal", null );
-            put( "fee", finalFee );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", transaction,
+            "id", id,
+            "txid", txId,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "network", null,
+            "address", address,
+            "addressTo", address,
+            "addressFrom", null,
+            "tag", null,
+            "tagTo", null,
+            "tagFrom", null,
+            "type", type,
+            "amount", amount,
+            "currency", code,
+            "status", status,
+            "updated", null,
+            "comment", null,
+            "internal", null,
+            "fee", fee
+        );
     }
 
     /**
@@ -1732,14 +1441,14 @@ public class Bitflyer extends BitflyerApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1752,26 +1461,9 @@ public class Bitflyer extends BitflyerApi
             //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
             //    }
             //
-            return this.parseFundingRate(response, market);
+            return this.parseFundingRate(response, Helpers.toMapArg(market));
         }).thenApply(FundingRate::new);
 
-    }
-    /**
-     * @method
-     * @name bitflyer#fetchFundingRate
-     * @description fetch the current funding rate
-     * @see https://lightning.bitflyer.com/docs#funding-rate
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
-    {
-        return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -1796,7 +1488,7 @@ public class Bitflyer extends BitflyerApi
             put( "fundingRate", null );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
-            put( "nextFundingRate", Bitflyer.this.safeNumber(contract, "current_funding_rate") );
+            put( "nextFundingRate", Bitflyer.this.safeNumber(contract, "current_funding_rate", (Object) null) );
             put( "nextFundingTimestamp", nextFundingTimestamp );
             put( "nextFundingDatetime", Bitflyer.this.iso8601(nextFundingTimestamp) );
             put( "previousFundingRate", null );
@@ -1805,20 +1497,18 @@ public class Bitflyer extends BitflyerApi
             put( "interval", null );
         }};
     }
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
+        String bodySigned = null;
+        Map<String, Object> headersSigned = null;
         Object request = (("/" + this.version) + "/");
-        if (java.util.Objects.equals(api, "private"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
             request = (request + "me/");
         }
         request = Helpers.add(request, path);
-        if (java.util.Objects.equals(method, "GET"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
@@ -1827,41 +1517,35 @@ public class Bitflyer extends BitflyerApi
         }
         String baseUrl = (String) this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"));
         String url = (baseUrl + request);
-        if (java.util.Objects.equals(api, "private"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
-            Object content = new ArrayList<Object>(Arrays.asList(nonce, method, request));
+            Object content = new ArrayList<Object>(Arrays.asList(nonce, java.util.Objects.requireNonNullElse(method, "GET"), request));
             Object auth = String.join("", (List<String>)content);
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
-                if (!java.util.Objects.equals(method, "GET"))
+                if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    body = (String) (this.json(parameters));
-                    auth = Helpers.add(auth, body);
+                    bodySigned = this.json(parameters);
+                    auth = (auth + bodySigned);
                 }
             }
-            final Object finalAuth = auth;
-            headers = new HashMap<String, Object>() {{
-                put( "ACCESS-KEY", Bitflyer.this.apiKey );
-                put( "ACCESS-TIMESTAMP", nonce );
-                put( "ACCESS-SIGN", Bitflyer.this.hmac(Bitflyer.this.encode(finalAuth), Bitflyer.this.encode(Bitflyer.this.secret), sha256()) );
-                put( "Content-Type", "application/json" );
-            }};
+            headersSigned = Helpers.newMap(
+                "ACCESS-KEY", this.apiKey,
+                "ACCESS-TIMESTAMP", nonce,
+                "ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256()),
+                "Content-Type", "application/json"
+            );
         }
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", url );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
+        Object bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", bodyResolved,
+            "headers", headersResolved
+        );
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

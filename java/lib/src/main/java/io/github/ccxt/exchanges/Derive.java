@@ -789,18 +789,6 @@ public class Derive extends DeriveApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    /**
-     * @method
-     * @name derive#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.derive.xyz/reference/post_public-get-time
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the exchange server
-     */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
-    {
-        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -869,23 +857,11 @@ public class Derive extends DeriveApi
         });
 
     }
-    /**
-     * @method
-     * @name derive#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://docs.derive.xyz/reference/post_public-get-all-currencies
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
-    {
-        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "name", null );
@@ -981,18 +957,6 @@ public class Derive extends DeriveApi
         });
 
     }
-    /**
-     * @method
-     * @name derive#fetchMarkets
-     * @description retrieves data on all markets for bybit
-     * @see https://docs.derive.xyz/reference/post_public-get-all-instruments
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
     {
@@ -1009,10 +973,6 @@ public class Derive extends DeriveApi
             return this.parseMarkets(data);
         });
 
-    }
-    public CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
-    {
-        return this.fetchSpotMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
@@ -1031,10 +991,6 @@ public class Derive extends DeriveApi
         });
 
     }
-    public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
-    {
-        return this.fetchSwapMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<Object> fetchOptionMarkets(Map<String, Object> parameters)
     {
@@ -1052,10 +1008,6 @@ public class Derive extends DeriveApi
         });
 
     }
-    public CompletableFuture<Object> fetchOptionMarkets(Object... optionalArgs)
-    {
-        return this.fetchOptionMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
@@ -1069,8 +1021,8 @@ public class Derive extends DeriveApi
         Boolean inverse = null;
         String baseId = this.safeString(market, "base_currency");
         String quoteId = this.safeString(market, "quote_currency");
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String marketId = this.safeString(market, "instrument_name");
         String symbol = ((base + "/") + quote);
         String settleId = null;
@@ -1087,7 +1039,7 @@ public class Derive extends DeriveApi
         {
             margin = false;
             settleId = "USDC";
-            settle = this.safeCurrencyCode(settleId);
+            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
             symbol = ((((base + "/") + quote) + ":") + settle);
             swap = true;
             linear = true;
@@ -1096,11 +1048,11 @@ public class Derive extends DeriveApi
         } else if (java.util.Objects.equals(type, "option"))
         {
             settleId = "USDC";
-            settle = this.safeCurrencyCode(settleId);
+            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
             margin = false;
             option = true;
             marketType = "option";
-            Map<String, Object> optionDetails = (Map<String, Object>) this.safeDict(market, "option_details");
+            Map<String, Object> optionDetails = (Map<String, Object>) this.safeDict(market, "option_details", (Object) null);
             expiry = this.safeTimestamp(optionDetails, "expiry");
             strike = this.safeInteger(optionDetails, "strike");
             optionLetter = this.safeString(optionDetails, "option_type");
@@ -1117,58 +1069,44 @@ public class Derive extends DeriveApi
         }
         Integer contractSize = ((Boolean.TRUE.equals(spot))) ? null : 1;
         Boolean isContract = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option));
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalSettle = settle;
-        final String finalSettleId = settleId;
-        final String finalMarketType = marketType;
-        final Boolean finalSpot = spot;
-        final Boolean finalMargin = margin;
-        final Boolean finalSwap = swap;
-        final Boolean finalOption = option;
-        final Boolean finalLinear = linear;
-        final Boolean finalInverse = inverse;
-        final Long finalExpiry = expiry;
-        final Long finalStrike = strike;
-        final String finalOptionType = optionType;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", marketId );
-            put( "symbol", finalSymbol );
-            put( "base", finalBase );
-            put( "quote", quote );
-            put( "settle", finalSettle );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settleId", finalSettleId );
-            put( "type", finalMarketType );
-            put( "spot", finalSpot );
-            put( "margin", finalMargin );
-            put( "swap", finalSwap );
-            put( "future", false );
-            put( "option", finalOption );
-            put( "active", Derive.this.safeBool(market, "is_active") );
-            put( "contract", isContract );
-            put( "linear", finalLinear );
-            put( "inverse", finalInverse );
-            put( "contractSize", contractSize );
-            put( "expiry", finalExpiry );
-            put( "expiryDatetime", Derive.this.iso8601(finalExpiry) );
-            put( "taker", Derive.this.safeNumber(market, "taker_fee_rate") );
-            put( "maker", Derive.this.safeNumber(market, "maker_fee_rate") );
-            put( "strike", finalStrike );
-            put( "optionType", finalOptionType );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "amount", Derive.this.safeNumber(market, "amount_step") );
-                put( "price", Derive.this.safeNumber(market, "tick_size") );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", marketId,
+            "symbol", symbol,
+            "base", base,
+            "quote", quote,
+            "settle", settle,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", settleId,
+            "type", marketType,
+            "spot", spot,
+            "margin", margin,
+            "swap", swap,
+            "future", false,
+            "option", option,
+            "active", this.safeBool(market, "is_active", (Object) null),
+            "contract", isContract,
+            "linear", linear,
+            "inverse", inverse,
+            "contractSize", contractSize,
+            "expiry", expiry,
+            "expiryDatetime", this.iso8601(expiry),
+            "taker", this.safeNumber(market, "taker_fee_rate", (Object) null),
+            "maker", this.safeNumber(market, "maker_fee_rate", (Object) null),
+            "strike", strike,
+            "optionType", optionType,
+            "precision", new HashMap<String, Object>() {{
+                put( "amount", Derive.this.safeNumber(market, "amount_step", (Object) null) );
+                put( "price", Derive.this.safeNumber(market, "tick_size", (Object) null) );
+            }},
+            "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Derive.this.safeNumber(market, "minimum_amount") );
-                    put( "max", Derive.this.safeNumber(market, "maximum_amount") );
+                    put( "min", Derive.this.safeNumber(market, "minimum_amount", (Object) null) );
+                    put( "max", Derive.this.safeNumber(market, "maximum_amount", (Object) null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1178,10 +1116,10 @@ public class Derive extends DeriveApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }} );
-            put( "created", null );
-            put( "info", market );
-        }});
+            }},
+            "created", null,
+            "info", market
+        ));
     }
 
     /**
@@ -1200,7 +1138,7 @@ public class Derive extends DeriveApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1268,22 +1206,9 @@ public class Derive extends DeriveApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, market);
+            return this.parseTicker(data, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name derive#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.derive.xyz/reference/post_public-get-ticker
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1344,9 +1269,9 @@ public class Derive extends DeriveApi
         // }
         //
         String marketId = this.safeString(ticker, "instrument_name");
-        Object timestamp = this.safeIntegerOmitZero(ticker, "timestamp");
-        String symbol = this.safeSymbol(marketId, market);
-        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats");
+        Object timestamp = this.safeIntegerOmitZero(ticker, "timestamp", (Long) null);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", (Object) null);
         String change = this.safeString(stats, "percent_change");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1373,10 +1298,6 @@ public class Derive extends DeriveApi
             put( "info", ticker );
         }}, market);
     }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -1390,20 +1311,14 @@ public class Derive extends DeriveApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -1412,25 +1327,26 @@ public class Derive extends DeriveApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
-            if (!java.util.Objects.equals(limit, null))
+            Object limitResolved = limit;
+            if (!java.util.Objects.equals(limit, null) && Helpers.isGreaterThan(limit, 1000))
             {
-                if (Helpers.isGreaterThan(limit, 1000))
-                {
-                    limit = 1000L;
-                }
-                request.put("page_size", limit); // default 100, max 1000
+                limitResolved = 1000;
+            }
+            if (!java.util.Objects.equals(limitResolved, null))
+            {
+                request.put("page_size", limitResolved); // default 100, max 1000
             }
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to_timestamp", until);
             }
-            Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, paramsOmitted))).join();
             //
             // {
             //     "result": {
@@ -1465,25 +1381,9 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.derive.xyz/reference/post_public-get-trade-history
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public List<Object> parseTrades(Object trades, Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
@@ -1505,11 +1405,7 @@ public class Derive extends DeriveApi
         }
         result = this.sortBy2(result, "timestamp", "id");
         String symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
-    }
-    public List<Object> parseTrades(Object trades, Object... optionalArgs)
-    {
-        return this.parseTrades(trades, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1545,7 +1441,7 @@ public class Derive extends DeriveApi
         // }
         //
         String marketId = this.safeString(trade, "instrument_name");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(trade, "timestamp");
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "currency", "USDC" );
@@ -1567,10 +1463,6 @@ public class Derive extends DeriveApi
             put( "fee", fee );
         }}, market);
     }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -1583,16 +1475,14 @@ public class Derive extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since2, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1603,12 +1493,12 @@ public class Derive extends DeriveApi
                 request.put("start_timestamp", since);
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to_timestamp", until);
             }
-            Map<String, Object> response = (this.publicPostGetFundingRateHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicPostGetFundingRateHistory(this.extend(request, paramsOmitted))).join();
             //
             // {
             //     "result": {
@@ -1632,30 +1522,15 @@ public class Derive extends DeriveApi
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", ((Map<String, Object>)market).get("symbol") );
-                    put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate") );
+                    put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", Derive.this.iso8601(timestamp) );
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, ((Map<String, Object>)market).get("symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of funding rate structures to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1667,12 +1542,12 @@ public class Derive extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<FundingRateHistory> response = (this.fetchFundingRateHistory(symbol, null, 1, parameters)).join();
+            List<FundingRateHistory> response = (this.fetchFundingRateHistory(symbol, (Long) null, Helpers.toLongOrNull(1), parameters)).join();
             //
             // [
             //     {
@@ -1687,27 +1562,10 @@ public class Derive extends DeriveApi
             //     }
             // ]
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0);
-            return this.parseFundingRate(data);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, (Object) null);
+            return this.parseFundingRate(data, (Map<String, Object>) null);
         }).thenApply(FundingRate::new);
 
-    }
-    /**
-     * @method
-     * @name derive#fetchFundingRate
-     * @description fetch the current funding rate
-     * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
-    {
-        return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -1723,7 +1581,7 @@ public class Derive extends DeriveApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", Derive.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Derive.this.safeNumber(contract, "fundingRate", (Object) null) );
             put( "fundingTimestamp", fundingTimestamp );
             put( "fundingDatetime", Derive.this.iso8601(fundingTimestamp) );
             put( "nextFundingRate", null );
@@ -1734,10 +1592,6 @@ public class Derive extends DeriveApi
             put( "previousFundingDatetime", null );
             put( "interval", null );
         }};
-    }
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object hashOrderMessage(Object order)
@@ -1772,7 +1626,7 @@ public class Derive extends DeriveApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        this.checkRequiredCredentials();
+        this.checkRequiredCredentials(true);
         Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
@@ -1787,11 +1641,7 @@ public class Derive extends DeriveApi
 
     public String parseUnits(Object num, Object dec)
     {
-        return Precise.stringMul(num, dec);
-    }
-    public String parseUnits(Object num, Object... optionalArgs)
-    {
-        return this.parseUnits(num, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1000000000000000000");
+        return Precise.stringMul(num, java.util.Objects.requireNonNullElse(dec, "1000000000000000000"));
     }
 
     /**
@@ -1814,36 +1664,33 @@ public class Derive extends DeriveApi
      * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price2, Object parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object price3 = price2;
-        final Object parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object price = price3;
-            Object parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (java.util.Objects.equals(price, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
-            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
-            Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            Boolean test = (Boolean) this.safeBool(paramsDeriveSubaccountId, "test", false);
+            Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
+            String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
+            Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
             String orderType = ((String)type).toLowerCase();
             String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.incrementingNonce();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
-            Long signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", (this.seconds() + 7776000L));
+            Long signatureExpiry = this.safeInteger(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
@@ -1853,36 +1700,34 @@ public class Derive extends DeriveApi
             }
             String priceString = this.numberToString(price);
             Object maxFee = null;
-            List<Object> maxFeeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "max_fee");
-            maxFee = ((List<Object>) maxFeeparametersVariable).get(0);
-            parameters = ((List<Object>) maxFeeparametersVariable).get(1);
+            Object paramsMaxFee = new HashMap<String, Object>() {{}};
+            List<Object> maxFeeparamsMaxFeeVariable = (List<Object>) this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", (Object) null);
+            maxFee = ((List<Object>) maxFeeparamsMaxFeeVariable).get(0);
+            paramsMaxFee = ((List<Object>) maxFeeparamsMaxFeeVariable).get(1);
             if (java.util.Objects.equals(maxFee, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a max_fee argument in params")) ;
             }
             String maxFeeString = this.numberToString(maxFee);
             String amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy))), keccak(), "binary");
-            Object deriveWalletAddress = null;
-            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", (Map<String, Object>) (parameters));
-            deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
-            parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
+            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", (Map<String, Object>) (paramsMaxFee));
+            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            final String finalOrderSide = orderSide;
-            final Object finalSubaccountId = subaccountId;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", ((Map<String, Object>)market).get("id") );
-                put( "direction", finalOrderSide );
-                put( "order_type", orderType );
-                put( "nonce", nonce );
-                put( "amount", amountString );
-                put( "limit_price", priceString );
-                put( "max_fee", maxFeeString );
-                put( "subaccount_id", finalSubaccountId );
-                put( "signature_expiry_sec", signatureExpiry );
-                put( "referral_code", Derive.this.safeString(Derive.this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749") );
-                put( "signer", Derive.this.walletAddress );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "instrument_name", ((Map<String, Object>)market).get("id"),
+                "direction", orderSide,
+                "order_type", orderType,
+                "nonce", nonce,
+                "amount", amountString,
+                "limit_price", priceString,
+                "max_fee", maxFeeString,
+                "subaccount_id", subaccountId,
+                "signature_expiry_sec", signatureExpiry,
+                "referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"),
+                "signer", this.walletAddress
+            );
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -1898,9 +1743,9 @@ public class Derive extends DeriveApi
             {
                 request.put("time_in_force", timeInForce);
             }
-            Object stopLoss = this.safeValue(parameters, "stopLoss");
-            Object takeProfit = this.safeValue(parameters, "takeProfit");
-            String triggerPriceType = this.safeString(parameters, "trigger_price_type", "mark");
+            Object stopLoss = this.safeValue(paramsDeriveWalletAddress, "stopLoss");
+            Object takeProfit = this.safeValue(paramsDeriveWalletAddress, "takeProfit");
+            String triggerPriceType = this.safeString(paramsDeriveWalletAddress, "trigger_price_type", "mark");
             if (!java.util.Objects.equals(stopLoss, null))
             {
                 String stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
@@ -1914,20 +1759,20 @@ public class Derive extends DeriveApi
                 request.put("trigger_type", "takeprofit");
                 request.put("trigger_price_type", triggerPriceType);
             }
-            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(paramsDeriveWalletAddress, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("label", clientOrderId);
             }
             request.put("signature", signature);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type")));
+            Object paramsOmitted = this.omit(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(test, true))
             {
-                response = (this.privatePostOrderDebug(this.extend(request, parameters))).join();
+                response = (this.privatePostOrderDebug(this.extend(request, paramsOmitted))).join();
             } else
             {
-                response = (this.privatePostOrder(this.extend(request, parameters))).join();
+                response = (this.privatePostOrder(this.extend(request, paramsOmitted))).join();
             }
             //
             // {
@@ -1996,45 +1841,17 @@ public class Derive extends DeriveApi
             //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "raw_data");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "raw_data", (Object) null);
             if (java.util.Objects.equals(rawOrder, null))
             {
                 rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
             }
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, Helpers.toMapArg(market));
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name derive#createOrder
-     * @description create a trade order
-     * @see https://docs.derive.xyz/reference/post_private-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
-    {
-        return this.createOrder(symbol, type, side, amount, price, (Object) (parameters));
     }
 
     /**
@@ -2052,28 +1869,27 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Object parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
-            Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
-            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
+            String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
+            Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
             String orderType = ((String)type).toLowerCase();
             String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.incrementingNonce();
-            Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", (this.seconds() + 7776000L));
+            Double signatureExpiry = this.safeNumber(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2083,29 +1899,26 @@ public class Derive extends DeriveApi
                 TRADE_MODULE_ADDRESS = "0x87F2863866D85E3192a35A73b388BD625D83f2be";
             }
             String priceString = this.numberToString(price);
-            String maxFeeString = this.safeString(parameters, "max_fee", "0");
+            String maxFeeString = this.safeString(paramsDeriveSubaccountId, "max_fee", "0");
             String amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString)), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString))), this.convertToBigInt(this.parseUnits(maxFeeString)), subaccountId, orderSideIsBuy))), keccak(), "binary");
-            Object deriveWalletAddress = null;
-            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (parameters));
-            deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
-            parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(((Map<String, Object>)market).get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
+            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (paramsDeriveSubaccountId));
+            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             Object signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            final String finalOrderSide = orderSide;
-            final Object finalSubaccountId = subaccountId;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", ((Map<String, Object>)market).get("id") );
-                put( "order_id_to_cancel", id );
-                put( "direction", finalOrderSide );
-                put( "order_type", orderType );
-                put( "nonce", nonce );
-                put( "amount", amountString );
-                put( "limit_price", priceString );
-                put( "max_fee", maxFeeString );
-                put( "subaccount_id", finalSubaccountId );
-                put( "signature_expiry_sec", signatureExpiry );
-                put( "signer", Derive.this.walletAddress );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "instrument_name", ((Map<String, Object>)market).get("id"),
+                "order_id_to_cancel", id,
+                "direction", orderSide,
+                "order_type", orderType,
+                "nonce", nonce,
+                "amount", amountString,
+                "limit_price", priceString,
+                "max_fee", maxFeeString,
+                "subaccount_id", subaccountId,
+                "signature_expiry_sec", signatureExpiry,
+                "signer", this.walletAddress
+            );
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -2121,14 +1934,14 @@ public class Derive extends DeriveApi
             {
                 request.put("time_in_force", timeInForce);
             }
-            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(paramsDeriveWalletAddress, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("label", clientOrderId);
             }
             request.put("signature", signature);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId")));
-            Map<String, Object> response = (this.privatePostReplace(this.extend(request, parameters))).join();
+            Object paramsOmitted = this.omit(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId")));
+            Map<String, Object> response = (this.privatePostReplace(this.extend(request, paramsOmitted))).join();
             //
             //   {
             //     "result":
@@ -2203,35 +2016,12 @@ public class Derive extends DeriveApi
             //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
             //   }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, Helpers.toMapArg(market));
             return order;
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name derive#editOrder
-     * @description edit a trade order
-     * @see https://docs.derive.xyz/reference/post_private-replace
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
-    {
-        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
-    {
-        return this.editOrder(id, symbol, type, side, amount, price, (Object) (parameters));
     }
 
     /**
@@ -2246,51 +2036,47 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
-            String clientOrderIdUnified = this.safeString(parameters, "clientOrderId");
-            String clientOrderIdExchangeSpecific = this.safeString(parameters, "label", clientOrderIdUnified);
+            String clientOrderIdUnified = this.safeString(paramsOmitted, "clientOrderId");
+            String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "label", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 request.put("label", clientOrderIdExchangeSpecific);
-                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
-                response = (this.privatePostCancelByLabel(this.extend(request, parameters))).join();
+                Object paramsLabel = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
+                response = (this.privatePostCancelByLabel(this.extend(request, paramsLabel))).join();
             } else
             {
                 request.put("order_id", id);
                 if (java.util.Objects.equals(isTrigger, true))
                 {
-                    response = (this.privatePostCancelTriggerOrder(this.extend(request, parameters))).join();
+                    response = (this.privatePostCancelTriggerOrder(this.extend(request, paramsOmitted))).join();
                 } else
                 {
-                    response = (this.privatePostCancel(this.extend(request, parameters))).join();
+                    response = (this.privatePostCancel(this.extend(request, paramsOmitted))).join();
                 }
             }
             //
@@ -2336,34 +2122,17 @@ public class Derive extends DeriveApi
             //     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
             // }
             //
-            final String finalSymbol = symbol;
-            Map<String, Object> extendParams = new HashMap<String, Object>() {{
-                put( "symbol", finalSymbol );
-            }};
+            Map<String, Object> extendParams = Helpers.newMap(
+                "symbol", symbol
+            );
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
             }
-            return this.extend(this.parseOrder(order, market), extendParams);
+            return this.extend(this.parseOrder(order, Helpers.toMapArg(market)), extendParams);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name derive#cancelOrder
-     * @see https://docs.derive.xyz/reference/post_private-cancel
-     * @description cancels an open order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2377,38 +2146,34 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(market, null))
             {
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
-                response = (this.privatePostCancelByInstrument(this.extend(request, parameters))).join();
+                response = (this.privatePostCancelByInstrument(this.extend(request, paramsDeriveSubaccountId))).join();
             } else
             {
-                response = (this.privatePostCancelAll(this.extend(request, parameters))).join();
+                response = (this.privatePostCancelAll(this.extend(request, paramsDeriveSubaccountId))).join();
             }
             //
             // {
@@ -2423,27 +2188,11 @@ public class Derive extends DeriveApi
             //     "result": "ok"
             // }
             //
-            final Map<String, Object> finalResponse = response;
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", finalResponse );
-    }})));
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
+        "info", response
+    ), (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#cancelAllOrders
-     * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
-     * @see https://docs.derive.xyz/reference/post_private-cancel-all
-     * @description cancel all open orders in a market
-     * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2460,36 +2209,31 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500)).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
             }
-            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrders", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            Boolean isTrigger = (Boolean) this.safeBool2(paramsPaginate, "trigger", "stop", false);
+            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrders", (Map<String, Object>) (paramsOmitted));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -2508,7 +2252,7 @@ public class Derive extends DeriveApi
             {
                 request.put("status", "untriggered");
             }
-            Map<String, Object> response = (this.privatePostGetOrders(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetOrders(this.extend(request, paramsDeriveSubaccountId))).join();
             //
             // {
             //     "result": {
@@ -2554,11 +2298,11 @@ public class Derive extends DeriveApi
             //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result");
-            Long page = this.safeInteger(parameters, "page");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
             if (!java.util.Objects.equals(page, null))
             {
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(data, "pagination");
+                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(data, "pagination", (Object) null);
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isGreaterThan(page, currentPage))
                 {
@@ -2566,27 +2310,9 @@ public class Derive extends DeriveApi
                 }
             }
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, limit);
+            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2608,30 +2334,14 @@ public class Derive extends DeriveApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchOpenOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2653,30 +2363,14 @@ public class Derive extends DeriveApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "filled" );
             }});
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchClosedOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2698,30 +2392,14 @@ public class Derive extends DeriveApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "status", "cancelled" );
             }});
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(extendedParams))).join();
+            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(extendedParams))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-orders
-     * @param {string} symbol unified market symbol of the market the orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
-    {
-        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2804,7 +2482,7 @@ public class Derive extends DeriveApi
         //     "trigger_price": null,
         //     "trigger_reject_message": null
         // }
-        Object order = this.safeDict(rawOrder, "data");
+        Object order = this.safeDict(rawOrder, "data", (Object) null);
         if (java.util.Objects.equals(order, null))
         {
             order = rawOrder;
@@ -2812,18 +2490,15 @@ public class Derive extends DeriveApi
         Long timestamp = (Long) this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
         String orderId = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "instrument_name");
-        if (!java.util.Objects.equals(marketId, null))
-        {
-            market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        }
-        String symbol = this.safeString(market, "symbol");
+        Object marketResolved = (((!java.util.Objects.equals(marketId, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
+        String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "limit_price");
         String average = this.safeString(order, "average_price");
         String amount = this.safeString(order, "desired_amount");
         String filled = this.safeString(order, "filled_amount");
         String fee = this.safeString(order, "order_fee");
         String orderType = this.safeStringLower(order, "order_type");
-        Boolean isBid = (Boolean) this.safeBool(order, "is_bid");
+        Boolean isBid = (Boolean) this.safeBool(order, "is_bid", (Object) null);
         String side = this.safeString(order, "direction");
         if (java.util.Objects.equals(side, null))
         {
@@ -2853,45 +2528,36 @@ public class Derive extends DeriveApi
         Long lastUpdateTimestamp = this.safeInteger(rawOrder, "last_update_timestamp");
         String status = this.safeString(order, "order_status");
         String timeInForce = this.safeString(order, "time_in_force");
-        final Object finalOrder = order;
-        final String finalSide = side;
-        final String finalTriggerPrice = triggerPrice;
-        final String finalTakeProfitPrice = takeProfitPrice;
-        final String finalStopLossPrice = stopLossPrice;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "id", orderId );
-            put( "clientOrderId", Derive.this.safeString(finalOrder, "label") );
-            put( "timestamp", timestamp );
-            put( "datetime", Derive.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", Derive.this.parseOrderStatus(status) );
-            put( "symbol", symbol );
-            put( "type", orderType );
-            put( "timeInForce", Derive.this.parseTimeInForce(timeInForce) );
-            put( "postOnly", null );
-            put( "reduceOnly", Derive.this.safeBool(finalOrder, "reduce_only") );
-            put( "side", finalSide );
-            put( "price", price );
-            put( "triggerPrice", finalTriggerPrice );
-            put( "takeProfitPrice", finalTakeProfitPrice );
-            put( "stopLossPrice", finalStopLossPrice );
-            put( "average", average );
-            put( "amount", amount );
-            put( "filled", filled );
-            put( "remaining", null );
-            put( "cost", null );
-            put( "trades", null );
-            put( "fee", new HashMap<String, Object>() {{
+        return this.safeOrder(Helpers.newMap(
+            "id", orderId,
+            "clientOrderId", this.safeString(order, "label"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", null,
+            "lastUpdateTimestamp", lastUpdateTimestamp,
+            "status", this.parseOrderStatus(status),
+            "symbol", symbol,
+            "type", orderType,
+            "timeInForce", this.parseTimeInForce(timeInForce),
+            "postOnly", null,
+            "reduceOnly", this.safeBool(order, "reduce_only", (Object) null),
+            "side", side,
+            "price", price,
+            "triggerPrice", triggerPrice,
+            "takeProfitPrice", takeProfitPrice,
+            "stopLossPrice", stopLossPrice,
+            "average", average,
+            "amount", amount,
+            "filled", filled,
+            "remaining", null,
+            "cost", null,
+            "trades", null,
+            "fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", "USDC" );
-            }} );
-            put( "info", finalOrder );
-        }}, market);
-    }
-    public Object parseOrder(Object rawOrder, Object... optionalArgs)
-    {
-        return this.parseOrder(rawOrder, Helpers.getArgMap(optionalArgs, 0, null));
+            }},
+            "info", order
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2907,29 +2573,21 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -2945,7 +2603,7 @@ public class Derive extends DeriveApi
             {
                 request.put("from_timestamp", since);
             }
-            Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, paramsDeriveSubaccountId))).join();
             //
             // {
             //     "result": {
@@ -2984,26 +2642,9 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, parameters);
+            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchOrderTrades
-     * @description fetch all the trades made from a single order
-     * @see https://docs.derive.xyz/reference/post_private-get-trade-history
-     * @param {string} id order id
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
-    {
-        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3019,36 +2660,29 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3064,7 +2698,7 @@ public class Derive extends DeriveApi
             {
                 request.put("from_timestamp", since);
             }
-            Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, paramsDeriveSubaccountId))).join();
             //
             // {
             //     "result": {
@@ -3102,10 +2736,10 @@ public class Derive extends DeriveApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Long page = this.safeInteger(parameters, "page");
+            Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
             if (!java.util.Objects.equals(page, null))
             {
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination");
+                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination", (Object) null);
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isGreaterThan(page, currentPage))
                 {
@@ -3113,26 +2747,9 @@ public class Derive extends DeriveApi
                 }
             }
             List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, parameters);
+            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.derive.xyz/reference/post_private-get-trade-history
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3145,25 +2762,23 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchPositions", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchPositions", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("subaccount_id")));
-            Map<String, Object> response = (this.privatePostGetPositions(this.extend(request, parameters))).join();
+            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("subaccount_id")));
+            Map<String, Object> response = (this.privatePostGetPositions(this.extend(request, paramsOmitted))).join();
             //
             // {
             //     "result": {
@@ -3204,23 +2819,9 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(positions, symbols);
+            return this.parsePositions(positions, symbols, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchPositions
-     * @description fetch all open positions
-     * @see https://docs.derive.xyz/reference/post_private-get-positions
-     * @param {string[]} [symbols] not used by fetchPositions ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3256,7 +2857,7 @@ public class Derive extends DeriveApi
         // }
         //
         String contract = this.safeString(position, "instrument_name");
-        market = (Map<String, Object>) (this.safeMarket(contract, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(contract, market, (String) null, (String) null);
         String size = this.safeString(position, "amount");
         String side = null;
         if (Precise.stringGt(size, "0"))
@@ -3266,48 +2867,41 @@ public class Derive extends DeriveApi
         {
             side = "short";
         }
-        String contractSize = this.safeString(market, "contractSize");
+        String contractSize = this.safeString(marketResolved, "contractSize");
         String markPrice = this.safeString(position, "mark_price");
         Long timestamp = this.safeInteger(position, "creation_timestamp");
         String unrealisedPnl = this.safeString(position, "unrealized_pnl");
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
-        final Map<String, Object> finalMarket = market;
-        final String finalSize = size;
-        final String finalSide = side;
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", Derive.this.safeString(finalMarket, "symbol") );
-            put( "timestamp", timestamp );
-            put( "datetime", Derive.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", null );
-            put( "initialMargin", Derive.this.safeNumber(position, "initial_margin") );
-            put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", Derive.this.safeNumber(position, "maintenance_margin") );
-            put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", null );
-            put( "notional", Derive.this.parseNumber(notional) );
-            put( "leverage", Derive.this.safeNumber(position, "leverage") );
-            put( "unrealizedPnl", Derive.this.parseNumber(unrealisedPnl) );
-            put( "contracts", Derive.this.parseNumber(finalSize) );
-            put( "contractSize", Derive.this.parseNumber(contractSize) );
-            put( "marginRatio", null );
-            put( "liquidationPrice", Derive.this.safeNumber(position, "liquidation_price") );
-            put( "markPrice", Derive.this.parseNumber(markPrice) );
-            put( "lastPrice", null );
-            put( "collateral", null );
-            put( "marginMode", null );
-            put( "side", finalSide );
-            put( "percentage", null );
-            put( "hedged", null );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-        }});
-    }
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePosition(Helpers.newMap(
+            "info", position,
+            "id", null,
+            "symbol", this.safeString(marketResolved, "symbol"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastUpdateTimestamp", null,
+            "initialMargin", this.safeNumber(position, "initial_margin", (Object) null),
+            "initialMarginPercentage", null,
+            "maintenanceMargin", this.safeNumber(position, "maintenance_margin", (Object) null),
+            "maintenanceMarginPercentage", null,
+            "entryPrice", null,
+            "notional", this.parseNumber(notional),
+            "leverage", this.safeNumber(position, "leverage", (Object) null),
+            "unrealizedPnl", this.parseNumber(unrealisedPnl),
+            "contracts", this.parseNumber(size),
+            "contractSize", this.parseNumber(contractSize),
+            "marginRatio", null,
+            "liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null),
+            "markPrice", this.parseNumber(markPrice),
+            "lastPrice", null,
+            "collateral", null,
+            "marginMode", null,
+            "side", side,
+            "percentage", null,
+            "hedged", null,
+            "stopLossPrice", null,
+            "takeProfitPrice", null
+        ));
     }
 
     /**
@@ -3322,36 +2916,29 @@ public class Derive extends DeriveApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(500))).join();
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3367,7 +2954,7 @@ public class Derive extends DeriveApi
             {
                 request.put("page_size", limit);
             }
-            Map<String, Object> response = (this.privatePostGetFundingHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetFundingHistory(this.extend(request, paramsDeriveSubaccountId))).join();
             //
             // {
             //     "result": {
@@ -3400,10 +2987,10 @@ public class Derive extends DeriveApi
             // }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Long page = this.safeInteger(parameters, "page");
+            Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
             if (!java.util.Objects.equals(page, null))
             {
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination");
+                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination", (Object) null);
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isGreaterThan(page, currentPage))
                 {
@@ -3411,25 +2998,9 @@ public class Derive extends DeriveApi
                 }
             }
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(events, market, since, limit);
+            return this.parseIncomes(events, Helpers.toMapArg(market), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchFundingHistory
-     * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.derive.xyz/reference/post_private-get-funding-history
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch funding history for
-     * @param {int} [limit] the maximum number of funding history structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
-     */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
@@ -3443,9 +3014,9 @@ public class Derive extends DeriveApi
         // }
         //
         String marketId = this.safeString(income, "instrument_name");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String rate = this.safeString(income, "funding");
-        String code = this.safeCurrencyCode("USDC");
+        String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
         Long timestamp = this.safeInteger(income, "timestamp");
         return new HashMap<String, Object>() {{
             put( "info", income );
@@ -3458,10 +3029,6 @@ public class Derive extends DeriveApi
             put( "rate", rate );
         }};
     }
-    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
-    {
-        return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -3471,24 +3038,22 @@ public class Derive extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object parameters2)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
-        final Object parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object deriveWalletAddress = null;
-            List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", (Map<String, Object>) (parameters));
-            deriveWalletAddress = ((List<Object>) deriveWalletAddressparametersVariable).get(0);
-            parameters = ((List<Object>) deriveWalletAddressparametersVariable).get(1);
-            final Object finalDeriveWalletAddress = deriveWalletAddress;
+            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", (Map<String, Object>) (parameters));
+            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "wallet", finalDeriveWalletAddress );
+                put( "wallet", deriveWalletAddress );
             }};
-            Map<String, Object> response = (this.privatePostGetAllPortfolios(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetAllPortfolios(this.extend(request, paramsDeriveWalletAddress))).join();
             //
             // {
             //     "result": [{
@@ -3537,26 +3102,10 @@ public class Derive extends DeriveApi
             //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
             // }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result");
+            List<Object> result = (List<Object>) this.safeList(response, "result", (Object) null);
             return this.parseBalance(result);
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name derive#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.derive.xyz/reference/post_private-get-all-portfolios
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
-    {
-        return this.fetchBalance((Object) (parameters));
     }
 
     public Object parseBalance(Object response)
@@ -3566,21 +3115,21 @@ public class Derive extends DeriveApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(response, i);
+            Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             List<Object> collaterals = (List<Object>) this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)collaterals).size(); j++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(collaterals, j);
-                String code = this.safeCurrencyCode(this.safeString(balance, "currency"));
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code);
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(collaterals, j, (Object) null);
+                String code = this.safeCurrencyCode(this.safeString(balance, "currency"), (Map<String, Object>) null);
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                 if (java.util.Objects.equals(account, null))
                 {
                     account = (Map<String, Object>) this.account();
-                    account.put("total", this.safeString(balance, "amount"));
+                    Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
                 } else
                 {
                     String amount = this.safeString(balance, "amount");
-                    account.put("total", Precise.stringAdd(((Map<String, Object>)account).get("total"), amount));
+                    Helpers.addElementToObject(account, "total", Precise.stringAdd(((Map<String, Object>)account).get("total"), amount));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -3603,30 +3152,26 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since2, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchDeposits", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchDeposits", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_timestamp", since);
             }
-            Map<String, Object> response = (this.privatePostGetDepositHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetDepositHistory(this.extend(request, paramsDeriveSubaccountId))).join();
             //
             // {
             //     "result": {
@@ -3645,28 +3190,12 @@ public class Derive extends DeriveApi
             //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
             // }
             //
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(events, currency, since, limit, parameters);
+            return this.parseTransactions(events, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://docs.derive.xyz/reference/post_private-get-deposit-history
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3681,30 +3210,26 @@ public class Derive extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since2, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object subaccountId = null;
-            List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", (Map<String, Object>) (parameters));
-            subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) subaccountIdparametersVariable).get(1);
-            final Object finalSubaccountId = subaccountId;
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", finalSubaccountId );
+                put( "subaccount_id", subaccountId );
             }};
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_timestamp", since);
             }
-            Map<String, Object> response = (this.privatePostGetWithdrawalHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostGetWithdrawalHistory(this.extend(request, paramsDeriveSubaccountId))).join();
             //
             // {
             //     "result": {
@@ -3723,28 +3248,12 @@ public class Derive extends DeriveApi
             //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
             // }
             //
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(events, currency, since, limit, parameters);
+            return this.parseTransactions(events, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name derive#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://docs.derive.xyz/reference/post_private-get-withdrawal-history
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -3767,33 +3276,28 @@ public class Derive extends DeriveApi
         {
             txId = null;
         }
-        final String finalTxId = txId;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", null );
-            put( "txid", finalTxId );
-            put( "timestamp", timestamp );
-            put( "datetime", Derive.this.iso8601(timestamp) );
-            put( "address", null );
-            put( "addressFrom", null );
-            put( "addressTo", null );
-            put( "tag", null );
-            put( "tagFrom", null );
-            put( "tagTo", null );
-            put( "type", null );
-            put( "amount", Derive.this.safeNumber(transaction, "amount") );
-            put( "currency", code );
-            put( "status", Derive.this.parseTransactionStatus(Derive.this.safeString(transaction, "tx_status")) );
-            put( "updated", null );
-            put( "comment", null );
-            put( "internal", null );
-            put( "fee", null );
-            put( "network", null );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", transaction,
+            "id", null,
+            "txid", txId,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "address", null,
+            "addressFrom", null,
+            "addressTo", null,
+            "tag", null,
+            "tagFrom", null,
+            "tagTo", null,
+            "type", null,
+            "amount", this.safeNumber(transaction, "amount", (Object) null),
+            "currency", code,
+            "status", this.parseTransactionStatus(this.safeString(transaction, "tx_status")),
+            "updated", null,
+            "comment", null,
+            "internal", null,
+            "fee", null,
+            "network", null
+        );
     }
 
     public String parseTransactionStatus(String status)
@@ -3807,38 +3311,36 @@ public class Derive extends DeriveApi
 
     public Object handleDeriveSubaccountId(Object methodName, Map<String, Object> parameters)
     {
-        Object derivesubAccountId = null;
-        List<Object> derivesubAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id");
-        derivesubAccountId = ((List<Object>) derivesubAccountIdparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) derivesubAccountIdparametersVariable).get(1);
+        List<Object> derivesubAccountIdparamsSubaccountIdVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id", (Object) null);
+        var derivesubAccountId = ((List<Object>) derivesubAccountIdparamsSubaccountIdVariable).get(0);
+        Map<String, Object> paramsSubaccountId = (Map<String, Object>) ((List<Object>) derivesubAccountIdparamsSubaccountIdVariable).get(1);
         if ((!java.util.Objects.equals(derivesubAccountId, null)) && (!java.util.Objects.equals(derivesubAccountId, "")))
         {
             Helpers.addElementToObject(this.options, "subaccount_id", derivesubAccountId); // saving in options
-            return new ArrayList<Object>(Arrays.asList(derivesubAccountId, parameters));
+            return new ArrayList<Object>(Arrays.asList(derivesubAccountId, paramsSubaccountId));
         }
         String optionsWallet = this.safeString(this.options, "subaccount_id");
         if (!java.util.Objects.equals(optionsWallet, null))
         {
-            return new ArrayList<Object>(Arrays.asList(optionsWallet, parameters));
+            return new ArrayList<Object>(Arrays.asList(optionsWallet, paramsSubaccountId));
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
     public Object handleDeriveWalletAddress(Object methodName, Map<String, Object> parameters)
     {
-        String deriveWalletAddress = null;
-        List<Object> deriveWalletAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "deriveWalletAddress");
-        deriveWalletAddress = (String) ((List<Object>) deriveWalletAddressparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) deriveWalletAddressparametersVariable).get(1);
+        List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleOptionStringAndParams(parameters, (String) (methodName), "deriveWalletAddress", (String) null);
+        String deriveWalletAddress = (String) ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+        Map<String, Object> paramsDeriveWalletAddress = (Map<String, Object>) ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))
         {
             Helpers.addElementToObject(this.options, "deriveWalletAddress", deriveWalletAddress); // saving in options
-            return new ArrayList<Object>(Arrays.asList(deriveWalletAddress, parameters));
+            return new ArrayList<Object>(Arrays.asList(deriveWalletAddress, paramsDeriveWalletAddress));
         }
         String optionsWallet = this.safeString(this.options, "deriveWalletAddress");
         if (!java.util.Objects.equals(optionsWallet, null))
         {
-            return new ArrayList<Object>(Arrays.asList(optionsWallet, parameters));
+            return new ArrayList<Object>(Arrays.asList(optionsWallet, paramsDeriveWalletAddress));
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
     }
@@ -3849,7 +3351,7 @@ public class Derive extends DeriveApi
         {
             return null;  // fallback to default error handler
         }
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
         if (!java.util.Objects.equals(error, null))
         {
             String errorCode = this.safeString(error, "code");
@@ -3870,34 +3372,33 @@ public class Derive extends DeriveApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
-        if (java.util.Objects.equals(method, "POST"))
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), "/"), path);
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
-            headers = new HashMap<String, Object>() {{
+            Map<String, Object> postHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
-            if (java.util.Objects.equals(api, "private"))
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
             {
                 String now = String.valueOf(this.milliseconds());
                 Object signature = this.signMessage(now, this.privateKey);
-                ((Map<String, Object>)headers).put("X-LyraWallet", this.safeString(this.options, "deriveWalletAddress"));
-                ((Map<String, Object>)headers).put("X-LyraTimestamp", now);
-                ((Map<String, Object>)headers).put("X-LyraSignature", signature);
+                postHeaders.put("X-LyraWallet", this.safeString(this.options, "deriveWalletAddress"));
+                postHeaders.put("X-LyraTimestamp", now);
+                postHeaders.put("X-LyraSignature", signature);
             }
-            body = (String) (this.json(parameters));
+            String postBody = this.json(parameters);
+            return Helpers.newMap(
+                "url", url,
+                "method", java.util.Objects.requireNonNullElse(method, "GET"),
+                "body", postBody,
+                "headers", postHeaders
+            );
         }
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", url );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", body,
+            "headers", headers
+        );
     }
 }

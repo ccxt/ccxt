@@ -243,12 +243,11 @@ public class Opinion extends OpinionApi
             Object fetchedRawCount = 0;
             while (true)
             {
-                final Object finalPage = page;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "marketType", 2 );
-                    put( "limit", pageLimit );
-                    put( "page", finalPage );
-                }};
+                Map<String, Object> request = Helpers.newMap(
+                    "marketType", 2,
+                    "limit", pageLimit,
+                    "page", page
+                );
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> rawMarkets = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -279,7 +278,7 @@ public class Opinion extends OpinionApi
                         }
                     } else
                     {
-                        ((List<Object>)flatMarkets).add(this.parseOpinionMarket((Map<String, Object>) (raw)));
+                        ((List<Object>)flatMarkets).add(this.parseOpinionMarket((Map<String, Object>) (raw), (String) null));
                     }
                 }
                 Integer collectedLength = ((List<?>)flatMarkets).size();
@@ -299,20 +298,6 @@ public class Opinion extends OpinionApi
         });
 
     }
-    /**
-     * @method
-     * @name opinion#fetchMarkets
-     * @description fetches every kind of opinion market
-     * categorical parents double as our unified "events" and are cached into this.events as a side effect
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.limit] max number of markets to collect (defaults to options.marketsPageLimit * options.maxMarketsPages, 1000)
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @ignore
@@ -331,10 +316,10 @@ public class Opinion extends OpinionApi
 
             if (java.util.Objects.equals(this.outcomeSearchQuery(outcomeSymbol), null))
             {
-                (this.loadOutcomes()).join();
+                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
                 if (Boolean.TRUE.equals(this.hasOutcome((String) (outcomeSymbol))))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol));
+                    return this.safeOutcome((String) (outcomeSymbol), (Object) null);
                 }
             }
             return (super.fetchOutcome(outcomeSymbol)).join();
@@ -411,20 +396,17 @@ public class Opinion extends OpinionApi
                     resolvedOutcome = outcomeHandle;
                 }
             }
-final String finalTokenId = tokenId;
-            final Boolean finalWinner = winner;
-            final Object finalSettleFraction = settleFraction;
-                        ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
-                put( "id", finalTokenId );
-                put( "outcomeId", finalTokenId );
-                put( "outcome", outcomeHandle );
-                put( "market", marketSymbol );
-                put( "label", label );
-                put( "active", active );
-                put( "winner", finalWinner );
-                put( "settleFraction", finalSettleFraction );
-                put( "info", raw );
-            }});
+            ((List<Object>)outcomes).add(Helpers.newMap(
+                "id", tokenId,
+                "outcomeId", tokenId,
+                "outcome", outcomeHandle,
+                "market", marketSymbol,
+                "label", label,
+                "active", active,
+                "winner", winner,
+                "settleFraction", settleFraction,
+                "info", raw
+            ));
         }
         Object marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
@@ -435,47 +417,45 @@ final String finalTokenId = tokenId;
             expiryTimestamp = this.safeTimestamp(raw, "cutoffAt");
         }
         Long created = this.safeTimestamp(raw, "createdAt");
-        final Boolean finalResolved = resolved;
-        final Long finalExpiryTimestamp = expiryTimestamp;
-        return new HashMap<String, Object>() {{
-            put( "id", marketId );
-            put( "market", marketSymbol );
-            put( "base", "USDT" );
-            put( "quote", "USDT" );
-            put( "settle", null );
-            put( "baseId", marketId );
-            put( "quoteId", "USDT" );
-            put( "settleId", null );
-            put( "type", "prediction" );
-            put( "marketType", "binary" );
-            put( "executionModel", "clob" );
-            put( "spot", false );
-            put( "margin", false );
-            put( "swap", false );
-            put( "future", false );
-            put( "option", false );
-            put( "prediction", true );
-            put( "active", active );
-            put( "resolved", finalResolved );
-            put( "resolvedOutcome", marketResolvedOutcome );
-            put( "contract", false );
-            put( "linear", null );
-            put( "inverse", null );
-            put( "contractSize", null );
-            put( "expiry", finalExpiryTimestamp );
-            put( "expiryDatetime", Opinion.this.iso8601(finalExpiryTimestamp) );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "taker", Helpers.GetValue(Helpers.GetValue(Opinion.this.fees, "trading"), "taker") );
-            put( "maker", Helpers.GetValue(Helpers.GetValue(Opinion.this.fees, "trading"), "maker") );
-            put( "percentage", true );
-            put( "tierBased", false );
-            put( "feeSide", "get" );
-            put( "precision", new HashMap<String, Object>() {{
+        return Helpers.newMap(
+            "id", marketId,
+            "market", marketSymbol,
+            "base", "USDT",
+            "quote", "USDT",
+            "settle", null,
+            "baseId", marketId,
+            "quoteId", "USDT",
+            "settleId", null,
+            "type", "prediction",
+            "marketType", "binary",
+            "executionModel", "clob",
+            "spot", false,
+            "margin", false,
+            "swap", false,
+            "future", false,
+            "option", false,
+            "prediction", true,
+            "active", active,
+            "resolved", resolved,
+            "resolvedOutcome", marketResolvedOutcome,
+            "contract", false,
+            "linear", null,
+            "inverse", null,
+            "contractSize", null,
+            "expiry", expiryTimestamp,
+            "expiryDatetime", this.iso8601(expiryTimestamp),
+            "strike", null,
+            "optionType", null,
+            "taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"),
+            "maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"),
+            "percentage", true,
+            "tierBased", false,
+            "feeSide", "get",
+            "precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
+            }},
+            "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -492,24 +472,11 @@ final String finalTokenId = tokenId;
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }} );
-            put( "outcomes", outcomes );
-            put( "info", raw );
-            put( "created", created );
-        }};
-    }
-    /**
-     * @ignore
-     * @method
-     * @name opinion#parseOpinionMarket
-     * @description converts a single raw opinion market into one ccxt market with yes/no outcomes
-     * @param {object} raw the raw opinion market object
-     * @param {string} [eventSlug] the slug of the parent event
-     * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
-     */
-    public Object parseOpinionMarket(Map<String, Object> raw, Object... optionalArgs)
-    {
-        return this.parseOpinionMarket(raw, Helpers.getArgString(optionalArgs, 0, null));
+            }},
+            "outcomes", outcomes,
+            "info", raw,
+            "created", created
+        );
     }
 
     /**
@@ -527,8 +494,8 @@ final String finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.requireEventQuery(parameters);
-            List<Object> queries = this.parseSearchQueries(parameters);
+            this.requireEventQuery(Helpers.toMapArg(parameters));
+            List<Object> queries = this.parseSearchQueries(Helpers.toMapArg(parameters));
             String eventId = this.safeString(parameters, "eventId");
             String slug = this.safeString(parameters, "slug");
             if ((!java.util.Objects.equals(eventId, null)) || (!java.util.Objects.equals(slug, null)))
@@ -537,22 +504,20 @@ final String finalTokenId = tokenId;
                 Map<String, Object> singleResponse = null;
                 if (!java.util.Objects.equals(slug, null))
                 {
-                    final String finalSlug = slug;
-                    singleResponse = (this.opinionPublicGetMarketSlugSlug(this.extend(new HashMap<String, Object>() {{
-                        put( "slug", finalSlug );
-                    }}, singleRest))).join();
+                    singleResponse = (this.opinionPublicGetMarketSlugSlug(this.extend(Helpers.newMap(
+                        "slug", slug
+                    ), singleRest))).join();
                 } else
                 {
-                    final String finalEventId = eventId;
-                    singleResponse = (this.opinionPublicGetMarketCategoricalMarketId(this.extend(new HashMap<String, Object>() {{
-                        put( "marketId", finalEventId );
-                    }}, singleRest))).join();
+                    singleResponse = (this.opinionPublicGetMarketCategoricalMarketId(this.extend(Helpers.newMap(
+                        "marketId", eventId
+                    ), singleRest))).join();
                 }
                 Map<String, Object> singleResult = (Map<String, Object>) this.safeDict(singleResponse, "result", new HashMap<String, Object>() {{}});
                 Map<String, Object> singleData = (Map<String, Object>) this.safeDict(singleResult, "data", new HashMap<String, Object>() {{}});
                 Object single = this.parseEvent((Map<String, Object>) (singleData));
                 this.indexEventOutcomes(single);
-                return this.applyEventFetchParams(new ArrayList<Object>(Arrays.asList(single)), parameters, queries);
+                return this.applyEventFetchParams(new ArrayList<Object>(Arrays.asList(single)), Helpers.toMapArg(parameters), queries);
             }
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "tags", "status", "sort", "searchIn", "limit")));
             Long pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 20);
@@ -581,13 +546,11 @@ final String finalTokenId = tokenId;
                 {
                     break;
                 }
-                final Object finalReqLimit = reqLimit;
-                final Object finalPage = page;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "marketType", 1 );
-                    put( "limit", finalReqLimit );
-                    put( "page", finalPage );
-                }};
+                Map<String, Object> request = Helpers.newMap(
+                    "marketType", 1,
+                    "limit", reqLimit,
+                    "page", page
+                );
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> pageEvents = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -624,23 +587,9 @@ final String finalTokenId = tokenId;
                 }
             }
             this.populateOutcomes();
-            return this.applyEventFetchParams(parsedEvents, parameters, queries);
+            return this.applyEventFetchParams(parsedEvents, Helpers.toMapArg(parameters), queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchEvents
-     * @description fetches Opinion's categorical markets - scope required via query/queries/tags/eventId/slug/labelId
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.labelId] filter by opinion category label id
-     * @param {int} [params.limit] max number of events to fetch (paginated server-side; defaults to options.maxFetchEventsResults, 100)
-     * @returns {object[]} an array of event structures
-     */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object... optionalArgs)
-    {
-        return this.fetchEvents(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -677,19 +626,6 @@ final String finalTokenId = tokenId;
             return eventVar;
         }).thenApply(PredictionEvent::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchEvent
-     * @description fetches a single prediction-market event by its market id, or slug
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
-     * @param {string} id the numeric marketId, or the market slug
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
-     */
-    public CompletableFuture<PredictionEvent> fetchEvent(String id, Object... optionalArgs)
-    {
-        return this.fetchEvent(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -806,7 +742,7 @@ final String finalTokenId = tokenId;
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, rawChildrenLength); i++)
         {
-            ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), slug));
+            ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), Helpers.toStringArg(slug)));
         }
         String statusEnum = this.safeString(rawEvent, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
@@ -818,28 +754,25 @@ final String finalTokenId = tokenId;
         }
         Long created = this.safeTimestamp(rawEvent, "createdAt");
         List<Object> labels = (List<Object>) this.safeList(rawEvent, "labels", new ArrayList<Object>(Arrays.asList()));
-        final String finalEventHandle = eventHandle;
-        final String finalTitle = title;
-        final Long finalEnd = end;
-        return this.extend(new HashMap<String, Object>() {{
-            put( "id", eventId );
-            put( "event", finalEventHandle );
-            put( "title", finalTitle );
-            put( "description", Opinion.this.safeString(rawEvent, "rules") );
-            put( "slug", slug );
-            put( "category", Opinion.this.safeString(labels, 0) );
-            put( "tags", labels );
-            put( "markets", marketsList );
-            put( "active", active );
-            put( "resolved", resolved );
-            put( "volume", Opinion.this.safeNumber(rawEvent, "volume") );
-            put( "created", created );
-            put( "createdDatetime", Opinion.this.iso8601(created) );
-            put( "end", finalEnd );
-            put( "endDatetime", Opinion.this.iso8601(finalEnd) );
-            put( "image", Opinion.this.safeString2(rawEvent, "coverUrl", "thumbnailUrl") );
-            put( "info", rawEvent );
-        }});
+        return this.extend(Helpers.newMap(
+            "id", eventId,
+            "event", eventHandle,
+            "title", title,
+            "description", this.safeString(rawEvent, "rules"),
+            "slug", slug,
+            "category", this.safeString(labels, 0),
+            "tags", labels,
+            "markets", marketsList,
+            "active", active,
+            "resolved", resolved,
+            "volume", this.safeNumber(rawEvent, "volume", (Object) null),
+            "created", created,
+            "createdDatetime", this.iso8601(created),
+            "end", end,
+            "endDatetime", this.iso8601(end),
+            "image", this.safeString2(rawEvent, "coverUrl", "thumbnailUrl"),
+            "info", rawEvent
+        ));
     }
 
     /**
@@ -856,7 +789,7 @@ final String finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Object outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
@@ -870,22 +803,9 @@ final String finalTokenId = tokenId;
                 put( "price", priceResponse );
                 put( "book", bookResponse );
             }};
-            return this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
+            return this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
         }).thenApply(PredictionTicker::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchTicker
-     * @description fetches the latest trade price and top of book for a single outcome token
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
-     * @param {string} outcome unified outcome or outcome token id
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
-     */
-    public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Object... optionalArgs)
-    {
-        return this.fetchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -922,49 +842,35 @@ final String finalTokenId = tokenId;
         List<Object> asks = (List<Object>) this.safeList(bookResult, "asks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(bids, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> bestAsk = (Map<String, Object>) this.safeDict(asks, 0, new HashMap<String, Object>() {{}});
-        Double last = this.safeNumber(priceResult, "price");
+        Double last = this.safeNumber(priceResult, "price", (Object) null);
         Long timestamp = this.safeInteger(priceResult, "timestamp");
         if ((timestamp != null && timestamp == 0))
         {
             timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
         }
-        final Long finalTimestamp = timestamp;
-        return (Map<String, Object>) (this.safePredictionTicker(new HashMap<String, Object>() {{
-            put( "outcome", Opinion.this.safeString(marketAny, "outcome") );
-            put( "outcomeId", Opinion.this.safeString2(marketAny, "outcomeId", "id") );
-            put( "label", Opinion.this.safeString(marketAny, "label") );
-            put( "market", Opinion.this.safeString2(marketAny, "market", "outcome") );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Opinion.this.iso8601(finalTimestamp) );
-            put( "high", null );
-            put( "low", null );
-            put( "bid", Opinion.this.safeNumber(bestBid, "price") );
-            put( "bidVolume", Opinion.this.safeNumber(bestBid, "size") );
-            put( "ask", Opinion.this.safeNumber(bestAsk, "price") );
-            put( "askVolume", Opinion.this.safeNumber(bestAsk, "size") );
-            put( "open", null );
-            put( "close", last );
-            put( "last", last );
-            put( "change", null );
-            put( "percentage", null );
-            put( "average", null );
-            put( "baseVolume", null );
-            put( "quoteVolume", null );
-            put( "info", ticker );
-        }}, market));
-    }
-    /**
-     * @ignore
-     * @method
-     * @name opinion#parsePredictionTicker
-     * @description parses a raw opinion latest-price + orderbook pair into a unified ticker object
-     * @param {object} ticker a { price, book } dict of the two raw responses
-     * @param {object} [market] the outcome object the ticker belongs to
-     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
-     */
-    public Map<String, Object> parsePredictionTicker(Map<String, Object> ticker, Object... optionalArgs)
-    {
-        return this.parsePredictionTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        return (Map<String, Object>) (this.safePredictionTicker(Helpers.newMap(
+            "outcome", this.safeString(marketAny, "outcome"),
+            "outcomeId", this.safeString2(marketAny, "outcomeId", "id"),
+            "label", this.safeString(marketAny, "label"),
+            "market", this.safeString2(marketAny, "market", "outcome"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "high", null,
+            "low", null,
+            "bid", this.safeNumber(bestBid, "price", (Object) null),
+            "bidVolume", this.safeNumber(bestBid, "size", (Object) null),
+            "ask", this.safeNumber(bestAsk, "price", (Object) null),
+            "askVolume", this.safeNumber(bestAsk, "size", (Object) null),
+            "open", null,
+            "close", last,
+            "last", last,
+            "change", null,
+            "percentage", null,
+            "average", null,
+            "baseVolume", null,
+            "quoteVolume", null,
+            "info", ticker
+        ), market));
     }
 
     /**
@@ -976,16 +882,16 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
     {
-        final Object outcomes3 = outcomes2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object outcomes = outcomes3;
+
             if (java.util.Objects.equals(outcomes, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
             }
-            (this.loadOutcomes(outcomes)).join();
+            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
             Integer outcomesLength = ((List<?>)outcomes).size();
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
@@ -1011,7 +917,7 @@ final String finalTokenId = tokenId;
                     put( "price", priceResponse );
                     put( "book", bookResponse );
                 }};
-                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Object)outcomeObj));
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
@@ -1021,19 +927,6 @@ final String finalTokenId = tokenId;
             return result;
         }).thenApply(PredictionTickers::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchTickers
-     * @description fetches tickers for multiple outcome tokens - opinion has no all-tickers endpoint, each token needs its own latest-price + orderbook request
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
-     * @param {string[]} outcomes unified outcomes or outcome token ids - required, opinion has no all-tickers endpoint
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
-     */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1051,7 +944,7 @@ final String finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
@@ -1074,24 +967,10 @@ final String finalTokenId = tokenId;
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size");
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "size", 2);
             return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchOrderBook
-     * @description fetches the order book for a single outcome token
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
-     * @param {string} outcome unified outcome or outcome token id
-     * @param {int} [limit] not used by opinion fetchOrderBook
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
-     */
-    public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1106,19 +985,19 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object timeframe2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object timeframe3 = timeframe2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object timeframe = timeframe3;
-            if (!(((Map<?, ?>)this.timeframes).containsKey(timeframe)))
+
+            if (!(((Map<?, ?>)this.timeframes).containsKey(java.util.Objects.requireNonNullElse(timeframe, "1d"))))
             {
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
-                throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframe) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
+                throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1d")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
-            String interval = this.safeString(this.timeframes, timeframe);
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"));
             Map<String, Object> response = (this.opinionPublicGetTokenPriceHistory(this.extend(new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
                 put( "interval", interval );
@@ -1140,8 +1019,8 @@ final String finalTokenId = tokenId;
             Integer historyLength = ((List<?>)history).size();
             for (var i = 0; Helpers.isLessThan(i, historyLength); i++)
             {
-                Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i);
-                Double price = this.safeNumber(point, "p");
+                Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i, (Object) null);
+                Double price = this.safeNumber(point, "p", (Object) null);
                 Long timestamp = this.safeTimestamp(point, "t");
                 if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(timestamp, null)))
                 {
@@ -1149,25 +1028,9 @@ final String finalTokenId = tokenId;
                 }
             }
             List<Object> sorted = this.sortBy(candles, 0);
-            return this.filterBySinceLimit(sorted, since, limit, 0);
+            return this.filterBySinceLimit(sorted, since, limit, 0, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchOHLCV
-     * @description fetches historical candlestick data for an outcome token
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
-     * @param {string} outcome unified outcome or outcome token id
-     * @param {string} timeframe the length of time each candle represents - only '1h' and '1d' are supported live
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum number of candles to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object outcome, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(outcome, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1d", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1184,20 +1047,8 @@ final String finalTokenId = tokenId;
         //
         //     { "p": "0.001", "t": 1785495600 }
         //
-        Double price = this.safeNumber(ohlcv, "p");
+        Double price = this.safeNumber(ohlcv, "p", (Object) null);
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "t"), price, price, price, price, null));
-    }
-    /**
-     * @method
-     * @name opinion#parseOHLCV
-     * @description parses a single opinion price-history point into a unified OHLCV candle
-     * @param {object} ohlcv the raw { p, t } point
-     * @param {object} [market] the outcome object the candle belongs to
-     * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
-     */
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1208,18 +1059,18 @@ final String finalTokenId = tokenId;
      * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field
      * @returns {object} the matching quote-token entry
      */
-    public CompletableFuture<Map<String, Object>> loadQuoteToken(String quoteTokenAddress2)
+    public CompletableFuture<Map<String, Object>> loadQuoteToken(String quoteTokenAddress)
     {
-        final String quoteTokenAddress3 = quoteTokenAddress2;
+
         return BaseExchange.supplyAsync(() -> {
-            String quoteTokenAddress = quoteTokenAddress3;
+
             if (java.util.Objects.equals(quoteTokenAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " loadQuoteToken() requires a quoteTokenAddress")) ;
             }
             String cacheKey = ((String)quoteTokenAddress).toLowerCase();
             Map<String, Object> cached = (Map<String, Object>) this.safeDict(this.options, "quoteTokens", new HashMap<String, Object>() {{}});
-            Map<String, Object> existing = (Map<String, Object>) this.safeDict(cached, cacheKey);
+            Map<String, Object> existing = (Map<String, Object>) this.safeDict(cached, cacheKey, (Object) null);
             if (!java.util.Objects.equals(existing, null))
             {
                 return existing;
@@ -1239,7 +1090,7 @@ final String finalTokenId = tokenId;
                 }
             }
             Helpers.addElementToObject(this.options, "quoteTokens", quoteTokens);
-            Map<String, Object> quoteToken = (Map<String, Object>) this.safeDict(quoteTokens, cacheKey);
+            Map<String, Object> quoteToken = (Map<String, Object>) this.safeDict(quoteTokens, cacheKey, (Object) null);
             if (java.util.Objects.equals(quoteToken, null))
             {
                 throw new ExchangeError(((this.id + " loadQuoteToken() could not find quote token ") + quoteTokenAddress)) ;
@@ -1373,12 +1224,10 @@ final String finalTokenId = tokenId;
             makerAmount = Precise.stringMul(k, priceDenom);
             takerAmount = Precise.stringMul(k, priceNum);
         }
-        final String finalMakerAmount = makerAmount;
-        final String finalTakerAmount = takerAmount;
-        return new HashMap<String, Object>() {{
-            put( "makerAmount", finalMakerAmount );
-            put( "takerAmount", finalTakerAmount );
-        }};
+        return Helpers.newMap(
+            "makerAmount", makerAmount,
+            "takerAmount", takerAmount
+        );
     }
 
     /**
@@ -1395,16 +1244,14 @@ final String finalTokenId = tokenId;
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type2, String side, Object amount, Object price2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String type3 = type2;
-        final Object price3 = price2;
+
         return BaseExchange.supplyAsync(() -> {
-            String type = type3;
-            Object price = price3;
+
             (this.loadApiKey()).join();
-            this.checkRequiredCredentials();
-            Object outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            this.checkRequiredCredentials(true);
+            Object outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             String sideStr = ((String)((String)side)).toUpperCase();
@@ -1460,58 +1307,37 @@ final String finalTokenId = tokenId;
             }};
             Object signature = this.signOpinionOrder((Map<String, Object>) (order), exchangeAddress);
             Object signatureNo0x = this.remove0xPrefix(signature);
-            final Boolean finalIsMarket = isMarket;
-            final Object finalMarketOrderPrice = marketOrderPrice;
-            final Object finalPrice = price;
-            Map<String, Object> orderBody = this.extend(new HashMap<String, Object>() {{
-                put( "salt", salt );
-                put( "maker", maker );
-                put( "signer", Opinion.this.walletAddress );
-                put( "taker", "0x0000000000000000000000000000000000000000" );
-                put( "tokenId", tokenId );
-                put( "makerAmount", makerAmount );
-                put( "takerAmount", takerAmount );
-                put( "expiration", "0" );
-                put( "nonce", "0" );
-                put( "feeRateBps", "0" );
-                put( "side", String.valueOf(sideInt) );
-                put( "signatureType", String.valueOf(signatureType) );
-                put( "signature", signature );
-                put( "sign", Helpers.slice(signatureNo0x, 0, 64) );
-                put( "contractAddress", "" );
-                put( "currencyAddress", quoteTokenAddress );
-                put( "topicId", topicId );
-                put( "price", ((Boolean.TRUE.equals(finalIsMarket))) ? finalMarketOrderPrice : Opinion.this.numberToString(finalPrice) );
-                put( "tradingMethod", ((Boolean.TRUE.equals(finalIsMarket))) ? 1 : 2 );
-                put( "timestamp", Opinion.this.seconds() );
-                put( "safeRate", "0" );
-                put( "orderExpTime", "0" );
-                put( "postOnly", postOnly );
-            }}, rest);
+            Map<String, Object> orderBody = this.extend(Helpers.newMap(
+                "salt", salt,
+                "maker", maker,
+                "signer", this.walletAddress,
+                "taker", "0x0000000000000000000000000000000000000000",
+                "tokenId", tokenId,
+                "makerAmount", makerAmount,
+                "takerAmount", takerAmount,
+                "expiration", "0",
+                "nonce", "0",
+                "feeRateBps", "0",
+                "side", String.valueOf(sideInt),
+                "signatureType", String.valueOf(signatureType),
+                "signature", signature,
+                "sign", Helpers.slice(signatureNo0x, 0, 64),
+                "contractAddress", "",
+                "currencyAddress", quoteTokenAddress,
+                "topicId", topicId,
+                "price", ((Boolean.TRUE.equals(isMarket))) ? marketOrderPrice : this.numberToString(price),
+                "tradingMethod", ((Boolean.TRUE.equals(isMarket))) ? 1 : 2,
+                "timestamp", this.seconds(),
+                "safeRate", "0",
+                "orderExpTime", "0",
+                "postOnly", postOnly
+            ), rest);
             Map<String, Object> response = (this.opinionPrivatePostOrder(orderBody)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), ((Object)outcomeObj));
+            return this.parsePredictionOrder((Map<String, Object>) (orderData), Helpers.toMapArg(((Object)outcomeObj)));
         }).thenApply(PredictionOrder::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#createOrder
-     * @description places a limit or market order on the CLOB for the given outcome token
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
-     * @param {string} outcome unified outcome or outcome token id
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount for limit orders, the number of outcome shares to trade; for market orders, the quote (USDT) to spend on a BUY or the shares to sell on a SELL
-     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders and market SELL orders (where it acts as the reference / worst acceptable price for the taker amount); ignored for market BUY orders (amount is already the quote to spend)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<PredictionOrder> createOrder(Object outcome, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(outcome, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1544,23 +1370,9 @@ final String finalTokenId = tokenId;
                 put( "id", id );
                 put( "status", status );
                 put( "info", response );
-            }});
+            }}, (Object) null);
         }).thenApply(PredictionOrder::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#cancelOrder
-     * @description cancels a single open order by id
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
-     * @param {string} id the order id
-     * @param {string} [outcome] not used by opinion cancelOrder
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<PredictionOrder> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1635,25 +1447,13 @@ final String finalTokenId = tokenId;
             put( "market", Opinion.this.safeString2(marketAny, "market", "outcome") );
             put( "type", tradingMethodEnum );
             put( "side", sideEnum );
-            put( "price", Opinion.this.safeNumber(order, "price") );
-            put( "amount", Opinion.this.safeNumber(order, "orderShares") );
-            put( "cost", Opinion.this.safeNumber(order, "filledAmount") );
-            put( "filled", Opinion.this.safeNumber(order, "filledShares") );
+            put( "price", Opinion.this.safeNumber(order, "price", (Object) null) );
+            put( "amount", Opinion.this.safeNumber(order, "orderShares", (Object) null) );
+            put( "cost", Opinion.this.safeNumber(order, "filledAmount", (Object) null) );
+            put( "filled", Opinion.this.safeNumber(order, "filledShares", (Object) null) );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
         }}, ((Object)market));
-    }
-    /**
-     * @method
-     * @name opinion#parsePredictionOrder
-     * @description parses a raw opinion order object into a unified prediction order structure
-     * @param {object} order the raw opinion OrderData object
-     * @param {object} [market] the outcome object the order belongs to
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public Object parsePredictionOrder(Map<String, Object> order, Object... optionalArgs)
-    {
-        return this.parsePredictionOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1667,41 +1467,26 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             (this.loadApiKey()).join();
             Map<String, Object> outcomeObj = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(outcome, null))
             {
-                outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 request.put("marketId", this.safeInteger(info, "marketId"));
             }
             Map<String, Object> response = (this.opinionPrivateGetOrder(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+            return this.parsePredictionOrders(orders, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchOrders
-     * @description fetches all of the authenticated user's orders
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
-     * @param {string} [outcome] filter by unified outcome or outcome token id
-     * @param {int} [since] timestamp in ms of the earliest order to fetch
-     * @param {int} [limit] the maximum number of orders to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1714,39 +1499,25 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome2, Map<String, Object> parameters)
+    public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             (this.loadApiKey()).join();
             Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
-                outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             }
             Map<String, Object> response = (this.opinionPrivateGetOrderOrderId(this.extend(new HashMap<String, Object>() {{
                 put( "orderId", id );
             }}, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
+            return this.parsePredictionOrder((Map<String, Object>) (orderData), Helpers.toMapArg(outcomeObj));
         }).thenApply(PredictionOrder::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchOrder
-     * @description fetches a single order by id
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
-     * @param {string} id the order id
-     * @param {string} [outcome] unified outcome or outcome token id
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<PredictionOrder> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1769,24 +1540,9 @@ final String finalTokenId = tokenId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "1" );
             }};
-            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchOpenOrders
-     * @description fetches the authenticated user's open orders
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
-     * @param {string} [outcome] filter by unified outcome or outcome token id
-     * @param {int} [since] timestamp in ms of the earliest order to fetch
-     * @param {int} [limit] the maximum number of orders to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1809,24 +1565,9 @@ final String finalTokenId = tokenId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "2,3,4,5" );
             }};
-            return (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchClosedOrders
-     * @description fetches the authenticated user's closed orders
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
-     * @param {string} [outcome] filter by unified outcome or outcome token id
-     * @param {int} [since] timestamp in ms of the earliest order to fetch
-     * @param {int} [limit] the maximum number of orders to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1840,11 +1581,11 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a walletAddress")) ;
@@ -1856,7 +1597,7 @@ final String finalTokenId = tokenId;
             }};
             if (!java.util.Objects.equals(outcome, null))
             {
-                outcomeObj = (this.loadOutcome((String) (outcome))).join();
+                outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 request.put("marketId", this.safeInteger(info, "marketId"));
             }
@@ -1877,24 +1618,9 @@ final String finalTokenId = tokenId;
                     Helpers.addElementToObject(trade, "tokenId", ((Boolean.TRUE.equals(isYes))) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId"));
                 }
             }
-            return this.parsePredictionTrades(trades, outcomeObj, since, limit);
+            return this.parsePredictionTrades(trades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchMyTrades
-     * @description fetches the authenticated user's trades
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/trade
-     * @param {string} [outcome] filter by unified outcome or outcome token id
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum number of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    public CompletableFuture<List<PredictionTrade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1905,11 +1631,11 @@ final String finalTokenId = tokenId;
      * @param {int} marketId the numeric market id
      * @returns {object} the parsed market
      */
-    public CompletableFuture<Object> loadTradeMarket(Object marketId2)
+    public CompletableFuture<Object> loadTradeMarket(Object marketId)
     {
-        final Object marketId3 = marketId2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object marketId = marketId3;
+
             if (java.util.Objects.equals(marketId, null))
             {
                 throw new ArgumentsRequired((this.id + " loadTradeMarket() requires a marketId")) ;
@@ -1917,18 +1643,17 @@ final String finalTokenId = tokenId;
             String cacheKey = "tradeMarketsById";
             Map<String, Object> cached = (Map<String, Object>) this.safeDict(this.options, cacheKey, new HashMap<String, Object>() {{}});
             String idStr = String.valueOf(marketId);
-            Map<String, Object> existing = (Map<String, Object>) this.safeDict(cached, idStr);
+            Map<String, Object> existing = (Map<String, Object>) this.safeDict(cached, idStr, (Object) null);
             if (!java.util.Objects.equals(existing, null))
             {
                 return existing;
             }
-            final Object finalMarketId = marketId;
-            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(new HashMap<String, Object>() {{
-                put( "marketId", finalMarketId );
-            }})).join();
+            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(Helpers.newMap(
+                "marketId", marketId
+            ))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
-            Object market = this.parseOpinionMarket((Map<String, Object>) (data));
+            Object market = this.parseOpinionMarket((Map<String, Object>) (data), (String) null);
             if (java.util.Objects.equals(market, null))
             {
                 throw new ExchangeError(((this.id + " loadTradeMarket() could not parse market ") + idStr)) ;
@@ -1966,31 +1691,18 @@ final String finalTokenId = tokenId;
             put( "id", Opinion.this.safeString(trade, "txHash") );
             put( "timestamp", timestamp );
             put( "side", side );
-            put( "price", Opinion.this.safeNumber(trade, "price") );
-            put( "amount", Opinion.this.safeNumber(trade, "shares") );
-            put( "cost", Opinion.this.safeNumber(trade, "amount") );
+            put( "price", Opinion.this.safeNumber(trade, "price", (Object) null) );
+            put( "amount", Opinion.this.safeNumber(trade, "shares", (Object) null) );
+            put( "cost", Opinion.this.safeNumber(trade, "amount", (Object) null) );
             put( "fee", new HashMap<String, Object>() {{
-                put( "cost", Opinion.this.safeNumber(trade, "fee") );
+                put( "cost", Opinion.this.safeNumber(trade, "fee", (Object) null) );
                 put( "currency", "USDT" );
             }} );
             put( "outcome", Opinion.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", Opinion.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Opinion.this.safeString(outcomeObj, "label") );
             put( "market", Opinion.this.safeString2(outcomeObj, "market", "outcome") );
-        }});
-    }
-    /**
-     * @ignore
-     * @method
-     * @name opinion#parsePredictionTrade
-     * @description parses a raw opinion trade object into a unified trade object
-     * @param {object} trade the raw opinion TradeData object
-     * @param {object} [market] the outcome object the trade belongs to
-     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    public Object parsePredictionTrade(Map<String, Object> trade, Object... optionalArgs)
-    {
-        return this.parsePredictionTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, (Object) null);
     }
 
     /**
@@ -2025,18 +1737,6 @@ final String finalTokenId = tokenId;
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name opinion#fetchBalance
-     * @description fetches the authenticated user's quote-token balances
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/quote-token
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @ignore
@@ -2056,12 +1756,12 @@ final String finalTokenId = tokenId;
         Integer balancesLength = ((List<?>)balances).size();
         for (var i = 0; Helpers.isLessThan(i, balancesLength); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String code = this.safeString(balance, "symbol", "USDT");
             result.put((String)code, new HashMap<String, Object>() {{
-    put( "free", Opinion.this.safeNumber(balance, "availableBalance") );
-    put( "used", Opinion.this.safeNumber(balance, "frozenBalance") );
-    put( "total", Opinion.this.safeNumber(balance, "totalBalance") );
+    put( "free", Opinion.this.safeNumber(balance, "availableBalance", (Object) null) );
+    put( "used", Opinion.this.safeNumber(balance, "frozenBalance", (Object) null) );
+    put( "total", Opinion.this.safeNumber(balance, "totalBalance", (Object) null) );
 }});
         }
         return this.safeBalance(result);
@@ -2076,11 +1776,11 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes2, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
     {
-        final Object outcomes3 = outcomes2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object outcomes = outcomes3;
+
             if (java.util.Objects.equals(this.walletAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchPositions() requires a walletAddress")) ;
@@ -2090,7 +1790,7 @@ final String finalTokenId = tokenId;
             if (!java.util.Objects.equals(outcomes, null))
             {
                 outcomesLength = ((List<?>)outcomes).size();
-                (this.loadOutcomes(outcomes)).join();
+                (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "walletAddress", Opinion.this.walletAddress );
@@ -2098,7 +1798,7 @@ final String finalTokenId = tokenId;
             Map<String, Object> response = (this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parsePredictionPositions(positions);
+            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(outcomesLength, 0))
             {
                 return parsed;
@@ -2130,19 +1830,6 @@ final String finalTokenId = tokenId;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name opinion#fetchPositions
-     * @description fetches the authenticated user's open positions
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/position
-     * @param {string[]} [outcomes] filter by unified outcomes or outcome token ids
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
-     */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @ignore
@@ -2159,29 +1846,16 @@ final String finalTokenId = tokenId;
         Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
         String outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition(new HashMap<String, Object>() {{
-            put( "contracts", Opinion.this.safeNumber(position, "sharesOwned") );
+            put( "contracts", Opinion.this.safeNumber(position, "sharesOwned", (Object) null) );
             put( "side", outcomeSideEnum );
-            put( "unrealizedPnl", Opinion.this.safeNumber(position, "unrealizedPnl") );
-            put( "entryPrice", Opinion.this.safeNumber(position, "avgEntryPrice") );
+            put( "unrealizedPnl", Opinion.this.safeNumber(position, "unrealizedPnl", (Object) null) );
+            put( "entryPrice", Opinion.this.safeNumber(position, "avgEntryPrice", (Object) null) );
             put( "outcome", Opinion.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", Opinion.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Opinion.this.safeString(outcomeObj, "label") );
             put( "market", Opinion.this.safeString2(outcomeObj, "market", "outcome") );
             put( "info", position );
         }});
-    }
-    /**
-     * @ignore
-     * @method
-     * @name opinion#parsePredictionPosition
-     * @description parses a raw opinion position object into a unified position object
-     * @param {object} position the raw opinion PositionData object
-     * @param {object} [market] the outcome object the position belongs to
-     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
-     */
-    public Object parsePredictionPosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePredictionPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object hashMessage(Object message)
@@ -2260,20 +1934,6 @@ final String finalTokenId = tokenId;
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    /**
-     * @method
-     * @name opinion#createApiKey
-     * @description self-service creation of an Open API key linked to this.walletAddress via
-     * an EIP-712-signed request - there is no "generate key" button in the Opinion GUI, this is
-     * the only documented way to obtain a wallet-linked key
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/authentication
-     * @param {object} [params] extra parameters
-     * @returns {object} the api credentials { apiKey, walletAddress }
-     */
-    public CompletableFuture<Map<String, Object>> createApiKey(Object... optionalArgs)
-    {
-        return this.createApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -2293,18 +1953,6 @@ final String finalTokenId = tokenId;
             return this.setApiCredentials((Map<String, Object>) (result));
         }).thenApply(res -> (Map<String, Object>) res);
 
-    }
-    /**
-     * @method
-     * @name opinion#fetchApiKey
-     * @description fetches the currently active Open API key for this.walletAddress
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/authentication
-     * @param {object} [params] extra parameters
-     * @returns {object} the api credentials { apiKey, walletAddress }
-     */
-    public CompletableFuture<Map<String, Object>> fetchApiKey(Object... optionalArgs)
-    {
-        return this.fetchApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2330,18 +1978,6 @@ final String finalTokenId = tokenId;
             return response;
         }).thenApply(res -> (Map<String, Object>) res);
 
-    }
-    /**
-     * @method
-     * @name opinion#deleteApiKey
-     * @description revokes the Open API key for this.walletAddress
-     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/authentication
-     * @param {object} [params] extra parameters
-     * @returns {object} raw response, result.deleted confirms revocation
-     */
-    public CompletableFuture<Map<String, Object>> deleteApiKey(Object... optionalArgs)
-    {
-        return this.deleteApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2375,12 +2011,12 @@ final String finalTokenId = tokenId;
             Map<String, Object> creds = null;
             try
             {
-                creds = (this.fetchApiKey()).join();
+                creds = (this.fetchApiKey(new HashMap<String, Object>() {{}})).join();
             } catch(Exception e)
             {
                 // no key exists for this wallet yet (11010) - self-issue one; any other
                 // failure (unregistered wallet, disabled issuance) surfaces from the create call
-                creds = (this.createApiKey()).join();
+                creds = (this.createApiKey(new HashMap<String, Object>() {{}})).join();
             }
             return this.safeString(creds, "apiKey");
         }).thenApply(res -> (String) res);
@@ -2440,20 +2076,19 @@ final String finalTokenId = tokenId;
      * @param {int} marketId the numeric binary market id
      * @returns {any} the first resolved payload
      */
-    public CompletableFuture<Object> subscribeOpinionChannel(Object messageHash, String channel2, Object marketId)
+    public CompletableFuture<Object> subscribeOpinionChannel(Object messageHash, String channel, Object marketId)
     {
-        final String channel3 = channel2;
+
         return BaseExchange.supplyAsync(() -> {
-            String channel = channel3;
+
             (this.loadApiKey()).join();
             Object url = this.opinionWsUrl();
             String subscriptionKey = ((channel + ":") + this.numberToString(marketId));
-            final String finalChannel = channel;
-            Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
-                put( "action", "SUBSCRIBE" );
-                put( "channel", finalChannel );
-                put( "marketId", marketId );
-            }};
+            Map<String, Object> subscribeMsg = Helpers.newMap(
+                "action", "SUBSCRIBE",
+                "channel", channel,
+                "marketId", marketId
+            );
             return (this.watch(url, messageHash, subscribeMsg, subscriptionKey, null)).join();
         });
 
@@ -2505,13 +2140,13 @@ final String finalTokenId = tokenId;
         Integer marketKeysLength = ((List<?>)marketKeys).size();
         for (var i = 0; Helpers.isLessThan(i, marketKeysLength); i++)
         {
-            Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)));
+            Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)), (Object) null);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             if (Helpers.isEqual(this.safeInteger(info, "marketId"), marketId))
             {
                 List<Object> outcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
                 Integer index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
-                return this.safeDict(outcomes, index);
+                return this.safeDict(outcomes, index, (Object) null);
             }
         }
         return null;
@@ -2532,7 +2167,7 @@ final String finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -2547,12 +2182,11 @@ final String finalTokenId = tokenId;
             {
                 (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
             }
-            final String finalChannel = channel;
-            Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
-                put( "action", "SUBSCRIBE" );
-                put( "channel", finalChannel );
-                put( "marketId", marketId );
-            }};
+            Map<String, Object> subscribeMsg = Helpers.newMap(
+                "action", "SUBSCRIBE",
+                "channel", channel,
+                "marketId", marketId
+            );
             Object future = this.watch(url, messageHash, subscribeMsg, subscriptionKey, null);
             if (Boolean.TRUE.equals(isNewSubscription))
             {
@@ -2564,20 +2198,6 @@ final String finalTokenId = tokenId;
         }).thenApply(PredictionOrderBook::new);
 
     }
-    /**
-     * @method
-     * @name opinion#watchOrderBook
-     * @description streams the order book of an outcome token; the channel is delta-only so the live book is seeded from the REST snapshot
-     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels
-     * @param {string} outcome unified outcome or outcome token id
-     * @param {int} [limit] the maximum number of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
-     */
-    public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Object... optionalArgs)
-    {
-        return this.watchOrderBook(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     public CompletableFuture<Object> seedOrderBook(String outcome, String sym, Long limit)
     {
@@ -2585,17 +2205,13 @@ final String finalTokenId = tokenId;
         return BaseExchange.supplyAsync(() -> {
 
             // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
-            PredictionOrderBook snapshot = (this.fetchOrderBook((Object)(outcome), (Object)(limit))).join();
+            PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
             Object orderbook = this.orderBook(new HashMap<String, Object>() {{}});
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
             return null;
         });
 
-    }
-    public CompletableFuture<Object> seedOrderBook(String outcome, String sym, Object... optionalArgs)
-    {
-        return this.seedOrderBook(outcome, sym, Helpers.getArgLong(optionalArgs, 0, null));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -2612,7 +2228,7 @@ final String finalTokenId = tokenId;
         //     }
         //
         String tokenId = this.safeString(message, "tokenId");
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId);
+        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId, (Object) null);
         String sym = this.safeString(outcomeObj, "outcome");
         if (java.util.Objects.equals(sym, null))
         {
@@ -2626,8 +2242,8 @@ final String finalTokenId = tokenId;
         Object orderbook = ((Map<?, ?>)this.orderbooks).get(sym);
         String sideStr = this.safeString(message, "side");
         Object bookSide = (((java.util.Objects.equals(sideStr, "bids")))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
-        Double price = this.safeNumber(message, "price");
-        Double size = this.safeNumber(message, "size");
+        Double price = this.safeNumber(message, "price", (Object) null);
+        Double size = this.safeNumber(message, "size", (Object) null);
         Helpers.callDynamically(bookSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size))});
         Helpers.addElementToObject(orderbook, "timestamp", null);
         Helpers.addElementToObject(orderbook, "datetime", null);
@@ -2648,7 +2264,7 @@ final String finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -2656,19 +2272,6 @@ final String finalTokenId = tokenId;
             return (this.subscribeOpinionChannel(messageHash, "market.last.price", marketId)).join();
         }).thenApply(PredictionTicker::new);
 
-    }
-    /**
-     * @method
-     * @name opinion#watchTicker
-     * @description streams last-price updates of an outcome token
-     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels
-     * @param {string} outcome unified outcome or outcome token id
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
-     */
-    public CompletableFuture<PredictionTicker> watchTicker(String outcome, Object... optionalArgs)
-    {
-        return this.watchTicker(outcome, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -2683,25 +2286,24 @@ final String finalTokenId = tokenId;
         //     }
         //
         String tokenId = this.safeString(message, "tokenId");
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId);
+        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId, (Object) null);
         String sym = this.safeString(outcomeObj, "outcome");
         if (java.util.Objects.equals(sym, null))
         {
             return;
         }
-        Double last = this.safeNumber(message, "price");
-        final String finalSym = sym;
-        Object ticker = this.safePredictionTicker(new HashMap<String, Object>() {{
-            put( "outcome", finalSym );
-            put( "outcomeId", tokenId );
-            put( "label", Opinion.this.safeString(outcomeObj, "label") );
-            put( "market", Opinion.this.safeString(outcomeObj, "market") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "close", last );
-            put( "last", last );
-            put( "info", message );
-        }}, outcomeObj);
+        Double last = this.safeNumber(message, "price", (Object) null);
+        Object ticker = this.safePredictionTicker(Helpers.newMap(
+            "outcome", sym,
+            "outcomeId", tokenId,
+            "label", this.safeString(outcomeObj, "label"),
+            "market", this.safeString(outcomeObj, "market"),
+            "timestamp", null,
+            "datetime", null,
+            "close", last,
+            "last", last,
+            "info", message
+        ), outcomeObj);
         Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
         client.resolve(ticker, ("ticker::" + sym));
     }
@@ -2722,7 +2324,7 @@ final String finalTokenId = tokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -2731,21 +2333,6 @@ final String finalTokenId = tokenId;
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#watchTrades
-     * @description streams public trades of an outcome token
-     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels
-     * @param {string} outcome unified outcome or outcome token id
-     * @param {int} [since] timestamp in ms of the earliest trade to return
-     * @param {int} [limit] the maximum number of trades to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome, Object... optionalArgs)
-    {
-        return this.watchTrades(outcome, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -2763,31 +2350,30 @@ final String finalTokenId = tokenId;
         //     }
         //
         String tokenId = this.safeString(message, "tokenId");
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId);
+        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId, (Object) null);
         String sym = this.safeString(outcomeObj, "outcome");
         if (java.util.Objects.equals(sym, null))
         {
             return;
         }
-        final String finalSym = sym;
-        Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
-            put( "id", null );
-            put( "info", message );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "outcome", finalSym );
-            put( "outcomeId", tokenId );
-            put( "label", Opinion.this.safeString(outcomeObj, "label") );
-            put( "market", Opinion.this.safeString(outcomeObj, "market") );
-            put( "order", null );
-            put( "type", null );
-            put( "side", Opinion.this.safeStringLower(message, "side") );
-            put( "takerOrMaker", "taker" );
-            put( "price", Opinion.this.safeNumber(message, "price") );
-            put( "amount", Opinion.this.safeNumber(message, "shares") );
-            put( "cost", Opinion.this.safeNumber(message, "amount") );
-            put( "fee", null );
-        }}, outcomeObj);
+        Object trade = this.safePredictionTrade(Helpers.newMap(
+            "id", null,
+            "info", message,
+            "timestamp", null,
+            "datetime", null,
+            "outcome", sym,
+            "outcomeId", tokenId,
+            "label", this.safeString(outcomeObj, "label"),
+            "market", this.safeString(outcomeObj, "market"),
+            "order", null,
+            "type", null,
+            "side", this.safeStringLower(message, "side"),
+            "takerOrMaker", "taker",
+            "price", this.safeNumber(message, "price", (Object) null),
+            "amount", this.safeNumber(message, "shares", (Object) null),
+            "cost", this.safeNumber(message, "amount", (Object) null),
+            "fee", null
+        ), outcomeObj);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = this.createSafeDictionary();
@@ -2813,16 +2399,16 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> watchOrders(String outcome2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> watchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             if (java.util.Objects.equals(outcome, null))
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires an outcome (the order update channel is per-market)")) ;
             }
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "orders";
@@ -2831,21 +2417,6 @@ final String finalTokenId = tokenId;
             return this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#watchOrders
-     * @description streams the authenticated user's order updates of one market - the venue channel is per-market, so the outcome argument is required
-     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/user-channels
-     * @param {string} outcome unified outcome or outcome token id whose market to watch
-     * @param {int} [since] timestamp in ms of the earliest order to return
-     * @param {int} [limit] the maximum number of orders to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
-     */
-    public CompletableFuture<List<PredictionOrder>> watchOrders(Object... optionalArgs)
-    {
-        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2924,29 +2495,27 @@ final String finalTokenId = tokenId;
         {
             type = "market";
         }
-        final String finalType = type;
-        final String finalSide = side;
-        Object order = this.safePredictionOrder(new HashMap<String, Object>() {{
-            put( "id", Opinion.this.safeString(message, "orderId") );
-            put( "clientOrderId", null );
-            put( "info", message );
-            put( "timestamp", timestamp );
-            put( "datetime", Opinion.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "status", Opinion.this.parseWsOrderStatus(Opinion.this.safeInteger(message, "status")) );
-            put( "outcome", Opinion.this.safeString(outcomeObj, "outcome") );
-            put( "outcomeId", Opinion.this.safeString(outcomeObj, "outcomeId") );
-            put( "label", Opinion.this.safeString(outcomeObj, "label") );
-            put( "market", Opinion.this.safeString(outcomeObj, "market") );
-            put( "type", finalType );
-            put( "side", finalSide );
-            put( "price", Opinion.this.safeNumber(message, "price") );
-            put( "amount", Opinion.this.safeNumber(message, "shares") );
-            put( "cost", Opinion.this.safeNumber(message, "filledAmount") );
-            put( "filled", Opinion.this.safeNumber(message, "filledShares") );
-            put( "fee", null );
-            put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}, outcomeObj);
+        Object order = this.safePredictionOrder(Helpers.newMap(
+            "id", this.safeString(message, "orderId"),
+            "clientOrderId", null,
+            "info", message,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", null,
+            "status", this.parseWsOrderStatus(this.safeInteger(message, "status")),
+            "outcome", this.safeString(outcomeObj, "outcome"),
+            "outcomeId", this.safeString(outcomeObj, "outcomeId"),
+            "label", this.safeString(outcomeObj, "label"),
+            "market", this.safeString(outcomeObj, "market"),
+            "type", type,
+            "side", side,
+            "price", this.safeNumber(message, "price", (Object) null),
+            "amount", this.safeNumber(message, "shares", (Object) null),
+            "cost", this.safeNumber(message, "filledAmount", (Object) null),
+            "filled", this.safeNumber(message, "filledShares", (Object) null),
+            "fee", null,
+            "trades", new ArrayList<Object>(Arrays.asList())
+        ), outcomeObj);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2968,16 +2537,16 @@ final String finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public CompletableFuture<List<PredictionTrade>> watchMyTrades(String outcome2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionTrade>> watchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String outcome3 = outcome2;
+
         return BaseExchange.supplyAsync(() -> {
-            String outcome = outcome3;
+
             if (java.util.Objects.equals(outcome, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
             }
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome))).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "myTrades";
@@ -2986,21 +2555,6 @@ final String finalTokenId = tokenId;
             return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name opinion#watchMyTrades
-     * @description streams the authenticated user's executed trades of one market - the venue channel is per-market, so the outcome argument is required
-     * @see https://docs.opinion.trade/developer-guide/opinion-websocket/user-channels
-     * @param {string} outcome unified outcome or outcome token id whose market to watch
-     * @param {int} [since] timestamp in ms of the earliest trade to return
-     * @param {int} [limit] the maximum number of trades to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    public CompletableFuture<List<PredictionTrade>> watchMyTrades(Object... optionalArgs)
-    {
-        return this.watchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handleMyTrade(Client client, Map<String, Object> message)
@@ -3044,11 +2598,11 @@ final String finalTokenId = tokenId;
             put( "type", null );
             put( "side", Opinion.this.safeStringLower(message, "side") );
             put( "takerOrMaker", null );
-            put( "price", Opinion.this.safeNumber(message, "price") );
-            put( "amount", Opinion.this.safeNumber(message, "shares") );
-            put( "cost", Opinion.this.safeNumber(message, "amount") );
+            put( "price", Opinion.this.safeNumber(message, "price", (Object) null) );
+            put( "amount", Opinion.this.safeNumber(message, "shares", (Object) null) );
+            put( "cost", Opinion.this.safeNumber(message, "amount", (Object) null) );
             put( "fee", new HashMap<String, Object>() {{
-                put( "cost", Opinion.this.safeNumber(message, "fee") );
+                put( "cost", Opinion.this.safeNumber(message, "fee", (Object) null) );
                 put( "currency", "USDT" );
             }} );
         }}, outcomeObj);
@@ -3095,14 +2649,14 @@ final String finalTokenId = tokenId;
      */
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
-        Object apiGroup = (((api instanceof String))) ? api : Helpers.GetValue(api, 0);
-        Object access = (((api instanceof String))) ? "public" : Helpers.GetValue(api, 1);
+        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "opinion") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "opinion") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "opinion"), 0);
+        Object access = (((java.util.Objects.requireNonNullElse(api, "opinion") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "opinion"), 1);
         Object baseUrls = ((Map<String, Object>)this.urls).get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("opinion")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
-        headers = this.extend(new HashMap<String, Object>() {{
+        Map<String, Object> headersExtended = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
             put( "Content-Type", "application/json" );
         }}, existingHeaders);
@@ -3120,11 +2674,11 @@ final String finalTokenId = tokenId;
                     put( "GET", "get" );
                     put( "DELETE", "delete" );
                 }};
-                String action = this.safeString(actionByMethod, method, "get");
+                String action = this.safeString(actionByMethod, java.util.Objects.requireNonNullElse(method, "GET"), "get");
                 String timestamp = this.numberToString(this.seconds());
-                Helpers.addElementToObject(headers, "OPINION_ADDRESS", this.walletAddress);
-                Helpers.addElementToObject(headers, "OPINION_SIGNATURE", this.signApiKeyAuth(this.walletAddress, action, timestamp));
-                Helpers.addElementToObject(headers, "OPINION_TIMESTAMP", timestamp);
+                headersExtended.put("OPINION_ADDRESS", this.walletAddress);
+                headersExtended.put("OPINION_SIGNATURE", this.signApiKeyAuth(this.walletAddress, action, timestamp));
+                headersExtended.put("OPINION_TIMESTAMP", timestamp);
             } else
             {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
@@ -3135,10 +2689,11 @@ final String finalTokenId = tokenId;
                 {
                     throw new AuthenticationError((Helpers.add((this.id + " "), path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
-                Helpers.addElementToObject(headers, "apikey", apiKey);
+                headersExtended.put("apikey", apiKey);
             }
         }
-        if (java.util.Objects.equals(method, "GET"))
+        Object bodyValue = body;
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
@@ -3146,35 +2701,14 @@ final String finalTokenId = tokenId;
             }
         } else
         {
-            body = this.json(query);
+            bodyValue = this.json(query);
         }
-        final String finalUrl = url;
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    /**
-     * @ignore
-     * @method
-     * @name opinion#sign
-     * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
-     * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
-     * @param {string} method the http method
-     * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
-     * @returns {object} a dict with url, method, body and headers
-     */
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "opinion", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null);
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", bodyValue,
+            "headers", headersExtended
+        );
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

@@ -6,6 +6,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +23,7 @@ public class TestFetchLeverageTiers extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLeverageTiers";
-        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
+        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
         // const format = {
         //     'RAY/USDT': [
         //       {},

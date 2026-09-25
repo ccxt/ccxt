@@ -68,37 +68,23 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = (String) ((Map<String, Object>)market).get("symbol");
+            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "?subscribe=ticker-"), ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
-            String messageHash = ("trades:" + symbol);
+            String messageHash = ("trades:" + symbolValue);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name independentreserve#watchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -123,7 +109,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "Pair");
-        String symbol = this.safeSymbol(marketId, null, "-");
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -132,7 +118,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data));
+        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
         stored.append(trade);
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
@@ -158,7 +144,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "info", trade );
             put( "id", Independentreserve.this.safeString(trade, "TradeGuid") );
             put( "order", Independentreserve.this.safeString(trade, "orderNo") );
-            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-") );
+            put( "symbol", Independentreserve.this.safeSymbol(marketId, market, "-", (String) null) );
             put( "side", Independentreserve.this.safeStringLower(trade, "Side") );
             put( "type", null );
             put( "takerOrMaker", null );
@@ -170,10 +156,6 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             put( "datetime", datetime );
         }}, market));
     }
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
-    {
-        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -184,26 +166,21 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = (String) ((Map<String, Object>)market).get("symbol");
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 100L;
-            }
-            String limitString = this.numberToString(limit);
+            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            String limitString = this.numberToString(limitResolved);
             String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbook/"), limitString) + "?subscribe=") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
-            String messageHash = ((("orderbook:" + symbol) + ":") + limitString);
+            String messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );
             }};
@@ -211,19 +188,6 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name independentreserve#watchOrderBook
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
-    {
-        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -260,8 +224,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         String depth = this.safeString(parts, 1);
         String baseId = this.safeString(parts, 2);
         String quoteId = this.safeString(parts, 3);
-        String base = this.safeCurrencyCode((String) (baseId));
-        String quote = this.safeCurrencyCode((String) (quoteId));
+        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
         Object symbol = Helpers.add((base + "/"), quote);
         Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = ((("orderbook:" + symbol) + ":") + depth);
@@ -276,11 +240,11 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(eventVar, "OrderBookSnapshot"))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, Helpers.toLongOrNull(timestamp), "Bids", "Offers", "Price", "Volume", 2);
             orderbook.reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            ((Map)client.subscriptions).put((String)messageHash, this.extend(subscription, new HashMap<String, Object>() {{
+            Helpers.addElementToObject(client.subscriptions, messageHash, this.extend(subscription, new HashMap<String, Object>() {{
     put( "receivedSnapshot", true );
 }}));
         } else
@@ -346,7 +310,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 
     public void handleDelta(Object bookside, Object delta)
     {
-        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "Price", "Volume");
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "Price", "Volume", 2);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

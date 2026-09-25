@@ -121,11 +121,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         return Helpers.toLongOrNull(reqid);
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHashes, Object channels, Map<String, Object> parameters2, Map<String, Object> subscription)
+    public CompletableFuture<Object> watchPublic(Object messageHashes, Object channels, Map<String, Object> parameters, Map<String, Object> subscription)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long id = this.requestId();
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
@@ -133,39 +133,35 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             Boolean unsubscribe = (Boolean) this.safeBool(parameters, "unsubscribe", false);
             String method = "SUBSCRIBE";
+            Object paramsOmitted = (((java.util.Objects.equals(unsubscribe, true)))) ? this.omit(parameters, "unsubscribe") : parameters;
             if (java.util.Objects.equals(unsubscribe, true))
             {
                 method = "UNSUBSCRIBE";
-                parameters = (Map<String, Object>) this.omit(parameters, "unsubscribe");
                 subscriptionParams.put("unsubscribe", true);
                 subscriptionParams.put("messageHashes", messageHashes);
             }
-            final String finalMethod = method;
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "id", id );
-                put( "method", finalMethod );
-                put( "params", channels );
-            }};
-            return (this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, this.extend(subscriptionParams, subscription))).join();
+            Map<String, Object> message = Helpers.newMap(
+                "id", id,
+                "method", method,
+                "params", channels
+            );
+            return (this.watchMultiple(url, messageHashes, this.deepExtend(message, paramsOmitted), messageHashes, this.extend(subscriptionParams, subscription))).join();
         });
 
     }
-    public CompletableFuture<Object> watchPublic(Object messageHashes, Object channels, Object... optionalArgs)
-    {
-        return this.watchPublic(messageHashes, channels, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHashes, Map<String, Object> parameters2)
+    public CompletableFuture<Object> watchPrivate(Object messageHashes, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            this.checkRequiredCredentials();
+
+            this.checkRequiredCredentials(true);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String subHash = "private";
             Client client = this.client(url);
             Object privateSubscription = this.safeValue(client.subscriptions, subHash);
             Map<String, Object> subscription = new HashMap<String, Object>() {{}};
+            Object paramsLogin = null;
             if (java.util.Objects.equals(privateSubscription, null))
             {
                 Long id = this.requestId();
@@ -181,16 +177,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                         put( "sign", signature );
                     }} );
                 }};
-                parameters = this.deepExtend(request, parameters);
+                paramsLogin = this.deepExtend(request, parameters);
                 subscription.put("id", id);
             }
-            return (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), subscription)).join();
+            Object paramsResolved = (((!java.util.Objects.equals(paramsLogin, null)))) ? paramsLogin : parameters;
+            return (this.watchMultiple(url, messageHashes, paramsResolved, new ArrayList<Object>(Arrays.asList("private")), subscription)).join();
         });
 
-    }
-    public CompletableFuture<Object> watchPrivate(Object messageHashes, Object... optionalArgs)
-    {
-        return this.watchPrivate(messageHashes, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -209,28 +202,15 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String messageHash = ("ticker::" + symbol);
             String channel = (marketId + "@ticker");
-            return (this.watchPublic(new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters)).join();
+            return (this.watchPublic(new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters, new HashMap<String, Object>() {{}})).join();
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -247,22 +227,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+            return (this.unWatchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(parameters))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bydfi#unWatchTicker
-     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.unWatchTicker(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
     public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
@@ -279,52 +246,38 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object messageHash = "ticker::";
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             String channel = "@ticker";
-            if (java.util.Objects.equals(symbols, null))
+            if (java.util.Objects.equals(symbolsNormalized, null))
             {
                 ((List<Object>)messageHashes).add((messageHash + "all"));
                 ((List<Object>)channels).add("!ticker@arr");
             } else
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     String marketId = this.marketId(symbol);
                     ((List<Object>)messageHashes).add((messageHash + symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
             }
-            (this.watchPublic(messageHashes, channels, parameters)).join();
-            return this.filterByArray(this.tickers, "symbol", symbols);
+            (this.watchPublic(messageHashes, channels, parameters, new HashMap<String, Object>() {{}})).join();
+            return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchTickers
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
-     * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
-    {
-        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -337,14 +290,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTickers(List<String> symbols2, Object parameters2)
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Object parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Object parameters = parameters3;
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
+
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object messageHash = "unsubscribe::ticker::";
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
@@ -352,7 +303,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "ticker" );
             }};
-            if (java.util.Objects.equals(symbols, null))
+            if (java.util.Objects.equals(symbolsNormalized, null))
             {
                 // all tickers and tickers for specific symbols are different channels
                 // we need to unsubscribe from all ticker channels
@@ -377,39 +328,21 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 ((List<Object>)channels).add("!ticker@arr");
             } else
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     String marketId = this.marketId(symbol);
                     ((List<Object>)messageHashes).add((messageHash + symbol));
                     ((List<Object>)channels).add((marketId + channel));
                 }
-                subscription.put("symbols", symbols);
+                subscription.put("symbols", symbolsNormalized);
             }
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+            Object paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
+            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), Helpers.toMapArg(subscription))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bydfi#unWatchTickers
-     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-symbol
-     * @see https://developers.bydfi.com/en/futures/websocket-market#market-wide-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
-    {
-        return this.unWatchTickers(Helpers.getArgStringList(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
-    {
-        return this.unWatchTickers(symbols, (Object) (parameters));
     }
 
     public Object getMessageHashesForTickersUnsubscription()
@@ -444,7 +377,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         "o": 0.04657
         //     }
         //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         String messageHash = ("ticker::" + symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -469,26 +402,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
-            return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
+            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
+            return Helpers.GetValue(Helpers.GetValue(result, symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchOHLCV
-     * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.watchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -506,23 +423,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))), parameters)).join();
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), Helpers.toMapArg(parameters))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bydfi#unWatchOHLCV
-     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
-    {
-        return this.unWatchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object timeframe, Map<String, Object> parameters)
     {
@@ -540,57 +443,43 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+
             Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
             if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
                 String interval = this.safeString(timeframes, tf, tf);
                 ((List<Object>)channels).add(Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval));
-                ((List<Object>)messageHashes).add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + interval));
+                messageHashes.add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + interval));
             }
-            var symboltimeframecandlesVariable = (this.watchPublic(messageHashes, channels, parameters)).join();
+            var symboltimeframecandlesVariable = (this.watchPublic(messageHashes, channels, parameters, new HashMap<String, Object>() {{}})).join();
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
             }
-            List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+            List<Object> filtered = this.filterBySinceLimit(candles, since, Helpers.toLongOrNull(limitResolved), 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchOHLCVForSymbols
-     * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
-     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
-    {
-        return this.watchOHLCVForSymbols(symbolsAndTimeframes, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -602,56 +491,39 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object parameters2)
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
     {
-        final Object parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object parameters = parameters3;
+
             Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
             if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i);
+                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
                 ((List<Object>)channels).add(Helpers.add((((Map<String, Object>)market).get("id") + "@kline_"), interval));
-                ((List<Object>)messageHashes).add(((("unsubscribe::ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + interval));
+                messageHashes.add(((("unsubscribe::ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + interval));
             }
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+            Object paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }};
-            return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
+            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), Helpers.toMapArg(subscription))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bydfi#unWatchOHLCVForSymbols
-     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
-     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
-    {
-        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
-    {
-        return this.unWatchOHLCVForSymbols(symbolsAndTimeframes, (Object) (parameters));
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
@@ -671,7 +543,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(message, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(message, "i");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
@@ -687,7 +559,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
-        Object parsed = this.parseWsOHLCV(message);
+        Object parsed = this.parseWsOHLCV(message, (Map<String, Object>) null);
         ohlcv.append(parsed);
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);
@@ -708,23 +580,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
+            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchOrderBook
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return (default and maxi is 100)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
-    {
-        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -741,22 +599,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bydfi#unWatchOrderBook
-     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
-     * @param {string} symbol unified array of symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.unWatchOrderBook(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
@@ -773,59 +618,43 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols, null, false);
-            Object depth = "100";
-            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-            depth = ((List<Object>) depthparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) depthparametersVariable).get(1);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            String depth = "100";
+            List<Object> depthOptionparamsDepthVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+            var depthOption = ((List<Object>) depthOptionparamsDepthVariable).get(0);
+            Map<String, Object> paramsDepth = (Map<String, Object>) ((List<Object>) depthOptionparamsDepthVariable).get(1);
             String frequency = "100ms";
-            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-            frequency = (String) ((List<Object>) frequencyparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) frequencyparametersVariable).get(1);
+            List<Object> frequencyOptionparamsFrequencyVariable = (List<Object>) this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
+            String frequencyOption = (String) ((List<Object>) frequencyOptionparamsFrequencyVariable).get(0);
+            var paramsFrequency = ((List<Object>) frequencyOptionparamsFrequencyVariable).get(1);
             String channelSuffix = "";
-            if (java.util.Objects.equals(frequency, "100ms"))
+            if (java.util.Objects.equals(frequencyOption, "100ms"))
             {
                 channelSuffix = "@100ms";
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth) + channelSuffix));
-                ((List<Object>)messageHashes).add(("orderbook::" + symbol));
+                ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depthOption) + channelSuffix));
+                messageHashes.add(("orderbook::" + symbol));
             }
-            Object orderbook = (this.watchPublic(messageHashes, channels, parameters)).join();
+            Object orderbook = (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsFrequency), new HashMap<String, Object>() {{}})).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
     }
-    /**
-     * @method
-     * @name bydfi#watchOrderBookForSymbols
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
-     * @param {string[]} symbols unified array of symbols
-     * @param {int} [limit] the maximum amount of order book entries to return (default and max is 100)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Object... optionalArgs)
-    {
-        return this.watchOrderBookForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -837,69 +666,48 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object parameters2)
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
-        final Object parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Object parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols, null, false);
-            Object depth = "100";
-            List<Object> depthparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-            depth = ((List<Object>) depthparametersVariable).get(0);
-            parameters = ((List<Object>) depthparametersVariable).get(1);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            String depth = "100";
+            List<Object> depthOptionparamsDepthVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+            var depthOption = ((List<Object>) depthOptionparamsDepthVariable).get(0);
+            Map<String, Object> paramsDepth = (Map<String, Object>) ((List<Object>) depthOptionparamsDepthVariable).get(1);
             String frequency = "100ms";
-            List<Object> frequencyparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
-            frequency = (String) ((List<Object>) frequencyparametersVariable).get(0);
-            parameters = ((List<Object>) frequencyparametersVariable).get(1);
+            List<Object> frequencyOptionparamsFrequencyVariable = (List<Object>) this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
+            String frequencyOption = (String) ((List<Object>) frequencyOptionparamsFrequencyVariable).get(0);
+            Map<String, Object> paramsFrequency = (Map<String, Object>) ((List<Object>) frequencyOptionparamsFrequencyVariable).get(1);
             String channelSuffix = "";
-            if (java.util.Objects.equals(frequency, "100ms"))
+            if (java.util.Objects.equals(frequencyOption, "100ms"))
             {
                 channelSuffix = "@100ms";
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depth) + channelSuffix));
-                ((List<Object>)messageHashes).add(("unsubscribe::orderbook::" + symbol));
+                ((List<Object>)channels).add((Helpers.add((((Map<String, Object>)market).get("id") + "@depth"), depthOption) + channelSuffix));
+                messageHashes.add(("unsubscribe::orderbook::" + symbol));
             }
-            final Object finalSymbols = symbols;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "orderbook" );
-                put( "symbols", finalSymbols );
+                put( "symbols", symbolsNormalized );
             }};
-            parameters = this.extend(parameters, new HashMap<String, Object>() {{
+            Object paramsExtended = this.extend(paramsFrequency, new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
             }});
-            return (this.watchPublic(messageHashes, channels, parameters, subscription)).join();
+            return (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsExtended), Helpers.toMapArg(subscription))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name bydfi#unWatchOrderBookForSymbols
-     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
-     * @param {string[]} symbols unified array of symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Object... optionalArgs)
-    {
-        return this.unWatchOrderBookForSymbols(symbols, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
-    {
-        return this.unWatchOrderBookForSymbols(symbols, (Object) (parameters));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -914,14 +722,14 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(message, "s");
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(message, "E");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, Helpers.toLongOrNull(timestamp), "b", "a", 0, 1, 2);
         orderbook.reset(parsed);
         String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -939,34 +747,19 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             Object symbols = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbols = new ArrayList<Object>(Arrays.asList(symbol));
             }
-            return (this.watchOrdersForSymbols((Object)((List<String>)(symbols)), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.watchOrdersForSymbols((List<String>)(symbols), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchOrders
-     * @description watches information on multiple orders made by the user
-     * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
-    {
-        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -980,55 +773,39 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Object limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols, null, true);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(symbols, null))
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            if (java.util.Objects.equals(symbolsNormalized, null))
             {
-                ((List<Object>)messageHashes).add("orders");
+                messageHashes.add("orders");
             } else
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
-                    ((List<Object>)messageHashes).add(("orders::" + symbol));
+                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                    messageHashes.add(("orders::" + symbol));
                 }
             }
             Object orders = (this.watchPrivate(messageHashes, parameters)).join();
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            String tradeSymbol = this.safeString(first, "symbol");
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
-                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, tradeSymbol, limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, tradeSymbol, limit);
             }
-            return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(orders, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchOrdersForSymbols
-     * @description watches information on multiple orders made by the user
-     * @see https://developers.bydfi.com/en/futures/websocket-account#order-trade-update-push
-     * @param {string[]} symbols unified symbol of the market to fetch orders for
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols, Object... optionalArgs)
-    {
-        return this.watchOrdersForSymbols(symbols, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrder(Client client, Map<String, Object> message)
@@ -1063,7 +840,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawOrder, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = "orders";
         String symbolMessageHash = ((messageHash + "::") + symbol);
@@ -1073,7 +850,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), market);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (rawOrder), Helpers.toMapArg(market));
         Long lastUpdateTimestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp);
         Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -1107,53 +884,45 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(order, "s");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
         String rawStatus = this.safeString(order, "st");
         String rawType = this.safeString(order, "t");
         Map<String, Object> fee = null;
         String feeCost = this.safeString(order, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final String finalFeeCost = feeCost;
-            final Map<String, Object> finalMarket = market;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", Precise.stringAbs(finalFeeCost) );
-                put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
-            }};
+            fee = Helpers.newMap(
+                "cost", Precise.stringAbs(feeCost),
+                "currency", ((Map<String, Object>)marketResolved).get("quote")
+            );
         }
-        final Map<String, Object> finalMarket_2 = market;
-        final Map<String, Object> finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", Bydfi.this.safeString(order, "o") );
-            put( "clientOrderId", Bydfi.this.safeString(order, "cid") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", null );
-            put( "status", Bydfi.this.parseOrderStatus((String) (rawStatus)) );
-            put( "symbol", ((Map<String, Object>)finalMarket_2).get("symbol") );
-            put( "type", Bydfi.this.parseOrderType((String) (rawType)) );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "reduceOnly", Bydfi.this.safeBool(order, "ro") );
-            put( "side", Bydfi.this.safeStringLower(order, "S") );
-            put( "price", Bydfi.this.safeString(order, "p") );
-            put( "triggerPrice", null );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-            put( "amount", Bydfi.this.safeString(order, "v") );
-            put( "filled", Bydfi.this.safeString(order, "ev") );
-            put( "remaining", Bydfi.this.safeString(order, "qty") );
-            put( "cost", null );
-            put( "trades", null );
-            put( "fee", finalFee );
-            put( "average", Bydfi.this.omitZero(Bydfi.this.safeString(order, "ap")) );
-        }}, market);
-    }
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
-    {
-        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeOrder(Helpers.newMap(
+            "info", order,
+            "id", this.safeString(order, "o"),
+            "clientOrderId", this.safeString(order, "cid"),
+            "timestamp", null,
+            "datetime", null,
+            "lastTradeTimestamp", null,
+            "lastUpdateTimestamp", null,
+            "status", this.parseOrderStatus((String) (rawStatus)),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", this.parseOrderType((String) (rawType)),
+            "timeInForce", null,
+            "postOnly", null,
+            "reduceOnly", this.safeBool(order, "ro", (Object) null),
+            "side", this.safeStringLower(order, "S"),
+            "price", this.safeString(order, "p"),
+            "triggerPrice", null,
+            "stopLossPrice", null,
+            "takeProfitPrice", null,
+            "amount", this.safeString(order, "v"),
+            "filled", this.safeString(order, "ev"),
+            "remaining", this.safeString(order, "qty"),
+            "cost", null,
+            "trades", null,
+            "fee", fee,
+            "average", this.omitZero(this.safeString(order, "ap"))
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1167,26 +936,26 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public CompletableFuture<List<Position>> watchPositions(List<String> symbols2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             String messageHash = "positions";
-            if (java.util.Objects.equals(symbols, null))
+            if (java.util.Objects.equals(symbolsNormalized, null))
             {
                 ((List<Object>)messageHashes).add(messageHash);
             } else
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     ((List<Object>)messageHashes).add(((messageHash + "::") + symbol));
                 }
             }
@@ -1195,24 +964,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 return positions;
             }
-            return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit(this.positions, Helpers.toStringListArg(symbolsNormalized), since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bydfi#watchPositions
-     * @description watch all open positions
-     * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {int} [since] the earliest time in ms to fetch positions for
-     * @param {int} [limit] the maximum number of positions to retrieve
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-     */
-    public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
-    {
-        return this.watchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handlePositions(Client client, Map<String, Object> message)
@@ -1261,7 +1015,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         List<Object> positionsData = (List<Object>) this.safeList(data, "p", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(positionsData, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawPosition, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = "positions";
         String symbolMessageHash = ((messageHash + "::") + symbol);
@@ -1270,7 +1024,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
+        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), Helpers.toMapArg(market));
         Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
@@ -1302,43 +1056,37 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         String marketId = this.safeString(position, "s");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
         String rawPositionSide = this.safeString(position, "S");
         String positionMode = this.safeString(position, "pt");
-        final Map<String, Object> finalMarket = market;
-        final String finalPositionMode = positionMode;
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", Bydfi.this.safeString(position, "id") );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "entryPrice", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "ap")) );
-            put( "markPrice", null );
-            put( "lastPrice", null );
-            put( "notional", null );
-            put( "collateral", null );
-            put( "unrealizedPnl", null );
-            put( "realizedPnl", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "rp")) );
-            put( "side", Bydfi.this.parseWsPositionSide((String) (rawPositionSide)) );
-            put( "contracts", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "v")) );
-            put( "contractSize", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "uq")) );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "lastUpdateTimestamp", null );
-            put( "hedged", (!java.util.Objects.equals(finalPositionMode, "ONEWAY")) );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "pm")) );
-            put( "initialMarginPercentage", null );
-            put( "leverage", Bydfi.this.safeInteger(position, "l") );
-            put( "liquidationPrice", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "lq")) );
-            put( "marginRatio", null );
-            put( "marginMode", Bydfi.this.safeStringLower(position, "mt") );
-            put( "percentage", null );
-        }});
-    }
-    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parseWsPosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePosition(Helpers.newMap(
+            "info", position,
+            "id", this.safeString(position, "id"),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "entryPrice", this.parseNumber(this.safeString(position, "ap")),
+            "markPrice", null,
+            "lastPrice", null,
+            "notional", null,
+            "collateral", null,
+            "unrealizedPnl", null,
+            "realizedPnl", this.parseNumber(this.safeString(position, "rp")),
+            "side", this.parseWsPositionSide((String) (rawPositionSide)),
+            "contracts", this.parseNumber(this.safeString(position, "v")),
+            "contractSize", this.parseNumber(this.safeString(position, "uq")),
+            "timestamp", null,
+            "datetime", null,
+            "lastUpdateTimestamp", null,
+            "hedged", (!java.util.Objects.equals(positionMode, "ONEWAY")),
+            "maintenanceMargin", null,
+            "maintenanceMarginPercentage", null,
+            "initialMargin", this.parseNumber(this.safeString(position, "pm")),
+            "initialMarginPercentage", null,
+            "leverage", this.safeInteger(position, "l"),
+            "liquidationPrice", this.parseNumber(this.safeString(position, "lq")),
+            "marginRatio", null,
+            "marginMode", this.safeStringLower(position, "mt"),
+            "percentage", null
+        ));
     }
 
     public String parseWsPositionSide(String rawPositionSide)
@@ -1365,12 +1113,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Client client = this.client(url);
             this.fetchBalanceSnapshot(client);
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
@@ -1382,22 +1130,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name bydfi#watchBalance
-     * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://developers.bydfi.com/en/futures/websocket-account#balance-and-position-update-push
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
-    {
-        return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public void fetchBalanceSnapshot(Client client)
     {
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
@@ -1418,7 +1154,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object parameters = new HashMap<String, Object>() {{
                 put( "type", "swap" );
             }};
-            Balances response = (this.fetchBalance((Object)(parameters))).join();
+            Balances response = (this.fetchBalance(Helpers.toMapArg(parameters))).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
@@ -1484,9 +1220,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                 String currencyId = this.safeString(balance, "a");
-                String code = this.safeCurrencyCode((String) (currencyId));
+                String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
                 Map<String, Object> account = (Map<String, Object>) this.account();
                 account.put("total", this.safeString(balance, "wb"));
                 account.put("used", this.safeString(balance, "tfm"));

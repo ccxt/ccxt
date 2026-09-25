@@ -261,7 +261,7 @@ public class TestSharedMethods extends BaseTest {
             Object currencyByCode = exchange.currency((String) (currencyCode));
             Assert(java.util.Objects.equals(((Map<String, Object>)currencyByCode).get("id"), currencyId), ((((("currencyId \"" + stringValue(currencyId)) + "\" does not match currency id from instance: \"") + stringValue(((Map<String, Object>)currencyByCode).get("id"))) + "\"") + logText));
             // check by id
-            Object currencyById = exchange.safeCurrency((String) (currencyId));
+            Object currencyById = exchange.safeCurrency((String) (currencyId), (Map<String, Object>) null);
             Assert(java.util.Objects.equals(((Map<String, Object>)currencyById).get("code"), currencyCode), Helpers.add(((("currencyCode " + stringValue(currencyCode)) + " does not match currency of id: ") + stringValue(currencyId)), logText));
         }
     }
@@ -508,33 +508,33 @@ public class TestSharedMethods extends BaseTest {
         if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchOrderBook"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchOrderBook"), false)))
         {
             usedMethod = "fetchOrderBook";
-            Object orderbook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol})).join();
-            Object bids = exchange.safeList(orderbook, "bids");
-            Object asks = exchange.safeList(orderbook, "asks");
-            Object bestBidArray = exchange.safeList(bids, 0);
-            Object bestAskArray = exchange.safeList(asks, 0);
-            bestBid = exchange.safeNumber(bestBidArray, 0);
-            bestAsk = exchange.safeNumber(bestAskArray, 0);
+            Object orderbook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol, (Long) null, new HashMap<String, Object>() {{}}})).join();
+            Object bids = exchange.safeList(orderbook, "bids", (Object) null);
+            Object asks = exchange.safeList(orderbook, "asks", (Object) null);
+            Object bestBidArray = exchange.safeList(bids, 0, (Object) null);
+            Object bestAskArray = exchange.safeList(asks, 0, (Object) null);
+            bestBid = exchange.safeNumber(bestBidArray, 0, (Object) null);
+            bestAsk = exchange.safeNumber(bestAskArray, 0, (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), false)))
         {
             usedMethod = "fetchBidsAsks";
-            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
-            Object ticker = exchange.safeDict(tickers, symbol);
-            bestBid = exchange.safeNumber(ticker, "bid");
-            bestAsk = exchange.safeNumber(ticker, "ask");
+            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
+            bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), false)))
         {
             usedMethod = "fetchTicker";
-            Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol})).join();
-            bestBid = exchange.safeNumber(ticker, "bid");
-            bestAsk = exchange.safeNumber(ticker, "ask");
+            Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
+            bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
+            bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTickers"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTickers"), false)))
         {
             usedMethod = "fetchTickers";
-            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
-            Object ticker = exchange.safeDict(tickers, symbol);
-            bestBid = exchange.safeNumber(ticker, "bid");
-            bestAsk = exchange.safeNumber(ticker, "ask");
+            Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
+            bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         }
         //
         Assert(!java.util.Objects.equals(bestBid, null) && !java.util.Objects.equals(bestAsk, null), ((((((Helpers.add((logText + " "), exchange.id) + " could not get best bid/ask for ") + symbol) + " using ") + usedMethod) + " while testing ") + method));
@@ -680,8 +680,8 @@ public class TestSharedMethods extends BaseTest {
     }
     public static Object removeProxyOptions(BaseExchange exchange, Object skippedProperties)
     {
-        Object proxyUrl = exchange.checkProxyUrlSettings();
-        var httpProxyhttpsProxysocksProxyVariable = exchange.checkProxySettings();
+        Object proxyUrl = exchange.checkProxyUrlSettings((String) null, (String) null, (Object) null, (Object) null);
+        var httpProxyhttpsProxysocksProxyVariable = exchange.checkProxySettings((String) null, (String) null, (Object) null, (Object) null);
         var httpProxy = ((List<Object>) httpProxyhttpsProxysocksProxyVariable).get(0);
         var httpsProxy = ((List<Object>) httpProxyhttpsProxysocksProxyVariable).get(1);
         var socksProxy = ((List<Object>) httpProxyhttpsProxysocksProxyVariable).get(2);
@@ -806,7 +806,7 @@ public class TestSharedMethods extends BaseTest {
             {
                 if ((!java.util.Objects.equals(exchange.markets, null)) && ((symbol != null && ((Map<?, ?>)exchange.markets).containsKey(symbol))))
                 {
-                    if (!java.util.Objects.equals(exchange.featureValue(symbol, "fetchOHLCV"), null))
+                    if (!java.util.Objects.equals(exchange.featureValue(symbol, "fetchOHLCV", (String) null, (Object) null), null))
                     {
                         return true;
                     }

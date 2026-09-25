@@ -5,6 +5,7 @@ import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -42,7 +43,7 @@ public class TestWatchOHLCV extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, chosenTimeframeKey, since, limit})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, chosenTimeframeKey, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;

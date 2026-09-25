@@ -38,7 +38,7 @@ public class TestAfterConstruct extends BaseTest {
             // safeDict, not exchange.options['networks']: a direct missing-key access throws
             // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
             // hyperliquid prediction market)
-            Object networks = exchange.safeDict(exchange.options, "networks");
+            Object networks = exchange.safeDict(exchange.options, "networks", (Object) null);
             if (java.util.Objects.equals(networks, null))
             {
                 return;
@@ -80,7 +80,7 @@ public class TestAfterConstruct extends BaseTest {
                 Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 // check networkCodeToId
-                Object networkIdConverted = exchange.networkCodeToId((String) (networkCode));
+                Object networkIdConverted = exchange.networkCodeToId((String) (networkCode), (String) null);
                 Assert(java.util.Objects.equals(networkId, networkIdConverted), (Helpers.add((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\""), networkId) + "\""));
                 // ensure it exists in networksById
                 Assert(Helpers.inOp(((Map<String, Object>)exchange.options).get("networksById"), networkId), (Helpers.add("exchange.options[\"networksById\"] does not contain networkId \"", networkId) + "\""));
@@ -89,7 +89,7 @@ public class TestAfterConstruct extends BaseTest {
                 {
                     Assert(java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId), networkCode), (Helpers.add((((Helpers.add("exchange.options[\"networksById\"][\"", networkId) + "\"] value is not expected \"") + networkCode) + "\", but: \""), Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId)) + "\""));
                     // check networkIdToCode conversion back
-                    Object networkCodeConverted = exchange.networkIdToCode(networkId);
+                    Object networkCodeConverted = exchange.networkIdToCode(Helpers.toStringArg(networkId), (String) null);
                     Assert(java.util.Objects.equals(networkCode, networkCodeConverted), (((((Helpers.add("exchange.networkIdToCode (\"", networkId) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
                 }
             }

@@ -85,11 +85,11 @@ public class TestMarket extends BaseTest {
         Object swap = ((Map<String, Object>)market).get("swap");
         Object future = ((Map<String, Object>)market).get("future");
         Object option = ((Map<String, Object>)market).get("option");
-        Object index = exchange.safeBool(market, "index"); // todo: unify
+        Object index = exchange.safeBool(market, "index", (Object) null); // todo: unify
         Boolean isIndex = (!java.util.Objects.equals(index, null)) && Helpers.isTrue(index);
         Object linear = ((Map<String, Object>)market).get("linear");
         Object inverse = ((Map<String, Object>)market).get("inverse");
-        Object quanto = exchange.safeBool(market, "quanto"); // todo: unify
+        Object quanto = exchange.safeBool(market, "quanto", (Object) null); // todo: unify
         Boolean isQuanto = (!java.util.Objects.equals(quanto, null)) && Helpers.isTrue(quanto);
         Boolean isInactiveMarket = java.util.Objects.equals(((Map<String, Object>)market).get("active"), false);
         //

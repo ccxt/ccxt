@@ -523,19 +523,15 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object markets = (super.loadMarkets(reload, parameters)).join();
-            Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId");
-            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(reload))
+            Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
+            Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
+            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
                 Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexByStringifiedNumericId((Map<String, Object>) (this.currencies)));
             }
             return markets;
         });
 
-    }
-    public CompletableFuture<Object> loadMarkets(Object... optionalArgs)
-    {
-        return this.loadMarkets(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     public Object indexByStringifiedNumericId(Map<String, Object> input)
@@ -683,18 +679,6 @@ public class Extended extends ExtendedApi
         });
 
     }
-    /**
-     * @method
-     * @name extended#fetchMarkets
-     * @description retrieves data on all markets for extended
-     * @see https://api.docs.extended.exchange/#get-markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
@@ -745,19 +729,19 @@ public class Extended extends ExtendedApi
             baseId = Helpers.replace(baseId, (String)"SPOT", (String)"");
         }
         String quoteId = this.safeString(market, "collateralAssetName");
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if (java.util.Objects.equals(quoteId, "USD"))
         {
             quote = "USDC";
         }
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "ACTIVE"));
-        Double amountPrecision = this.safeNumber(tradingConfig, "minOrderSizeChange");
-        Double pricePrecision = this.safeNumber(tradingConfig, "minPriceChange");
-        Double maxLeverage = this.safeNumber(tradingConfig, "maxLeverage");
-        Double minAmount = this.safeNumber(tradingConfig, "minOrderSize");
-        Double maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue");
+        Double amountPrecision = this.safeNumber(tradingConfig, "minOrderSizeChange", (Object) null);
+        Double pricePrecision = this.safeNumber(tradingConfig, "minPriceChange", (Object) null);
+        Double maxLeverage = this.safeNumber(tradingConfig, "maxLeverage", (Object) null);
+        Double minAmount = this.safeNumber(tradingConfig, "minOrderSize", (Object) null);
+        Double maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue", (Object) null);
         Long created = this.safeInteger(market, "createdAt");
         String settleId = null;
         String settle = null;
@@ -783,49 +767,37 @@ public class Extended extends ExtendedApi
             linear = true;
             inverse = false;
         }
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalQuote = quote;
-        final String finalSettle = settle;
-        final String finalBaseId = baseId;
-        final String finalQuoteId = quoteId;
-        final String finalSettleId = settleId;
-        final String finalType = type;
-        final Boolean finalIsSpot = isSpot;
-        final Boolean finalLinear = linear;
-        final Boolean finalInverse = inverse;
-        final Double finalContractSize = contractSize;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", marketId );
-            put( "symbol", finalSymbol );
-            put( "base", finalBase );
-            put( "quote", finalQuote );
-            put( "settle", finalSettle );
-            put( "baseId", finalBaseId );
-            put( "quoteId", finalQuoteId );
-            put( "settleId", finalSettleId );
-            put( "type", finalType );
-            put( "spot", finalIsSpot );
-            put( "margin", false );
-            put( "swap", !Boolean.TRUE.equals(finalIsSpot) );
-            put( "future", false );
-            put( "option", false );
-            put( "active", active );
-            put( "contract", !Boolean.TRUE.equals(finalIsSpot) );
-            put( "linear", finalLinear );
-            put( "inverse", finalInverse );
-            put( "taker", Extended.this.safeNumber(Extended.this.fees, "taker") );
-            put( "maker", Extended.this.safeNumber(Extended.this.fees, "maker") );
-            put( "contractSize", finalContractSize );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "precision", new HashMap<String, Object>() {{
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", marketId,
+            "symbol", symbol,
+            "base", base,
+            "quote", quote,
+            "settle", settle,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", settleId,
+            "type", type,
+            "spot", isSpot,
+            "margin", false,
+            "swap", !Boolean.TRUE.equals(isSpot),
+            "future", false,
+            "option", false,
+            "active", active,
+            "contract", !Boolean.TRUE.equals(isSpot),
+            "linear", linear,
+            "inverse", inverse,
+            "taker", this.safeNumber(this.fees, "taker", (Object) null),
+            "maker", this.safeNumber(this.fees, "maker", (Object) null),
+            "contractSize", contractSize,
+            "expiry", null,
+            "expiryDatetime", null,
+            "strike", null,
+            "optionType", null,
+            "precision", new HashMap<String, Object>() {{
                 put( "amount", amountPrecision );
                 put( "price", pricePrecision );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
+            }},
+            "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", Extended.this.parseNumber("1") );
                     put( "max", maxLeverage );
@@ -842,10 +814,10 @@ public class Extended extends ExtendedApi
                     put( "min", null );
                     put( "max", maxCost );
                 }} );
-            }} );
-            put( "created", created );
-            put( "info", market );
-        }});
+            }},
+            "created", created,
+            "info", market
+        ));
     }
 
     /**
@@ -893,18 +865,6 @@ public class Extended extends ExtendedApi
         });
 
     }
-    /**
-     * @method
-     * @name extended#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api.docs.extended.exchange/#get-assets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
-    {
-        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseCurrency(Object currency)
     {
@@ -934,30 +894,27 @@ public class Extended extends ExtendedApi
         {
             currencyId = Helpers.replace(currencyId, (String)"SPOT", (String)"");
         }
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         if (java.util.Objects.equals(currencyId, "USD"))
         {
             code = "USDC";
         }
         String name = this.safeString(currency, "name");
         Long precision = this.safeInteger(currency, "precision", 0);
-        Boolean isActive = (Boolean) this.safeBool(currency, "isActive");
-        final String finalCurrencyId = currencyId;
-        final String finalCode = code;
-        final Long finalPrecision = precision;
-        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
-            put( "id", finalCurrencyId );
-            put( "code", finalCode );
-            put( "numericId", Extended.this.safeInteger(currency, "id") );
-            put( "name", name );
-            put( "active", isActive );
-            put( "deposit", true );
-            put( "withdraw", true );
-            put( "precision", Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.multiply(finalPrecision, -1)))) );
-            put( "type", "other" );
-            put( "margin", Extended.this.safeBool(currency, "canBeUsedAsCollateral") );
-            put( "info", currency );
-        }});
+        Boolean isActive = (Boolean) this.safeBool(currency, "isActive", (Object) null);
+        return this.safeCurrencyStructure(Helpers.newMap(
+            "id", currencyId,
+            "code", code,
+            "numericId", this.safeInteger(currency, "id"),
+            "name", name,
+            "active", isActive,
+            "deposit", true,
+            "withdraw", true,
+            "precision", Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.multiply(precision, -1)))),
+            "type", "other",
+            "margin", this.safeBool(currency, "canBeUsedAsCollateral", (Object) null),
+            "info", currency
+        ));
     }
 
     /**
@@ -974,7 +931,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1017,22 +974,9 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, market);
+            return this.parseTicker(data, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://api.docs.extended.exchange/#get-market-statistics
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1044,20 +988,20 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            (this.loadMarkets()).join();
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbols, null))
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
                 request.put("market", marketIds);
@@ -1084,33 +1028,20 @@ public class Extended extends ExtendedApi
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Map<String, Object> marketData = (Map<String, Object>) this.safeDict(data, i);
+                Map<String, Object> marketData = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 String marketId = this.safeString(marketData, "name");
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
+                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 Map<String, Object> stats = (Map<String, Object>) this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(stats, market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(stats, Helpers.toMapArg(market));
                 String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     tickers.put((String)symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(tickers, "symbol", symbols);
+            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for all markets
-     * @see https://api.docs.extended.exchange/#get-markets
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1148,38 +1079,34 @@ public class Extended extends ExtendedApi
         //       }
         //     }
         //
-        String symbol = this.safeSymbol(null, market);
-        Double last = this.safeNumber(ticker, "lastPrice");
+        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        Double last = this.safeNumber(ticker, "lastPrice", (Object) null);
         String percentageRaw = this.safeString(ticker, "dailyPriceChangePercentage");
         String percentage = (((!java.util.Objects.equals(percentageRaw, null)))) ? Precise.stringMul(percentageRaw, "100") : null;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "high", Extended.this.safeNumber(ticker, "dailyHigh") );
-            put( "low", Extended.this.safeNumber(ticker, "dailyLow") );
-            put( "bid", Extended.this.safeNumber(ticker, "bidPrice") );
+            put( "high", Extended.this.safeNumber(ticker, "dailyHigh", (Object) null) );
+            put( "low", Extended.this.safeNumber(ticker, "dailyLow", (Object) null) );
+            put( "bid", Extended.this.safeNumber(ticker, "bidPrice", (Object) null) );
             put( "bidVolume", null );
-            put( "ask", Extended.this.safeNumber(ticker, "askPrice") );
+            put( "ask", Extended.this.safeNumber(ticker, "askPrice", (Object) null) );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
-            put( "change", Extended.this.safeNumber(ticker, "dailyPriceChange") );
+            put( "change", Extended.this.safeNumber(ticker, "dailyPriceChange", (Object) null) );
             put( "percentage", percentage );
             put( "average", null );
-            put( "baseVolume", Extended.this.safeNumber(ticker, "dailyVolumeBase") );
-            put( "quoteVolume", Extended.this.safeNumber(ticker, "dailyVolume") );
-            put( "markPrice", Extended.this.safeNumber(ticker, "markPrice") );
-            put( "indexPrice", Extended.this.safeNumber(ticker, "indexPrice") );
+            put( "baseVolume", Extended.this.safeNumber(ticker, "dailyVolumeBase", (Object) null) );
+            put( "quoteVolume", Extended.this.safeNumber(ticker, "dailyVolume", (Object) null) );
+            put( "markPrice", Extended.this.safeNumber(ticker, "markPrice", (Object) null) );
+            put( "indexPrice", Extended.this.safeNumber(ticker, "indexPrice", (Object) null) );
             put( "info", ticker );
         }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1192,12 +1119,12 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1225,7 +1152,7 @@ public class Extended extends ExtendedApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bid", "ask", "price", "qty");
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bid", "ask", "price", "qty", 2);
             if (!java.util.Objects.equals(limit, null))
             {
                 orderbook.put("bids", this.arraySlice(((Map<String, Object>)orderbook).get("bids"), 0, limit));
@@ -1234,20 +1161,6 @@ public class Extended extends ExtendedApi
             return orderbook;
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api.docs.extended.exchange/#get-market-order-book
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1266,7 +1179,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1289,24 +1202,9 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://api.docs.extended.exchange/#get-market-last-trades
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1321,23 +1219,20 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1350,7 +1245,7 @@ public class Extended extends ExtendedApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.v1PrivateGetUserTrades(this.extend(parameters, request))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserTrades(this.extend(paramsPaginate, request))).join();
             //
             //     {
             //         "status": "OK",
@@ -1387,32 +1282,15 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
                 ((List<Object>)result).add(entry);
             }
-            return this.parseTrades(result, market, since, limit);
+            return this.parseTrades(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://api.docs.extended.exchange/#get-trades
-     * @param {string} [symbol] unified market symbol of the trades
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1427,25 +1305,20 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1462,7 +1335,7 @@ public class Extended extends ExtendedApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.v1PrivateGetUserFundingHistory(this.extend(parameters, request))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserFundingHistory(this.extend(paramsPaginate, request))).join();
             //
             //     {
             //         "status": "OK",
@@ -1497,32 +1370,15 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
                 ((List<Object>)result).add(entry);
             }
-            return this.parseFundingHistories(result, market, since, limit);
+            return this.parseFundingHistories(result, Helpers.toMapArg(market), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchFundingHistory
-     * @description fetch the funding payments history
-     * @see https://api.docs.extended.exchange/#get-funding-payments
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch funding history for
-     * @param {int} [limit] the maximum number of funding history structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
-     */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingHistory(Map<String, Object> history, Map<String, Object> market)
@@ -1543,23 +1399,18 @@ public class Extended extends ExtendedApi
         //     }
         //
         String marketId = this.safeString(history, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(history, "paidTime");
-        final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", history );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "code", ((Map<String, Object>)finalMarket).get("settle") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "code", ((Map<String, Object>)marketResolved).get("settle") );
             put( "timestamp", timestamp );
             put( "datetime", Extended.this.iso8601(timestamp) );
             put( "id", Extended.this.safeString(history, "id") );
-            put( "amount", Extended.this.safeNumber(history, "fundingFee") );
-            put( "rate", Extended.this.safeNumber(history, "fundingRate") );
+            put( "amount", Extended.this.safeNumber(history, "fundingFee", (Object) null) );
+            put( "rate", Extended.this.safeNumber(history, "fundingRate", (Object) null) );
         }};
-    }
-    public Object parseFundingHistory(Map<String, Object> history, Object... optionalArgs)
-    {
-        return this.parseFundingHistory(history, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseFundingHistories(Object histories, Map<String, Object> market, Long since, Long limit)
@@ -1570,11 +1421,7 @@ public class Extended extends ExtendedApi
             ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) (Helpers.GetValue(histories, i)), market));
         }
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
-    }
-    public Object parseFundingHistories(Object histories, Object... optionalArgs)
-    {
-        return this.parseFundingHistories(histories, Helpers.getArgMap(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null));
+        return this.filterBySymbolSinceLimit(result, Helpers.toStringArg(symbol), since, limit, false);
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1611,45 +1458,38 @@ public class Extended extends ExtendedApi
         //     }
         //
         String marketId = this.safeString2(trade, "m", "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(trade, "T", "createdTime");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
         String sideRaw = this.safeString2(trade, "S", "side");
         String side = (((!java.util.Objects.equals(sideRaw, null)))) ? ((String)sideRaw).toLowerCase() : null;
         String feeCost = this.safeString(trade, "fee");
-        final String finalFeeCost = feeCost;
-        final Map<String, Object> finalMarket = market;
-        Map<String, Object> fee = (((java.util.Objects.equals(feeCost, null)))) ? null : new HashMap<String, Object>() {{
-    put( "cost", finalFeeCost );
-    put( "currency", (((java.util.Objects.equals(finalMarket, null)))) ? null : ((Map<String, Object>)finalMarket).get("settle") );
-}};
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
+        Map<String, Object> fee = (((java.util.Objects.equals(feeCost, null)))) ? null : Helpers.newMap(
+    "cost", feeCost,
+    "currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : ((Map<String, Object>)marketResolved).get("settle")
+);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
-        final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", Extended.this.safeString2(trade, "i", "id") );
-            put( "info", trade );
-            put( "timestamp", timestamp );
-            put( "datetime", Extended.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "order", Extended.this.safeString(trade, "orderId") );
-            put( "type", null );
-            put( "side", side );
-            put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", Extended.this.safeString(trade, "value") );
-            put( "fee", fee );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTrade(Helpers.newMap(
+            "id", this.safeString2(trade, "i", "id"),
+            "info", trade,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "order", this.safeString(trade, "orderId"),
+            "type", null,
+            "side", side,
+            "takerOrMaker", takerOrMaker,
+            "price", priceString,
+            "amount", amountString,
+            "cost", this.safeString(trade, "value"),
+            "fee", fee
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1667,12 +1507,12 @@ public class Extended extends ExtendedApi
      * @param {int} [params.until] end timestamp in ms for the requested period
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String price = this.safeString(parameters, "price");
             String candleType = this.safeString(parameters, "candleType");
@@ -1690,20 +1530,18 @@ public class Extended extends ExtendedApi
                 }
             }
             Long until = this.safeInteger(parameters, "until");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price", "until")));
-            final String finalCandleType = candleType;
-            final Object finalLimit = limit;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
-                put( "candleType", finalCandleType );
-                put( "interval", Extended.this.safeString(Extended.this.timeframes, timeframe, timeframe) );
-                put( "limit", (((!java.util.Objects.equals(finalLimit, null)))) ? finalLimit : 100 );
-            }};
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price", "until")));
+            Map<String, Object> request = Helpers.newMap(
+                "market", ((Map<String, Object>)market).get("id"),
+                "candleType", candleType,
+                "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
+                "limit", (((!java.util.Objects.equals(limit, null)))) ? limit : 100
+            );
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
             }
-            Map<String, Object> response = (this.v1PublicGetInfoCandlesMarketCandleType(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PublicGetInfoCandlesMarketCandleType(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //       "status": "OK",
@@ -1720,28 +1558,9 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, timeframe, since, limit);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://api.docs.extended.exchange/#get-candles-history
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch, default 100
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.candleType] candle type: 'trades' (default), 'mark-prices', or 'index-prices'
-     * @param {string} [params.price] *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
-     * @param {int} [params.until] end timestamp in ms for the requested period
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1756,11 +1575,7 @@ public class Extended extends ExtendedApi
         //       "T": 1777517880000
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "T"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "T"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
     }
 
     /**
@@ -1778,53 +1593,39 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Object since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(10000))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = (String) ((Map<String, Object>)market).get("symbol");
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 100L;
-            }
-            Long until = this.safeInteger(parameters, "until", this.milliseconds());
-            Long endTime = this.safeInteger(parameters, "endTime", until);
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
-            if (java.util.Objects.equals(since, null))
-            {
-                since = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limit, 60), 60), 1000)));
-            }
-            final Object finalSince = since;
-            final Long finalEndTime = endTime;
-            final Long finalLimit = limit;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
-                put( "startTime", finalSince );
-                put( "endTime", finalEndTime );
-                put( "limit", finalLimit );
-            }};
-            Map<String, Object> response = (this.v1PublicGetInfoMarketFunding(this.extend(request, parameters))).join();
+            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
+            Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
+            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(limitResolved, 60), 60), 1000))) : since;
+            Map<String, Object> request = Helpers.newMap(
+                "market", ((Map<String, Object>)market).get("id"),
+                "startTime", sinceResolved,
+                "endTime", endTime,
+                "limit", limitResolved
+            );
+            Map<String, Object> response = (this.v1PublicGetInfoMarketFunding(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //       "status": "OK",
@@ -1851,36 +1652,16 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
-                ((List<Object>)result).add(this.parseFundingRateHistory(entry, market));
+                ((List<Object>)result).add(this.parseFundingRateHistory(entry, Helpers.toMapArg(market)));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+            return this.filterBySymbolSinceLimit(sorted, symbolValue, Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved), false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://api.docs.extended.exchange/#get-funding-rates-history
-     * @param {string} symbol unified symbol of the market to fetch funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of entries to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
-     * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
-     * @param {int} [params.cursor] offset of the result set
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRateHistory(Object info, Map<String, Object> market)
@@ -1893,20 +1674,15 @@ public class Extended extends ExtendedApi
         //     }
         //
         String marketId = this.safeString(info, "m");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(info, "T");
-        final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "fundingRate", Extended.this.safeNumber(info, "f") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "fundingRate", Extended.this.safeNumber(info, "f", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Extended.this.iso8601(timestamp) );
         }};
-    }
-    public Object parseFundingRateHistory(Object info, Object... optionalArgs)
-    {
-        return this.parseFundingRateHistory(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1922,44 +1698,31 @@ public class Extended extends ExtendedApi
      * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
      * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String interval = this.safeString(this.timeframes, timeframe);
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"));
             if (!this.inArray(interval, new ArrayList<Object>(Arrays.asList("PT1H", "P1D"))))
             {
                 throw new BadRequest((this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
             }
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 100L;
-            }
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Long endTime = this.safeInteger(parameters, "endTime", until);
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
-            if (java.util.Objects.equals(since, null))
-            {
-                since = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(limit, this.parseTimeframe(timeframe)), 1000)));
-            }
-            final Object finalSince = since;
-            final Long finalEndTime = endTime;
-            final Long finalLimit = limit;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
-                put( "interval", interval );
-                put( "startTime", finalSince );
-                put( "endTime", finalEndTime );
-                put( "limit", finalLimit );
-            }};
-            Map<String, Object> response = (this.v1PublicGetInfoMarketOpenInterests(this.extend(request, parameters))).join();
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(limitResolved, this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))), 1000))) : since;
+            Map<String, Object> request = Helpers.newMap(
+                "market", ((Map<String, Object>)market).get("id"),
+                "interval", interval,
+                "startTime", sinceResolved,
+                "endTime", endTime,
+                "limit", limitResolved
+            );
+            Map<String, Object> response = (this.v1PublicGetInfoMarketOpenInterests(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //       "status": "OK",
@@ -1973,26 +1736,9 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterestsHistory(data, market, since, limit);
+            return this.parseOpenInterestsHistory(data, Helpers.toMapArg(market), Helpers.toLongOrNull(sinceResolved), Helpers.toLongOrNull(limitResolved));
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchOpenInterestHistory
-     * @description Retrieves the open interest history of a currency
-     * @see https://api.docs.extended.exchange/#get-open-interest-history
-     * @param {string} symbol unified CCXT market symbol
-     * @param {string} timeframe '1h' or '1d'
-     * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
-     * @param {int} [limit] the maximum amount of open interest structures to retrieve
-     * @param {object} [params] exchange specific parameters
-     * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
-     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
-     */
-    public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
-    {
-        return this.fetchOpenInterestHistory(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1h", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
@@ -2007,18 +1753,14 @@ public class Extended extends ExtendedApi
         Long timestamp = this.safeInteger(interest, "t");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Extended.this.safeString(market, "symbol") );
-            put( "openInterestAmount", Extended.this.safeNumber(interest, "I") );
-            put( "openInterestValue", Extended.this.safeNumber(interest, "i") );
-            put( "baseVolume", Extended.this.safeNumber(interest, "I") );
-            put( "quoteVolume", Extended.this.safeNumber(interest, "i") );
+            put( "openInterestAmount", Extended.this.safeNumber(interest, "I", (Object) null) );
+            put( "openInterestValue", Extended.this.safeNumber(interest, "i", (Object) null) );
+            put( "baseVolume", Extended.this.safeNumber(interest, "I", (Object) null) );
+            put( "quoteVolume", Extended.this.safeNumber(interest, "i", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Extended.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
-    }
-    public Object parseOpenInterest(Object interest, Object... optionalArgs)
-    {
-        return this.parseOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2034,7 +1776,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.v1PrivateGetUserSpotBalances(parameters)).join();
             //
             //     {
@@ -2070,18 +1812,6 @@ public class Extended extends ExtendedApi
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name extended#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api.docs.extended.exchange/#get-spot-balances
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseBalance(Object response)
     {
@@ -2092,7 +1822,7 @@ public class Extended extends ExtendedApi
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "asset");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("free", this.safeString(balance, "availableToWithdraw"));
             account.put("total", this.safeString(balance, "balance"));
@@ -2141,18 +1871,6 @@ public class Extended extends ExtendedApi
         });
 
     }
-    /**
-     * @method
-     * @name extended#fetchAccount
-     * @description fetch the current authenticated sub-account
-     * @see https://api.docs.extended.exchange/#get-account-details
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
-     */
-    public CompletableFuture<Object> fetchAccount(Object... optionalArgs)
-    {
-        return this.fetchAccount(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -2193,21 +1911,9 @@ public class Extended extends ExtendedApi
             //     ]}
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseAccounts(data);
+            return this.parseAccounts(data, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchAccounts
-     * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
-     * @see https://api.docs.extended.exchange/#get-sub-accounts
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
-     */
-    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
-    {
-        return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseAccount(Object account)
@@ -2218,13 +1924,12 @@ public class Extended extends ExtendedApi
         {
             type = ((((accountIndex != null && accountIndex == 0)))) ? "main" : "subaccount";
         }
-        final String finalType = type;
-        return new HashMap<String, Object>() {{
-            put( "id", Extended.this.safeString2(account, "accountId", "id") );
-            put( "type", finalType );
-            put( "code", null );
-            put( "info", account );
-        }};
+        return Helpers.newMap(
+            "id", this.safeString2(account, "accountId", "id"),
+            "type", type,
+            "code", null,
+            "info", account
+        );
     }
 
     /**
@@ -2239,23 +1944,20 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
             }
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -2267,7 +1969,7 @@ public class Extended extends ExtendedApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
@@ -2278,32 +1980,15 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
                 ((List<Object>)result).add(entry);
             }
-            return this.parseLedger(result, currency, since, limit);
+            return this.parseLedger(result, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchLedger
-     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
-     * @param {string} [code] unified currency code
-     * @param {int} [since] timestamp in ms of the earliest ledger entry
-     * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
-     */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
-    {
-        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
@@ -2335,36 +2020,28 @@ public class Extended extends ExtendedApi
         String feeCost = this.safeString(item, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final String finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "currency", code );
-                put( "cost", Extended.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
-            }};
+            fee = Helpers.newMap(
+                "currency", code,
+                "cost", this.parseNumber(Precise.stringAbs(feeCost))
+            );
         }
-        final String finalDirection = direction;
-        final String finalAmountString = amountString;
-        final Map<String, Object> finalFee = fee;
-        return this.safeLedgerEntry(new HashMap<String, Object>() {{
-            put( "info", item );
-            put( "id", Extended.this.safeString(item, "id") );
-            put( "timestamp", timestamp );
-            put( "datetime", Extended.this.iso8601(timestamp) );
-            put( "direction", finalDirection );
-            put( "account", Extended.this.safeString(item, "accountId") );
-            put( "referenceId", Extended.this.safeString(item, "transactionHash") );
-            put( "referenceAccount", Extended.this.safeString(item, "counterpartyAccountId") );
-            put( "type", Extended.this.parseTransactionType(Extended.this.safeString(item, "type")) );
-            put( "currency", code );
-            put( "amount", (((java.util.Objects.equals(finalAmountString, null)))) ? null : Extended.this.parseNumber(Precise.stringAbs(finalAmountString)) );
-            put( "before", null );
-            put( "after", null );
-            put( "status", Extended.this.parseTransactionStatus(Extended.this.safeString(item, "status")) );
-            put( "fee", finalFee );
-        }}, ledgerCurrency);
-    }
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
-    {
-        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeLedgerEntry(Helpers.newMap(
+            "info", item,
+            "id", this.safeString(item, "id"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "direction", direction,
+            "account", this.safeString(item, "accountId"),
+            "referenceId", this.safeString(item, "transactionHash"),
+            "referenceAccount", this.safeString(item, "counterpartyAccountId"),
+            "type", this.parseTransactionType(this.safeString(item, "type")),
+            "currency", code,
+            "amount", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(Precise.stringAbs(amountString)),
+            "before", null,
+            "after", null,
+            "status", this.parseTransactionStatus(this.safeString(item, "status")),
+            "fee", fee
+        ), Helpers.toMapArg(ledgerCurrency));
     }
 
     /**
@@ -2379,23 +2056,20 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchTransactions(String code2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchTransactions(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransactions", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransactions", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransactions", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchTransactions", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
             }
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -2407,7 +2081,7 @@ public class Extended extends ExtendedApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate))).join();
             //
             //     {
             //         "status": "OK",
@@ -2440,32 +2114,15 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
                 ((List<Object>)result).add(entry);
             }
-            return this.parseTransactions(result, currency, since, limit);
+            return this.parseTransactions(result, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchTransactions
-     * @description fetch history of deposits, withdrawals, and transfers
-     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
-     * @param {string} [code] unified currency code
-     * @param {int} [since] the earliest time in ms to fetch transactions for
-     * @param {int} [limit] the maximum number of transaction structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchTransactions(Object... optionalArgs)
-    {
-        return this.fetchTransactions(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2485,27 +2142,11 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactions(code, since, limit, this.extend(new HashMap<String, Object>() {{
+            return (this.fetchTransactions(code, since, limit, Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
                 put( "type", "DEPOSIT" );
-            }}, parameters))).join();
+            }}, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
-     * @param {string} [code] unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposit structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2525,27 +2166,11 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactions(code, since, limit, this.extend(new HashMap<String, Object>() {{
+            return (this.fetchTransactions(code, since, limit, Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
                 put( "type", "WITHDRAWAL" );
-            }}, parameters))).join();
+            }}, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
-     * @param {string} [code] unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawal structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2562,13 +2187,13 @@ public class Extended extends ExtendedApi
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters2)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+
+            this.checkRequiredCredentials(true);
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String chainId = this.safeStringUpper2(parameters, "chainId", "network", "STRK");
             if (!java.util.Objects.equals(chainId, "STRK"))
@@ -2579,20 +2204,19 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
             }
-            Object account = (this.fetchExtendedAccount()).join();
-            Object amountString = this.currencyToPrecision((String) (code), amount);
+            Object account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
+            Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             String accountId = this.safeString(account, "accountId");
             Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), parameters);
-            final String finalChainId = chainId;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", accountId );
-                put( "amount", amountString );
-                put( "chainId", finalChainId );
-                put( "asset", ((Map<String, Object>)currency).get("id") );
-                put( "settlement", settlement );
-            }};
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
-            Map<String, Object> response = (this.v1PrivatePostUserWithdrawal(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "accountId", accountId,
+                "amount", amountString,
+                "chainId", chainId,
+                "asset", ((Map<String, Object>)currency).get("id"),
+                "settlement", settlement
+            );
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
+            Map<String, Object> response = (this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "status": "OK",
@@ -2600,48 +2224,30 @@ public class Extended extends ExtendedApi
             //     }
             //
             Long now = this.milliseconds();
-            return new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", Extended.this.safeString(response, "data") );
-                put( "txid", null );
-                put( "timestamp", now );
-                put( "datetime", Extended.this.iso8601(now) );
-                put( "address", address );
-                put( "addressFrom", null );
-                put( "addressTo", address );
-                put( "tag", tag );
-                put( "tagFrom", null );
-                put( "tagTo", tag );
-                put( "type", "withdrawal" );
-                put( "amount", Extended.this.parseNumber(amountString) );
-                put( "currency", ((Map<String, Object>)currency).get("code") );
-                put( "status", "pending" );
-                put( "updated", now );
-                put( "fee", null );
-                put( "network", finalChainId );
-                put( "comment", null );
-                put( "internal", false );
-            }};
+            return Helpers.newMap(
+                "info", response,
+                "id", this.safeString(response, "data"),
+                "txid", null,
+                "timestamp", now,
+                "datetime", this.iso8601(now),
+                "address", address,
+                "addressFrom", null,
+                "addressTo", address,
+                "tag", tag,
+                "tagFrom", null,
+                "tagTo", tag,
+                "type", "withdrawal",
+                "amount", this.parseNumber(amountString),
+                "currency", ((Map<String, Object>)currency).get("code"),
+                "status", "pending",
+                "updated", now,
+                "fee", null,
+                "network", chainId,
+                "comment", null,
+                "internal", false
+            );
         }).thenApply(Transaction::new);
 
-    }
-    /**
-     * @method
-     * @name extended#withdraw
-     * @description make a Starknet withdrawal
-     * @see https://api.docs.extended.exchange/#withdrawals
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.chainId] only STRK is supported
-     * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2656,23 +2262,20 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
             }
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
@@ -2686,7 +2289,7 @@ public class Extended extends ExtendedApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
@@ -2697,32 +2300,15 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
                 ((List<Object>)result).add(entry);
             }
-            return this.parseTransfers(result, currency, since, limit);
+            return this.parseTransfers(result, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchTransfers
-     * @description fetch a history of internal transfers made on an account
-     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
-     * @param {string} [code] unified currency code
-     * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfer structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
-    {
-        return this.fetchTransfers(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2740,24 +2326,18 @@ public class Extended extends ExtendedApi
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount2, String toAccount2, Map<String, Object> parameters2)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        final String fromAccount3 = fromAccount2;
-        final String toAccount3 = toAccount2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object fromAccount = fromAccount3;
-            String toAccount = toAccount3;
-            Map<String, Object> parameters = parameters3;
-            this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+
+            this.checkRequiredCredentials(true);
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Object account = (this.fetchExtendedAccount()).join();
+            Object account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             String currentAccountId = this.safeString(account, "accountId", "");
-            if (java.util.Objects.equals(fromAccount, null))
-            {
-                fromAccount = currentAccountId;
-            } else if (!java.util.Objects.equals(fromAccount, currentAccountId))
+            Object fromAccountResolved = (((java.util.Objects.equals(fromAccount, null)))) ? currentAccountId : fromAccount;
+            if (!java.util.Objects.equals(fromAccountResolved, currentAccountId))
             {
                 throw new BadRequest((this.id + " transfer() can only transfer from the authenticated account")) ;
             }
@@ -2767,19 +2347,17 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }
-            Object amountString = this.currencyToPrecision((String) (code), amount);
+            Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             Object settlement = this.createTransferSettlementData(((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
-            final Object finalFromAccount = fromAccount;
-            final String finalToAccount = toAccount;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "fromAccount", finalFromAccount );
-                put( "toAccount", finalToAccount );
-                put( "amount", amountString );
-                put( "transferredAsset", ((Map<String, Object>)currency).get("id") );
-                put( "settlement", settlement );
-            }};
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
-            Map<String, Object> response = (this.v1PrivatePostUserTransfer(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "fromAccount", fromAccountResolved,
+                "toAccount", toAccount,
+                "amount", amountString,
+                "transferredAsset", ((Map<String, Object>)currency).get("id"),
+                "settlement", settlement
+            );
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
+            Map<String, Object> response = (this.v1PrivatePostUserTransfer(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "status": "OK",
@@ -2790,46 +2368,26 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Boolean validSignature = (Boolean) this.safeBool(data, "validSignature");
+            Boolean validSignature = (Boolean) this.safeBool(data, "validSignature", (Object) null);
             Long now = this.milliseconds();
             String status = "pending";
             if (!java.util.Objects.equals(validSignature, null))
             {
                 status = ((Boolean.TRUE.equals(validSignature))) ? "ok" : "failed";
             }
-            final String finalStatus = status;
-            return new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", Extended.this.safeString(data, "id") );
-                put( "timestamp", now );
-                put( "datetime", Extended.this.iso8601(now) );
-                put( "currency", ((Map<String, Object>)currency).get("code") );
-                put( "amount", Extended.this.parseNumber(amountString) );
-                put( "fromAccount", finalFromAccount );
-                put( "toAccount", finalToAccount );
-                put( "status", finalStatus );
-            }};
+            return Helpers.newMap(
+                "info", response,
+                "id", this.safeString(data, "id"),
+                "timestamp", now,
+                "datetime", this.iso8601(now),
+                "currency", ((Map<String, Object>)currency).get("code"),
+                "amount", this.parseNumber(amountString),
+                "fromAccount", fromAccountResolved,
+                "toAccount", toAccount,
+                "status", status
+            );
         }).thenApply(TransferEntry::new);
 
-    }
-    /**
-     * @method
-     * @name extended#transfer
-     * @description transfer collateral between sub-accounts associated with the same wallet
-     * @see https://api.docs.extended.exchange/#create-transfer
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to transfer
-     * @param {string} fromAccount source account id, defaults to the authenticated account id
-     * @param {string} toAccount destination account id
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.toVault destination account L2 vault
-     * @param {string} params.toL2Key destination account L2 public key
-     * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
-    {
-        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -2848,7 +2406,7 @@ public class Extended extends ExtendedApi
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
         }
-        Boolean validSignature = (Boolean) this.safeBool(transfer, "validSignature");
+        Boolean validSignature = (Boolean) this.safeBool(transfer, "validSignature", (Object) null);
         String status = null;
         if (!java.util.Objects.equals(validSignature, null))
         {
@@ -2857,24 +2415,17 @@ public class Extended extends ExtendedApi
         {
             status = this.parseTransactionStatus(this.safeString(transfer, "status"));
         }
-        final String finalFromAccount = fromAccount;
-        final String finalToAccount = toAccount;
-        final String finalStatus = status;
-        return new HashMap<String, Object>() {{
-            put( "info", transfer );
-            put( "id", Extended.this.safeString(transfer, "id") );
-            put( "timestamp", timestamp );
-            put( "datetime", Extended.this.iso8601(timestamp) );
-            put( "currency", code );
-            put( "amount", amount );
-            put( "fromAccount", finalFromAccount );
-            put( "toAccount", finalToAccount );
-            put( "status", finalStatus );
-        }};
-    }
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", transfer,
+            "id", this.safeString(transfer, "id"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "currency", code,
+            "amount", amount,
+            "fromAccount", fromAccount,
+            "toAccount", toAccount,
+            "status", status
+        );
     }
 
     public String getExtendedCurrencyCodeById(String assetId, Map<String, Object> currency)
@@ -2884,7 +2435,7 @@ public class Extended extends ExtendedApi
             return this.safeString(currency, "code");
         }
         Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", new HashMap<String, Object>() {{}});
-        Map<String, Object> currencyByNumericId = (Map<String, Object>) this.safeDict(currenciesByNumericId, assetId);
+        Map<String, Object> currencyByNumericId = (Map<String, Object>) this.safeDict(currenciesByNumericId, assetId, (Object) null);
         if (!java.util.Objects.equals(currencyByNumericId, null))
         {
             return this.safeString(currencyByNumericId, "code");
@@ -2893,16 +2444,12 @@ public class Extended extends ExtendedApi
         {
             return (String) ((Map<String, Object>)currency).get("code");
         }
-        String code = this.safeCurrencyCode((String) (assetId));
+        String code = this.safeCurrencyCode((String) (assetId), (Map<String, Object>) null);
         if (java.util.Objects.equals(code, "USD"))
         {
             code = "USDC";
         }
         return code;
-    }
-    public String getExtendedCurrencyCodeById(String assetId, Object... optionalArgs)
-    {
-        return this.getExtendedCurrencyCodeById(assetId, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseTransactionStatus(String status)
@@ -2951,42 +2498,35 @@ public class Extended extends ExtendedApi
         String feeCost = this.safeString(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final String finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "currency", code );
-                put( "cost", Extended.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
-            }};
+            fee = Helpers.newMap(
+                "currency", code,
+                "cost", this.parseNumber(Precise.stringAbs(feeCost))
+            );
         }
         String transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
         String network = this.safeString(transaction, "chain");
-        final String finalTransactionType = transactionType;
-        final Map<String, Object> finalFee = fee;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", Extended.this.safeString(transaction, "id") );
-            put( "txid", Extended.this.safeString(transaction, "transactionHash") );
-            put( "timestamp", timestamp );
-            put( "datetime", Extended.this.iso8601(timestamp) );
-            put( "address", null );
-            put( "addressFrom", null );
-            put( "addressTo", null );
-            put( "tag", null );
-            put( "tagFrom", null );
-            put( "tagTo", null );
-            put( "type", finalTransactionType );
-            put( "amount", amount );
-            put( "currency", code );
-            put( "status", Extended.this.parseTransactionStatus(Extended.this.safeString(transaction, "status")) );
-            put( "updated", timestamp );
-            put( "fee", finalFee );
-            put( "network", network );
-            put( "comment", null );
-            put( "internal", (java.util.Objects.equals(finalTransactionType, "transfer")) );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", transaction,
+            "id", this.safeString(transaction, "id"),
+            "txid", this.safeString(transaction, "transactionHash"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "address", null,
+            "addressFrom", null,
+            "addressTo", null,
+            "tag", null,
+            "tagFrom", null,
+            "tagTo", null,
+            "type", transactionType,
+            "amount", amount,
+            "currency", code,
+            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
+            "updated", timestamp,
+            "fee", fee,
+            "network", network,
+            "comment", null,
+            "internal", (java.util.Objects.equals(transactionType, "transfer"))
+        );
     }
 
     /**
@@ -3004,7 +2544,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -3025,23 +2565,9 @@ public class Extended extends ExtendedApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), market);
+            return this.parseTradingFee((Map<String, Object>) (first), Helpers.toMapArg(market));
         }).thenApply(TradingFeeInterface::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchTradingFee
-     * @description fetch the trading fees for a market
-     * @see https://api.docs.extended.exchange/#get-fees
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.builderId] builder client id
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3059,7 +2585,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> response = (this.v1PrivateGetUserFees(parameters)).join();
             //
             //     {
@@ -3079,7 +2605,7 @@ public class Extended extends ExtendedApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) (fee));
+                Map<String, Object> parsed = this.parseTradingFee((Map<String, Object>) (fee), (Map<String, Object>) null);
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -3089,20 +2615,6 @@ public class Extended extends ExtendedApi
             return result;
         }).thenApply(TradingFees::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchTradingFees
-     * @description fetch the trading fees for multiple markets
-     * @see https://api.docs.extended.exchange/#get-fees
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.market] exchange market id
-     * @param {string} [params.builderId] builder client id
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
-     */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
-    {
-        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
@@ -3116,20 +2628,15 @@ public class Extended extends ExtendedApi
         //     }
         //
         String marketId = this.safeString(fee, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        final Map<String, Object> finalMarket = market;
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "maker", Extended.this.safeNumber(fee, "makerFeeRate") );
-            put( "taker", Extended.this.safeNumber(fee, "takerFeeRate") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "maker", Extended.this.safeNumber(fee, "makerFeeRate", (Object) null) );
+            put( "taker", Extended.this.safeNumber(fee, "takerFeeRate", (Object) null) );
             put( "percentage", true );
             put( "tierBased", null );
         }};
-    }
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
-    {
-        return this.parseTradingFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3146,7 +2653,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -3164,22 +2671,9 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverage((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), market);
+            return this.parseLeverage((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), Helpers.toMapArg(market));
         }).thenApply(Leverage::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchLeverage
-     * @description fetch the set leverage for a market
-     * @see https://api.docs.extended.exchange/#get-leverage
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
-     */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
-    {
-        return this.fetchLeverage(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3192,16 +2686,16 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -3215,23 +2709,9 @@ public class Extended extends ExtendedApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
         });
 
-    }
-    /**
-     * @method
-     * @name extended#setLeverage
-     * @description set the level of leverage for a market
-     * @see https://api.docs.extended.exchange/#update-leverage
-     * @param {int} leverage the rate of leverage
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
-    {
-        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
@@ -3243,20 +2723,15 @@ public class Extended extends ExtendedApi
         //     }
         //
         String marketId = this.safeString(leverage, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        Double leverageValue = this.safeNumber(leverage, "leverage");
-        final Map<String, Object> finalMarket = market;
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Double leverageValue = this.safeNumber(leverage, "leverage", (Object) null);
         return new HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
             put( "marginMode", null );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
         }};
-    }
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
-    {
-        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3268,12 +2743,12 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -3312,22 +2787,9 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, symbols);
+            return this.parsePositions(data, symbols, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchPositions
-     * @description fetch all open positions
-     * @see https://api.docs.extended.exchange/#get-positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3344,23 +2806,10 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return this.safeDict(positions, 0);
+            List<Position> positions = (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            return this.safeDict(positions, 0, (Object) null);
         }).thenApply(Position::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchPosition
-     * @description fetch data on an open position
-     * @see https://api.docs.extended.exchange/#get-positions
-     * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3375,33 +2824,33 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols2, Long since, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Object symbolsList = symbols;
             if ((symbols instanceof String))
             {
-                symbols = new ArrayList<Object>(Arrays.asList(symbols));
+                symbolsList = new ArrayList<Object>(Arrays.asList(symbols));
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositionsHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositionsHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
+                return (this.fetchPaginatedCallCursor("fetchPositionsHistory", symbolsList, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(10000))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbols, null))
+            if (!java.util.Objects.equals(symbolsList, null))
             {
-                List<String> marketIds = this.marketIds(symbols);
+                List<String> marketIds = this.marketIds(symbolsList);
                 request.put("market", marketIds);
             }
-            Map<String, Object> response = (this.v1PrivateGetUserPositionsHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserPositionsHistory(this.extend(request, paramsPaginate))).join();
             //
             //     {
             //         "status": "OK",
@@ -3438,33 +2887,16 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
                 ((List<Object>)result).add(entry);
             }
-            Object positions = this.parsePositions(result, symbols);
-            return this.filterBySinceLimit(positions, since, limit, "timestamp");
+            Object positions = this.parsePositions(result, Helpers.toStringListArg(symbolsList), new HashMap<String, Object>() {{}});
+            return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchPositionsHistory
-     * @description fetch historical positions
-     * @see https://api.docs.extended.exchange/#get-positions-history
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param {int} [since] the earliest time in ms to fetch positions for
-     * @param {int} [limit] the maximum number of position structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
-    {
-        return this.fetchPositionsHistory(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
     public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
@@ -3499,48 +2931,42 @@ public class Extended extends ExtendedApi
         //     }
         //
         String marketId = this.safeString(position, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(position, "createdAt", "createdTime");
         Long lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedAt", "updatedTime");
         lastUpdateTimestamp = (Long) this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         String side = this.safeStringLower(position, "side");
         String margin = this.safeString(position, "margin");
-        final Map<String, Object> finalMarket = market;
-        final Long finalLastUpdateTimestamp = lastUpdateTimestamp;
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", Extended.this.safeString(position, "id") );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "timestamp", timestamp );
-            put( "datetime", Extended.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", finalLastUpdateTimestamp );
-            put( "initialMargin", margin );
-            put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", Extended.this.safeString(position, "openPrice") );
-            put( "notional", Extended.this.safeString(position, "value") );
-            put( "leverage", Extended.this.safeString(position, "leverage") );
-            put( "unrealizedPnl", Extended.this.safeString(position, "unrealisedPnl") );
-            put( "realizedPnl", Extended.this.safeString(position, "realisedPnl") );
-            put( "contracts", Extended.this.safeString(position, "size") );
-            put( "contractSize", Extended.this.safeString(finalMarket, "contractSize") );
-            put( "marginRatio", null );
-            put( "liquidationPrice", Extended.this.safeString(position, "liquidationPrice") );
-            put( "markPrice", Extended.this.safeString(position, "markPrice") );
-            put( "lastPrice", Extended.this.safeString(position, "exitPrice") );
-            put( "collateral", margin );
-            put( "marginMode", null );
-            put( "side", side );
-            put( "percentage", null );
-            put( "hedged", null );
-            put( "stopLossPrice", Extended.this.safeString(position, "slTriggerPrice") );
-            put( "takeProfitPrice", Extended.this.safeString(position, "tpTriggerPrice") );
-        }});
-    }
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePosition(Helpers.newMap(
+            "info", position,
+            "id", this.safeString(position, "id"),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastUpdateTimestamp", lastUpdateTimestamp,
+            "initialMargin", margin,
+            "initialMarginPercentage", null,
+            "maintenanceMargin", null,
+            "maintenanceMarginPercentage", null,
+            "entryPrice", this.safeString(position, "openPrice"),
+            "notional", this.safeString(position, "value"),
+            "leverage", this.safeString(position, "leverage"),
+            "unrealizedPnl", this.safeString(position, "unrealisedPnl"),
+            "realizedPnl", this.safeString(position, "realisedPnl"),
+            "contracts", this.safeString(position, "size"),
+            "contractSize", this.safeString(marketResolved, "contractSize"),
+            "marginRatio", null,
+            "liquidationPrice", this.safeString(position, "liquidationPrice"),
+            "markPrice", this.safeString(position, "markPrice"),
+            "lastPrice", this.safeString(position, "exitPrice"),
+            "collateral", margin,
+            "marginMode", null,
+            "side", side,
+            "percentage", null,
+            "hedged", null,
+            "stopLossPrice", this.safeString(position, "slTriggerPrice"),
+            "takeProfitPrice", this.safeString(position, "tpTriggerPrice")
+        ));
     }
 
     public Object getExtendedStarkAmount(Object amount, Object resolution, Object roundUp)
@@ -3548,15 +2974,11 @@ public class Extended extends ExtendedApi
         String resolutionString = this.numberToString(resolution);
         String precise = Precise.stringMul(amount, resolutionString);
         Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
-        if (Helpers.isTrue(roundUp) && Precise.stringGt(precise, result))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(roundUp, false)) && Precise.stringGt(precise, result))
         {
             result = ((String)Precise.stringAdd(result, "1"));
         }
         return result;
-    }
-    public Object getExtendedStarkAmount(Object amount, Object resolution, Object... optionalArgs)
-    {
-        return this.getExtendedStarkAmount(amount, resolution, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
 
     public CompletableFuture<Object> fetchExtendedAccount(Object parameters)
@@ -3564,21 +2986,17 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object account = this.safeDict(this.options, "account");
+            Object account = this.safeDict(this.options, "account", (Object) null);
             if (!java.util.Objects.equals(account, null))
             {
                 return account;
             }
-            Object accountData = (this.fetchAccount(parameters)).join();
+            Object accountData = (this.fetchAccount(Helpers.toMapArg(parameters))).join();
             account = ((Map<String, Object>)accountData).get("info");
             Helpers.addElementToObject(this.options, "account", account);
             return account;
         });
 
-    }
-    public CompletableFuture<Object> fetchExtendedAccount(Object... optionalArgs)
-    {
-        return this.fetchExtendedAccount(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public Object createOrderSettlementData(Object isBuy, Object amountString, Object priceString, Map<String, Object> parameters)
@@ -3605,20 +3023,18 @@ public class Extended extends ExtendedApi
             baseAmount = ((String)Precise.stringNeg(baseAmount));
         }
         Object feeAmount = this.getExtendedStarkAmount(((String)Precise.stringMul(totalFee, quoteAmount)), collateralResolution, true);
-        final Object finalBaseAmount = baseAmount;
-        final Object finalCollateralAmount = collateralAmount;
-        Map<String, Object> settlement = new HashMap<String, Object>() {{
-            put( "starkKey", starkKey );
-            put( "collateralPosition", collateralPosition );
-            put( "baseAssetId", syntheticId );
-            put( "baseAmount", finalBaseAmount );
-            put( "quoteAssetId", collateralId );
-            put( "quoteAmount", finalCollateralAmount );
-            put( "feeAssetId", collateralId );
-            put( "feeAmount", feeAmount );
-            put( "expiration", Extended.this.numberToString(settlementExpiration) );
-            put( "salt", nonce );
-        }};
+        Map<String, Object> settlement = Helpers.newMap(
+            "starkKey", starkKey,
+            "collateralPosition", collateralPosition,
+            "baseAssetId", syntheticId,
+            "baseAmount", baseAmount,
+            "quoteAssetId", collateralId,
+            "quoteAmount", collateralAmount,
+            "feeAssetId", collateralId,
+            "feeAmount", feeAmount,
+            "expiration", this.numberToString(settlementExpiration),
+            "salt", nonce
+        );
         Object msgHash = this.getExtendedOrderMsgHash((Map<String, Object>) (settlement));
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         Object r = this.getExtendedSignatureHex(Helpers.GetValue(sig, 0));
@@ -3626,10 +3042,6 @@ public class Extended extends ExtendedApi
         settlement.put("r", r);
         settlement.put("s", s);
         return settlement;
-    }
-    public Object createOrderSettlementData(Object isBuy, Object amountString, Object priceString, Object... optionalArgs)
-    {
-        return this.createOrderSettlementData(isBuy, amountString, priceString, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object createWithdrawalSettlementData(Object address, Object amountString, Map<String, Object> currency, Map<String, Object> account, Map<String, Object> parameters)
@@ -3647,19 +3059,17 @@ public class Extended extends ExtendedApi
         {
             throw new BadRequest((this.id + " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
-        Object amount = this.getExtendedStarkAmount(amountString, resolution);
-        final String finalPositionId = positionId;
-        final String finalCollateralId = collateralId;
-        Map<String, Object> settlement = new HashMap<String, Object>() {{
-            put( "recipient", recipient );
-            put( "positionId", finalPositionId );
-            put( "collateralId", finalCollateralId );
-            put( "amount", amount );
-            put( "expiration", new HashMap<String, Object>() {{
+        Object amount = this.getExtendedStarkAmount(amountString, resolution, false);
+        Map<String, Object> settlement = Helpers.newMap(
+            "recipient", recipient,
+            "positionId", positionId,
+            "collateralId", collateralId,
+            "amount", amount,
+            "expiration", new HashMap<String, Object>() {{
                 put( "seconds", settlementExpiration );
-            }} );
-            put( "salt", nonce );
-        }};
+            }},
+            "salt", nonce
+        );
         Object msgHash = this.getExtendedWithdrawalMsgHash((Map<String, Object>) (settlement), starkKey);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
@@ -3667,10 +3077,6 @@ public class Extended extends ExtendedApi
     put( "s", Extended.this.getExtendedSignatureHex(Helpers.GetValue(sig, 1)) );
 }});
         return settlement;
-    }
-    public Object createWithdrawalSettlementData(Object address, Object amountString, Map<String, Object> currency, Map<String, Object> account, Object... optionalArgs)
-    {
-        return this.createWithdrawalSettlementData(address, amountString, currency, account, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object createTransferSettlementData(Object amountString, Map<String, Object> currency, Map<String, Object> account, Object toVault, Object toL2Key, Map<String, Object> parameters)
@@ -3687,20 +3093,17 @@ public class Extended extends ExtendedApi
         {
             throw new BadRequest((this.id + " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
-        Object transferAmount = this.getExtendedStarkAmount(amountString, resolution);
-        final String finalCollateralId = collateralId;
-        final String finalFromVault = fromVault;
-        final String finalFromL2Key = fromL2Key;
-        Map<String, Object> settlement = new HashMap<String, Object>() {{
-            put( "amount", transferAmount );
-            put( "assetId", finalCollateralId );
-            put( "expirationTimestamp", settlementExpiration );
-            put( "nonce", nonce );
-            put( "receiverPositionId", toVault );
-            put( "receiverPublicKey", toL2Key );
-            put( "senderPositionId", finalFromVault );
-            put( "senderPublicKey", finalFromL2Key );
-        }};
+        Object transferAmount = this.getExtendedStarkAmount(amountString, resolution, false);
+        Map<String, Object> settlement = Helpers.newMap(
+            "amount", transferAmount,
+            "assetId", collateralId,
+            "expirationTimestamp", settlementExpiration,
+            "nonce", nonce,
+            "receiverPositionId", toVault,
+            "receiverPublicKey", toL2Key,
+            "senderPositionId", fromVault,
+            "senderPublicKey", fromL2Key
+        );
         Object msgHash = this.getExtendedTransferMsgHash((Map<String, Object>) (settlement));
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
@@ -3709,22 +3112,12 @@ public class Extended extends ExtendedApi
 }});
         return settlement;
     }
-    public Object createTransferSettlementData(Object amountString, Map<String, Object> currency, Map<String, Object> account, Object toVault, Object toL2Key, Object... optionalArgs)
-    {
-        return this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
-    public CompletableFuture<Map<String, Object>> createExtendedOrderRequest(String symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Map<String, Object>> createExtendedOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String type3 = type2;
-        final String side3 = side2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String type = type3;
-            String side = side3;
-            Object price = price3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " requires a type argument")) ;
@@ -3733,7 +3126,7 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " requires a side argument")) ;
             }
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             String uppercaseSide = ((String)((String)side)).toUpperCase();
@@ -3761,19 +3154,21 @@ public class Extended extends ExtendedApi
             String fee = this.safeString(parameters, "fee", "0.0005");
             String builderFeeRate = null;
             String builderId = null;
+            Object paramsBuilder = null;
             if (this.isSandboxModeEnabled)
             {
                 builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
                 builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");
-                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
+                paramsBuilder = this.omit(parameters, new ArrayList<Object>(Arrays.asList("builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId")));
             } else
             {
-                List<Object> builderFeeRateparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
-                builderFeeRate = (String) ((List<Object>) builderFeeRateparametersVariable).get(0);
-                parameters = (Map<String, Object>) ((List<Object>) builderFeeRateparametersVariable).get(1);
-                List<Object> builderIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderId");
-                builderId = (String) ((List<Object>) builderIdparametersVariable).get(0);
-                parameters = (Map<String, Object>) ((List<Object>) builderIdparametersVariable).get(1);
+                Object paramsBuilderFeeRate = null;
+                List<Object> builderFeeRateparamsBuilderFeeRateVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "builderFeeRate", "0.0001");
+                builderFeeRate = (String) ((List<Object>) builderFeeRateparamsBuilderFeeRateVariable).get(0);
+                paramsBuilderFeeRate = ((List<Object>) builderFeeRateparamsBuilderFeeRateVariable).get(1);
+                List<Object> builderIdparamsBuilderVariable = (List<Object>) this.handleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId", (String) null);
+                builderId = (String) ((List<Object>) builderIdparamsBuilderVariable).get(0);
+                paramsBuilder = ((List<Object>) builderIdparamsBuilderVariable).get(1);
             }
             String totalFee = fee;
             if (!java.util.Objects.equals(builderFeeRate, null))
@@ -3781,10 +3176,10 @@ public class Extended extends ExtendedApi
                 totalFee = ((String)Precise.stringAdd(fee, builderFeeRate));
             }
             Long now = this.milliseconds();
-            Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", (now + 3600000L));
-            Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide(((expiryEpochMillis + 999L)), 1000)), 1209600));
+            Long expiryEpochMillis = this.safeInteger(paramsBuilder, "expiryEpochMillis", (now + 3600000L));
+            Long settlementExpiration = this.safeInteger(paramsBuilder, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide(((expiryEpochMillis + 999L)), 1000)), 1209600));
             String nonce = this.numberToString(this.nonce());
-            Object account = (this.fetchExtendedAccount()).join();
+            Object account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             String starkKey = this.safeString(account, "l2Key");
             String collateralPosition = this.safeString(account, "l2Vault");
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
@@ -3797,43 +3192,34 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " createOrder() requires l2Config in market info")) ;
             }
-            final String finalTotalFee = totalFee;
-            final String finalSyntheticId = syntheticId;
-            final Long finalSyntheticResolution = syntheticResolution;
-            final String finalCollateralId = collateralId;
-            final Long finalCollateralResolution = collateralResolution;
-            Map<String, Object> settlementParams = new HashMap<String, Object>() {{
-                put( "totalFee", finalTotalFee );
-                put( "starkKey", starkKey );
-                put( "syntheticId", finalSyntheticId );
-                put( "syntheticResolution", finalSyntheticResolution );
-                put( "collateralId", finalCollateralId );
-                put( "collateralResolution", finalCollateralResolution );
-                put( "settlementExpiration", settlementExpiration );
-                put( "nonce", nonce );
-                put( "collateralPosition", collateralPosition );
-            }};
+            Map<String, Object> settlementParams = Helpers.newMap(
+                "totalFee", totalFee,
+                "starkKey", starkKey,
+                "syntheticId", syntheticId,
+                "syntheticResolution", syntheticResolution,
+                "collateralId", collateralId,
+                "collateralResolution", collateralResolution,
+                "settlementExpiration", settlementExpiration,
+                "nonce", nonce,
+                "collateralPosition", collateralPosition
+            );
             Boolean isBuy = (java.util.Objects.equals(uppercaseSide, "BUY"));
-            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id", this.uuid());
-            final String finalUppercaseType = uppercaseType;
-            final String finalUppercaseSide = uppercaseSide;
-            final String finalTimeInForce = timeInForce;
-            final Long finalExpiryEpochMillis = expiryEpochMillis;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", clientOrderId );
-                put( "market", ((Map<String, Object>)market).get("id") );
-                put( "type", finalUppercaseType );
-                put( "side", finalUppercaseSide );
-                put( "qty", amountString );
-                put( "price", priceString );
-                put( "timeInForce", finalTimeInForce );
-                put( "expiryEpochMillis", finalExpiryEpochMillis );
-                put( "fee", fee );
-                put( "nonce", nonce );
-                put( "postOnly", postOnly );
-                put( "reduceOnly", reduceOnly );
-                put( "selfTradeProtectionLevel", "ACCOUNT" );
-            }};
+            String clientOrderId = this.safeString2(paramsBuilder, "clientOrderId", "client_id", this.uuid());
+            Map<String, Object> request = Helpers.newMap(
+                "id", clientOrderId,
+                "market", ((Map<String, Object>)market).get("id"),
+                "type", uppercaseType,
+                "side", uppercaseSide,
+                "qty", amountString,
+                "price", priceString,
+                "timeInForce", timeInForce,
+                "expiryEpochMillis", expiryEpochMillis,
+                "fee", fee,
+                "nonce", nonce,
+                "postOnly", postOnly,
+                "reduceOnly", reduceOnly,
+                "selfTradeProtectionLevel", "ACCOUNT"
+            );
             if (!java.util.Objects.equals(builderFeeRate, null))
             {
                 request.put("builderFee", builderFeeRate);
@@ -3842,12 +3228,12 @@ public class Extended extends ExtendedApi
             {
                 request.put("builderId", builderId);
             }
-            String cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
+            String cancelId = this.safeString2(paramsBuilder, "cancelId", "previousOrderId");
             if (!java.util.Objects.equals(cancelId, null))
             {
                 request.put("cancelId", cancelId);
             }
-            Object settlement = this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
+            Object settlement = this.createOrderSettlementData(isBuy, amountString, priceString, Helpers.toMapArg(settlementParams));
             request.put("settlement", new HashMap<String, Object>() {{
         put( "signature", new HashMap<String, Object>() {{
             put( "r", ((Map<String, Object>)settlement).get("r") );
@@ -3856,13 +3242,13 @@ public class Extended extends ExtendedApi
         put( "starkKey", starkKey );
         put( "collateralPosition", collateralPosition );
     }});
-            String triggerPriceStr = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
-            String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
+            String triggerPriceStr = this.safeString2(paramsBuilder, "triggerPrice", "stopPrice");
+            String stopLossTriggerPrice = this.safeString(paramsBuilder, "stopLossPrice");
+            String takeProfitTriggerPrice = this.safeString(paramsBuilder, "takeProfitPrice");
             Boolean isStopLossOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
-            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
-            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsBuilder, "stopLoss", (Object) null);
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsBuilder, "takeProfit", (Object) null);
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
@@ -3874,7 +3260,7 @@ public class Extended extends ExtendedApi
                     String stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                     String stopLossExecutionPrice = this.safeString(stopLoss, "price");
                     String stopLossType = this.safeString(stopLoss, "type");
-                    Object stopLossSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, stopLossExecutionPrice, settlementParams);
+                    Object stopLossSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, stopLossExecutionPrice, Helpers.toMapArg(settlementParams));
                     Map<String, Object> requestStopLoss = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, stopLossTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, stopLossExecutionPrice) );
@@ -3903,7 +3289,7 @@ public class Extended extends ExtendedApi
                     String takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                     String takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                     String takeProfitType = this.safeString(takeProfit, "type");
-                    Object takeProfitSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, takeProfitExecutionPrice, settlementParams);
+                    Object takeProfitSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, takeProfitExecutionPrice, Helpers.toMapArg(settlementParams));
                     Map<String, Object> requestTakeProfit = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, takeProfitTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
@@ -3930,15 +3316,14 @@ public class Extended extends ExtendedApi
             {
                 if (!java.util.Objects.equals(triggerPriceStr, null))
                 {
-                    String triggerDirection = this.safeStringUpper(parameters, "triggerDirection");
+                    String triggerDirection = this.safeStringUpper(paramsBuilder, "triggerDirection");
                     if (java.util.Objects.equals(triggerDirection, null))
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires triggerDirection for trigger order")) ;
                     }
-                    final String finalTriggerPriceStr = triggerPriceStr;
-                    Map<String, Object> trigger = new HashMap<String, Object>() {{
-                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr) );
-                    }};
+                    Map<String, Object> trigger = Helpers.newMap(
+                        "triggerPrice", this.priceToPrecision(symbol, triggerPriceStr)
+                    );
                     trigger.put("direction", triggerDirection);
                     request.put("type", "CONDITIONAL");
                     request.put("trigger", trigger);
@@ -3951,10 +3336,9 @@ public class Extended extends ExtendedApi
                     {
                         triggerPriceStr = takeProfitTriggerPrice;
                     }
-                    final String finalTriggerPriceStr_2 = triggerPriceStr;
-                    Map<String, Object> trigger = new HashMap<String, Object>() {{
-                        put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr_2) );
-                    }};
+                    Map<String, Object> trigger = Helpers.newMap(
+                        "triggerPrice", this.priceToPrecision(symbol, triggerPriceStr)
+                    );
                     if (Boolean.TRUE.equals(isBuy))
                     {
                         trigger.put("direction", ((Boolean.TRUE.equals(isStopLossOrder))) ? "UP" : "DOWN");
@@ -3966,23 +3350,17 @@ public class Extended extends ExtendedApi
                     request.put("trigger", trigger);
                 }
             }
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
-            final Map<String, Object> finalParameters = parameters;
-            final Long finalNow = now;
-            return new HashMap<String, Object>() {{
-                put( "request", Extended.this.extend(request, finalParameters) );
-                put( "market", market );
-                put( "timestamp", finalNow );
-                put( "clientOrderId", clientOrderId );
-                put( "price", priceString );
-                put( "amount", amountString );
-            }};
+            Object paramsOmitted = this.omit(paramsBuilder, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
+            return Helpers.newMap(
+                "request", this.extend(request, paramsOmitted),
+                "market", market,
+                "timestamp", now,
+                "clientOrderId", clientOrderId,
+                "price", priceString,
+                "amount", amountString
+            );
         }).thenApply(res -> (Map<String, Object>) res);
 
-    }
-    public CompletableFuture<Map<String, Object>> createExtendedOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createExtendedOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4021,7 +3399,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v1PrivatePostUserOrder(request)).join();
@@ -4037,46 +3415,11 @@ public class Extended extends ExtendedApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object market = ((Map<String, Object>)extendedOrderRequest).get("market");
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
-            data.put("timestamp", now);
+            Helpers.addElementToObject(data, "timestamp", now);
             data.put("status", "NEW");
-            return this.parseOrder(this.extend(request, data), market);
+            return this.parseOrder(this.extend(request, data), Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name extended#createOrder
-     * @description create a trade order
-     * @see https://api.docs.extended.exchange/#create-or-edit-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'limit' or 'market'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] client order id, sent as the exchange order id
-     * @param {string} [params.cancelId] previous external order id to replace
-     * @param {string} [params.timeInForce] 'GTT' or 'IOC'
-     * @param {boolean} [params.postOnly] true if the order should only make liquidity
-     * @param {boolean} [params.reduceOnly] true if the order should only reduce a position
-     * @param {string} [params.fee] max fee rate for the order, default is 0.0005
-     * @param {int} [params.expiryEpochMillis] order expiration timestamp in milliseconds, default is now + 1 hour
-     * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-     * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
-     * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
-     * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-     * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
-     * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
-     * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4093,39 +3436,34 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id2, String symbol, String type, String side, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String id3 = id2;
-        final Object amount3 = amount2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String id = id3;
-            Object amount = amount3;
-            Object price = price3;
-            Object parameters = parameters3;
+
             if (java.util.Objects.equals(id, null))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an id argument")) ;
             }
+            Object amountValue = amount;
+            Object priceValue = price;
             Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
-            Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", (Object) null);
+            Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
             String cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
-            if ((java.util.Objects.equals(amount, null)) || (java.util.Objects.equals(price, null)) || (java.util.Objects.equals(expiryEpochMillis, null)) || (java.util.Objects.equals(postOnly, null)) || (java.util.Objects.equals(reduceOnly, null)) || (java.util.Objects.equals(cancelId, null)))
+            if ((java.util.Objects.equals(amountValue, null)) || (java.util.Objects.equals(priceValue, null)) || (java.util.Objects.equals(expiryEpochMillis, null)) || (java.util.Objects.equals(postOnly, null)) || (java.util.Objects.equals(reduceOnly, null)) || (java.util.Objects.equals(cancelId, null)))
             {
-                final String finalId = id;
-                Map<String, Object> response = (this.v1PrivateGetUserOrdersId(new HashMap<String, Object>() {{
-                    put( "id", finalId );
-                }})).join();
+                Map<String, Object> response = (this.v1PrivateGetUserOrdersId(Helpers.newMap(
+                    "id", id
+                ))).join();
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(amount, null))
+                if (java.util.Objects.equals(amountValue, null))
                 {
-                    amount = this.safeNumber(order, "qty");
+                    amountValue = this.safeNumber(order, "qty", (Object) null);
                 }
-                if (java.util.Objects.equals(price, null))
+                if (java.util.Objects.equals(priceValue, null))
                 {
-                    price = this.safeNumber(order, "price");
+                    priceValue = this.safeNumber(order, "price", (Object) null);
                 }
                 if (java.util.Objects.equals(expiryEpochMillis, null))
                 {
@@ -4144,27 +3482,23 @@ public class Extended extends ExtendedApi
                     cancelId = this.safeString(order, "externalId");
                 }
             }
-            if (java.util.Objects.equals(amount, null))
+            if (java.util.Objects.equals(amountValue, null))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument or an existing order with qty")) ;
             }
-            if (java.util.Objects.equals(price, null))
+            if (java.util.Objects.equals(priceValue, null))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a price argument or an existing order with price")) ;
             }
-            final Boolean finalPostOnly = postOnly;
-            final Boolean finalReduceOnly = reduceOnly;
-            parameters = this.extend(new HashMap<String, Object>() {{
-                put( "postOnly", finalPostOnly );
-                put( "reduceOnly", finalReduceOnly );
-            }}, parameters);
-            final String finalCancelId = cancelId;
-            final Long finalExpiryEpochMillis = expiryEpochMillis;
-            Map<String, Object> requestParams = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "cancelId", finalCancelId );
-                put( "expiryEpochMillis", finalExpiryEpochMillis );
-            }});
-            Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, requestParams)).join();
+            Map<String, Object> paramsExtended = this.extend(Helpers.newMap(
+                "postOnly", postOnly,
+                "reduceOnly", reduceOnly
+            ), parameters);
+            Map<String, Object> requestParams = this.extend(paramsExtended, Helpers.newMap(
+                "cancelId", cancelId,
+                "expiryEpochMillis", expiryEpochMillis
+            ));
+            Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amountValue, priceValue, Helpers.toMapArg(requestParams))).join();
             Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> editResponse = (this.v1PrivatePostUserOrder(request)).join();
             //
@@ -4179,29 +3513,11 @@ public class Extended extends ExtendedApi
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(editResponse, "data", new HashMap<String, Object>() {{}});
             Object market = ((Map<String, Object>)extendedOrderRequest).get("market");
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
-            responseData.put("timestamp", now);
+            Helpers.addElementToObject(responseData, "timestamp", now);
             responseData.put("status", "NEW");
-            return this.parseOrder(this.extend(request, responseData), market);
+            return this.parseOrder(this.extend(request, responseData), Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name extended#editOrder
-     * @description edit a trade order
-     * @see https://api.docs.extended.exchange/#create-or-edit-order
-     * @param {string} id order id assigned by Extended
-     * @param {string} symbol unified symbol of the market to edit an order in
-     * @param {string} type 'limit' or 'market'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} [amount] how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
-    {
-        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4216,16 +3532,12 @@ public class Extended extends ExtendedApi
      * @param {string} [params.clientOrderId] user-defined order id, cancels by external id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id2, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final Object id3 = id2;
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object id = id3;
-            Object symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -4233,25 +3545,23 @@ public class Extended extends ExtendedApi
             }
             Map<String, Object> response = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                final String finalClientOrderId = clientOrderId;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "externalId", finalClientOrderId );
-                }};
-                response = (this.v1PrivateDeleteUserOrder(this.extend(request, parameters))).join();
+                Map<String, Object> request = Helpers.newMap(
+                    "externalId", clientOrderId
+                );
+                response = (this.v1PrivateDeleteUserOrder(this.extend(request, paramsOmitted))).join();
             } else
             {
                 if (java.util.Objects.equals(id, null))
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires an id argument")) ;
                 }
-                final Object finalId = id;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "id", finalId );
-                }};
-                response = (this.v1PrivateDeleteUserOrderId(this.extend(request, parameters))).join();
+                Map<String, Object> request = Helpers.newMap(
+                    "id", id
+                );
+                response = (this.v1PrivateDeleteUserOrderId(this.extend(request, paramsOmitted))).join();
             }
             //
             //     {
@@ -4260,35 +3570,17 @@ public class Extended extends ExtendedApi
             //
             Object orderId = (((java.util.Objects.equals(clientOrderId, null)))) ? id : null;
             Object orderSymbol = (((java.util.Objects.equals(market, null)))) ? symbol : ((Map<String, Object>)market).get("symbol");
-            final Map<String, Object> finalResponse = response;
-            final String finalClientOrderId_2 = clientOrderId;
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "info", finalResponse );
-                put( "id", orderId );
-                put( "clientOrderId", finalClientOrderId_2 );
-                put( "timestamp", null );
-                put( "datetime", null );
-                put( "symbol", orderSymbol );
-                put( "status", "canceled" );
-            }}, market);
+            return this.safeOrder(Helpers.newMap(
+                "info", response,
+                "id", orderId,
+                "clientOrderId", clientOrderId,
+                "timestamp", null,
+                "datetime", null,
+                "symbol", orderSymbol,
+                "status", "canceled"
+            ), Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name extended#cancelOrder
-     * @description cancels an open order
-     * @see https://api.docs.extended.exchange/#cancel-order-by-id
-     * @see https://api.docs.extended.exchange/#cancel-order-by-external-id
-     * @param {string} id order id assigned by Extended
-     * @param {string} [symbol] unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] user-defined order id, cancels by external id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4303,17 +3595,15 @@ public class Extended extends ExtendedApi
      * @param {string} [params.clientOrderId] single client order id
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids2, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
-        final Object ids3 = ids2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object ids = ids3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
-            List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "externalOrderIds", "external_order_ids")));
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "externalOrderIds", "external_order_ids")), (Object) null);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean hasOrderIds = !java.util.Objects.equals(ids, null);
             if (Boolean.TRUE.equals(hasOrderIds))
@@ -4341,7 +3631,7 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
             }
-            (this.v1PrivatePostUserOrderMassCancel(this.extend(request, parameters))).join();
+            (this.v1PrivatePostUserOrderMassCancel(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "status": "OK",
@@ -4351,22 +3641,6 @@ public class Extended extends ExtendedApi
             return new ArrayList<Object>(Arrays.asList());
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#cancelOrders
-     * @description cancel multiple orders by order ids or client order ids
-     * @see https://api.docs.extended.exchange/#mass-cancel
-     * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol, only used to populate the returned orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.clientOrderIds] client order ids
-     * @param {string} [params.clientOrderId] single client order id
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4378,12 +3652,12 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cancelAll", true );
             }};
@@ -4404,19 +3678,6 @@ public class Extended extends ExtendedApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name extended#cancelAllOrders
-     * @description cancels all open orders, optionally filtered by symbol
-     * @see https://api.docs.extended.exchange/#mass-cancel
-     * @param {string} [symbol] unified market symbol of the market to cancel orders in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4432,7 +3693,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.loadMarkets()).join();
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "countdownTime", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) Extended.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
@@ -4446,19 +3707,6 @@ public class Extended extends ExtendedApi
         });
 
     }
-    /**
-     * @method
-     * @name extended#cancelAllOrdersAfter
-     * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://api.docs.extended.exchange/#mass-auto-cancel-dead-man-39-s-switch
-     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} the api result
-     */
-    public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
-    {
-        return this.cancelAllOrdersAfter(timeout, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4472,16 +3720,12 @@ public class Extended extends ExtendedApi
      * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id2, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final Object id3 = id2;
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object id = id3;
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -4490,14 +3734,13 @@ public class Extended extends ExtendedApi
             Map<String, Object> response = null;
             Map<String, Object> order = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                final String finalClientOrderId = clientOrderId;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "externalId", finalClientOrderId );
-                }};
-                response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, parameters))).join();
+                Map<String, Object> request = Helpers.newMap(
+                    "externalId", clientOrderId
+                );
+                response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted))).join();
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 order = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
@@ -4506,32 +3749,15 @@ public class Extended extends ExtendedApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOrder() requires an id argument")) ;
                 }
-                final Object finalId = id;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "id", finalId );
-                }};
-                response = (this.v1PrivateGetUserOrdersId(this.extend(request, parameters))).join();
+                Map<String, Object> request = Helpers.newMap(
+                    "id", id
+                );
+                response = (this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted))).join();
                 order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
-            return this.parseOrder(order, market);
+            return this.parseOrder(order, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name extended#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://api.docs.extended.exchange/#get-order-by-id
-     * @see https://api.docs.extended.exchange/#get-orders-by-external-id
-     * @param {string} id order id assigned by Extended
-     * @param {string} [symbol] unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4545,12 +3771,12 @@ public class Extended extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -4587,25 +3813,10 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> orders = this.parseOrders(data, market, since, limit);
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+            List<Object> orders = this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://api.docs.extended.exchange/#get-open-orders
-     * @param {string} [symbol] unified market symbol of the orders
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of open order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4620,23 +3831,20 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.loadMarkets()).join();
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -4649,7 +3857,7 @@ public class Extended extends ExtendedApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.v1PrivateGetUserOrdersHistory(this.extend(parameters, request))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserOrdersHistory(this.extend(paramsPaginate, request))).join();
             //
             //     {
             //       "status": "OK",
@@ -4691,33 +3899,16 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    final String finalCursor = cursor;
-                    entry = this.extend(entry, new HashMap<String, Object>() {{
-                        put( "cursor", finalCursor );
-                    }});
+                    entry = this.extend(entry, Helpers.newMap(
+                        "cursor", cursor
+                    ));
                 }
                 ((List<Object>)result).add(entry);
             }
-            List<Object> orders = this.parseOrders(result, market, since, limit);
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+            List<Object> orders = this.parseOrders(result, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://api.docs.extended.exchange/#get-orders-history
-     * @param {string} [symbol] unified market symbol of the orders
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4737,27 +3928,11 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
+            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, parameters)).join();
             List<Object> closedOrders = this.filterBy(orders, "status", "closed");
-            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
+            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://api.docs.extended.exchange/#get-orders-history
-     * @param {string} [symbol] unified market symbol of the orders
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4777,27 +3952,11 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(null), (Object)(parameters))).join();
+            List<Order> orders = (this.fetchOrders(symbol, since, (Long) null, parameters)).join();
             List<Object> canceledOrders = this.filterBy(orders, "status", "canceled");
-            return this.filterBySymbolSinceLimit(canceledOrders, symbol, since, limit);
+            return this.filterBySymbolSinceLimit(canceledOrders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name extended#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
-     * @see https://api.docs.extended.exchange/#get-orders-history
-     * @param {string} [symbol] unified market symbol of the orders
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
-    {
-        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -4858,7 +4017,7 @@ public class Extended extends ExtendedApi
         //     }
         //
         String marketId = this.safeString(order, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(order, "createdTime", "timestamp");
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
@@ -4870,42 +4029,37 @@ public class Extended extends ExtendedApi
         Map<String, Object> trigger = (Map<String, Object>) this.safeDict(order, "trigger", new HashMap<String, Object>() {{}});
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(order, "takeProfit", new HashMap<String, Object>() {{}});
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(order, "stopLoss", new HashMap<String, Object>() {{}});
-        final Map<String, Object> finalMarket = market;
-        Map<String, Object> fee = new HashMap<String, Object>() {{
-            put( "cost", feeCost );
-            put( "currency", (((java.util.Objects.equals(finalMarket, null)))) ? null : ((Map<String, Object>)finalMarket).get("settle") );
-        }};
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", Extended.this.safeString(order, "id") );
-            put( "clientOrderId", Extended.this.safeString(order, "externalId") );
-            put( "timestamp", timestamp );
-            put( "datetime", Extended.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", type );
-            put( "timeInForce", Extended.this.safeString(order, "timeInForce") );
-            put( "postOnly", Extended.this.safeBool(order, "postOnly") );
-            put( "reduceOnly", Extended.this.safeBool(order, "reduceOnly") );
-            put( "side", side );
-            put( "price", Extended.this.safeString(order, "price") );
-            put( "triggerPrice", Extended.this.safeString(trigger, "triggerPrice") );
-            put( "takeProfitPrice", Extended.this.safeString(takeProfit, "triggerPrice") );
-            put( "stopLossPrice", Extended.this.safeString(stopLoss, "triggerPrice") );
-            put( "amount", amount );
-            put( "cost", null );
-            put( "average", Extended.this.safeString(order, "averagePrice") );
-            put( "filled", filled );
-            put( "remaining", null );
-            put( "status", status );
-            put( "fee", fee );
-            put( "trades", null );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        Map<String, Object> fee = Helpers.newMap(
+            "cost", feeCost,
+            "currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : ((Map<String, Object>)marketResolved).get("settle")
+        );
+        return this.safeOrder(Helpers.newMap(
+            "info", order,
+            "id", this.safeString(order, "id"),
+            "clientOrderId", this.safeString(order, "externalId"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", null,
+            "lastUpdateTimestamp", lastUpdateTimestamp,
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", type,
+            "timeInForce", this.safeString(order, "timeInForce"),
+            "postOnly", this.safeBool(order, "postOnly", (Object) null),
+            "reduceOnly", this.safeBool(order, "reduceOnly", (Object) null),
+            "side", side,
+            "price", this.safeString(order, "price"),
+            "triggerPrice", this.safeString(trigger, "triggerPrice"),
+            "takeProfitPrice", this.safeString(takeProfit, "triggerPrice"),
+            "stopLossPrice", this.safeString(stopLoss, "triggerPrice"),
+            "amount", amount,
+            "cost", null,
+            "average", this.safeString(order, "averagePrice"),
+            "filled", filled,
+            "remaining", null,
+            "status", status,
+            "fee", fee,
+            "trades", null
+        ), Helpers.toMapArg(marketResolved));
     }
 
     public Object getExtendedStringToFelt(Object value)
@@ -5032,7 +4186,7 @@ public class Extended extends ExtendedApi
         String status = this.safeStringLower(response, "status");
         if (java.util.Objects.equals(status, "error"))
         {
-            Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error");
+            Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
@@ -5044,8 +4198,10 @@ public class Extended extends ExtendedApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String version = this.safeString(api, 0);
-        String accessibility = this.safeString(api, 1);
+        Object requestHeaders = headers;
+        Object requestBody = body;
+        String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
+        String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean queryPost = (java.util.Objects.equals(path, "user/deadmanswitch"));
@@ -5057,33 +4213,25 @@ public class Extended extends ExtendedApi
             {
                 throw new AuthenticationError((this.id + " sign() requires an apiKey for private endpoints")) ;
             }
-            headers = new HashMap<String, Object>() {{
+            requestHeaders = new HashMap<String, Object>() {{
                 put( "X-Api-Key", Extended.this.apiKey );
             }};
-            if (((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PATCH"))) && !Boolean.TRUE.equals(queryPost))
+            if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PATCH"))) && !Boolean.TRUE.equals(queryPost))
             {
-                body = (String) (this.json(query));
-                ((Map<String, Object>)headers).put("Content-Type", "application/json");
+                requestBody = this.json(query);
+                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
             }
         }
         url = (((url + "/api/") + version) + endpoint);
-        if ((java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }
-        final String finalUrl = url;
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", requestBody,
+            "headers", requestHeaders
+        );
     }
 }

@@ -23,7 +23,7 @@ public class TestFetchCurrencies extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchCurrencies";
-        Object currencies = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchCurrencies", new Object[]{})).join();
+        Object currencies = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchCurrencies", new Object[]{new HashMap<String, Object>() {{}}})).join();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         Object numInactiveCurrencies = 0;
         Object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
@@ -49,15 +49,15 @@ public class TestFetchCurrencies extends BaseTest {
                 Object currency = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
                 TestCurrency.testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
-                Object active = exchange.safeBool(currency, "active");
+                Object active = exchange.safeBool(currency, "active", (Object) null);
                 if (java.util.Objects.equals(active, false))
                 {
                     numInactiveCurrencies = Helpers.add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
                 String code = exchange.safeString(currency, "code");
-                Object withdraw = exchange.safeBool(currency, "withdraw");
-                Object deposit = exchange.safeBool(currency, "deposit");
+                Object withdraw = exchange.safeBool(currency, "withdraw", (Object) null);
+                Object deposit = exchange.safeBool(currency, "deposit", (Object) null);
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
                 Boolean skipUsdtForMica = (java.util.Objects.equals(isMicaCompliant, true)) && (java.util.Objects.equals(code, "USDT"));
                 if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Boolean.TRUE.equals(skipMajorCurrencyCheck) && (!java.util.Objects.equals(skipUsdtForMica, true)))

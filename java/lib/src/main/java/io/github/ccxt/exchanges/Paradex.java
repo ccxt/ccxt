@@ -758,18 +758,6 @@ public class Paradex extends ParadexApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
-    /**
-     * @method
-     * @name paradex#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the exchange server
-     */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
-    {
-        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -791,28 +779,15 @@ public class Paradex extends ParadexApi
             //     }
             //
             String status = this.safeString(response, "status");
-            final String finalStatus = status;
-            return new HashMap<String, Object>() {{
-                put( "status", (((java.util.Objects.equals(finalStatus, "ok")))) ? "ok" : "maintenance" );
-                put( "updated", null );
-                put( "eta", null );
-                put( "url", null );
-                put( "info", response );
-            }};
+            return Helpers.newMap(
+                "status", (((java.util.Objects.equals(status, "ok")))) ? "ok" : "maintenance",
+                "updated", null,
+                "eta", null,
+                "url", null,
+                "info", response
+            );
         }).thenApply(Status::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchStatus
-     * @description the latest known information on the availability of the exchange API
-     * @see https://docs.paradex.trade/api/prod/system/get-state
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
-     */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
-    {
-        return this.fetchStatus(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -862,22 +837,10 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results");
+            List<Object> data = (List<Object>) this.safeList(response, "results", (Object) null);
             return this.parseMarkets(data);
         });
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchMarkets
-     * @description retrieves data on all markets for paradex
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarket(Object market)
@@ -971,10 +934,10 @@ public class Paradex extends ParadexApi
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
         String baseId = this.safeString(market, "base_currency");
-        String quote = this.safeCurrencyCode(quoteId);
-        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String settleId = this.safeString(market, "settlement_currency");
-        String settle = this.safeCurrencyCode(settleId);
+        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
@@ -992,62 +955,57 @@ public class Paradex extends ParadexApi
             expiry = null;
         }
         String expireDatetime = ((((expiry != null && expiry == 0)))) ? null : this.iso8601(expiry);
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalType = type;
-        final Double finalMakerFee = makerFee;
-        final Long finalExpiry = expiry;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", marketId );
-            put( "symbol", finalSymbol );
-            put( "base", finalBase );
-            put( "quote", quote );
-            put( "settle", settle );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settleId", settleId );
-            put( "type", finalType );
-            put( "spot", false );
-            put( "margin", null );
-            put( "swap", isSwap );
-            put( "future", false );
-            put( "option", isOption );
-            put( "active", Paradex.this.safeBool(market, "enableTrading") );
-            put( "contract", true );
-            put( "linear", true );
-            put( "inverse", false );
-            put( "taker", takerFee );
-            put( "maker", finalMakerFee );
-            put( "contractSize", Paradex.this.parseNumber("1") );
-            put( "expiry", finalExpiry );
-            put( "expiryDatetime", expireDatetime );
-            put( "strike", Paradex.this.parseNumber(strikePrice) );
-            put( "optionType", Paradex.this.safeStringLower(market, "option_type") );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "amount", Paradex.this.safeNumber(market, "order_size_increment") );
-                put( "price", Paradex.this.safeNumber(market, "price_tick_size") );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", marketId,
+            "symbol", symbol,
+            "base", base,
+            "quote", quote,
+            "settle", settle,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", settleId,
+            "type", type,
+            "spot", false,
+            "margin", null,
+            "swap", isSwap,
+            "future", false,
+            "option", isOption,
+            "active", this.safeBool(market, "enableTrading", (Object) null),
+            "contract", true,
+            "linear", true,
+            "inverse", false,
+            "taker", takerFee,
+            "maker", makerFee,
+            "contractSize", this.parseNumber("1"),
+            "expiry", expiry,
+            "expiryDatetime", expireDatetime,
+            "strike", this.parseNumber(strikePrice),
+            "optionType", this.safeStringLower(market, "option_type"),
+            "precision", new HashMap<String, Object>() {{
+                put( "amount", Paradex.this.safeNumber(market, "order_size_increment", (Object) null) );
+                put( "price", Paradex.this.safeNumber(market, "price_tick_size", (Object) null) );
+            }},
+            "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", Paradex.this.safeNumber(market, "max_order_size") );
+                    put( "max", Paradex.this.safeNumber(market, "max_order_size", (Object) null) );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Paradex.this.safeNumber(market, "min_notional") );
+                    put( "min", Paradex.this.safeNumber(market, "min_notional", (Object) null) );
                     put( "max", null );
                 }} );
-            }} );
-            put( "created", null );
-            put( "info", market );
-        }});
+            }},
+            "created", null,
+            "info", market
+        ));
     }
 
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
@@ -1072,24 +1030,19 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(fee, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> feeConfig = (Map<String, Object>) this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
         Map<String, Object> apiFee = (Map<String, Object>) this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
         Map<String, Object> makerFee = (Map<String, Object>) this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
         Map<String, Object> takerFee = (Map<String, Object>) this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}});
-        final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "maker", Paradex.this.safeNumber(makerFee, "fee", Paradex.this.safeNumber(finalMarket, "maker")) );
-            put( "taker", Paradex.this.safeNumber(takerFee, "fee", Paradex.this.safeNumber(finalMarket, "taker")) );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "maker", Paradex.this.safeNumber(makerFee, "fee", Paradex.this.safeNumber(marketResolved, "maker", (Object) null)) );
+            put( "taker", Paradex.this.safeNumber(takerFee, "fee", Paradex.this.safeNumber(marketResolved, "taker", (Object) null)) );
             put( "percentage", true );
             put( "tierBased", false );
         }};
-    }
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
-    {
-        return this.parseTradingFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1101,18 +1054,18 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTradingFee() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1140,22 +1093,9 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), market);
+            return this.parseTradingFee((Map<String, Object>) (first), Helpers.toMapArg(market));
         }).thenApply(TradingFeeInterface::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchTradingFee
-     * @description fetch the trading fees for a market
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1173,7 +1113,7 @@ public class Paradex extends ParadexApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.publicGetMarkets(parameters)).join();
             //
@@ -1199,25 +1139,13 @@ public class Paradex extends ParadexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
+                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 result.put((String)((String)symbol), fee);
             }
             return result;
         }).thenApply(TradingFees::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchTradingFees
-     * @description fetch the trading fees for multiple markets
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
-     */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
-    {
-        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1234,33 +1162,29 @@ public class Paradex extends ParadexApi
      * @param {string} [params.price] "last", "mark", "index", default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "resolution", Paradex.this.safeString(Paradex.this.timeframes, timeframe, timeframe) );
+                put( "resolution", Paradex.this.safeString(Paradex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Long now = this.milliseconds();
-            int duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long until = (Long) this.safeInteger2(parameters, "until", "till", now);
             String price = this.safeString(parameters, "price");
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("price_kind", price);
             }
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "price")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "price")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_at", since);
@@ -1282,7 +1206,7 @@ public class Paradex extends ParadexApi
                     request.put("start_at", ((until - ((((long) duration) * 101L) * 1000L)) + 1L));
                 }
             }
-            Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "results": [
@@ -1298,27 +1222,9 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, timeframe, since, limit);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.paradex.trade/api/prod/markets/klines
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1333,11 +1239,7 @@ public class Paradex extends ParadexApi
         //         1591
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
     }
 
     /**
@@ -1349,16 +1251,16 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
@@ -1385,22 +1287,9 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, symbols);
+            return this.parseTickers(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1419,7 +1308,7 @@ public class Paradex extends ParadexApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1449,22 +1338,9 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(ticker, market);
+            return this.parseTicker(ticker, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1493,37 +1369,32 @@ public class Paradex extends ParadexApi
         }
         String last = this.safeString(ticker, "last_traded_price");
         String marketId = this.safeString(ticker, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(ticker, "created_at");
-        final String finalPercentage = percentage;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "high", null );
-            put( "low", null );
-            put( "bid", Paradex.this.safeString(ticker, "bid") );
-            put( "bidVolume", null );
-            put( "ask", Paradex.this.safeString(ticker, "ask") );
-            put( "askVolume", null );
-            put( "vwap", null );
-            put( "open", null );
-            put( "close", last );
-            put( "last", last );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", finalPercentage );
-            put( "average", null );
-            put( "baseVolume", null );
-            put( "quoteVolume", Paradex.this.safeString(ticker, "volume_24h") );
-            put( "markPrice", Paradex.this.safeString(ticker, "mark_price") );
-            put( "info", ticker );
-        }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTicker(Helpers.newMap(
+            "symbol", symbol,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "high", null,
+            "low", null,
+            "bid", this.safeString(ticker, "bid"),
+            "bidVolume", null,
+            "ask", this.safeString(ticker, "ask"),
+            "askVolume", null,
+            "vwap", null,
+            "open", null,
+            "close", last,
+            "last", last,
+            "previousClose", null,
+            "change", null,
+            "percentage", percentage,
+            "average", null,
+            "baseVolume", null,
+            "quoteVolume", this.safeString(ticker, "volume_24h"),
+            "markPrice", this.safeString(ticker, "mark_price"),
+            "info", ticker
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1535,50 +1406,36 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             // the endpoint takes one market id, and ALL answers for every product on
             // the venue: a single symbol is asked for by name, which is 544 bytes
             // against 1.6 MB
             Object target = "ALL";
-            if (!java.util.Objects.equals(symbols, null))
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    target = ((String)((Map<String, Object>)this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)))).get("id"));
+                    target = ((String)((Map<String, Object>)this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)))).get("id"));
                 }
             }
-            final Object finalTarget = target;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", finalTarget );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "market", target
+            );
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRates(data, symbols);
+            return this.parseFundingRates(data, Helpers.toStringListArg(symbolsNormalized));
         }).thenApply(FundingRates::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchFundingRates
-     * @description fetches the current funding rate for multiple markets
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string[]} [symbols] unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
-    {
-        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1597,11 +1454,11 @@ public class Paradex extends ParadexApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            FundingRates rates = (this.fetchFundingRates((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
-            Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, ((Map<String, Object>)market).get("symbol"));
+            FundingRates rates = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), parameters)).join();
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, ((Map<String, Object>)market).get("symbol"), (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
                 throw new BadSymbol(((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
@@ -1609,19 +1466,6 @@ public class Paradex extends ParadexApi
             return rate;
         }).thenApply(FundingRate::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchFundingRate
-     * @description fetches the current funding rate
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
-    {
-        return this.fetchFundingRate(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -1644,49 +1488,43 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(contract, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "swap"));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "swap");
         Long timestamp = this.safeInteger(contract, "created_at");
         // the summary answers for every product, and only a perpetual funds: an
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         String rate = this.safeString(contract, "funding_rate");
-        Boolean funds = (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (!java.util.Objects.equals(rate, null)) && (!java.util.Objects.equals(rate, ""));
+        Boolean funds = (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("swap"), true)) && (!java.util.Objects.equals(rate, null)) && (!java.util.Objects.equals(rate, ""));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
-        String hours = this.safeString(this.safeDict(market, "info", new HashMap<String, Object>() {{}}), "funding_period_hours");
+        String hours = this.safeString(this.safeDict(marketResolved, "info", new HashMap<String, Object>() {{}}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
         String interval = null;
         if ((!java.util.Objects.equals(hours, null)) && Precise.stringGt(hours, "0"))
         {
             interval = (hours + "h");
         }
-        final Map<String, Object> finalMarket = market;
-        final String finalInterval = interval;
-        return new HashMap<String, Object>() {{
-            put( "info", contract );
-            put( "symbol", ((Boolean.TRUE.equals(funds))) ? ((Map<String, Object>)finalMarket).get("symbol") : null );
-            put( "markPrice", Paradex.this.safeNumber(contract, "mark_price") );
-            put( "indexPrice", Paradex.this.safeNumber(contract, "underlying_price") );
-            put( "interestRate", null );
-            put( "estimatedSettlePrice", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "fundingRate", Paradex.this.safeNumber(contract, "funding_rate") );
-            put( "fundingTimestamp", null );
-            put( "fundingDatetime", null );
-            put( "nextFundingRate", null );
-            put( "nextFundingTimestamp", null );
-            put( "nextFundingDatetime", null );
-            put( "previousFundingRate", null );
-            put( "previousFundingTimestamp", null );
-            put( "previousFundingDatetime", null );
-            put( "interval", finalInterval );
-        }};
-    }
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", contract,
+            "symbol", ((Boolean.TRUE.equals(funds))) ? ((Map<String, Object>)marketResolved).get("symbol") : null,
+            "markPrice", this.safeNumber(contract, "mark_price", (Object) null),
+            "indexPrice", this.safeNumber(contract, "underlying_price", (Object) null),
+            "interestRate", null,
+            "estimatedSettlePrice", null,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "fundingRate", this.safeNumber(contract, "funding_rate", (Object) null),
+            "fundingTimestamp", null,
+            "fundingDatetime", null,
+            "nextFundingRate", null,
+            "nextFundingTimestamp", null,
+            "nextFundingDatetime", null,
+            "previousFundingRate", null,
+            "previousFundingTimestamp", null,
+            "previousFundingDatetime", null,
+            "interval", interval
+        );
     }
 
     /**
@@ -1699,14 +1537,14 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1737,25 +1575,11 @@ public class Paradex extends ParadexApi
                 request.put("depth", limit);
             }
             Long timestamp = this.safeInteger(response, "last_updated_at");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(response, "seq_no"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1771,26 +1595,23 @@ public class Paradex extends ParadexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1804,10 +1625,10 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.publicGetTrades(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
             //         "next": "...",
@@ -1830,26 +1651,9 @@ public class Paradex extends ParadexApi
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
             }
-            return this.parseTrades(trades, market, since, limit);
+            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.paradex.trade/api/prod/trades/trades
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1886,7 +1690,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(trade, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String id = this.safeString(trade, "id");
         Long timestamp = this.safeInteger(trade, "created_at");
         String priceString = this.safeString(trade, "price");
@@ -1900,32 +1704,26 @@ public class Paradex extends ParadexApi
             takerOrMaker = "taker";
         }
         String currencyId = this.safeString(trade, "fee_currency");
-        String code = this.safeCurrencyCode(currencyId);
-        final Map<String, Object> finalMarket = market;
-        final String finalTakerOrMaker = takerOrMaker;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", id );
-            put( "order", Paradex.this.safeString(trade, "order_id") );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", null );
-            put( "takerOrMaker", finalTakerOrMaker );
-            put( "side", side );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", null );
-            put( "fee", new HashMap<String, Object>() {{
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        return this.safeTrade(Helpers.newMap(
+            "info", trade,
+            "id", id,
+            "order", this.safeString(trade, "order_id"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", null,
+            "takerOrMaker", takerOrMaker,
+            "side", side,
+            "price", priceString,
+            "amount", amountString,
+            "cost", null,
+            "fee", new HashMap<String, Object>() {{
                 put( "cost", Paradex.this.safeString(trade, "fee") );
                 put( "currency", code );
                 put( "rate", null );
-            }} );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+            }}
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1944,7 +1742,7 @@ public class Paradex extends ParadexApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
@@ -1978,22 +1776,9 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> interest = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(interest, market);
+            return this.parseOpenInterest(interest, Helpers.toMapArg(market));
         }).thenApply(OpenInterest::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchOpenInterest
-     * @description retrieves the open interest of a contract trading pair
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string} symbol unified CCXT market symbol
-     * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
-     */
-    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
-    {
-        return this.fetchOpenInterest(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
@@ -2017,8 +1802,8 @@ public class Paradex extends ParadexApi
         //
         Long timestamp = this.safeInteger(interest, "created_at");
         String marketId = this.safeString(interest, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", Paradex.this.safeString(interest, "open_interest") );
@@ -2026,11 +1811,7 @@ public class Paradex extends ParadexApi
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
             put( "info", interest );
-        }}, market);
-    }
-    public Object parseOpenInterest(Object interest, Object... optionalArgs)
-    {
-        return this.parseOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, Helpers.toMapArg(marketResolved));
     }
 
     public Object hashMessage(Object message)
@@ -2057,7 +1838,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedConfig = (Map<String, Object>) this.safeDict(this.options, "systemConfig");
+            Map<String, Object> cachedConfig = (Map<String, Object>) this.safeDict(this.options, "systemConfig", (Object) null);
             if (!java.util.Objects.equals(cachedConfig, null))
             {
                 return cachedConfig;
@@ -2097,13 +1878,13 @@ public class Paradex extends ParadexApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Object l12)
+    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Object l1)
     {
-        final Object l13 = l12;
+
         return BaseExchange.supplyAsync(() -> {
-            Object l1 = l13;
+
             Object systemConfig = (this.getSystemConfig()).join();
-            if (java.util.Objects.equals(l1, true))
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(l1, false), true))
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
                     put( "name", "Paradex" );
@@ -2121,22 +1902,18 @@ public class Paradex extends ParadexApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
-    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Object... optionalArgs)
-    {
-        return this.prepareParadexDomain(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
-    }
 
     public CompletableFuture<Object> retrieveAccount()
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "paradexAccount");
+            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "paradexAccount", (Object) null);
             if (!java.util.Objects.equals(cachedAccount, null))
             {
                 return cachedAccount;
             }
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             Object systemConfig = (this.getSystemConfig()).join();
             Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
@@ -2166,7 +1943,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "action", "Onboarding" );
             }};
-            Map<String, Object> domain = (this.prepareParadexDomain()).join();
+            Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "action" );
@@ -2176,16 +1953,12 @@ public class Paradex extends ParadexApi
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, Helpers.GetValue(account, "address"));
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
             ((Map<String, Object>)parameters).put("signature", signature);
-            ((Map<String, Object>)parameters).put("account", Helpers.GetValue(account, "address"));
-            ((Map<String, Object>)parameters).put("public_key", Helpers.GetValue(account, "publicKey"));
+            Helpers.addElementToObject(parameters, "account", Helpers.GetValue(account, "address"));
+            Helpers.addElementToObject(parameters, "public_key", Helpers.GetValue(account, "publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
         });
 
-    }
-    public CompletableFuture<Object> onboarding(Object... optionalArgs)
-    {
-        return this.onboarding(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> authenticateRest(Map<String, Object> parameters)
@@ -2210,15 +1983,14 @@ public class Paradex extends ParadexApi
             Object account = (this.retrieveAccount()).join();
             // https://docs.paradex.trade/api-reference/general-information/authentication
             Object expires = (now + 180L);
-            final Long finalNow = now;
-            Map<String, Object> req = new HashMap<String, Object>() {{
-                put( "method", "POST" );
-                put( "path", "/v1/auth" );
-                put( "body", "" );
-                put( "timestamp", finalNow );
-                put( "expiration", expires );
-            }};
-            Map<String, Object> domain = (this.prepareParadexDomain()).join();
+            Map<String, Object> req = Helpers.newMap(
+                "method", "POST",
+                "path", "/v1/auth",
+                "body", "",
+                "timestamp", now,
+                "expiration", expires
+            );
+            Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Request", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "method" );
@@ -2240,7 +2012,7 @@ public class Paradex extends ParadexApi
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, Helpers.GetValue(account, "address"));
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
             ((Map<String, Object>)parameters).put("signature", signature);
-            ((Map<String, Object>)parameters).put("account", Helpers.GetValue(account, "address"));
+            Helpers.addElementToObject(parameters, "account", Helpers.GetValue(account, "address"));
             ((Map<String, Object>)parameters).put("timestamp", req.get("timestamp"));
             ((Map<String, Object>)parameters).put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
@@ -2255,10 +2027,6 @@ public class Paradex extends ParadexApi
             return token;
         });
 
-    }
-    public CompletableFuture<Object> authenticateRest(Object... optionalArgs)
-    {
-        return this.authenticateRest(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOrder(Object order, Map<String, Object> market)
@@ -2295,8 +2063,8 @@ public class Paradex extends ParadexApi
         String orderId = this.safeString(order, "id");
         String clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         String marketId = this.safeString(order, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
@@ -2317,48 +2085,42 @@ public class Paradex extends ParadexApi
         String remaining = this.omitZero(this.safeString(order, "remaining_size"));
         String triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        List<Object> flags = (List<Object>) this.safeList(order, "flags");
+        List<Object> flags = (List<Object>) this.safeList(order, "flags", (Object) null);
         Object reduceOnly = null;
         if (!java.util.Objects.equals(flags, null))
         {
             reduceOnly = this.inArray("REDUCE_ONLY", flags);
         }
-        final String finalStatus = status;
-        final Object finalReduceOnly = reduceOnly;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "id", orderId );
-            put( "clientOrderId", clientOrderId );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", Paradex.this.parseOrderStatus((String) (finalStatus)) );
-            put( "symbol", symbol );
-            put( "type", Paradex.this.parseOrderType(orderType) );
-            put( "timeInForce", Paradex.this.parseTimeInForce(Paradex.this.safeString(order, "instruction")) );
-            put( "postOnly", null );
-            put( "reduceOnly", finalReduceOnly );
-            put( "side", side );
-            put( "price", price );
-            put( "triggerPrice", triggerPrice );
-            put( "takeProfitPrice", null );
-            put( "stopLossPrice", null );
-            put( "average", average );
-            put( "amount", amount );
-            put( "filled", null );
-            put( "remaining", remaining );
-            put( "cost", null );
-            put( "trades", null );
-            put( "fee", new HashMap<String, Object>() {{
+        return this.safeOrder(Helpers.newMap(
+            "id", orderId,
+            "clientOrderId", clientOrderId,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", null,
+            "lastUpdateTimestamp", lastUpdateTimestamp,
+            "status", this.parseOrderStatus(status),
+            "symbol", symbol,
+            "type", this.parseOrderType(orderType),
+            "timeInForce", this.parseTimeInForce(this.safeString(order, "instruction")),
+            "postOnly", null,
+            "reduceOnly", reduceOnly,
+            "side", side,
+            "price", price,
+            "triggerPrice", triggerPrice,
+            "takeProfitPrice", null,
+            "stopLossPrice", null,
+            "average", average,
+            "amount", amount,
+            "filled", null,
+            "remaining", remaining,
+            "cost", null,
+            "trades", null,
+            "fee", new HashMap<String, Object>() {{
                 put( "cost", null );
                 put( "currency", null );
-            }} );
-            put( "info", order );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+            }},
+            "info", order
+        ), Helpers.toMapArg(marketResolved));
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2413,16 +2175,15 @@ public class Paradex extends ParadexApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String orderType = ((String)type).toUpperCase();
         String orderSide = ((String)((String)side)).toUpperCase();
-        final String finalOrderType = orderType;
-        Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "market", ((Map<String, Object>)market).get("id") );
-            put( "side", orderSide );
-            put( "type", finalOrderType );
-            put( "instruction", "GTC" );
-        }};
+        Map<String, Object> request = Helpers.newMap(
+            "market", ((Map<String, Object>)market).get("id"),
+            "side", orderSide,
+            "type", orderType,
+            "instruction", "GTC"
+        );
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2506,12 +2267,8 @@ public class Paradex extends ParadexApi
         {
             request.put("flags", new ArrayList<Object>(Arrays.asList("REDUCE_ONLY")));
         }
-        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"))));
-        return (Map<String, Object>) (this.extend(request, parameters));
-    }
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
     public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Object modify)
@@ -2527,15 +2284,14 @@ public class Paradex extends ParadexApi
                 throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
             Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
-            final Long finalNow = now;
-            Map<String, Object> orderReq = new HashMap<String, Object>() {{
-                put( "timestamp", Helpers.multiply(finalNow, 1000) );
-                put( "market", Paradex.this.stringToBase16(((Map<String, Object>)request).get("market")) );
-                put( "side", (((java.util.Objects.equals(((Map<String, Object>)request).get("side"), "BUY")))) ? "1" : "2" );
-                put( "orderType", Paradex.this.stringToBase16(((Map<String, Object>)request).get("type")) );
-                put( "size", Paradex.this.scaleNumber(((Map<String, Object>)request).get("size")) );
-                put( "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : Paradex.this.scaleNumber(((Map<String, Object>)request).get("price")) );
-            }};
+            Map<String, Object> orderReq = Helpers.newMap(
+                "timestamp", (now * 1000L),
+                "market", this.stringToBase16(((Map<String, Object>)request).get("market")),
+                "side", (((java.util.Objects.equals(((Map<String, Object>)request).get("side"), "BUY")))) ? "1" : "2",
+                "orderType", this.stringToBase16(((Map<String, Object>)request).get("type")),
+                "size", this.scaleNumber(((Map<String, Object>)request).get("size")),
+                "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(((Map<String, Object>)request).get("price"))
+            );
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );
@@ -2556,7 +2312,7 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }}));
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(modify))
+            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(modify, false)))
             {
                 orderReq.put("id", ((Map<String, Object>)request).get("id"));
                 ((List<Object>)orderFields).add(new HashMap<String, Object>() {{
@@ -2572,18 +2328,14 @@ public class Paradex extends ParadexApi
                     put( "Order", orderFields );
                 }};
             }
-            Map<String, Object> domain = (this.prepareParadexDomain()).join();
+            Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, Helpers.GetValue(account, "address"));
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
             request.put("signature", signature);
-            request.put("signature_timestamp", ((Map<String, Object>)orderReq).get("timestamp"));
+            Helpers.addElementToObject(request, "signature_timestamp", ((Map<String, Object>)orderReq).get("timestamp"));
             return request;
         }).thenApply(res -> (Map<String, Object>) res);
 
-    }
-    public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Object... optionalArgs)
-    {
-        return this.signOrderRequest(request, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false);
     }
 
     /**
@@ -2612,14 +2364,14 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request = (this.signOrderRequest((Map<String, Object>) (request))).join();
+            request = (this.signOrderRequest((Map<String, Object>) (request), false)).join();
             Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
             // {
@@ -2649,35 +2401,10 @@ public class Paradex extends ParadexApi
             //     "type": "MARKET"
             // }
             //
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, Helpers.toMapArg(market));
             return order;
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#createOrder
-     * @description create a trade order
-     * @see https://docs.paradex.trade/api/prod/orders/new
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] alias for triggerPrice
-     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
-     * @param {bool} [params.postOnly] true or false
-     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2696,13 +2423,11 @@ public class Paradex extends ParadexApi
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount2, Object price2, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object amount3 = amount2;
-        final Object price3 = price2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object amount = amount3;
-            Object price = price3;
+
             if (java.util.Objects.equals(amount, null))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument")) ;
@@ -2711,10 +2436,10 @@ public class Paradex extends ParadexApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a price argument")) ;
             }
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
@@ -2757,29 +2482,9 @@ public class Paradex extends ParadexApi
             //         "type": "MARKET"
             //     }
             //
-            return this.parseOrder(response, market);
+            return this.parseOrder(response, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#editOrder
-     * @description edit an open limit order or TPSL order
-     * @see https://docs.paradex.trade/api/prod/orders/modify
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market to edit an order in
-     * @param {string} type 'limit' or a TPSL order type
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of the currency you want to trade in units of the base currency
-     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] alias for triggerPrice
-     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
-    {
-        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2796,24 +2501,24 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Double amount = this.safeNumber(rawOrder, "amount");
-                Double price = this.safeNumber(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
-                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
-                orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest))).join();
+                Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, Helpers.toMapArg(extendedParams));
+                orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest), false)).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
@@ -2839,7 +2544,7 @@ public class Paradex extends ParadexApi
             // }
             //
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(responseOrders);
+            List<Object> parsedOrders = this.parseOrders(responseOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
@@ -2847,24 +2552,11 @@ public class Paradex extends ParadexApi
                 ((List<Object>)parsedOrders).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
-                }}));
+                }}, (Map<String, Object>) null));
             }
             return parsedOrders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#createOrders
-     * @description create a list of trade orders
-     * @see https://docs.paradex.trade/api/prod/orders/batch
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
-    {
-        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2884,10 +2576,10 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
@@ -2904,25 +2596,9 @@ public class Paradex extends ParadexApi
             //
             // if success, no response...
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#cancelOrder
-     * @description cancels an open order
-     * @see https://docs.paradex.trade/api/prod/orders/cancel
-     * @see https://docs.paradex.trade/api/prod/orders/cancel-by-client-id
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2936,20 +2612,18 @@ public class Paradex extends ParadexApi
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids2, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
-        final Object ids3 = ids2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object ids = ids3;
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && (ids instanceof List);
             Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && (clientOrderIds instanceof List);
             if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
@@ -2965,7 +2639,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("client_order_ids", clientOrderIds);
             }
-            Map<String, Object> response = (this.privateDeleteOrdersBatch(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateDeleteOrdersBatch(this.extend(request, paramsOmitted))).join();
             //
             // {
             //     "results": [
@@ -2996,7 +2670,7 @@ public class Paradex extends ParadexApi
             {
                 Object result = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String marketId = this.safeString(result, "market");
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
+                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String status = this.safeString(result, "status");
                 String orderStatus = null;
                 if (java.util.Objects.equals(status, "QUEUED_FOR_CANCELLATION"))
@@ -3009,33 +2683,17 @@ public class Paradex extends ParadexApi
                 {
                     orderStatus = "rejected";
                 }
-    final String finalOrderStatus = orderStatus;
-                            ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
-                    put( "info", result );
-                    put( "id", Paradex.this.safeString(result, "id") );
-                    put( "clientOrderId", Paradex.this.safeString(result, "client_id") );
-                    put( "status", finalOrderStatus );
-                    put( "symbol", ((Map<String, Object>)market).get("symbol") );
-                }}, market));
+                ((List<Object>)orders).add(this.safeOrder(Helpers.newMap(
+                    "info", result,
+                    "id", this.safeString(result, "id"),
+                    "clientOrderId", this.safeString(result, "client_id"),
+                    "status", orderStatus,
+                    "symbol", ((Map<String, Object>)market).get("symbol")
+                ), Helpers.toMapArg(market)));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#cancelOrders
-     * @description cancel multiple orders
-     * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
-     * @param {string[]} ids order ids
-     * @param {string} [symbol] unified market symbol, not used by cancelOrders()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.clientOrderIds] client order ids
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3047,19 +2705,19 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3071,22 +2729,9 @@ public class Paradex extends ParadexApi
             //
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }})));
+    }}, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#cancelAllOrders
-     * @description cancel all open orders in a market
-     * @see https://docs.paradex.trade/api/prod/orders/cancel-all
-     * @param {string} symbol unified market symbol of the market to cancel orders in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
-    {
-        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3101,28 +2746,28 @@ public class Paradex extends ParadexApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("client_id", clientOrderId);
-                response = (this.privateGetOrdersByClientIdClientId(this.extend(request, parameters))).join();
+                response = (this.privateGetOrdersByClientIdClientId(this.extend(request, paramsOmitted))).join();
             } else
             {
                 request.put("order_id", id);
-                response = (this.privateGetOrdersOrderId(this.extend(request, parameters))).join();
+                response = (this.privateGetOrdersOrderId(this.extend(request, paramsOmitted))).join();
             }
             //
             //     {
@@ -3150,25 +2795,9 @@ public class Paradex extends ParadexApi
             //         "trigger_price": "0"
             //     }
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://docs.paradex.trade/api/prod/orders/get
-     * @see https://docs.paradex.trade/api/prod/orders/get-by-client-id
-     * @param {string} id the order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3185,29 +2814,24 @@ public class Paradex extends ParadexApi
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next", "cursor", null, 50)).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(50))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3224,10 +2848,10 @@ public class Paradex extends ParadexApi
             {
                 request.put("page_size", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             // {
             //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3271,27 +2895,9 @@ public class Paradex extends ParadexApi
                 Helpers.addElementToObject(first, "next", paginationCursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
-            return this.parseOrders(orders, market, since, limit);
+            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.paradex.trade/api/prod/orders/get-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.side] 'buy' or 'sell'
-     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @param {int} params.until timestamp in ms of the latest order to fetch
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
-    {
-        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3305,15 +2911,15 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3356,24 +2962,9 @@ public class Paradex extends ParadexApi
             //   }
             //
             List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, limit);
+            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchOpenOrders
-     * @description fetches information on multiple orders made by the user
-     * @see https://docs.paradex.trade/api/prod/orders/get-open-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3389,10 +2980,10 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetBalance()).join();
             //
@@ -3411,18 +3002,6 @@ public class Paradex extends ParadexApi
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name paradex#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.paradex.trade/api/prod/account/get-balance
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseBalance(Object response)
     {
@@ -3433,7 +3012,7 @@ public class Paradex extends ParadexApi
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("total", this.safeString(balance, "size"));
             if (!java.util.Objects.equals(code, null))
@@ -3457,29 +3036,24 @@ public class Paradex extends ParadexApi
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3496,10 +3070,10 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetFills(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
             //         "next": null,
@@ -3528,26 +3102,9 @@ public class Paradex extends ParadexApi
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
             }
-            return this.parseTrades(trades, market, since, limit);
+            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.paradex.trade/api/prod/account/list-fills
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3564,29 +3121,16 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Position> positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), (Object)(parameters))).join();
+            List<Position> positions = (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol")))), parameters)).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
         }).thenApply(Position::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchPosition
-     * @description fetch data on an open position
-     * @see https://docs.paradex.trade/api/prod/account/get-positions
-     * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3598,17 +3142,17 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.privateGetPositions()).join();
             //
             //     {
@@ -3636,22 +3180,9 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, symbols);
+            return this.parsePositions(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchPositions
-     * @description fetch all open positions
-     * @see https://docs.paradex.trade/api/prod/account/get-positions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3678,8 +3209,8 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(position, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         if (!java.util.Objects.equals(side, "long"))
@@ -3688,37 +3219,31 @@ public class Paradex extends ParadexApi
         }
         Long timestamp = this.safeInteger(position, "time");
         Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
-        final String finalSide = side;
-        final String finalQuantity = quantity;
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", Paradex.this.safeString(position, "id") );
-            put( "symbol", symbol );
-            put( "entryPrice", Paradex.this.safeNumber(position, "average_entry_price") );
-            put( "markPrice", null );
-            put( "notional", null );
-            put( "collateral", Paradex.this.safeNumber(position, "cost") );
-            put( "unrealizedPnl", Paradex.this.safeNumber(position, "unrealized_pnl") );
-            put( "side", finalSide );
-            put( "contracts", Paradex.this.parseNumber(finalQuantity) );
-            put( "contractSize", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "hedged", null );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", null );
-            put( "initialMarginPercentage", null );
-            put( "leverage", null );
-            put( "liquidationPrice", liquidationPrice );
-            put( "marginRatio", null );
-            put( "marginMode", null );
-            put( "percentage", null );
-        }});
-    }
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePosition(Helpers.newMap(
+            "info", position,
+            "id", this.safeString(position, "id"),
+            "symbol", symbol,
+            "entryPrice", this.safeNumber(position, "average_entry_price", (Object) null),
+            "markPrice", null,
+            "notional", null,
+            "collateral", this.safeNumber(position, "cost", (Object) null),
+            "unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null),
+            "side", side,
+            "contracts", this.parseNumber(quantity),
+            "contractSize", null,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "hedged", null,
+            "maintenanceMargin", null,
+            "maintenanceMarginPercentage", null,
+            "initialMargin", null,
+            "initialMarginPercentage", null,
+            "leverage", null,
+            "liquidationPrice", liquidationPrice,
+            "marginRatio", null,
+            "marginMode", null,
+            "percentage", null
+        ));
     }
 
     /**
@@ -3733,19 +3258,15 @@ public class Paradex extends ParadexApi
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public CompletableFuture<List<Liquidation>> fetchMyLiquidations(String symbol2, Long since2, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<List<Liquidation>> fetchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
@@ -3760,10 +3281,10 @@ public class Paradex extends ParadexApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetLiquidations(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetLiquidations(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
             //         "results": [
@@ -3775,25 +3296,9 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLiquidations(data, market, since, limit);
+            return this.parseLiquidations(data, Helpers.toMapArg(market), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchMyLiquidations
-     * @description retrieves the users liquidated positions
-     * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
-     * @param {string} [symbol] unified CCXT market symbol
-     * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
-     * @param {object} [params] exchange specific parameters
-     * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
-     */
-    public CompletableFuture<List<Liquidation>> fetchMyLiquidations(Object... optionalArgs)
-    {
-        return this.fetchMyLiquidations(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLiquidation(Object liquidation, Map<String, Object> market)
@@ -3816,11 +3321,7 @@ public class Paradex extends ParadexApi
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
-        }});
-    }
-    public Object parseLiquidation(Object liquidation, Object... optionalArgs)
-    {
-        return this.parseLiquidation(liquidation, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, (Map<String, Object>) null);
     }
 
     /**
@@ -3836,27 +3337,24 @@ public class Paradex extends ParadexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "next", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3867,10 +3365,10 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
             //         "next": null,
@@ -3902,26 +3400,9 @@ public class Paradex extends ParadexApi
                     ((List<Object>)deposits).add(row);
                 }
             }
-            return this.parseTransactions(deposits, null, since, limit);
+            return this.parseTransactions(deposits, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://docs.paradex.trade/api/prod/transfers/get
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3937,27 +3418,24 @@ public class Paradex extends ParadexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "next", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3968,10 +3446,10 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
             //         "next": null,
@@ -4003,26 +3481,9 @@ public class Paradex extends ParadexApi
                     ((List<Object>)deposits).add(row);
                 }
             }
-            return this.parseTransactions(deposits, null, since, limit);
+            return this.parseTransactions(deposits, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://docs.paradex.trade/api/prod/transfers/get
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch withdrawals for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4038,35 +3499,30 @@ public class Paradex extends ParadexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
-            (this.authenticateRest()).join();
+
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "next", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.safeCurrency((String) (code));
+                currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4076,10 +3532,10 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
             //         "next": null,
@@ -4102,26 +3558,9 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(rows, currency, since, limit);
+            return this.parseTransfers(rows, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchTransfers
-     * @description fetch a history of transfers made on an account
-     * @see https://docs.paradex.trade/api/prod/transfers/get
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfer structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
-    {
-        return this.fetchTransfers(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -4156,23 +3595,17 @@ public class Paradex extends ParadexApi
             fromAccount = "account";
             toAccount = "external";
         }
-        final String finalFromAccount = fromAccount;
-        final String finalToAccount = toAccount;
-        return new HashMap<String, Object>() {{
-            put( "info", transfer );
-            put( "id", Paradex.this.safeString(transfer, "id") );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "currency", code );
-            put( "amount", Paradex.this.safeNumber(transfer, "amount") );
-            put( "fromAccount", finalFromAccount );
-            put( "toAccount", finalToAccount );
-            put( "status", Paradex.this.parseTransactionStatus(Paradex.this.safeString(transfer, "status")) );
-        }};
-    }
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
+        return Helpers.newMap(
+            "info", transfer,
+            "id", this.safeString(transfer, "id"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "currency", code,
+            "amount", this.safeNumber(transfer, "amount", (Object) null),
+            "fromAccount", fromAccount,
+            "toAccount", toAccount,
+            "status", this.parseTransactionStatus(this.safeString(transfer, "status"))
+        );
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -4204,34 +3637,29 @@ public class Paradex extends ParadexApi
         String type = this.safeString(transaction, "kind");
         type = (((java.util.Objects.equals(type, "DEPOSIT")))) ? "deposit" : "withdrawal";
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Double amount = this.safeNumber(transaction, "amount");
-        final String finalType = type;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", id );
-            put( "txid", txid );
-            put( "timestamp", timestamp );
-            put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "network", null );
-            put( "address", address );
-            put( "addressTo", address );
-            put( "addressFrom", null );
-            put( "tag", null );
-            put( "tagTo", null );
-            put( "tagFrom", null );
-            put( "type", finalType );
-            put( "amount", amount );
-            put( "currency", code );
-            put( "status", status );
-            put( "updated", updated );
-            put( "internal", null );
-            put( "comment", null );
-            put( "fee", null );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+        Double amount = this.safeNumber(transaction, "amount", (Object) null);
+        return Helpers.newMap(
+            "info", transaction,
+            "id", id,
+            "txid", txid,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "network", null,
+            "address", address,
+            "addressTo", address,
+            "addressFrom", null,
+            "tag", null,
+            "tagTo", null,
+            "tagFrom", null,
+            "type", type,
+            "amount", amount,
+            "currency", code,
+            "status", status,
+            "updated", updated,
+            "internal", null,
+            "comment", null,
+            "fee", null
+        );
     }
 
     public String parseTransactionStatus(String status)
@@ -4259,10 +3687,10 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4281,41 +3709,23 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            List<Object> configs = (List<Object>) this.safeList(response, "configs");
-            return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0)), market);
+            List<Object> configs = (List<Object>) this.safeList(response, "configs", (Object) null);
+            return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), Helpers.toMapArg(market));
         }).thenApply(MarginMode::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchMarginMode
-     * @description fetches the margin mode of a specific symbol
-     * @see https://docs.paradex.trade/api/prod/account/get-account-margin
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
-     */
-    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
-    {
-        return this.fetchMarginMode(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarginMode(Map<String, Object> rawMarginMode, Map<String, Object> market)
     {
         String marketId = this.safeString(rawMarginMode, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String marginMode = this.safeStringLower(rawMarginMode, "margin_type");
-        final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", rawMarginMode );
-            put( "symbol", Paradex.this.safeString(finalMarket, "symbol") );
+            put( "symbol", Paradex.this.safeString(marketResolved, "symbol") );
             put( "marginMode", marginMode );
         }};
     }
-    public Object parseMarginMode(Map<String, Object> rawMarginMode, Object... optionalArgs)
-    {
-        return this.parseMarginMode(rawMarginMode, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -4328,46 +3738,30 @@ public class Paradex extends ParadexApi
      * @param {float} [params.leverage] the rate of leverage
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            this.checkRequiredArgument("setMarginMode", symbol, "symbol");
-            (this.authenticateRest()).join();
+
+            this.checkRequiredArgument("setMarginMode", symbol, "symbol", new ArrayList<Object>(Arrays.asList()));
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object leverage = 1;
-            List<Object> leverageparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
-            leverage = ((List<Object>) leverageparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) leverageparametersVariable).get(1);
-            final Object finalLeverage = leverage;
+            Integer leverage = 1;
+            List<Object> leverageOptionparamsLeverageVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
+            var leverageOption = ((List<Object>) leverageOptionparamsLeverageVariable).get(0);
+            Map<String, Object> paramsLeverage = (Map<String, Object>) ((List<Object>) leverageOptionparamsLeverageVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
-                put( "leverage", finalLeverage );
+                put( "leverage", leverageOption );
                 put( "margin_type", Paradex.this.encodeMarginMode((String) (marginMode)) );
             }};
-            return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
+            return (this.privatePostAccountMarginMarket(this.extend(request, paramsLeverage))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name paradex#setMarginMode
-     * @description set margin mode to 'cross' or 'isolated'
-     * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
-     * @param {string} marginMode 'cross' or 'isolated'
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.leverage] the rate of leverage
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setMarginMode(String marginMode, Object... optionalArgs)
-    {
-        return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4384,10 +3778,10 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4406,42 +3800,24 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            List<Object> configs = (List<Object>) this.safeList(response, "configs");
-            return this.parseLeverage((Map<String, Object>) (this.safeDict(configs, 0)), market);
+            List<Object> configs = (List<Object>) this.safeList(response, "configs", (Object) null);
+            return this.parseLeverage((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), Helpers.toMapArg(market));
         }).thenApply(Leverage::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchLeverage
-     * @description fetch the set leverage for a market
-     * @see https://docs.paradex.trade/api/prod/account/get-account-margin
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
-     */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
-    {
-        return this.fetchLeverage(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         String marginMode = this.safeStringLower(leverage, "margin_type");
-        final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Paradex.this.safeSymbol(marketId, finalMarket) );
+            put( "symbol", Paradex.this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null) );
             put( "marginMode", marginMode );
             put( "longLeverage", Paradex.this.safeInteger(leverage, "leverage") );
             put( "shortLeverage", Paradex.this.safeInteger(leverage, "leverage") );
         }};
-    }
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
-    {
-        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String encodeMarginMode(String mode)
@@ -4464,46 +3840,29 @@ public class Paradex extends ParadexApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
-            this.checkRequiredArgument("setLeverage", symbol, "symbol");
-            (this.authenticateRest()).join();
+
+            this.checkRequiredArgument("setLeverage", symbol, "symbol", new ArrayList<Object>(Arrays.asList()));
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String marginMode = null;
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            final String finalMarginMode = marginMode;
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
+            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "leverage", leverage );
-                put( "margin_type", Paradex.this.encodeMarginMode((String) (finalMarginMode)) );
+                put( "margin_type", Paradex.this.encodeMarginMode((String) (marginMode)) );
             }};
-            return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
+            return (this.privatePostAccountMarginMarket(this.extend(request, paramsMarginMode))).join();
         });
 
-    }
-    /**
-     * @method
-     * @name paradex#setLeverage
-     * @description set the level of leverage for a market
-     * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
-     * @param {float} leverage the rate of leverage
-     * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
-    {
-        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4522,7 +3881,7 @@ public class Paradex extends ParadexApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4565,22 +3924,9 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (greeks), market);
+            return this.parseGreeks((Map<String, Object>) (greeks), Helpers.toMapArg(market));
         }).thenApply(Greeks::new);
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchGreeks
-     * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string} symbol unified symbol of the market to fetch greeks for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
-     */
-    public CompletableFuture<Greeks> fetchGreeks(String symbol, Object... optionalArgs)
-    {
-        return this.fetchGreeks(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4592,16 +3938,16 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
@@ -4641,22 +3987,9 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseAllGreeks(results, symbols);
+            return this.parseAllGreeks(results, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         });
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchAllGreeks
-     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
-     */
-    public CompletableFuture<Object> fetchAllGreeks(Object... optionalArgs)
-    {
-        return this.fetchAllGreeks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
@@ -4692,37 +4025,33 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(greeks, "symbol");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "option"));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "option");
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(greeks, "created_at");
         Map<String, Object> greeksData = (Map<String, Object>) this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
-            put( "delta", Paradex.this.safeNumber(greeksData, "delta") );
-            put( "gamma", Paradex.this.safeNumber(greeksData, "gamma") );
+            put( "delta", Paradex.this.safeNumber(greeksData, "delta", (Object) null) );
+            put( "gamma", Paradex.this.safeNumber(greeksData, "gamma", (Object) null) );
             put( "theta", null );
-            put( "vega", Paradex.this.safeNumber(greeksData, "vega") );
-            put( "rho", Paradex.this.safeNumber(greeksData, "rho") );
-            put( "vanna", Paradex.this.safeNumber(greeksData, "vanna") );
-            put( "volga", Paradex.this.safeNumber(greeksData, "volga") );
+            put( "vega", Paradex.this.safeNumber(greeksData, "vega", (Object) null) );
+            put( "rho", Paradex.this.safeNumber(greeksData, "rho", (Object) null) );
+            put( "vanna", Paradex.this.safeNumber(greeksData, "vanna", (Object) null) );
+            put( "volga", Paradex.this.safeNumber(greeksData, "volga", (Object) null) );
             put( "bidSize", null );
             put( "askSize", null );
-            put( "bidImpliedVolatility", Paradex.this.safeNumber(greeks, "bid_iv") );
-            put( "askImpliedVolatility", Paradex.this.safeNumber(greeks, "ask_iv") );
-            put( "markImpliedVolatility", Paradex.this.safeNumber(greeks, "mark_iv") );
-            put( "bidPrice", Paradex.this.safeNumber(greeks, "bid") );
-            put( "askPrice", Paradex.this.safeNumber(greeks, "ask") );
-            put( "markPrice", Paradex.this.safeNumber(greeks, "mark_price") );
-            put( "lastPrice", Paradex.this.safeNumber(greeks, "last_traded_price") );
-            put( "underlyingPrice", Paradex.this.safeNumber(greeks, "underlying_price") );
+            put( "bidImpliedVolatility", Paradex.this.safeNumber(greeks, "bid_iv", (Object) null) );
+            put( "askImpliedVolatility", Paradex.this.safeNumber(greeks, "ask_iv", (Object) null) );
+            put( "markImpliedVolatility", Paradex.this.safeNumber(greeks, "mark_iv", (Object) null) );
+            put( "bidPrice", Paradex.this.safeNumber(greeks, "bid", (Object) null) );
+            put( "askPrice", Paradex.this.safeNumber(greeks, "ask", (Object) null) );
+            put( "markPrice", Paradex.this.safeNumber(greeks, "mark_price", (Object) null) );
+            put( "lastPrice", Paradex.this.safeNumber(greeks, "last_traded_price", (Object) null) );
+            put( "underlyingPrice", Paradex.this.safeNumber(greeks, "underlying_price", (Object) null) );
             put( "info", greeks );
         }};
-    }
-    public Object parseGreeks(Map<String, Object> greeks, Object... optionalArgs)
-    {
-        return this.parseGreeks(greeks, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4739,33 +4068,28 @@ public class Paradex extends ParadexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingHistory() requires a symbol argument")) ;
             }
-            (this.authenticateRest()).join();
+            (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4782,10 +4106,10 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetFundingPayments(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetFundingPayments(this.extend(requestUntil, paramsUntil))).join();
             //
             // {
             //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4804,27 +4128,9 @@ public class Paradex extends ParadexApi
             // }
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(results, market, since, limit);
+            return this.parseIncomes(results, Helpers.toMapArg(market), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchFundingHistory
-     * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.paradex.trade/api/prod/account/get-funding
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch funding history for
-     * @param {int} [limit] the maximum number of funding history structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.cursor] returns the next paginated page
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
-     */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
@@ -4841,22 +4147,17 @@ public class Paradex extends ParadexApi
         //     }
         //
         String marketId = this.safeString(income, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(income, "created_at");
-        final Map<String, Object> finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "code", ((Map<String, Object>)finalMarket).get("settle") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "code", ((Map<String, Object>)marketResolved).get("settle") );
             put( "timestamp", timestamp );
             put( "datetime", Paradex.this.iso8601(timestamp) );
             put( "id", Paradex.this.safeString(income, "id") );
-            put( "amount", Paradex.this.safeNumber(income, "payment") );
+            put( "amount", Paradex.this.safeNumber(income, "payment", (Object) null) );
         }};
-    }
-    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
-    {
-        return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4871,24 +4172,18 @@ public class Paradex extends ParadexApi
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4906,12 +4201,12 @@ public class Paradex extends ParadexApi
                 request.put("start_at", since);
             }
             Long until = this.safeInteger(parameters, "until");
+            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 request.put("end_at", until);
             }
-            Map<String, Object> response = (this.publicGetFundingData(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetFundingData(this.extend(request, paramsOmitted))).join();
             //
             // {
             //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4942,100 +4237,100 @@ public class Paradex extends ParadexApi
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", rate );
                     put( "symbol", ((Map<String, Object>)market).get("symbol") );
-                    put( "fundingRate", Paradex.this.safeNumber(rate, "funding_rate") );
+                    put( "fundingRate", Paradex.this.safeNumber(rate, "funding_rate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", datetime );
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, ((Map<String, Object>)market).get("symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name paradex#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of funding rate structures
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object version = this.version;
+        Object pathValue = path;
+        if ((Helpers.getIndexOf(path, "v2/") == 0))
+        {
+            pathValue = Helpers.replace(((String)path), "v2/", "");
+        }
         if ((Helpers.getIndexOf(path, "v2/") == 0))
         {
             version = "v2";
-            path = Helpers.replace(((String)path), "v2/", "");
         }
-        String url = ((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), ((String)version))) + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(api, "public"))
+        String url = ((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), ((String)version))) + "/") + this.implodeParams(pathValue, parameters));
+        Object query = this.omit(parameters, this.extractParams(pathValue));
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(api, "private"))
+        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
-            headers = new HashMap<String, Object>() {{
+            Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "PARADEX-PARTNER", Paradex.this.safeString(Paradex.this.options, "broker", "CCXT") );
             }};
+            String privateBody = null;
             // TODO: optimize
-            if (java.util.Objects.equals(path, "auth"))
+            if (java.util.Objects.equals(pathValue, "auth"))
             {
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                ((Map<String, Object>)headers).put("PARADEX-TIMESTAMP", String.valueOf(((Map<String, Object>)query).get("timestamp")));
-                ((Map<String, Object>)headers).put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(((Map<String, Object>)query).get("expiration")));
-            } else if (java.util.Objects.equals(path, "onboarding"))
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(((Map<String, Object>)query).get("timestamp")));
+                privateHeaders.put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(((Map<String, Object>)query).get("expiration")));
+            } else if (java.util.Objects.equals(pathValue, "onboarding"))
             {
-                ((Map<String, Object>)headers).put("PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                ((Map<String, Object>)headers).put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                ((Map<String, Object>)headers).put("PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
-                ((Map<String, Object>)headers).put("Content-Type", "application/json");
-                body = (String) (this.json(new HashMap<String, Object>() {{
+                privateHeaders.put("PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
+                privateHeaders.put("Content-Type", "application/json");
+                privateBody = this.json(new HashMap<String, Object>() {{
                     put( "public_key", ((Map<String, Object>)query).get("public_key") );
-                }}));
+                }});
             } else
             {
                 Object token = ((Map<String, Object>)this.options).get("authToken");
-                ((Map<String, Object>)headers).put("Authorization", Helpers.add("Bearer ", token));
-                if ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PUT")) || ((java.util.Objects.equals(method, "DELETE")) && (java.util.Objects.equals(path, "orders/batch"))))
+                privateHeaders.put("Authorization", Helpers.add("Bearer ", token));
+                if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) || ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) && (java.util.Objects.equals(pathValue, "orders/batch"))))
                 {
-                    ((Map<String, Object>)headers).put("Content-Type", "application/json");
-                    body = (String) (this.json(query));
+                    privateHeaders.put("Content-Type", "application/json");
+                    privateBody = this.json(query);
                 } else
                 {
                     url = ((url + "?") + this.urlencode(query));
                 }
             }
+            // headers = {
+            //     'Accept': 'application/json',
+            //     'Authorization': 'Bearer ' + this.apiKey,
+            // };
+            // if (method === 'POST') {
+            //     body = this.json (query);
+            //     headers['Content-Type'] = 'application/json';
+            // } else {
+            //     if (Object.keys (query).length) {
+            //         url += '?' + this.urlencode (query);
+            //     }
+            // }
+            Object bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
+            return Helpers.newMap(
+                "url", url,
+                "method", java.util.Objects.requireNonNullElse(method, "GET"),
+                "body", bodyResolved,
+                "headers", privateHeaders
+            );
         }
-        final String finalUrl = url;
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", body,
+            "headers", headers
+        );
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

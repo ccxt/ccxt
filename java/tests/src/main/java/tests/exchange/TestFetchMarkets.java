@@ -21,7 +21,7 @@ public class TestFetchMarkets extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarkets";
-        Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{})).join();
+        Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
         Object marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);

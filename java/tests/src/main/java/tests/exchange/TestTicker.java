@@ -145,7 +145,7 @@ public class TestTicker extends BaseTest {
                 String baseLow = Precise.stringMul(baseVolume, low);
                 String baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
-                Object mPrecision = exchange.safeDict(market, "precision");
+                Object mPrecision = exchange.safeDict(market, "precision", (Object) null);
                 String amountPrecision = exchange.safeString(mPrecision, "amount");
                 String tolerance = "1.0001";
                 if (!java.util.Objects.equals(amountPrecision, null))

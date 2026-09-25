@@ -22,7 +22,7 @@ public class TestFetchTrades extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTrades";
-        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol, null, 12000})).join(); // test with unrealistically high amount
+        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol, (Long) null, Helpers.toLongOrNull(12000), new HashMap<String, Object>() {{}}})).join(); // test with unrealistically high amount
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, trades);
         //
         // test structure
@@ -95,11 +95,10 @@ public class TestFetchTrades extends BaseTest {
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
             if (Boolean.TRUE.equals(isSameTs) && Boolean.TRUE.equals(isSameSide) && !Boolean.TRUE.equals(isSamePrice))
             {
-                final Object finalLastTrade = lastTrade;
-                Map<String, Object> pair = new HashMap<String, Object>() {{
-                    put( "previous", finalLastTrade );
-                    put( "current", trade );
-                }};
+                Map<String, Object> pair = Helpers.newMap(
+                    "previous", lastTrade,
+                    "current", trade
+                );
                 Object priceIncreasing = Precise.stringGt(price, lastPrice);
                 Object priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (Boolean.TRUE.equals(priceIncreasing))

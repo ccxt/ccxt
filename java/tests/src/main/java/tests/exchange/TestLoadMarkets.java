@@ -6,6 +6,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,7 +22,7 @@ public class TestLoadMarkets extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "loadMarkets";
-        Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
+        Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{false, new HashMap<String, Object>() {{}}})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         Assert((exchange.symbols instanceof List), ".symbols is not an array");
         Object symbolsLength = ((List<?>)exchange.symbols).size();

@@ -438,16 +438,12 @@ public class Upbit extends UpbitApi
             // it requires private access and API keys properly set up
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             return (this.fetchCurrencyById(((Map<String, Object>)currency).get("id"), parameters)).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
-    }
-    public CompletableFuture<Map<String, Object>> fetchCurrency(String code, Object... optionalArgs)
-    {
-        return this.fetchCurrency(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Map<String, Object> parameters)
@@ -502,10 +498,10 @@ public class Upbit extends UpbitApi
             Map<String, Object> memberInfo = (Map<String, Object>) this.safeDict(response, "member_level", new HashMap<String, Object>() {{}});
             Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(response, "currency", new HashMap<String, Object>() {{}});
             Map<String, Object> withdrawLimits = (Map<String, Object>) this.safeDict(response, "withdraw_limit", new HashMap<String, Object>() {{}});
-            Boolean canWithdraw = (Boolean) this.safeBool(withdrawLimits, "can_withdraw");
+            Boolean canWithdraw = (Boolean) this.safeBool(withdrawLimits, "can_withdraw", (Object) null);
             String walletState = this.safeString(currencyInfo, "wallet_state");
-            Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked");
-            Boolean locked = (Boolean) this.safeBool(memberInfo, "locked");
+            Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked", (Object) null);
+            Boolean locked = (Boolean) this.safeBool(memberInfo, "locked", (Object) null);
             Boolean active = true;
             if ((!java.util.Objects.equals(canWithdraw, null)) && (!java.util.Objects.equals(canWithdraw, true)))
             {
@@ -532,30 +528,24 @@ public class Upbit extends UpbitApi
                 maxWithdrawLimit = maxDailyWithdrawal;
             }
             String currencyId = this.safeString(currencyInfo, "code");
-            String code = this.safeCurrencyCode(currencyId);
-            final Boolean finalActive = active;
-            final String finalMaxWithdrawLimit = maxWithdrawLimit;
-            return new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", currencyId );
-                put( "code", code );
-                put( "name", code );
-                put( "active", finalActive );
-                put( "fee", Upbit.this.safeNumber(currencyInfo, "withdraw_fee") );
-                put( "precision", null );
-                put( "limits", new HashMap<String, Object>() {{
-                    put( "withdraw", new HashMap<String, Object>() {{
-                        put( "min", Upbit.this.safeNumber(withdrawLimits, "minimum") );
-                        put( "max", Upbit.this.parseNumber(finalMaxWithdrawLimit) );
-                    }} );
-                }} );
-            }};
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            return Helpers.newMap(
+                "info", response,
+                "id", currencyId,
+                "code", code,
+                "name", code,
+                "active", active,
+                "fee", this.safeNumber(currencyInfo, "withdraw_fee", (Object) null),
+                "precision", null,
+                "limits", Helpers.newMap(
+                    "withdraw", Helpers.newMap(
+                        "min", this.safeNumber(withdrawLimits, "minimum", (Object) null),
+                        "max", this.parseNumber(maxWithdrawLimit)
+                    )
+                )
+            );
         }).thenApply(res -> (Map<String, Object>) res);
 
-    }
-    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Object... optionalArgs)
-    {
-        return this.fetchCurrencyById(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> fetchMarket(String symbol, Map<String, Object> parameters)
@@ -567,16 +557,12 @@ public class Upbit extends UpbitApi
             // it requires private access and API keys properly set up
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             return (this.fetchMarketById((String) (((Map<String, Object>)market).get("id")), parameters)).join();
         });
 
-    }
-    public CompletableFuture<Object> fetchMarket(String symbol, Object... optionalArgs)
-    {
-        return this.fetchMarket(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Object> fetchMarketById(String id, Map<String, Object> parameters)
@@ -622,57 +608,55 @@ public class Upbit extends UpbitApi
             //         }
             //     }
             //
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(response, "market");
-            Map<String, Object> bid = (Map<String, Object>) this.safeDict(marketInfo, "bid");
-            Map<String, Object> ask = (Map<String, Object>) this.safeDict(marketInfo, "ask");
+            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(response, "market", (Object) null);
+            Map<String, Object> bid = (Map<String, Object>) this.safeDict(marketInfo, "bid", (Object) null);
+            Map<String, Object> ask = (Map<String, Object>) this.safeDict(marketInfo, "ask", (Object) null);
             String marketId = this.safeString(marketInfo, "id");
             String baseId = this.safeString(ask, "currency");
             String quoteId = this.safeString(bid, "currency");
-            String base = this.safeCurrencyCode(baseId);
-            String quote = this.safeCurrencyCode(quoteId);
+            String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+            String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
             String state = this.safeString(marketInfo, "state");
             String bidFee = this.safeString(response, "bid_fee");
             String askFee = this.safeString(response, "ask_fee");
             Double fee = this.parseNumber(Precise.stringMax(bidFee, askFee));
-            final String finalBase = base;
-            final String finalState = state;
-            return this.safeMarketStructure(new HashMap<String, Object>() {{
-                put( "id", marketId );
-                put( "symbol", ((finalBase + "/") + quote) );
-                put( "base", finalBase );
-                put( "quote", quote );
-                put( "settle", null );
-                put( "baseId", baseId );
-                put( "quoteId", quoteId );
-                put( "settleId", null );
-                put( "type", "spot" );
-                put( "spot", true );
-                put( "margin", false );
-                put( "swap", false );
-                put( "future", false );
-                put( "option", false );
-                put( "active", (java.util.Objects.equals(finalState, "active")) );
-                put( "contract", false );
-                put( "linear", null );
-                put( "inverse", null );
-                put( "taker", fee );
-                put( "maker", fee );
-                put( "contractSize", null );
-                put( "expiry", null );
-                put( "expiryDatetime", null );
-                put( "strike", null );
-                put( "optionType", null );
-                put( "precision", new HashMap<String, Object>() {{
+            return this.safeMarketStructure(Helpers.newMap(
+                "id", marketId,
+                "symbol", ((base + "/") + quote),
+                "base", base,
+                "quote", quote,
+                "settle", null,
+                "baseId", baseId,
+                "quoteId", quoteId,
+                "settleId", null,
+                "type", "spot",
+                "spot", true,
+                "margin", false,
+                "swap", false,
+                "future", false,
+                "option", false,
+                "active", (java.util.Objects.equals(state, "active")),
+                "contract", false,
+                "linear", null,
+                "inverse", null,
+                "taker", fee,
+                "maker", fee,
+                "contractSize", null,
+                "expiry", null,
+                "expiryDatetime", null,
+                "strike", null,
+                "optionType", null,
+                "precision", new HashMap<String, Object>() {{
                     put( "amount", Upbit.this.parseNumber("1e-8") );
                     put( "price", Upbit.this.parseNumber("1e-8") );
-                }} );
-                put( "limits", new HashMap<String, Object>() {{
+                }},
+                "limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }} );
                     put( "amount", new HashMap<String, Object>() {{
-                        put( "min", Upbit.this.safeNumber(ask, "min_total") );
+                        put( "min", Upbit.this.safeNumber(ask, "min_total", (Object) null) );
                         put( "max", null );
                     }} );
                     put( "price", new HashMap<String, Object>() {{
@@ -680,18 +664,14 @@ public class Upbit extends UpbitApi
                         put( "max", null );
                     }} );
                     put( "cost", new HashMap<String, Object>() {{
-                        put( "min", Upbit.this.safeNumber(bid, "min_total") );
-                        put( "max", Upbit.this.safeNumber(marketInfo, "max_total") );
+                        put( "min", Upbit.this.safeNumber(bid, "min_total", (Object) null) );
+                        put( "max", Upbit.this.safeNumber(marketInfo, "max_total", (Object) null) );
                     }} );
                     put( "info", response );
-                }} );
-            }});
+                }}
+            ));
         });
 
-    }
-    public CompletableFuture<Object> fetchMarketById(String id, Object... optionalArgs)
-    {
-        return this.fetchMarketById(id, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -723,19 +703,6 @@ public class Upbit extends UpbitApi
         });
 
     }
-    /**
-     * @method
-     * @name upbit#fetchMarkets
-     * @see https://docs.upbit.com/kr/reference/list-trading-pairs
-     * @see https://global-docs.upbit.com/reference/list-trading-pairs
-     * @description retrieves data on all markets for upbit
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
@@ -747,41 +714,39 @@ public class Upbit extends UpbitApi
         var quoteIdbaseIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
         var quoteId = ((List<Object>) quoteIdbaseIdVariable).get(0);
         var baseId = ((List<Object>) quoteIdbaseIdVariable).get(1);
-        String base = this.safeCurrencyCode((String) (baseId));
-        String quote = this.safeCurrencyCode((String) (quoteId));
-        final String finalId = id;
-        final String finalBase = base;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", finalId );
-            put( "symbol", ((finalBase + "/") + quote) );
-            put( "base", finalBase );
-            put( "quote", quote );
-            put( "settle", null );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settleId", null );
-            put( "type", "spot" );
-            put( "spot", true );
-            put( "margin", false );
-            put( "swap", false );
-            put( "future", false );
-            put( "option", false );
-            put( "active", true );
-            put( "contract", false );
-            put( "linear", null );
-            put( "inverse", null );
-            put( "taker", Upbit.this.safeNumber(((Map<String, Object>)Upbit.this.options).get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(Upbit.this.fees, "trading"), "taker")) );
-            put( "maker", Upbit.this.safeNumber(((Map<String, Object>)Upbit.this.options).get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(Upbit.this.fees, "trading"), "maker")) );
-            put( "contractSize", null );
-            put( "expiry", null );
-            put( "expiryDatetime", null );
-            put( "strike", null );
-            put( "optionType", null );
-            put( "precision", new HashMap<String, Object>() {{
+        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", id,
+            "symbol", ((base + "/") + quote),
+            "base", base,
+            "quote", quote,
+            "settle", null,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settleId", null,
+            "type", "spot",
+            "spot", true,
+            "margin", false,
+            "swap", false,
+            "future", false,
+            "option", false,
+            "active", true,
+            "contract", false,
+            "linear", null,
+            "inverse", null,
+            "taker", this.safeNumber(((Map<String, Object>)this.options).get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker")),
+            "maker", this.safeNumber(((Map<String, Object>)this.options).get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker")),
+            "contractSize", null,
+            "expiry", null,
+            "expiryDatetime", null,
+            "strike", null,
+            "optionType", null,
+            "precision", new HashMap<String, Object>() {{
                 put( "price", Upbit.this.parseNumber("1e-8") );
                 put( "amount", Upbit.this.parseNumber("1e-8") );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
+            }},
+            "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -798,10 +763,10 @@ public class Upbit extends UpbitApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }} );
-            put( "created", null );
-            put( "info", market );
-        }});
+            }},
+            "created", null,
+            "info", market
+        ));
     }
 
     public Object parseBalance(Object response)
@@ -813,9 +778,9 @@ public class Upbit extends UpbitApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("free", this.safeString(balance, "balance"));
             account.put("used", this.safeString(balance, "locked"));
@@ -843,7 +808,7 @@ public class Upbit extends UpbitApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             //
@@ -862,19 +827,6 @@ public class Upbit extends UpbitApi
         }).thenApply(Balances::new);
 
     }
-    /**
-     * @method
-     * @name upbit#fetchBalance
-     * @see https://docs.upbit.com/kr/reference/get-balance
-     * @see https://global-docs.upbit.com/reference/get-balance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -887,16 +839,14 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object ids = null;
             if (java.util.Objects.equals(symbols, null))
@@ -911,10 +861,9 @@ public class Upbit extends UpbitApi
                 List<String> marketIds = this.marketIds(symbols);
                 ids = String.join(",", (List<String>)marketIds);
             }
-            final Object finalIds = ids;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "markets", finalIds );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "markets", ids
+            );
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("count", limit);
@@ -954,12 +903,12 @@ public class Upbit extends UpbitApi
             {
                 Object orderbook = (orderbooks == null || i < 0 || i >= orderbooks.size() ? null : orderbooks.get(i));
                 String marketId = this.safeString(orderbook, "market");
-                String symbol = this.safeSymbol(marketId, null, "-");
+                String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
                 result.put((String)symbol, new HashMap<String, Object>() {{
         put( "symbol", symbol );
-        put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) );
-        put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) );
+        put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size", 2), 0, true) );
+        put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size", 2), 0) );
         put( "timestamp", timestamp );
         put( "datetime", Upbit.this.iso8601(timestamp) );
         put( "nonce", null );
@@ -968,21 +917,6 @@ public class Upbit extends UpbitApi
             return result;
         }).thenApply(OrderBooks::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchOrderBooks
-     * @see https://docs.upbit.com/kr/reference/list-orderbooks
-     * @see https://global-docs.upbit.com/reference/list-orderbooks
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-     * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
-     */
-    public CompletableFuture<OrderBooks> fetchOrderBooks(Object... optionalArgs)
-    {
-        return this.fetchOrderBooks(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1001,25 +935,10 @@ public class Upbit extends UpbitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            OrderBooks orderbooks = (this.fetchOrderBooks((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
-            return this.safeDict(orderbooks, symbol);
+            OrderBooks orderbooks = (this.fetchOrderBooks(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), limit, parameters)).join();
+            return this.safeDict(orderbooks, symbol, (Object) null);
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchOrderBook
-     * @see https://docs.upbit.com/kr/reference/list-orderbooks
-     * @see https://global-docs.upbit.com/reference/list-orderbooks
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1054,11 +973,10 @@ public class Upbit extends UpbitApi
         //
         Long timestamp = this.safeInteger(ticker, "trade_timestamp");
         String marketId = this.safeString2(ticker, "market", "code");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
         String last = this.safeString(ticker, "trade_price");
-        final Map<String, Object> finalMarket = market;
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Upbit.this.iso8601(timestamp) );
             put( "high", Upbit.this.safeString(ticker, "high_price") );
@@ -1078,11 +996,7 @@ public class Upbit extends UpbitApi
             put( "baseVolume", Upbit.this.safeString(ticker, "acc_trade_volume_24h") );
             put( "quoteVolume", Upbit.this.safeString(ticker, "acc_trade_price_24h") );
             put( "info", ticker );
-        }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1098,22 +1012,22 @@ public class Upbit extends UpbitApi
      * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Object tickers = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(symbols, null))
+            if (java.util.Objects.equals(symbolsNormalized, null))
             {
                 // ticker/all returns every market of the requested quote currencies with a single request
                 List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
-                List<Object> marketSymbols = this.symbols;
+                List<String> marketSymbols = Helpers.toStringListArg(this.symbols);
                 for (var i = 0; i < ((List<?>)marketSymbols).size(); i++)
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
@@ -1133,14 +1047,13 @@ public class Upbit extends UpbitApi
                     }
                     quoteCurrencies = Helpers.add(quoteCurrencies, Helpers.GetValue(sortedQuoteIds, i));
                 }
-                final Object finalQuoteCurrencies = quoteCurrencies;
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "quote_currencies", finalQuoteCurrencies );
-                }};
+                Map<String, Object> request = Helpers.newMap(
+                    "quote_currencies", quoteCurrencies
+                );
                 tickers = (this.publicGetTickerAll(this.extend(request, parameters))).join();
             } else
             {
-                List<String> ids = this.marketIds(symbols);
+                List<String> ids = this.marketIds(symbolsNormalized);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
@@ -1181,26 +1094,9 @@ public class Upbit extends UpbitApi
             //           "lowest_52_week_date": "2017-12-08",
             //                     "timestamp":  1542883543813  } ]
             //
-            return this.parseTickers(tickers, symbols);
+            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchTickers
-     * @see https://docs.upbit.com/kr/reference/list-tickers
-     * @see https://global-docs.upbit.com/reference/list-tickers
-     * @see https://docs.upbit.com/kr/reference/tickers_by_quote
-     * @see https://global-docs.upbit.com/reference/tickers_by_quote
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object idsQueryStrings(Object ids, Object maxQueryLength)
@@ -1247,24 +1143,10 @@ public class Upbit extends UpbitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Tickers tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return this.safeDict(tickers, symbol);
+            Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            return this.safeDict(tickers, symbol, (Object) null);
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchTicker
-     * @see https://docs.upbit.com/kr/reference/list-tickers
-     * @see https://global-docs.upbit.com/reference/list-tickers
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1317,41 +1199,31 @@ public class Upbit extends UpbitApi
         String price = this.safeString2(trade, "trade_price", "price");
         String amount = this.safeString2(trade, "trade_volume", "volume");
         String marketId = this.safeString2(trade, "market", "code");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, (askOrBid + "_fee"));
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Map<String, Object> finalMarket = market;
-            final String finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
-                put( "cost", finalFeeCost );
-            }};
+            fee = Helpers.newMap(
+                "currency", ((Map<String, Object>)marketResolved).get("quote"),
+                "cost", feeCost
+            );
         }
-        final Long finalTimestamp = timestamp;
-        final Map<String, Object> finalMarket_2 = market;
-        final String finalSide = side;
-        final Map<String, Object> finalFee = fee;
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", trade );
-            put( "order", orderId );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Upbit.this.iso8601(finalTimestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket_2).get("symbol") );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", null );
-            put( "price", price );
-            put( "amount", amount );
-            put( "cost", cost );
-            put( "fee", finalFee );
-        }}, market);
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTrade(Helpers.newMap(
+            "id", id,
+            "info", trade,
+            "order", orderId,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", null,
+            "side", side,
+            "takerOrMaker", null,
+            "price", price,
+            "amount", amount,
+            "cost", cost,
+            "fee", fee
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1366,24 +1238,20 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 200L;
-            }
-            final Long finalLimit = limit;
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
-                put( "count", finalLimit );
+                put( "count", limitResolved );
             }};
             List<Object> response = (this.publicGetTradesTicks(this.extend(request, parameters))).join();
             //
@@ -1408,25 +1276,9 @@ public class Upbit extends UpbitApi
             //                    "ask_bid": "ASK",
             //              "sequential_id":  15428917910540000 }  ]
             //
-            return this.parseTrades(response, market, since, limit);
+            return this.parseTrades(response, Helpers.toMapArg(market), since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchTrades
-     * @see https://docs.upbit.com/kr/reference/list-pair-trades
-     * @see https://global-docs.upbit.com/reference/list-pair-trades
-     * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1446,7 +1298,7 @@ public class Upbit extends UpbitApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1504,20 +1356,6 @@ public class Upbit extends UpbitApi
         }).thenApply(TradingFeeInterface::new);
 
     }
-    /**
-     * @method
-     * @name upbit#fetchTradingFee
-     * @see https://docs.upbit.com/kr/reference/available-order-information
-     * @see https://global-docs.upbit.com/reference/available-order-information
-     * @description fetch the trading fees for a market
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
-     */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1533,15 +1371,15 @@ public class Upbit extends UpbitApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object fetchMarketResponse = (this.fetchMarkets((Object)(parameters))).join();
+            Object fetchMarketResponse = (this.fetchMarkets(parameters)).join();
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fetchMarketResponse).size(); i++)
             {
                 Map<String, Object> element = new HashMap<String, Object>() {{}};
-                element.put("maker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "maker"));
-                element.put("taker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "taker"));
+                element.put("maker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "maker", (Object) null));
+                element.put("taker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "taker", (Object) null));
                 element.put("symbol", this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol"));
                 element.put("percentage", true);
                 element.put("tierBased", false);
@@ -1555,17 +1393,6 @@ public class Upbit extends UpbitApi
             return response;
         }).thenApply(TradingFees::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchTradingFees
-     * @description fetch the trading fees for markets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}
-     */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
-    {
-        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1585,11 +1412,7 @@ public class Upbit extends UpbitApi
         //         "unit": 1
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "candle_date_time_utc")), this.safeNumber(ohlcv, "opening_price"), this.safeNumber(ohlcv, "high_price"), this.safeNumber(ohlcv, "low_price"), this.safeNumber(ohlcv, "trade_price"), this.safeNumber(ohlcv, "candle_acc_trade_volume")));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
+        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "candle_date_time_utc")), this.safeNumber(ohlcv, "opening_price", (Object) null), this.safeNumber(ohlcv, "high_price", (Object) null), this.safeNumber(ohlcv, "low_price", (Object) null), this.safeNumber(ohlcv, "trade_price", (Object) null), this.safeNumber(ohlcv, "candle_acc_trade_volume", (Object) null)));
     }
 
     /**
@@ -1605,36 +1428,29 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long since3 = since2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long since = since3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            int timeframePeriod = this.parseTimeframe(timeframe);
-            String timeframeValue = this.safeString(this.timeframes, timeframe, timeframe);
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 200L;
-            }
-            final String finalTimeframeValue = timeframeValue;
-            final Long finalLimit = limit;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
-                put( "timeframe", finalTimeframeValue );
-                put( "count", finalLimit );
-            }};
+            int timeframePeriod = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
+            Map<String, Object> request = Helpers.newMap(
+                "market", ((Map<String, Object>)market).get("id"),
+                "timeframe", timeframeValue,
+                "count", limitResolved
+            );
             List<Object> response = null;
             if (!java.util.Objects.equals(since, null))
             {
                 // convert `since` to `to` value
-                request.put("to", this.iso8601(this.sum(since, Helpers.multiply(Helpers.multiply(timeframePeriod, limit), 1000))));
+                request.put("to", this.iso8601(this.sum(since, Helpers.multiply(Helpers.multiply(timeframePeriod, limitResolved), 1000))));
             }
             if (java.util.Objects.equals(timeframeValue, "minutes"))
             {
@@ -1676,32 +1492,15 @@ public class Upbit extends UpbitApi
             //     ]
             //
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchOHLCV
-     * @see https://docs.upbit.com/kr/reference/list-candles-minutes
-     * @see https://global-docs.upbit.com/reference/list-candles-minutes
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public String calcOrderPrice(Object symbol, Object amount, Object price, Object parameters)
     {
         String quoteAmount = null;
-        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice");
+        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", (Object) null);
         String cost = this.safeString(parameters, "cost");
         if (!java.util.Objects.equals(cost, null))
         {
@@ -1730,10 +1529,6 @@ public class Upbit extends UpbitApi
         }
         return quoteAmount;
     }
-    public String calcOrderPrice(Object symbol, Object amount, Object... optionalArgs)
-    {
-        return this.calcOrderPrice(symbol, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
-    }
 
     /**
      * @method
@@ -1756,22 +1551,14 @@ public class Upbit extends UpbitApi
      * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String type3 = type2;
-        final String side3 = side2;
-        final Object amount3 = amount2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String type = type3;
-            String side = side3;
-            Object amount = amount3;
-            Object price = price3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -1795,11 +1582,10 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " createOrder() supports only buy or sell in the side argument.")) ;
             }
-            final String finalOrderSide = orderSide;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", ((Map<String, Object>)market).get("id") );
-                put( "side", finalOrderSide );
-            }};
+            Map<String, Object> request = Helpers.newMap(
+                "market", ((Map<String, Object>)market).get("id"),
+                "side", orderSide
+            );
             if (java.util.Objects.equals(type, "limit"))
             {
                 if (java.util.Objects.equals(price, null) || java.util.Objects.equals(amount, null))
@@ -1829,13 +1615,13 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
             }
+            Object paramsOrdType = (((java.util.Objects.equals(customType, "best")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "ord_type"))) : parameters;
             if (java.util.Objects.equals(customType, "best"))
             {
-                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "ord_type")));
                 request.put("ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
                     request.put("price", orderPrice);
                 } else
                 {
@@ -1870,13 +1656,13 @@ public class Upbit extends UpbitApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
             }
             Map<String, Object> response = null;
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
+            Object paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
             if (java.util.Objects.equals(test, true))
             {
-                response = (this.privatePostOrdersTest(this.extend(request, parameters))).join();
+                response = (this.privatePostOrdersTest(this.extend(request, paramsRequest))).join();
             } else
             {
-                response = (this.privatePostOrders(this.extend(request, parameters))).join();
+                response = (this.privatePostOrders(this.extend(request, paramsRequest))).join();
             }
             //
             //     {
@@ -1898,34 +1684,9 @@ public class Upbit extends UpbitApi
             //         "trades_count": 0
             //     }
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#createOrder
-     * @description create a trade order
-     * @see https://docs.upbit.com/kr/reference/new-order
-     * @see https://global-docs.upbit.com/reference/new-order
-     * @see https://docs.upbit.com/kr/reference/order-test
-     * @see https://global-docs.upbit.com/reference/order-test
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type supports 'market' and 'limit'. if params.ordType is set to best, a best-type order will be created regardless of the value of type.
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
-     * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
-     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
-     * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1946,7 +1707,7 @@ public class Upbit extends UpbitApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "uuid", id );
@@ -1971,24 +1732,9 @@ public class Upbit extends UpbitApi
             //         "trades_count": 0
             //     }
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#cancelOrder
-     * @see https://docs.upbit.com/kr/reference/cancel-order
-     * @see https://global-docs.upbit.com/reference/cancel-order
-     * @description cancels an open order
-     * @param {string} id order id
-     * @param {string} symbol not used by cancelOrder ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2012,24 +1758,14 @@ public class Upbit extends UpbitApi
      * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id2, String symbol, String type2, String side2, Object amount2, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String id3 = id2;
-        final String type3 = type2;
-        final String side3 = side2;
-        final Object amount3 = amount2;
-        final Object price3 = price2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String id = id3;
-            String type = type3;
-            String side = side3;
-            Object amount = amount3;
-            Object price = price3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String prevClientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2042,7 +1778,7 @@ public class Upbit extends UpbitApi
             {
                 throw new ExchangeError((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
-            parameters = (Map<String, Object>) this.omit(parameters, "clientOrderId");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderId");
             if (!java.util.Objects.equals(id, null))
             {
                 request.put("prev_order_uuid", id);
@@ -2067,7 +1803,7 @@ public class Upbit extends UpbitApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     request.put("new_ord_type", "price");
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOmitted);
                     request.put("new_price", orderPrice);
                 } else
                 {
@@ -2082,13 +1818,13 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " editOrder() supports only limit or market types in the type argument.")) ;
             }
+            Object paramsOrdType = (((java.util.Objects.equals(customType, "best")))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("newOrdType", "new_ord_type"))) : paramsOmitted;
             if (java.util.Objects.equals(customType, "best"))
             {
-                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("newOrdType", "new_ord_type")));
                 request.put("new_ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
                     request.put("new_price", orderPrice);
                 } else
                 {
@@ -2126,9 +1862,9 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a timeInForce parameter for best type orders")) ;
             }
-            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type")));
-            // console.log ('check the each request params: ', request);
-            Map<String, Object> response = (this.privatePostOrdersCancelAndNew(this.extend(request, parameters))).join();
+            Object paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type")));
+            // console.log ('check the each request paramsOmitted: ', request);
+            Map<String, Object> response = (this.privatePostOrdersCancelAndNew(this.extend(request, paramsRequest))).join();
             //   {
             //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
             //     side: 'bid',                                         //previous order data
@@ -2154,34 +1890,9 @@ public class Upbit extends UpbitApi
             result.put("identifier", this.safeString(response, "new_order_identifier"));
             result.put("side", this.safeString(response, "side"));
             result.put("market", this.safeString(response, "market"));
-            return this.parseOrder(result);
+            return this.parseOrder(result, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#editOrder
-     * @see https://docs.upbit.com/kr/reference/cancel-and-new-order
-     * @see https://global-docs.upbit.com/reference/cancel-and-new-order
-     * @description canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
-     * @param {string} id the uuid of the previous order you want to edit.
-     * @param {string} symbol the symbol of the new order. it must be the same as the symbol of the previous order.
-     * @param {string} type the type of the new order. only limit or market is accepted. if params.newOrdType is set to best, a best-type order will be created regardless of the value of type.
-     * @param {string} side the side of the new order. it must be the same as the side of the previous order.
-     * @param {number} amount the amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in params.
-     * @param {number} price the price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in params.
-     * @param {object} [params] extra parameters specific to the exchange API endpoint.
-     * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
-     * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
-     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
-     * @param {string} [params.newClientOrderId] the order ID that the user can define.
-     * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
-     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
-    {
-        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2196,16 +1907,14 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2235,25 +1944,9 @@ public class Upbit extends UpbitApi
             //         ...,
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit);
+            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchDeposits
-     * @see https://docs.upbit.com/kr/reference/list-deposits
-     * @see https://global-docs.upbit.com/reference/list-deposits
-     * @description fetch all deposits made to an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2268,14 +1961,14 @@ public class Upbit extends UpbitApi
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code2, Object parameters)
+    public CompletableFuture<Object> fetchDeposit(String id, String code, Object parameters)
     {
-        final String code3 = code2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "uuid", id );
@@ -2302,25 +1995,9 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
         });
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchDeposit
-     * @description fetch information on a deposit
-     * @see https://docs.upbit.com/kr/reference/get-deposit
-     * @see https://global-docs.upbit.com/reference/get-deposit
-     * @param {string} id the unique id for the deposit
-     * @param {string} [code] unified currency code of the currency deposited
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Object> fetchDeposit(String id, Object... optionalArgs)
-    {
-        return this.fetchDeposit(id, Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     /**
@@ -2335,16 +2012,14 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2375,25 +2050,9 @@ public class Upbit extends UpbitApi
             //         ...,
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit);
+            return this.parseTransactions(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchWithdrawals
-     * @see https://docs.upbit.com/kr/reference/list-withdrawals
-     * @see https://global-docs.upbit.com/reference/list-withdrawals
-     * @description fetch all withdrawals made from an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2408,14 +2067,14 @@ public class Upbit extends UpbitApi
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code2, Object parameters)
+    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Object parameters)
     {
-        final String code3 = code2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "uuid", id );
@@ -2442,25 +2101,9 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
         });
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchWithdrawal
-     * @description fetch data on a currency withdrawal via the withdrawal id
-     * @see https://docs.upbit.com/kr/reference/get-withdrawal
-     * @see https://global-docs.upbit.com/reference/get-withdrawal
-     * @param {string} id the unique id for the withdrawal
-     * @param {string} [code] unified currency code of the currency withdrawn
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Object> fetchWithdrawal(String id, Object... optionalArgs)
-    {
-        return this.fetchWithdrawal(id, Helpers.getArgString(optionalArgs, 0, null), optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}});
     }
 
     public String parseTransactionStatus(String status)
@@ -2521,36 +2164,31 @@ public class Upbit extends UpbitApi
         }
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        final String finalType = type;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", Upbit.this.safeString(transaction, "uuid") );
-            put( "currency", code );
-            put( "amount", Upbit.this.safeNumber(transaction, "amount") );
-            put( "network", null );
-            put( "address", address );
-            put( "addressTo", null );
-            put( "addressFrom", null );
-            put( "tag", tag );
-            put( "tagTo", null );
-            put( "tagFrom", null );
-            put( "status", Upbit.this.parseTransactionStatus(Upbit.this.safeStringLower(transaction, "state")) );
-            put( "type", finalType );
-            put( "updated", Upbit.this.parse8601(updatedRaw) );
-            put( "txid", Upbit.this.safeString(transaction, "txid") );
-            put( "timestamp", timestamp );
-            put( "datetime", Upbit.this.iso8601(timestamp) );
-            put( "internal", null );
-            put( "comment", null );
-            put( "fee", new HashMap<String, Object>() {{
+        return Helpers.newMap(
+            "info", transaction,
+            "id", this.safeString(transaction, "uuid"),
+            "currency", code,
+            "amount", this.safeNumber(transaction, "amount", (Object) null),
+            "network", null,
+            "address", address,
+            "addressTo", null,
+            "addressFrom", null,
+            "tag", tag,
+            "tagTo", null,
+            "tagFrom", null,
+            "status", this.parseTransactionStatus(this.safeStringLower(transaction, "state")),
+            "type", type,
+            "updated", this.parse8601(updatedRaw),
+            "txid", this.safeString(transaction, "txid"),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "internal", null,
+            "comment", null,
+            "fee", new HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", Upbit.this.safeNumber(transaction, "fee") );
-            }} );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+                put( "cost", Upbit.this.safeNumber(transaction, "fee", (Object) null) );
+            }}
+        );
     }
 
     public String parseOrderStatus(String status)
@@ -2667,13 +2305,12 @@ public class Upbit extends UpbitApi
         Map<String, Object> fee = null;
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        final String finalType = type;
-        trades = this.parseTrades(trades, market, null, null, new HashMap<String, Object>() {{
-            put( "order", id );
-            put( "type", finalType );
-        }});
+        trades = this.parseTrades(trades, Helpers.toMapArg(marketResolved), (Long) null, (Long) null, Helpers.toMapArg(Helpers.newMap(
+            "order", id,
+            "type", type
+        )));
         Integer numTrades = ((List<?>)trades).size();
         if (Helpers.isGreaterThan(numTrades, 0))
         {
@@ -2688,7 +2325,7 @@ public class Upbit extends UpbitApi
             cost = "0";
             for (var i = 0; Helpers.isLessThan(i, numTrades); i++)
             {
-                Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i);
+                Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i, (Object) null);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
@@ -2704,48 +2341,34 @@ public class Upbit extends UpbitApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Map<String, Object> finalMarket = market;
-            final String finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
-                put( "cost", finalFeeCost );
-            }};
+            fee = Helpers.newMap(
+                "currency", ((Map<String, Object>)marketResolved).get("quote"),
+                "cost", feeCost
+            );
         }
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Map<String, Object> finalMarket_2 = market;
-        final String finalSide = side;
-        final String finalPrice = price;
-        final String finalCost = cost;
-        final String finalAverage = average;
-        final Map<String, Object> finalFee = fee;
-        final List<Object> finalTrades = trades;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", id );
-            put( "clientOrderId", identifier );
-            put( "timestamp", timestamp );
-            put( "datetime", Upbit.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", finalLastTradeTimestamp );
-            put( "symbol", ((Map<String, Object>)finalMarket_2).get("symbol") );
-            put( "type", finalType );
-            put( "timeInForce", Upbit.this.safeStringUpper(order, "time_in_force") );
-            put( "postOnly", null );
-            put( "side", finalSide );
-            put( "price", finalPrice );
-            put( "triggerPrice", null );
-            put( "cost", Upbit.this.parseNumber(finalCost) );
-            put( "average", Upbit.this.parseNumber(finalAverage) );
-            put( "amount", amount );
-            put( "filled", filled );
-            put( "remaining", remaining );
-            put( "status", status );
-            put( "fee", finalFee );
-            put( "trades", finalTrades );
-        }});
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeOrder(Helpers.newMap(
+            "info", order,
+            "id", id,
+            "clientOrderId", identifier,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", lastTradeTimestamp,
+            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
+            "type", type,
+            "timeInForce", this.safeStringUpper(order, "time_in_force"),
+            "postOnly", null,
+            "side", side,
+            "price", price,
+            "triggerPrice", null,
+            "cost", this.parseNumber(cost),
+            "average", this.parseNumber(average),
+            "amount", amount,
+            "filled", filled,
+            "remaining", remaining,
+            "status", status,
+            "fee", fee,
+            "trades", trades
+        ), (Map<String, Object>) null);
     }
 
     /**
@@ -2761,16 +2384,14 @@ public class Upbit extends UpbitApi
      * @param {string} [params.state] default is 'wait', set to 'watch' for stop limit orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2806,26 +2427,9 @@ public class Upbit extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
-     * @see https://docs.upbit.com/kr/reference/list-open-orders
-     * @see https://global-docs.upbit.com/reference/list-open-orders
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of open order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.state] default is 'wait', set to 'watch' for stop limit orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2841,20 +2445,14 @@ public class Upbit extends UpbitApi
      * @param {int} [params.until] timestamp in ms of the latest order
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "state", "done" );
@@ -2873,10 +2471,10 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            List<Object> response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
             //         {
@@ -2900,26 +2498,9 @@ public class Upbit extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.upbit.com/kr/reference/list-closed-orders
-     * @see https://global-docs.upbit.com/reference/list-closed-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest order
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2935,20 +2516,14 @@ public class Upbit extends UpbitApi
      * @param {int} [params.until] timestamp in ms of the latest order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "state", "cancel" );
@@ -2967,10 +2542,10 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            List<Object> response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
             //         {
@@ -2994,26 +2569,9 @@ public class Upbit extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
-     * @see https://docs.upbit.com/kr/reference/list-closed-orders
-     * @see https://global-docs.upbit.com/reference/list-closed-orders
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-     * @param {int} [limit] max number of orders to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest order
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
-    {
-        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3034,7 +2592,7 @@ public class Upbit extends UpbitApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "uuid", id );
@@ -3083,24 +2641,9 @@ public class Upbit extends UpbitApi
             //         ]
             //     }
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchOrder
-     * @see https://docs.upbit.com/kr/reference/get-order
-     * @see https://global-docs.upbit.com/reference/get-order
-     * @description fetches information on an order made by the user
-     * @param {string} id order id
-     * @param {string} symbol not used by upbit fetchOrder
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
-    {
-        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3120,7 +2663,7 @@ public class Upbit extends UpbitApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> response = (this.privateGetDepositsCoinAddresses(parameters)).join();
             //
@@ -3142,23 +2685,9 @@ public class Upbit extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes, false);
+            return this.parseDepositAddresses(response, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchDepositAddresses
-     * @see https://docs.upbit.com/kr/reference/list-deposit-addresses
-     * @see https://global-docs.upbit.com/reference/list-deposit-addresses
-     * @description fetch deposit addresses for multiple currencies and chain types
-     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
-    {
-        return this.fetchDepositAddresses(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
@@ -3174,7 +2703,7 @@ public class Upbit extends UpbitApi
         String address = this.safeString(depositAddress, "deposit_address");
         String tag = this.safeString(depositAddress, "secondary_address");
         String currencyId = this.safeString(depositAddress, "currency");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String networkId = this.safeString(depositAddress, "net_type");
         this.checkAddress(address);
         return new HashMap<String, Object>() {{
@@ -3185,10 +2714,6 @@ public class Upbit extends UpbitApi
             put( "tag", tag );
         }};
     }
-    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
-    {
-        return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -3201,29 +2726,27 @@ public class Upbit extends UpbitApi
      * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            String networkCode = null;
-            List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
-            networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
+            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            final String finalNetworkCode = networkCode;
-            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
-                put( "net_type", Upbit.this.networkCodeToId((String) (finalNetworkCode), ((Map<String, Object>)currency).get("code")) );
-            }}, parameters))).join();
+            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(Helpers.newMap(
+                "currency", ((Map<String, Object>)currency).get("id"),
+                "net_type", this.networkCodeToId((String) (networkCode), Helpers.toStringArg(((Map<String, Object>)currency).get("code")))
+            ), paramsNetworkCode))).join();
             //
             //    {
             //        currency: 'XRP',
@@ -3232,24 +2755,9 @@ public class Upbit extends UpbitApi
             //        secondary_address: '167029435'
             //    }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response));
+            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#fetchDepositAddress
-     * @see https://docs.upbit.com/kr/reference/get-deposit-address
-     * @see https://global-docs.upbit.com/reference/get-deposit-address
-     * @description fetch the deposit address for a currency associated with this account
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
-    {
-        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3269,7 +2777,7 @@ public class Upbit extends UpbitApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3297,23 +2805,9 @@ public class Upbit extends UpbitApi
             {
                 throw new AddressPending((((this.id + " is generating ") + code) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
             }
-            return this.parseDepositAddress((Map<String, Object>) (response));
+            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#createDepositAddress
-     * @see https://docs.upbit.com/kr/reference/create-deposit-address
-     * @see https://global-docs.upbit.com/reference/create-deposit-address
-     * @description create a currency deposit address
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
-     */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
-    {
-        return this.createDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3329,21 +2823,17 @@ public class Upbit extends UpbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code2, Object amount, String address, String tag2, Map<String, Object> parameters2)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final String tag3 = tag2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            String tag = tag3;
-            Map<String, Object> parameters = parameters3;
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = (String) ((List<Object>) tagparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
+
+            List<Object> tagResolvedparamsTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            var tagResolved = ((List<Object>) tagResolvedparamsTagVariable).get(0);
+            Map<String, Object> paramsTag = (Map<String, Object>) ((List<Object>) tagResolvedparamsTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3354,24 +2844,23 @@ public class Upbit extends UpbitApi
             {
                 this.checkAddress(address);
                 // 2023-05-23 Change to required parameters for digital assets
-                String network = this.safeStringUpper2(parameters, "network", "net_type");
+                String network = this.safeStringUpper2(paramsTag, "network", "net_type");
                 if (java.util.Objects.equals(network, null))
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires a network argument")) ;
                 }
-                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
+                Object paramsOmitted = this.omit(paramsTag, new ArrayList<Object>(Arrays.asList("network")));
                 request.put("net_type", network);
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
                 request.put("address", address);
-                if (!java.util.Objects.equals(tag, null))
+                if (!java.util.Objects.equals(tagResolved, null))
                 {
-                    request.put("secondary_address", tag);
+                    request.put("secondary_address", tagResolved);
                 }
-                parameters = (Map<String, Object>) this.omit(parameters, "network");
-                response = (this.privatePostWithdrawsCoin(this.extend(request, parameters))).join();
+                response = (this.privatePostWithdrawsCoin(this.extend(request, paramsOmitted))).join();
             } else
             {
-                response = (this.privatePostWithdrawsKrw(this.extend(request, parameters))).join();
+                response = (this.privatePostWithdrawsKrw(this.extend(request, paramsTag))).join();
             }
             //
             //     {
@@ -3387,26 +2876,9 @@ public class Upbit extends UpbitApi
             //         "krw_amount": "80420.0"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response));
+            return this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
         }).thenApply(Transaction::new);
 
-    }
-    /**
-     * @method
-     * @name upbit#withdraw
-     * @see https://docs.upbit.com/kr/reference/withdraw
-     * @see https://global-docs.upbit.com/reference/withdraw
-     * @description make a withdrawal
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Long nonce()
@@ -3416,22 +2888,29 @@ public class Upbit extends UpbitApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = (String) this.implodeParams(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), new HashMap<String, Object>() {{
+        String url = (String) this.implodeParams(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), new HashMap<String, Object>() {{
             put( "hostname", Upbit.this.hostname );
         }});
         url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (!java.util.Objects.equals(method, "POST"))
+        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        if (java.util.Objects.equals(api, "private"))
+        Boolean hasBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
+        Object requestBody = body;
+        if (Boolean.TRUE.equals(hasBody))
         {
-            this.checkRequiredCredentials();
-            headers = new HashMap<String, Object>() {{}};
+            requestBody = this.json(parameters);
+        }
+        Map<String, Object> privateHeaders = null;
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        {
+            this.checkRequiredCredentials(true);
+            privateHeaders = new HashMap<String, Object>() {{}};
             String nonce = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "access_key", Upbit.this.apiKey );
@@ -3439,10 +2918,9 @@ public class Upbit extends UpbitApi
             }};
             Integer hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
             String auth = null;
-            if ((!java.util.Objects.equals(method, "GET")) && (!java.util.Objects.equals(method, "DELETE")))
+            if (Boolean.TRUE.equals(hasBody))
             {
-                body = (String) (this.json(parameters));
-                ((Map<String, Object>)headers).put("Content-Type", "application/json");
+                privateHeaders.put("Content-Type", "application/json");
             }
             if (!java.util.Objects.equals(hasQuery, 0))
             {
@@ -3455,22 +2933,15 @@ public class Upbit extends UpbitApi
                 request.put("query_hash_alg", "SHA512");
             }
             Object token = jwt(request, this.encode(this.secret), sha256());
-            ((Map<String, Object>)headers).put("Authorization", ("Bearer " + token));
+            privateHeaders.put("Authorization", ("Bearer " + token));
         }
-        final String finalUrl = url;
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", requestBody,
+            "headers", requestHeaders
+        );
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -3490,7 +2961,7 @@ public class Upbit extends UpbitApi
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
         if (!java.util.Objects.equals(error, null))
         {
             String message = this.safeString(error, "message");

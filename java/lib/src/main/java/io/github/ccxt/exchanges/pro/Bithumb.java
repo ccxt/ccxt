@@ -73,9 +73,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long ping = this.safeInteger(message, "ping");
             if (!java.util.Objects.equals(ping, null))
             {
-                (client.send(new HashMap<String, Object>() {{
-                    put( "pong", ping );
-                }})).join();
+                (client.send(Helpers.newMap(
+                    "pong", ping
+                ))).join();
             } else
             {
                 (client.send("PONG")).join();
@@ -107,25 +107,24 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2);
-            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", Helpers.toLongOrNull(2));
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
+            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
-            String tickTypes = this.safeString(parameters, "tickTypes", "24H");
-            parameters = (Map<String, Object>) this.omit(parameters, "tickTypes");
+            String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
+            Object paramsOmitted = this.omit(paramsGeneration, "tickTypes");
             Object request = new HashMap<String, Object>() {{
                 put( "type", "ticker" );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")))) );
@@ -139,28 +138,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     }}, this.extend(new HashMap<String, Object>() {{
         put( "type", "ticker" );
         put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
-    }}, parameters)));
+    }}, paramsOmitted)));
                 return (this.watch(url, messageHash, request, messageHash, null)).join();
             }
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            return (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name bithumb#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-ticker
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tickTypes] generation 1 only, the tick type to subscribe to, '24H' by default (30M, 1H, 12H, 24H, MID)
-     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
-     */
-    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.watchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -175,39 +158,33 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    public CompletableFuture<Tickers> watchTickers(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2);
-            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, false, true, true));
-            Integer symbolsLength = (((java.util.Objects.equals(symbols, null)))) ? 0 : ((List<?>)symbols).size();
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", Helpers.toLongOrNull(2));
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
+            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
+            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : ((List<?>)symbolsNormalized).size();
             if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
             {
                 throw new ArgumentsRequired((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
             }
-            if (java.util.Objects.equals(symbols, null))
-            {
-                symbols = Helpers.toStringListArg(this.symbols);
-            }
-            Integer symbolsLengthDefined = ((List<?>)symbols).size();
+            List<String> symbolsResolved = (((java.util.Objects.equals(symbolsNormalized, null)))) ? Helpers.toStringListArg(this.symbols) : symbolsNormalized;
+            Integer symbolsLengthDefined = ((List<?>)symbolsResolved).size();
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLengthDefined); i++)
             {
-                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object streamMarketId = null;
                 if (Boolean.TRUE.equals(isGenerationTwo))
@@ -220,8 +197,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 ((List<Object>)streamMarketIds).add(streamMarketId);
                 messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
-            String tickTypes = this.safeString(parameters, "tickTypes", "24H");
-            parameters = (Map<String, Object>) this.omit(parameters, "tickTypes");
+            String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
+            Object paramsOmitted = this.omit(paramsGeneration, "tickTypes");
             Object message = new HashMap<String, Object>() {{
                 put( "type", "ticker" );
                 put( "symbols", streamMarketIds );
@@ -234,10 +211,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     }}, this.extend(new HashMap<String, Object>() {{
         put( "type", "ticker" );
         put( "codes", streamMarketIds );
-    }}, parameters)));
+    }}, paramsOmitted)));
             } else
             {
-                message = this.extend(message, parameters);
+                message = this.extend(message, paramsOmitted);
             }
             Object newTicker = (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
             if (this.newUpdates)
@@ -246,25 +223,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
-            return this.filterByArray(this.tickers, "symbol", symbols);
+            return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name bithumb#watchTickers
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-     * @see https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-ticker
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tickTypes] generation 1 only, the tick type to subscribe to, '24H' by default (30M, 1H, 12H, 24H, MID)
-     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
-     */
-    public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
-    {
-        return this.watchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -332,7 +293,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "REALTIME"
         //     }
         //
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content", (Object) null);
         Boolean isGenerationTwo = (java.util.Objects.equals(content, null));
         Map<String, Object> tickerMessage = null;
         if (Boolean.TRUE.equals(isGenerationTwo))
@@ -350,16 +311,16 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String symbol = null;
         if (Boolean.TRUE.equals(isGenerationTwo))
         {
-            symbol = this.safeSymbol(marketId, null, "-");
+            symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
         } else
         {
-            symbol = this.safeSymbol(marketId, null, "_");
+            symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
         }
         if (java.util.Objects.equals(symbol, null))
         {
             return;
         }
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(tickerMessage);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(tickerMessage, (Map<String, Object>) null);
         String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
@@ -441,33 +402,28 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             timestamp = (Helpers.subtract(timestamp, 32400000));
         }
         String marketId = this.safeString(ticker, "symbol");
-        final Object finalTimestamp = timestamp;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Bithumb.this.safeSymbol(marketId, market, "_") );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Bithumb.this.iso8601(finalTimestamp) );
-            put( "high", Bithumb.this.safeString(ticker, "highPrice") );
-            put( "low", Bithumb.this.safeString(ticker, "lowPrice") );
-            put( "bid", null );
-            put( "bidVolume", Bithumb.this.safeString(ticker, "buyVolume") );
-            put( "ask", null );
-            put( "askVolume", Bithumb.this.safeString(ticker, "sellVolume") );
-            put( "vwap", null );
-            put( "open", Bithumb.this.safeString(ticker, "openPrice") );
-            put( "close", Bithumb.this.safeString(ticker, "closePrice") );
-            put( "last", null );
-            put( "previousClose", Bithumb.this.safeString(ticker, "prevClosePrice") );
-            put( "change", Bithumb.this.safeString(ticker, "chgAmt") );
-            put( "percentage", Bithumb.this.safeString(ticker, "chgRate") );
-            put( "average", null );
-            put( "baseVolume", Bithumb.this.safeString(ticker, "volume") );
-            put( "quoteVolume", Bithumb.this.safeString(ticker, "value") );
-            put( "info", ticker );
-        }}, market);
-    }
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseWsTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeTicker(Helpers.newMap(
+            "symbol", this.safeSymbol(marketId, market, "_", (String) null),
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "high", this.safeString(ticker, "highPrice"),
+            "low", this.safeString(ticker, "lowPrice"),
+            "bid", null,
+            "bidVolume", this.safeString(ticker, "buyVolume"),
+            "ask", null,
+            "askVolume", this.safeString(ticker, "sellVolume"),
+            "vwap", null,
+            "open", this.safeString(ticker, "openPrice"),
+            "close", this.safeString(ticker, "closePrice"),
+            "last", null,
+            "previousClose", this.safeString(ticker, "prevClosePrice"),
+            "change", this.safeString(ticker, "chgAmt"),
+            "percentage", this.safeString(ticker, "chgRate"),
+            "average", null,
+            "baseVolume", this.safeString(ticker, "volume"),
+            "quoteVolume", this.safeString(ticker, "value"),
+            "info", ticker
+        ), market);
     }
 
     /**
@@ -482,26 +438,23 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Long limit, Map<String, Object> parameters2)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2);
-            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", Helpers.toLongOrNull(2));
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = (String) ((Map<String, Object>)market).get("symbol");
-            String messageHash = (("orderbook" + ":") + symbol);
+            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String messageHash = (("orderbook" + ":") + symbolValue);
             Object request = new HashMap<String, Object>() {{
                 put( "type", "orderbookdepth" );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")))) );
@@ -514,31 +467,15 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     }}, this.extend(new HashMap<String, Object>() {{
         put( "type", "orderbook" );
         put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
-    }}, parameters)));
+    }}, paramsGeneration)));
             } else
             {
-                request = this.extend(request, parameters);
+                request = this.extend(request, paramsGeneration);
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name bithumb#watchOrderBook
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-     * @see https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-orderbook
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
-    {
-        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -588,7 +525,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "SNAPSHOT"
         //     }
         //
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content", (Object) null);
         if (!java.util.Objects.equals(content, null))
         {
             List<Object> list = (List<Object>) this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
@@ -598,7 +535,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 return;
             }
-            String legacySymbol = this.safeSymbol(legacyMarketId, null, "_");
+            String legacySymbol = this.safeSymbol(legacyMarketId, (Map<String, Object>) null, "_", (String) null);
             String timestampStr = this.safeString(content, "datetime");
             if (java.util.Objects.equals(timestampStr, null))
             {
@@ -620,7 +557,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             return;
         }
         String marketId = this.safeString(message, "code");
-        String symbol = this.safeSymbol(marketId, null, "-");
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
         if (java.util.Objects.equals(symbol, null))
         {
             return;
@@ -640,11 +577,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)units).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i);
-            Double bidPrice = this.safeNumber(entry, "bid_price");
-            Double bidSize = this.safeNumber(entry, "bid_size");
-            Double askPrice = this.safeNumber(entry, "ask_price");
-            Double askSize = this.safeNumber(entry, "ask_size");
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i, (Object) null);
+            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
+            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
+            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
+            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
             if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
             {
                 Helpers.callDynamically(bids, "store", new Object[]{bidPrice, bidSize});
@@ -687,7 +624,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             side = "bids";
         }
-        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "quantity");
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "quantity", 2);
         Object orderbookSide = Helpers.GetValue(orderbook, side);
         Helpers.callDynamically(orderbookSide, "storeArray", new Object[]{bidAsk});
     }
@@ -713,28 +650,23 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Object limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2);
-            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", Helpers.toLongOrNull(2));
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = (String) ((Map<String, Object>)market).get("symbol");
-            String messageHash = ("trade:" + symbol);
+            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            String messageHash = ("trade:" + symbolValue);
             Object request = new HashMap<String, Object>() {{
                 put( "type", "transaction" );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(((((Map<String, Object>)market).get("base") + "_") + ((Map<String, Object>)market).get("quote")))) );
@@ -747,36 +679,20 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     }}, this.extend(new HashMap<String, Object>() {{
         put( "type", "trade" );
         put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
-    }}, parameters)));
+    }}, paramsGeneration)));
             } else
             {
-                request = this.extend(request, parameters);
+                request = this.extend(request, paramsGeneration);
             }
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bithumb#watchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
-     * @see https://apidocs.bithumb.com/reference/%EC%B2%B4%EA%B2%B0-trade
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
-     * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
-     */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message)
@@ -820,8 +736,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "REALTIME"
         //     }
         //
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
-        List<Object> rawTrades = (List<Object>) this.safeList(content, "list");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content", (Object) null);
+        List<Object> rawTrades = (List<Object>) this.safeList(content, "list", (Object) null);
         if (java.util.Objects.equals(rawTrades, null))
         {
             rawTrades = new ArrayList<Object>(Arrays.asList(message));
@@ -839,12 +755,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             String fallbackSymbol = null;
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                fallbackSymbol = this.safeSymbol(marketId, null, "-");
+                fallbackSymbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
             } else
             {
-                fallbackSymbol = this.safeSymbol(marketId, null, "_");
+                fallbackSymbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
             }
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
+            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
             {
@@ -897,11 +813,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         if (!java.util.Objects.equals(marketCode, null))
         {
             Long tradeTimestamp = this.safeInteger(trade, "trade_timestamp");
-            final String finalMarketCode = marketCode;
-            Map<String, Object> normalized = this.extend(trade, new HashMap<String, Object>() {{
-                put( "market", finalMarketCode );
-                put( "timestamp", tradeTimestamp );
-            }});
+            Map<String, Object> normalized = this.extend(trade, Helpers.newMap(
+                "market", marketCode,
+                "timestamp", tradeTimestamp
+            ));
             return (Map<String, Object>) (this.parseTrade(normalized, market));
         }
         String marketId = this.safeString(trade, "symbol");
@@ -909,26 +824,21 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
         Object timestamp = Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
         String sideId = this.safeString(trade, "buySellGb");
-        final String finalSideId = sideId;
-        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", null );
-            put( "info", trade );
-            put( "timestamp", timestamp );
-            put( "datetime", Bithumb.this.iso8601(timestamp) );
-            put( "symbol", Bithumb.this.safeSymbol(marketId, market, "_") );
-            put( "order", null );
-            put( "type", null );
-            put( "side", (((java.util.Objects.equals(finalSideId, "1")))) ? "buy" : "sell" );
-            put( "takerOrMaker", null );
-            put( "price", Bithumb.this.safeString(trade, "contPrice") );
-            put( "amount", Bithumb.this.safeString(trade, "contQty") );
-            put( "cost", Bithumb.this.safeString(trade, "contAmt") );
-            put( "fee", null );
-        }}, market));
-    }
-    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
-    {
-        return this.parseWsTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
+        return (Map<String, Object>) (this.safeTrade(Helpers.newMap(
+            "id", null,
+            "info", trade,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "symbol", this.safeSymbol(marketId, market, "_", (String) null),
+            "order", null,
+            "type", null,
+            "side", (((java.util.Objects.equals(sideId, "1")))) ? "buy" : "sell",
+            "takerOrMaker", null,
+            "price", this.safeString(trade, "contPrice"),
+            "amount", this.safeString(trade, "contQty"),
+            "cost", this.safeString(trade, "contAmt"),
+            "fee", null
+        ), market));
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
@@ -939,7 +849,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
         if (!java.util.Objects.equals(error, null))
         {
             String errorName = this.safeString(error, "name", "Error");
@@ -988,24 +898,21 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters2)
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2);
-            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            if ((generation == null || generation != 2))
+            Long generation = (Long) ((List<Object>)this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", Helpers.toLongOrNull(2))).get(0);
+            if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
             }
-            (this.authenticate()).join();
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateGen2");
             String messageHash = "myAsset";
             Object request = this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
@@ -1015,19 +922,6 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             return balance;
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name bithumb#watchBalance
-     * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
-    {
-        return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public void handleBalance(Client client, Map<String, Object> message)
@@ -1055,9 +949,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
-            Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i);
+            Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i, (Object) null);
             String currencyId = this.safeString(asset, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId));
+            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("free", this.safeString(asset, "balance"));
             account.put("used", this.safeString(asset, "locked"));
@@ -1109,7 +1003,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             String authenticated = this.safeString(wsOptions, "token");
             if (java.util.Objects.equals(authenticated, null))
@@ -1134,10 +1028,6 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         });
 
     }
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
-    {
-        return this.authenticate(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1152,67 +1042,46 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Object limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long generation = null;
-            List<Object> generationparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2);
-            generation = (Long) ((List<Object>) generationparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) generationparametersVariable).get(1);
-            if ((generation == null || generation != 2))
+            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", Helpers.toLongOrNull(2));
+            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+            if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
             }
-            (this.authenticate()).join();
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateGen2");
             String messageHash = "myOrder";
-            List<Object> codes = (List<Object>) this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
-            final String finalMessageHash = messageHash;
-            Object request = this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
-                put( "type", finalMessageHash );
-                put( "codes", codes );
-            }});
+            List<Object> codes = (List<Object>) this.safeList(paramsGeneration, "codes", new ArrayList<Object>(Arrays.asList()));
+            Object request = this.buildGen2SubscriptionRequest(messageHash, Helpers.newMap(
+                "type", messageHash,
+                "codes", codes
+            ));
+            Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = (String) ((Map<String, Object>)market).get("symbol");
-                messageHash = ((messageHash + ":") + symbol);
+                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                messageHash = ((messageHash + ":") + symbolResolved);
             }
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, Helpers.toLongOrNull(limitResolved), true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name bithumb#watchOrders
-     * @description watches information on multiple orders made by the user
-     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.codes] market codes to filter orders
-     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
-    {
-        return this.watchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrders(Client client, Map<String, Object> message)
@@ -1242,7 +1111,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myOrder";
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
         if (java.util.Objects.equals(this.orders, null))
@@ -1284,7 +1153,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String marketId = this.safeString(order, "code");
-        String symbol = this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-", (String) null);
         Long timestamp = this.safeInteger(order, "order_timestamp");
         String sideId = this.safeString(order, "ask_bid");
         String side = this.safeStringLower(order, "side");
@@ -1328,46 +1197,37 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Map<String, Object> marketForFee = (Map<String, Object>) this.safeMarket(marketId, market);
+            Map<String, Object> marketForFee = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), market, (String) null, (String) null);
             String feeCurrency = this.safeString(marketForFee, "quote");
-            final String finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
-                put( "currency", feeCurrency );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCost,
+                "currency", feeCurrency
+            );
         }
-        final String finalType = type;
-        final String finalSide = side;
-        final String finalStatus = status;
-        final Map<String, Object> finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", Bithumb.this.safeString2(order, "uuid", "order_id") );
-            put( "clientOrderId", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Bithumb.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", Bithumb.this.safeInteger(order, "trade_timestamp") );
-            put( "symbol", symbol );
-            put( "type", finalType );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "side", finalSide );
-            put( "price", price );
-            put( "stopPrice", null );
-            put( "triggerPrice", null );
-            put( "amount", amount );
-            put( "cost", cost );
-            put( "average", null );
-            put( "filled", filled );
-            put( "remaining", remaining );
-            put( "status", finalStatus );
-            put( "fee", finalFee );
-            put( "trades", null );
-        }}, market);
-    }
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
-    {
-        return this.parseWsOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeOrder(Helpers.newMap(
+            "info", order,
+            "id", this.safeString2(order, "uuid", "order_id"),
+            "clientOrderId", null,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", this.safeInteger(order, "trade_timestamp"),
+            "symbol", symbol,
+            "type", type,
+            "timeInForce", null,
+            "postOnly", null,
+            "side", side,
+            "price", price,
+            "stopPrice", null,
+            "triggerPrice", null,
+            "amount", amount,
+            "cost", cost,
+            "average", null,
+            "filled", filled,
+            "remaining", remaining,
+            "status", status,
+            "fee", fee,
+            "trades", null
+        ), market);
     }
 
     public void handleMessage(Client client, Object message)

@@ -830,18 +830,6 @@ public class Blofin extends BlofinApi
         });
 
     }
-    /**
-     * @method
-     * @name blofin#fetchMarkets
-     * @description retrieves data on all markets for blofin
-     * @see https://blofin.com/docs#get-instruments
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of objects representing market data
-     */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
-    {
-        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     public Object parseMarket(Object market)
     {
@@ -855,9 +843,9 @@ public class Blofin extends BlofinApi
         String baseId = this.safeString(market, "baseCurrency");
         String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settleCurrency", quoteId);
-        String settle = this.safeCurrencyCode(settleId);
-        String base = this.safeCurrencyCode(baseId);
-        String quote = this.safeCurrencyCode(quoteId);
+        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(swap))
         {
@@ -868,73 +856,66 @@ public class Blofin extends BlofinApi
         List<String> optionType = null;
         String tickSize = this.safeString(market, "tickSize");
         Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
-        Double taker = this.safeNumber(fees, "taker");
-        Double maker = this.safeNumber(fees, "maker");
+        Double taker = this.safeNumber(fees, "taker", (Object) null);
+        Double maker = this.safeNumber(fees, "maker", (Object) null);
         String maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Boolean isActive = (java.util.Objects.equals(this.safeString(market, "state"), "live"));
         Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         String contractType = this.safeString(market, "contractType");
-        Double maxLimitAmount = this.safeNumber(market, "maxLimitSize");
-        Double maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
-        final String finalSymbol = symbol;
-        final String finalBase = base;
-        final String finalType = type;
-        final Boolean finalSpot = spot;
-        final Boolean finalSwap = swap;
-        final String finalContractType = contractType;
-        final String finalMaxLeverage = maxLeverage;
-        return this.safeMarketStructure(new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "symbol", finalSymbol );
-            put( "base", finalBase );
-            put( "quote", quote );
-            put( "baseId", baseId );
-            put( "quoteId", quoteId );
-            put( "settle", settle );
-            put( "settleId", settleId );
-            put( "type", finalType );
-            put( "spot", finalSpot );
-            put( "option", option );
-            put( "margin", isMargin );
-            put( "swap", finalSwap );
-            put( "future", future );
-            put( "active", isActive );
-            put( "taker", taker );
-            put( "maker", maker );
-            put( "contract", contract );
-            put( "linear", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(finalContractType, "linear")) : null );
-            put( "inverse", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(finalContractType, "inverse")) : null );
-            put( "contractSize", ((Boolean.TRUE.equals(contract))) ? Blofin.this.safeNumber(market, "contractValue") : null );
-            put( "expiry", expiry );
-            put( "expiryDatetime", expiry );
-            put( "strike", strikePrice );
-            put( "optionType", optionType );
-            put( "created", Blofin.this.safeInteger(market, "listTime") );
-            put( "precision", new HashMap<String, Object>() {{
-                put( "amount", Blofin.this.safeNumber(market, "lotSize") );
+        Double maxLimitAmount = this.safeNumber(market, "maxLimitSize", (Object) null);
+        Double maxSpotCost = this.safeNumber(market, "maxMarketSize", (Object) null); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        return this.safeMarketStructure(Helpers.newMap(
+            "id", id,
+            "symbol", symbol,
+            "base", base,
+            "quote", quote,
+            "baseId", baseId,
+            "quoteId", quoteId,
+            "settle", settle,
+            "settleId", settleId,
+            "type", type,
+            "spot", spot,
+            "option", option,
+            "margin", isMargin,
+            "swap", swap,
+            "future", future,
+            "active", isActive,
+            "taker", taker,
+            "maker", maker,
+            "contract", contract,
+            "linear", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "linear")) : null,
+            "inverse", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "inverse")) : null,
+            "contractSize", ((Boolean.TRUE.equals(contract))) ? this.safeNumber(market, "contractValue", (Object) null) : null,
+            "expiry", expiry,
+            "expiryDatetime", expiry,
+            "strike", strikePrice,
+            "optionType", optionType,
+            "created", this.safeInteger(market, "listTime"),
+            "precision", new HashMap<String, Object>() {{
+                put( "amount", Blofin.this.safeNumber(market, "lotSize", (Object) null) );
                 put( "price", Blofin.this.parseNumber(tickSize) );
-            }} );
-            put( "limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
-                    put( "min", Blofin.this.parseNumber("1") );
-                    put( "max", Blofin.this.parseNumber(finalMaxLeverage) );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Blofin.this.safeNumber(market, "minSize") );
+            }},
+            "limits", Helpers.newMap(
+                "leverage", Helpers.newMap(
+                    "min", this.parseNumber("1"),
+                    "max", this.parseNumber(maxLeverage)
+                ),
+                "amount", new HashMap<String, Object>() {{
+                    put( "min", Blofin.this.safeNumber(market, "minSize", (Object) null) );
                     put( "max", maxLimitAmount );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
+                }},
+                "price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
+                }},
+                "cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", ((Boolean.TRUE.equals(contract))) ? null : maxSpotCost );
-                }} );
-            }} );
-            put( "info", market );
-        }});
+                }}
+            ),
+            "info", market
+        ));
     }
 
     /**
@@ -947,23 +928,23 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object limit = limit3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
-            limit = (((java.util.Objects.equals(limit, null)))) ? 50 : limit;
-            if (!java.util.Objects.equals(limit, null))
+            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 50 : limit;
+            if (!java.util.Objects.equals(limitValue, null))
             {
-                request.put("size", limit); // max 100
+                request.put("size", limitValue); // max 100
             }
             Map<String, Object> response = (this.publicGetMarketBooks(this.extend(request, parameters))).join();
             //
@@ -990,23 +971,9 @@ public class Blofin extends BlofinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
-            return this.parseOrderBook(first, symbol, timestamp);
+            return this.parseOrderBook(first, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://blofin.com/docs#get-order-book
-     * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1032,11 +999,11 @@ public class Blofin extends BlofinApi
         //
         Long timestamp = this.safeInteger(ticker, "ts");
         String marketId = this.safeString(ticker, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
-        Boolean spot = (Boolean) this.safeBool(market, "spot", false);
+        Boolean spot = (Boolean) this.safeBool(marketResolved, "spot", false);
         String quoteVolume = (((java.util.Objects.equals(spot, true)))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
@@ -1064,11 +1031,7 @@ public class Blofin extends BlofinApi
             put( "indexPrice", Blofin.this.safeString(ticker, "indexPrice") );
             put( "markPrice", Blofin.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
-        }}, market);
-    }
-    public Object parseTicker(Object ticker, Object... optionalArgs)
-    {
-        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1087,7 +1050,7 @@ public class Blofin extends BlofinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1096,22 +1059,9 @@ public class Blofin extends BlofinApi
             Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(first, market);
+            return this.parseTicker(first, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://blofin.com/docs#get-tickers
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1131,7 +1081,7 @@ public class Blofin extends BlofinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1140,24 +1090,10 @@ public class Blofin extends BlofinApi
             Map<String, Object> response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(first, market);
+            return this.parseTicker(first, Helpers.toMapArg(market));
         }).thenApply(Ticker::new);
 
     }
-    /**
-     * @method
-     * @name blofin#fetchMarkPrice
-     * @description fetches mark price for the market
-     * @see https://docs.blofin.com/index.html#get-mark-price
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Ticker> fetchMarkPrice(String symbol, Object... optionalArgs)
-    {
-        return this.fetchMarkPrice(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -1168,34 +1104,21 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetMarketTickers(parameters)).join();
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(tickers, symbols);
+            return this.parseTickers(tickers, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://blofin.com/docs#get-tickers
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
-    {
-        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1244,8 +1167,8 @@ public class Blofin extends BlofinApi
         //
         String id = this.safeString(trade, "tradeId");
         String marketId = this.safeString(trade, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market, "-"));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(trade, "ts");
         String price = this.safeString2(trade, "price", "fillPrice");
         String amount = this.safeString2(trade, "size", "fillSize");
@@ -1257,71 +1180,62 @@ public class Blofin extends BlofinApi
         Boolean isSpot = !java.util.Objects.equals(feeCurrency, null);
         if (java.util.Objects.equals(feeCurrency, null))
         {
-            feeCurrency = this.safeString(market, "settle");
+            feeCurrency = this.safeString(marketResolved, "settle");
         } else if (java.util.Objects.equals(feeCurrency, "base_currency"))
         {
-            feeCurrency = this.safeString(market, "base");
+            feeCurrency = this.safeString(marketResolved, "base");
         } else if (java.util.Objects.equals(feeCurrency, "quote_currency"))
         {
-            feeCurrency = this.safeString(market, "quote");
+            feeCurrency = this.safeString(marketResolved, "quote");
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final String finalFeeCost = feeCost;
-            final String finalFeeCurrency = feeCurrency;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
-                put( "currency", finalFeeCurrency );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCost,
+                "currency", feeCurrency
+            );
         }
         if (Boolean.TRUE.equals(isSpot))
         {
-            String spotSymbol = ((((Map<String, Object>)market).get("base") + "/") + ((Map<String, Object>)market).get("quote"));
+            String spotSymbol = ((((Map<String, Object>)marketResolved).get("base") + "/") + ((Map<String, Object>)marketResolved).get("quote"));
             Double cost = this.parseNumber(Precise.stringMul(price, amount));
-            final String finalFeeCost_2 = feeCost;
-            final String finalFeeCurrency_2 = feeCurrency;
-            Map<String, Object> result = new HashMap<String, Object>() {{
-                put( "info", trade );
-                put( "timestamp", timestamp );
-                put( "datetime", Blofin.this.iso8601(timestamp) );
-                put( "symbol", spotSymbol );
-                put( "id", id );
-                put( "order", orderId );
-                put( "type", null );
-                put( "takerOrMaker", null );
-                put( "side", side );
-                put( "price", Blofin.this.parseNumber(price) );
-                put( "amount", Blofin.this.parseNumber(amount) );
-                put( "cost", cost );
-                put( "fee", new HashMap<String, Object>() {{
-                    put( "cost", Blofin.this.parseNumber(finalFeeCost_2) );
-                    put( "currency", finalFeeCurrency_2 );
-                }} );
-            }};
+            Map<String, Object> result = Helpers.newMap(
+                "info", trade,
+                "timestamp", timestamp,
+                "datetime", this.iso8601(timestamp),
+                "symbol", spotSymbol,
+                "id", id,
+                "order", orderId,
+                "type", null,
+                "takerOrMaker", null,
+                "side", side,
+                "price", this.parseNumber(price),
+                "amount", this.parseNumber(amount),
+                "cost", cost,
+                "fee", Helpers.newMap(
+                    "cost", this.parseNumber(feeCost),
+                    "currency", feeCurrency
+                )
+            );
             return result;
         } else
         {
-            final Map<String, Object> finalFee = fee;
-            return this.safeTrade(new HashMap<String, Object>() {{
-                put( "info", trade );
-                put( "timestamp", timestamp );
-                put( "datetime", Blofin.this.iso8601(timestamp) );
-                put( "symbol", symbol );
-                put( "id", id );
-                put( "order", orderId );
-                put( "type", null );
-                put( "takerOrMaker", null );
-                put( "side", side );
-                put( "price", price );
-                put( "amount", amount );
-                put( "cost", null );
-                put( "fee", finalFee );
-            }}, market);
+            return this.safeTrade(Helpers.newMap(
+                "info", trade,
+                "timestamp", timestamp,
+                "datetime", this.iso8601(timestamp),
+                "symbol", symbol,
+                "id", id,
+                "order", orderId,
+                "type", null,
+                "takerOrMaker", null,
+                "side", side,
+                "price", price,
+                "amount", amount,
+                "cost", null,
+                "fee", fee
+            ), Helpers.toMapArg(marketResolved));
         }
-    }
-    public Object parseTrade(Object trade, Object... optionalArgs)
-    {
-        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1336,24 +1250,23 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "tradeId", "after", null, 100)).join();
+                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "tradeId", "after", (Long) null, Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1364,34 +1277,17 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit); // default 100
             }
-            String method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
-            method = (String) ((List<Object>) methodparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
+            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades");
+            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
+            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
             if (java.util.Objects.equals(method, "publicGetMarketTrades"))
             {
-                response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
+                response = (this.publicGetMarketTrades(this.extend(request, paramsMethod))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://blofin.com/docs#get-trades
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
-    {
-        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1409,11 +1305,7 @@ public class Blofin extends BlofinApi
         //         "0" // candlestick state
         //     ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)));
-    }
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
-    {
-        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 6, (Object) null)));
     }
 
     /**
@@ -1430,65 +1322,42 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object query = null;
+            List<Object> paginatequeryVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginatequeryVariable).get(0);
+            query = ((List<Object>) paginatequeryVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 100)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", Helpers.toStringArg(symbol), since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(query), Helpers.toLongOrNull(100))).join();
             }
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 100L; // default 100, max 100
-            }
-            final Long finalLimit = limit;
+            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100, max 100
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
-                put( "bar", Blofin.this.safeString(Blofin.this.timeframes, timeframe, timeframe) );
-                put( "limit", finalLimit );
+                put( "bar", Blofin.this.safeString(Blofin.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+                put( "limit", limitResolved );
             }};
-            Long until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(query, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("after", until);
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
+                query = this.omit(query, "until");
             }
-            Map<String, Object> response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetMarketCandles(this.extend(request, query))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, timeframe, since, limit);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://blofin.com/docs#get-candlesticks
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1504,32 +1373,27 @@ public class Blofin extends BlofinApi
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object query = null;
+            List<Object> paginatequeryVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginatequeryVariable).get(0);
+            query = ((List<Object>) paginatequeryVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(query), Helpers.toLongOrNull(100))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1543,13 +1407,13 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit);
             }
-            Long until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(query, "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("after", until);
-                parameters = (Map<String, Object>) this.omit(parameters, "until");
+                query = this.omit(query, "until");
             }
-            Map<String, Object> response = (this.publicGetMarketFundingRateHistory(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.publicGetMarketFundingRateHistory(this.extend(request, query))).join();
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1559,32 +1423,15 @@ public class Blofin extends BlofinApi
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", rate );
                     put( "symbol", ((Map<String, Object>)market).get("symbol") );
-                    put( "fundingRate", Blofin.this.safeNumber(rate, "fundingRate") );
+                    put( "fundingRate", Blofin.this.safeNumber(rate, "fundingRate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", Blofin.this.iso8601(timestamp) );
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, ((Map<String, Object>)market).get("symbol"), since, limit);
+            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://blofin.com/docs#get-funding-rate-history
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
-     */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
-    {
-        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -1597,7 +1444,7 @@ public class Blofin extends BlofinApi
         //    }
         //
         String marketId = this.safeString(contract, "instId");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Long fundingTime = this.safeInteger(contract, "fundingTime");
         // > The current interest is 0.
         return new HashMap<String, Object>() {{
@@ -1609,7 +1456,7 @@ public class Blofin extends BlofinApi
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", Blofin.this.safeNumber(contract, "fundingRate") );
+            put( "fundingRate", Blofin.this.safeNumber(contract, "fundingRate", (Object) null) );
             put( "fundingTimestamp", fundingTime );
             put( "fundingDatetime", Blofin.this.iso8601(fundingTime) );
             put( "nextFundingRate", null );
@@ -1621,10 +1468,6 @@ public class Blofin extends BlofinApi
             put( "interval", null );
         }};
     }
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
-    {
-        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
-    }
 
     /**
      * @method
@@ -1635,14 +1478,14 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -1668,31 +1511,14 @@ public class Blofin extends BlofinApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(entry, market);
+            return this.parseFundingRate(entry, Helpers.toMapArg(market));
         }).thenApply(FundingRate::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchFundingRate
-     * @description fetch the current funding rate
-     * @see https://blofin.com/docs#get-funding-rate
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
-     */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
-    {
-        return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
-    }
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
-    {
-        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     public Object parseBalanceByType(Map<String, Object> response)
     {
-        List<Object> data = (List<Object>) this.safeList(response, "data");
+        List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
         if ((!java.util.Objects.equals(data, null)) && (data instanceof List))
         {
             return this.parseFundingBalance((Map<String, Object>) (response));
@@ -1742,9 +1568,9 @@ public class Blofin extends BlofinApi
         List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "equity");
@@ -1788,9 +1614,9 @@ public class Blofin extends BlofinApi
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = (Map<String, Object>) this.account();
             // it may be incorrect to use total, free and used for swap accounts
             account.put("total", this.safeString(balance, "balance"));
@@ -1805,16 +1631,12 @@ public class Blofin extends BlofinApi
     {
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", Blofin.this.safeSymbol(null, market) );
+            put( "symbol", Blofin.this.safeSymbol(null, market, (String) null, (String) null) );
             put( "maker", Blofin.this.parseNumber(Precise.stringNeg(Blofin.this.safeString2(fee, "maker", "makerU"))) );
             put( "taker", Blofin.this.parseNumber(Precise.stringNeg(Blofin.this.safeString2(fee, "taker", "takerU"))) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
-    }
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
-    {
-        return this.parseTradingFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1827,19 +1649,18 @@ public class Blofin extends BlofinApi
      * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String accountType = null;
-            List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "fetchBalance", "accountType", "type");
-            accountType = (String) ((List<Object>) accountTypeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) accountTypeparametersVariable).get(1);
+            List<Object> accountTypeparamsAccountTypeVariable = (List<Object>) this.handleOptionStringAndParams2(parameters, "fetchBalance", "accountType", "type", (String) null);
+            String accountType = (String) ((List<Object>) accountTypeparamsAccountTypeVariable).get(0);
+            Map<String, Object> paramsAccountType = (Map<String, Object>) ((List<Object>) accountTypeparamsAccountTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(accountType, null) && !java.util.Objects.equals(accountType, "swap"))
@@ -1847,28 +1668,14 @@ public class Blofin extends BlofinApi
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
                 String parsedAccountType = this.safeString(options, accountType, accountType);
                 request.put("accountType", parsedAccountType);
-                response = (this.privateGetAssetBalances(this.extend(request, parameters))).join();
+                response = (this.privateGetAssetBalances(this.extend(request, paramsAccountType))).join();
             } else
             {
-                response = (this.privateGetAccountBalance(this.extend(request, parameters))).join();
+                response = (this.privateGetAccountBalance(this.extend(request, paramsAccountType))).join();
             }
             return this.parseBalanceByType((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://blofin.com/docs#get-balance
-     * @see https://blofin.com/docs#get-futures-account-balance
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
-     */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
-    {
-        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -1882,30 +1689,29 @@ public class Blofin extends BlofinApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        final String finalSide = side;
-        final String finalType = type;
-        Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "instId", ((Map<String, Object>)market).get("id") );
-            put( "side", finalSide );
-            put( "orderType", finalType );
-            put( "size", Blofin.this.amountToPrecision(symbol, amount) );
-            put( "brokerId", Blofin.this.safeString(Blofin.this.options, "brokerId", "ec6dd3a7dd982d0b") );
-        }};
+        Map<String, Object> request = Helpers.newMap(
+            "instId", ((Map<String, Object>)market).get("id"),
+            "side", side,
+            "orderType", type,
+            "size", this.amountToPrecision(symbol, amount),
+            "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b")
+        );
         String marginMode = null;
-        List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
-        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+        Object query = null;
+        List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
+        marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
+        query = ((List<Object>) marginModequeryVariable).get(1);
         request.put("marginMode", marginMode);
-        String triggerPriceAny = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
-        String triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
-        String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
+        String triggerPriceAny = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        String triggerPriceSlTp = this.safeString2(query, "stopLossPrice", "takeProfitPrice");
+        String timeInForce = this.safeString(query, "timeInForce", "GTC");
+        Boolean isHedged = (Boolean) this.safeBool(query, "hedged", false);
         if (java.util.Objects.equals(isHedged, true))
         {
             request.put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "long" : "short");
         }
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce"))));
+        query = this.omit(query, new ArrayList<Object>(Arrays.asList("timeInForce")));
         Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC")) || (java.util.Objects.equals(type, "ioc"));
         Boolean marketIOC = (Boolean.TRUE.equals(isMarketOrder) && Boolean.TRUE.equals(ioc));
         if (Boolean.TRUE.equals(isMarketOrder) || Boolean.TRUE.equals(marketIOC))
@@ -1921,16 +1727,16 @@ public class Blofin extends BlofinApi
             request.put((String)key, this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = false;
-        List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), parameters);
-        postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), query);
+        postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
+        query = ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("type", "post_only");
         }
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
-        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "hedged"))));
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(query, "stopLoss", (Object) null);
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(query, "takeProfit", (Object) null);
+        query = this.omit(query, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "hedged")));
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
         if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
@@ -1961,13 +1767,9 @@ public class Blofin extends BlofinApi
             {
                 request.put("reduceOnly", true);
             }
-            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "triggerPrice"))));
+            query = this.omit(query, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "triggerPrice")));
         }
-        return (Map<String, Object>) (this.extend(request, parameters));
-    }
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+        return (Map<String, Object>) (this.extend(request, query));
     }
 
     public String parseOrderStatus(String status)
@@ -2045,15 +1847,15 @@ public class Blofin extends BlofinApi
             type = "trigger";
         }
         String marketId = this.safeString(order, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = this.safeSymbol(marketId, market, "-");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), "-", (String) null);
         String filled = this.safeString(order, "filledSize");
         String price = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("px", "price", "orderPrice")));
         String average = this.safeString(order, "averagePrice");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String feeCostString = this.safeString(order, "fee");
         String amount = this.safeString(order, "size");
-        String contractSize = this.safeString(market, "contractSize");
+        String contractSize = this.safeString(marketResolved, "contractSize");
         String baseAmount = Precise.stringMul(contractSize, filled);
         String cost = null;
         if (!java.util.Objects.equals(average, null))
@@ -2066,7 +1868,7 @@ public class Blofin extends BlofinApi
         {
             String feeCostSigned = Precise.stringAbs(feeCostString);
             String feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
             fee = new HashMap<String, Object>() {{
                 put( "cost", Blofin.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
@@ -2077,51 +1879,40 @@ public class Blofin extends BlofinApi
         {
             clientOrderId = null; // fix empty clientOrderId string
         }
-        Double stopLossTriggerPrice = this.safeNumber(order, "slTriggerPrice");
-        Double stopLossPrice = this.safeNumber(order, "slOrderPrice");
-        Double takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice");
-        Double takeProfitPrice = this.safeNumber(order, "tpOrderPrice");
+        Double stopLossTriggerPrice = this.safeNumber(order, "slTriggerPrice", (Object) null);
+        Double stopLossPrice = this.safeNumber(order, "slOrderPrice", (Object) null);
+        Double takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice", (Object) null);
+        Double takeProfitPrice = this.safeNumber(order, "tpOrderPrice", (Object) null);
         String reduceOnlyRaw = this.safeString(order, "reduceOnly");
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyRaw, "true"));
-        final String finalClientOrderId = clientOrderId;
-        final String finalType = type;
-        final String finalTimeInForce = timeInForce;
-        final Boolean finalPostOnly = postOnly;
-        final String finalAverage = average;
-        final String finalCost = cost;
-        final Map<String, Object> finalFee = fee;
-        return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", id );
-            put( "clientOrderId", finalClientOrderId );
-            put( "timestamp", timestamp );
-            put( "datetime", Blofin.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", lastTradeTimestamp );
-            put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "symbol", symbol );
-            put( "type", finalType );
-            put( "timeInForce", finalTimeInForce );
-            put( "postOnly", finalPostOnly );
-            put( "side", side );
-            put( "price", price );
-            put( "stopLossTriggerPrice", stopLossTriggerPrice );
-            put( "takeProfitTriggerPrice", takeProfitTriggerPrice );
-            put( "stopLossPrice", stopLossPrice );
-            put( "takeProfitPrice", takeProfitPrice );
-            put( "average", finalAverage );
-            put( "cost", finalCost );
-            put( "amount", amount );
-            put( "filled", filled );
-            put( "remaining", null );
-            put( "status", status );
-            put( "fee", finalFee );
-            put( "trades", null );
-            put( "reduceOnly", reduceOnly );
-        }}, market);
-    }
-    public Object parseOrder(Object order, Object... optionalArgs)
-    {
-        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safeOrder(Helpers.newMap(
+            "info", order,
+            "id", id,
+            "clientOrderId", clientOrderId,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastTradeTimestamp", lastTradeTimestamp,
+            "lastUpdateTimestamp", lastUpdateTimestamp,
+            "symbol", symbol,
+            "type", type,
+            "timeInForce", timeInForce,
+            "postOnly", postOnly,
+            "side", side,
+            "price", price,
+            "stopLossTriggerPrice", stopLossTriggerPrice,
+            "takeProfitTriggerPrice", takeProfitTriggerPrice,
+            "stopLossPrice", stopLossPrice,
+            "takeProfitPrice", takeProfitPrice,
+            "average", average,
+            "cost", cost,
+            "amount", amount,
+            "filled", filled,
+            "remaining", null,
+            "status", status,
+            "fee", fee,
+            "trades", null,
+            "reduceOnly", reduceOnly
+        ), Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2154,91 +1945,56 @@ public class Blofin extends BlofinApi
      * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isStopLossPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
             Boolean isTriggerOrder = !java.util.Objects.equals(this.safeString(parameters, "triggerPrice"), null);
-            Boolean isTpslEndpoint = false;
-            List<Object> isTpslEndpointparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
-            isTpslEndpoint = (Boolean) ((List<Object>) isTpslEndpointparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) isTpslEndpointparametersVariable).get(1);
-            Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
+            List<Object> isTpslEndpointparamsTpslVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
+            Boolean isTpslEndpoint = (Boolean) ((List<Object>) isTpslEndpointparamsTpslVariable).get(0);
+            Map<String, Object> paramsTpsl = (Map<String, Object>) ((List<Object>) isTpslEndpointparamsTpslVariable).get(1);
+            Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Helpers.isTrue(isTpslEndpoint);
             Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
             Map<String, Object> response = null;
-            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
+            Boolean reduceOnly = (Boolean) this.safeBool(paramsTpsl, "reduceOnly", (Object) null);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
-                ((Map<String, Object>)parameters).put("reduceOnly", ((Boolean.TRUE.equals(reduceOnly))) ? "true" : "false");
+                ((Map<String, Object>)paramsTpsl).put("reduceOnly", ((Boolean.TRUE.equals(reduceOnly))) ? "true" : "false");
             }
             if (Boolean.TRUE.equals(isCombinedSlTp))
             {
-                Object tpslRequest = this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                Object tpslRequest = this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsTpsl));
                 response = (this.privatePostTradeOrderTpsl(tpslRequest)).join();
             } else if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isSlOrTp))
             {
-                Map<String, Object> triggerRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                Map<String, Object> triggerRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsTpsl));
                 response = (this.privatePostTradeOrderAlgo(triggerRequest)).join();
             } else
             {
-                Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsTpsl));
                 response = (this.privatePostTradeOrder(request)).join();
             }
             if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
             {
                 Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                return this.parseOrder(dataDict, market);
+                return this.parseOrder(dataDict, Helpers.toMapArg(market));
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, Helpers.toMapArg(market));
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#createOrder
-     * @description create a trade order
-     * @see https://blofin.com/docs#place-order
-     * @see https://blofin.com/docs#place-tpsl-order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.triggerPrice] the trigger price for a trigger order
-     * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
-     * @param {bool} [params.postOnly] true to place a post only order
-     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
-     * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
-     * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
-     * @param {string} [params.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
-     * @param {boolean} [params.hedged] if true, the positionSide will be set to long/short instead of net, default is false
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
-     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
-     * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
-    {
-        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object createTpslOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2250,16 +2006,13 @@ public class Blofin extends BlofinApi
         {
             positionSide = (((java.util.Objects.equals(side, "buy")))) ? "short" : "long";
         }
-        final String finalSide = side;
-        final String finalPositionSide = positionSide;
-        final Map<String, Object> finalParameters = parameters;
-        Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "instId", ((Map<String, Object>)market).get("id") );
-            put( "side", finalSide );
-            put( "positionSide", finalPositionSide );
-            put( "brokerId", Blofin.this.safeString(Blofin.this.options, "brokerId", "ec6dd3a7dd982d0b") );
-            put( "reduceOnly", Blofin.this.safeBool(finalParameters, "reduceOnly", true) );
-        }};
+        Map<String, Object> request = Helpers.newMap(
+            "instId", ((Map<String, Object>)market).get("id"),
+            "side", side,
+            "positionSide", positionSide,
+            "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"),
+            "reduceOnly", this.safeBool(parameters, "reduceOnly", true)
+        );
         if (!java.util.Objects.equals(amount, null))
         {
             request.put("size", this.amountToPrecision(symbol, amount));
@@ -2285,7 +2038,6 @@ public class Blofin extends BlofinApi
                     throw new ArgumentsRequired((this.id + " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
                 }
                 request.put("slOrderPrice", this.priceToPrecision(symbol, slLimitPrice));
-                parameters = (Map<String, Object>) (this.omit(parameters, "stopLossLimitPrice"));
             }
         }
         if (!java.util.Objects.equals(takeProfitPrice, null))
@@ -2302,16 +2054,20 @@ public class Blofin extends BlofinApi
                     throw new ArgumentsRequired((this.id + " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
                 }
                 request.put("tpOrderPrice", this.priceToPrecision(symbol, tpLimitPrice));
-                parameters = (Map<String, Object>) (this.omit(parameters, "takeProfitLimitPrice"));
             }
         }
         request.put("marginMode", marginMode);
-        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"))));
-        return this.extend(request, parameters);
-    }
-    public Object createTpslOrderRequest(String symbol, String type, String side, Object... optionalArgs)
-    {
-        return this.createTpslOrderRequest(symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+        // the limit prices are consumed only when the order type is not market
+        List<Object> consumedKeys = new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"));
+        if ((!java.util.Objects.equals(stopLossPrice, null)) && (!java.util.Objects.equals(type, "market")))
+        {
+            ((List<Object>)consumedKeys).add("stopLossLimitPrice");
+        }
+        if ((!java.util.Objects.equals(takeProfitPrice, null)) && (!java.util.Objects.equals(type, "market")))
+        {
+            ((List<Object>)consumedKeys).add("takeProfitLimitPrice");
+        }
+        return this.extend(request, this.omit(parameters, consumedKeys));
     }
 
     /**
@@ -2327,18 +2083,18 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.tpsl] True if cancelling a tpsl order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2366,38 +2122,21 @@ public class Blofin extends BlofinApi
             Map<String, Object> query = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
             if (java.util.Objects.equals(isTpsl, true))
             {
-                List<Order> tpslResponse = (this.cancelOrders((Object)(new ArrayList<Object>(Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
-                Map<String, Object> first = (Map<String, Object>) this.safeDict(tpslResponse, 0);
+                List<Order> tpslResponse = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(tpslResponse, 0, (Object) null);
                 return first;
             } else if (java.util.Objects.equals(isTrigger, true))
             {
                 Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
-                Map<String, Object> triggerData = (Map<String, Object>) this.safeDict(triggerResponse, "data");
-                return this.parseOrder(triggerData, market);
+                Map<String, Object> triggerData = (Map<String, Object>) this.safeDict(triggerResponse, "data", (Object) null);
+                return this.parseOrder(triggerData, Helpers.toMapArg(market));
             }
             Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0);
-            return this.parseOrder(order, market);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            return this.parseOrder(order, Helpers.toMapArg(market));
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#cancelOrder
-     * @description cancels an open order
-     * @see https://blofin.com/docs#cancel-order
-     * @see https://blofin.com/docs#cancel-tpsl-order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional
-     * @param {boolean} [params.tpsl] True if cancelling a tpsl order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
-    {
-        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2416,12 +2155,12 @@ public class Blofin extends BlofinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -2429,27 +2168,14 @@ public class Blofin extends BlofinApi
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(extendedParams));
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data);
+            return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#createOrders
-     * @description create a list of trade orders
-     * @see https://blofin.com/docs#place-multiple-orders
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
-    {
-        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2467,26 +2193,23 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2499,13 +2222,12 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit); // default 100, max 100
             }
-            Boolean isTrigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")), false);
-            Boolean isTpSl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
-            String method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
-            method = (String) ((List<Object>) methodparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
+            Boolean isTrigger = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")), false);
+            Boolean isTpSl = (Boolean) this.safeBool2(paramsPaginate, "tpsl", "TPSL", false);
+            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
+            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
+            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            Object query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTpSl, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
             {
@@ -2519,28 +2241,9 @@ public class Blofin extends BlofinApi
                 response = (this.privateGetTradeOrdersPending(this.extend(request, query))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit);
+            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchOpenOrders
-     * @description Fetch orders that are still open
-     * @see https://blofin.com/docs#get-active-orders
-     * @see https://blofin.com/docs#get-active-tpsl-orders
-     * @see https://docs.blofin.com/index.html#get-active-algo-orders
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
-    {
-        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2558,26 +2261,23 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2586,21 +2286,21 @@ public class Blofin extends BlofinApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("instId", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", limit); // default 100, max 100
+                ((Map<String, Object>)requestUntil).put("limit", limit); // default 100, max 100
             }
             String type = "swap";
-            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, type);
-            type = (String) ((List<Object>) typeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
+            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", Helpers.toMapArg(market), Helpers.toMapArg(paramsUntil), type);
+            String typeMarketType = (String) ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
+            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(type, "spot"))
+            if (java.util.Objects.equals(typeMarketType, "spot"))
             {
-                request.put("instType", "SPOT");
+                ((Map<String, Object>)requestUntil).put("instType", "SPOT");
                 //
                 //     {
                 //         "code": "0",
@@ -2622,35 +2322,16 @@ public class Blofin extends BlofinApi
                 //         ]
                 //     }
                 //
-                response = (this.privateGetSpotTradeFillsHistory(this.extend(request, parameters))).join();
+                response = (this.privateGetSpotTradeFillsHistory(this.extend(requestUntil, paramsMarketType))).join();
             } else
             {
-                response = (this.privateGetTradeFillsHistory(this.extend(request, parameters))).join();
+                response = (this.privateGetTradeFillsHistory(this.extend(requestUntil, paramsMarketType))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
-    /**
-     * @method
-     * @name blofin#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://blofin.com/docs#get-trade-history
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
-     * @param {string} [params.type] 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
-     * @param {string} [params.instId] *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
-     */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
-    {
-        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -2665,28 +2346,23 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2703,31 +2379,14 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit); // default 100, max 100
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(requestUntil, paramsUntil))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, parameters);
+            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsUntil));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @see https://blofin.com/docs#get-deposite-history
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
-    {
-        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2743,28 +2402,23 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2781,31 +2435,14 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit); // default 100, max 100
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("after", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(requestUntil, paramsUntil))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, parameters);
+            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsUntil));
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://blofin.com/docs#get-withdraw-history
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-     */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
-    {
-        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object networkCodeToChainId(Object networkCode)
@@ -2855,7 +2492,7 @@ public class Blofin extends BlofinApi
         // delegate the paren-free branch to the base resolver so the
         // currency-scoped networks and the deprecated-network-code aliases
         // keep applying alongside options['networksById']
-        return this.networkIdToCode(chainId);
+        return this.networkIdToCode(chainId, (String) null);
     }
 
     /**
@@ -2875,13 +2512,11 @@ public class Blofin extends BlofinApi
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag2, Map<String, Object> parameters2)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final String tag3 = tag2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String tag = tag3;
-            Map<String, Object> parameters = parameters3;
+
             // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
             // - addrType is documented optional but the live venue rejects
             //   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2892,19 +2527,21 @@ public class Blofin extends BlofinApi
             //   with 152002 "Invalid parameter" - see options["networks"]
             // - 152002 responses omit the offending field name even though the
             //   error table documents the message as "Parameter {} error"
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = (String) ((List<Object>) tagparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            Object tagValue = null;
+            Object query = null;
+            List<Object> tagValuequeryVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tagValue = ((List<Object>) tagValuequeryVariable).get(0);
+            query = ((List<Object>) tagValuequeryVariable).get(1);
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
                 put( "amount", Blofin.this.numberToString(amount) );
             }};
-            String dest = this.safeString(parameters, "dest", "onchain");
+            String dest = this.safeString(query, "dest", "onchain");
             request.put("dest", dest);
-            parameters = (Map<String, Object>) this.omit(parameters, "dest");
+            query = this.omit(query, "dest");
             if (java.util.Objects.equals(dest, "onchain"))
             {
                 this.checkAddress(address);
@@ -2912,20 +2549,20 @@ public class Blofin extends BlofinApi
                 // No", but the live venue rejects on-chain withdrawals without
                 // it (152001 "Parameter addrType cannot be empty") - default to
                 // 1 = wallet address, callers can override for other kinds
-                request.put("addrType", this.safeString(parameters, "addrType", "1"));
-                parameters = (Map<String, Object>) this.omit(parameters, "addrType");
+                request.put("addrType", this.safeString(query, "addrType", "1"));
+                query = this.omit(query, "addrType");
             }
-            if (!java.util.Objects.equals(tag, null))
+            if (!java.util.Objects.equals(tagValue, null))
             {
-                request.put("tag", tag);
+                request.put("tag", tagValue);
             }
             // consume the unified network key unconditionally so it never leaks
             // onto the wire; an explicit raw params['chain'] takes precedence
             String networkCode = null;
-            List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
-            networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
-            String chain = this.safeString(parameters, "chain");
+            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(query);
+            networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
+            query = ((List<Object>) networkCodequeryVariable).get(1);
+            String chain = this.safeString(query, "chain");
             if (java.util.Objects.equals(chain, null))
             {
                 if (!java.util.Objects.equals(networkCode, null))
@@ -2936,7 +2573,7 @@ public class Blofin extends BlofinApi
                     throw new ArgumentsRequired((this.id + " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")) ;
                 }
             }
-            Map<String, Object> response = (this.privatePostAssetWithdrawalApply(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privatePostAssetWithdrawalApply(this.extend(request, query))).join();
             //
             //     {
             //         "code": "0",
@@ -2952,30 +2589,9 @@ public class Blofin extends BlofinApi
             // parseTransaction reads every field from the payload - seed the
             // parsed structure from the request so the unified transaction
             // reflects what was actually submitted
-            return this.parseTransaction((Map<String, Object>) (this.extend(request, data)), currency);
+            return this.parseTransaction((Map<String, Object>) (this.extend(request, data)), Helpers.toMapArg(currency));
         }).thenApply(Transaction::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#withdraw
-     * @description make a withdrawal
-     * @see https://docs.blofin.com/index.html#withdrawal
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
-     * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
-     * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
-     * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
-     * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
-     * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
-    {
-        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2992,26 +2608,23 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String code3 = code2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String code = code3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3024,32 +2637,14 @@ public class Blofin extends BlofinApi
                 currency = (Map<String, Object>) this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetAssetBills(this.extend(requestUntil, paramsUntil))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(data, currency, since, limit);
+            return this.parseLedger(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchLedger
-     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://blofin.com/docs#get-funds-transfer-history
-     * @param {string} [code] unified currency code, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-     * @param {int} [limit] max number of ledger entries to return, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
-     */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
-    {
-        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -3109,8 +2704,8 @@ public class Blofin extends BlofinApi
             status = this.parseTransactionDepositStatus(this.safeString(transaction, "state"));
         }
         String currencyId = this.safeString(transaction, "currency");
-        String code = this.safeCurrencyCode(currencyId);
-        Double amount = this.safeNumber(transaction, "amount");
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+        Double amount = this.safeNumber(transaction, "amount", (Object) null);
         // live history rows carry the DISPLAY-NAME chain identifiers
         // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
         // examples show short forms ('TRC20') - chainIdToNetworkCode parses
@@ -3124,40 +2719,33 @@ public class Blofin extends BlofinApi
         String txid = this.safeString(transaction, "txId");
         Long timestamp = this.safeInteger(transaction, "ts");
         String feeCurrencyId = this.safeString(transaction, "feeCurrency");
-        String feeCode = this.safeCurrencyCode(feeCurrencyId);
-        Double feeCost = this.safeNumber(transaction, "fee");
-        final String finalId = id;
-        final String finalStatus = status;
-        final String finalType = type;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", finalId );
-            put( "currency", code );
-            put( "amount", amount );
-            put( "network", networkCode );
-            put( "addressFrom", null );
-            put( "addressTo", addressTo );
-            put( "address", address );
-            put( "tagFrom", null );
-            put( "tagTo", tagTo );
-            put( "tag", tagTo );
-            put( "status", finalStatus );
-            put( "type", finalType );
-            put( "updated", null );
-            put( "txid", txid );
-            put( "timestamp", timestamp );
-            put( "datetime", Blofin.this.iso8601(timestamp) );
-            put( "internal", null );
-            put( "comment", null );
-            put( "fee", new HashMap<String, Object>() {{
+        String feeCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        return Helpers.newMap(
+            "info", transaction,
+            "id", id,
+            "currency", code,
+            "amount", amount,
+            "network", networkCode,
+            "addressFrom", null,
+            "addressTo", addressTo,
+            "address", address,
+            "tagFrom", null,
+            "tagTo", tagTo,
+            "tag", tagTo,
+            "status", status,
+            "type", type,
+            "updated", null,
+            "txid", txid,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "internal", null,
+            "comment", null,
+            "fee", new HashMap<String, Object>() {{
                 put( "currency", feeCode );
                 put( "cost", feeCost );
-            }} );
-        }};
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
-    {
-        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+            }}
+        );
     }
 
     public String parseTransactionWithdrawalStatus(String status)
@@ -3206,7 +2794,7 @@ public class Blofin extends BlofinApi
     {
         String currencyId = this.safeString(item, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
+        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "ts");
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -3217,18 +2805,14 @@ public class Blofin extends BlofinApi
             put( "referenceAccount", null );
             put( "type", Blofin.this.parseLedgerEntryType(Blofin.this.safeString(item, "type")) );
             put( "currency", code );
-            put( "amount", Blofin.this.safeNumber(item, "amount") );
+            put( "amount", Blofin.this.safeNumber(item, "amount", (Object) null) );
             put( "timestamp", timestamp );
             put( "datetime", Blofin.this.iso8601(timestamp) );
             put( "before", null );
             put( "after", null );
             put( "status", "ok" );
             put( "fee", null );
-        }}, currency);
-    }
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
-    {
-        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
+        }}, Helpers.toMapArg(currencyResolved));
     }
 
     public Object parseIds(Object ids)
@@ -3260,13 +2844,11 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids2, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
-        final Object ids3 = ids2;
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object ids = ids3;
-            String symbol = symbol3;
+
             // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
             if (java.util.Objects.equals(symbol, null))
             {
@@ -3274,63 +2856,55 @@ public class Blofin extends BlofinApi
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> request = new ArrayList<Object>(Arrays.asList());
             Object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
             Object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
             Object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
-            Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl")));
+            Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl")), (Object) null);
             if (java.util.Objects.equals(trigger, true))
             {
                 method = "privatePostTradeCancelTpsl";
             }
             if (java.util.Objects.equals(clientOrderIds, null))
             {
-                ids = this.parseIds(ids);
+                Object orderIds = this.parseIds(ids);
                 if (!java.util.Objects.equals(tpslIds, null))
                 {
                     for (var i = 0; i < Helpers.getArrayLength(tpslIds); i++)
                     {
-    final Object finalTpslIds = tpslIds;
-                        final Object finalI = i;
-                                            ((List<Object>)request).add(new HashMap<String, Object>() {{
-                            put( "tpslId", Helpers.GetValue(finalTpslIds, finalI) );
-                            put( "instId", ((Map<String, Object>)market).get("id") );
-                        }});
+                        ((List<Object>)request).add(Helpers.newMap(
+                            "tpslId", Helpers.GetValue(tpslIds, i),
+                            "instId", ((Map<String, Object>)market).get("id")
+                        ));
                     }
                 }
-                for (var i = 0; i < ((List<?>)ids).size(); i++)
+                for (var i = 0; i < Helpers.getArrayLength(orderIds); i++)
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
-    final Object finalIds = ids;
-                        final Object finalI = i;
-                                            ((List<Object>)request).add(new HashMap<String, Object>() {{
-                            put( "tpslId", Helpers.GetValue(finalIds, finalI) );
-                            put( "instId", ((Map<String, Object>)market).get("id") );
-                        }});
+                        ((List<Object>)request).add(Helpers.newMap(
+                            "tpslId", Helpers.GetValue(orderIds, i),
+                            "instId", ((Map<String, Object>)market).get("id")
+                        ));
                     } else
                     {
-    final Object finalIds_2 = ids;
-                        final Object finalI_2 = i;
-                                            ((List<Object>)request).add(new HashMap<String, Object>() {{
-                            put( "orderId", Helpers.GetValue(finalIds_2, finalI_2) );
-                            put( "instId", ((Map<String, Object>)market).get("id") );
-                        }});
+                        ((List<Object>)request).add(Helpers.newMap(
+                            "orderId", Helpers.GetValue(orderIds, i),
+                            "instId", ((Map<String, Object>)market).get("id")
+                        ));
                     }
                 }
             } else
             {
                 for (var i = 0; i < Helpers.getArrayLength(clientOrderIds); i++)
                 {
-    final Object finalClientOrderIds = clientOrderIds;
-                    final Object finalI = i;
-                                    ((List<Object>)request).add(new HashMap<String, Object>() {{
-                        put( "instId", ((Map<String, Object>)market).get("id") );
-                        put( "clientOrderId", Helpers.GetValue(finalClientOrderIds, finalI) );
-                    }});
+                    ((List<Object>)request).add(Helpers.newMap(
+                        "instId", ((Map<String, Object>)market).get("id"),
+                        "clientOrderId", Helpers.GetValue(clientOrderIds, i)
+                    ));
                 }
             }
             Map<String, Object> response = null;
@@ -3342,24 +2916,9 @@ public class Blofin extends BlofinApi
                 response = (this.privatePostTradeCancelBatchOrders(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
             }
             List<Object> ordersData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(ordersData, market, null, null, parameters);
+            return this.parseOrders(ordersData, Helpers.toMapArg(market), (Long) null, (Long) null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#cancelOrders
-     * @description cancel multiple orders
-     * @see https://blofin.com/docs#cancel-multiple-orders
-     * @param {string[]} ids order ids
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a stop/trigger order
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
-    {
-        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3381,7 +2940,7 @@ public class Blofin extends BlofinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
@@ -3389,31 +2948,15 @@ public class Blofin extends BlofinApi
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Blofin.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Blofin.this.currencyToPrecision((String) (code), amount, (String) null) );
                 put( "fromAccount", fromId );
                 put( "toAccount", toId );
             }};
             Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransfer(data, currency);
+            return this.parseTransfer(data, Helpers.toMapArg(currency));
         }).thenApply(TransferEntry::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#transfer
-     * @description transfer currency internally between wallets on the same account
-     * @see https://blofin.com/docs#funds-transfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from (funding, swap, copy_trading, earn)
-     * @param {string} toAccount account to transfer to (funding, swap, copy_trading, earn)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
-     */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
-    {
-        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -3430,10 +2973,6 @@ public class Blofin extends BlofinApi
             put( "toAccount", null );
             put( "status", null );
         }};
-    }
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
-    {
-        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3453,7 +2992,7 @@ public class Blofin extends BlofinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3461,29 +3000,15 @@ public class Blofin extends BlofinApi
             }};
             Map<String, Object> response = (this.privateGetAccountPositions(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> position = (Map<String, Object>) this.safeDict(data, 0);
+            Map<String, Object> position = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
             if (java.util.Objects.equals(position, null))
             {
                 throw new NullResponse((this.id + " fetchPosition() returned empty position")) ;
             }
-            return this.parsePosition((Map<String, Object>) (position), market);
+            return this.parsePosition((Map<String, Object>) (position), Helpers.toMapArg(market));
         }).thenApply(Position::new);
 
     }
-    /**
-     * @method
-     * @name blofin#fetchPosition
-     * @description fetch data on a single open contract trade position
-     * @see https://blofin.com/docs#get-positions
-     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
-    {
-        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -3495,36 +3020,22 @@ public class Blofin extends BlofinApi
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.parsePositions(data);
-            return this.filterByArrayPositions(result, "symbol", symbols, false);
+            Object result = this.parsePositions(data, (List<String>) null, new HashMap<String, Object>() {{}});
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchPositions
-     * @description fetch data on a single open contract trade position
-     * @see https://blofin.com/docs#get-positions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
-    {
-        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3541,20 +3052,14 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3575,10 +3080,10 @@ public class Blofin extends BlofinApi
             {
                 request.put("begin", since);
             }
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
-            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
-            Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
+            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(requestUntil, paramsUntil))).join();
             //
             //    {
             //        "code": "0",
@@ -3607,28 +3112,10 @@ public class Blofin extends BlofinApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePositions(data, symbols, parameters);
-            return this.filterBySinceLimit(positions, since, limit);
+            Object positions = this.parsePositions(data, symbols, Helpers.toMapArg(paramsUntil));
+            return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchPositionsHistory
-     * @description fetches historical positions
-     * @see https://docs.blofin.com/index.html#get-positions-history
-     * @param {string[]} [symbols] unified contract symbols
-     * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
-     * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
-     * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
-    {
-        return this.fetchPositionsHistory(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3683,8 +3170,8 @@ public class Blofin extends BlofinApi
         //            },
         //
         String marketId = this.safeString(position, "instId");
-        market = (Map<String, Object>) (this.safeMarket(marketId, market));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String pos = this.safeString(position, "positions");
         String contractsAbs = Precise.stringAbs(pos);
         String side = this.safeString(position, "positionSide");
@@ -3706,11 +3193,11 @@ public class Blofin extends BlofinApi
                 }
             }
         }
-        Double contractSize = this.safeNumber(market, "contractSize");
+        Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
         String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPrice");
         String notionalString = this.safeString(position, "notionalUsd");
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
+        if (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("inverse"), true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
@@ -3744,51 +3231,42 @@ public class Blofin extends BlofinApi
         }
         String rounder = "0.00005"; // round to closest 0.01%
         Double maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        Double liquidationPrice = this.safeNumber(position, "liquidationPrice");
+        Double liquidationPrice = this.safeNumber(position, "liquidationPrice", (Object) null);
         String percentageString = this.safeString(position, "unrealizedPnlRatio");
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "updateTime");
         Double marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
-        final String finalMarginMode = marginMode;
-        final String finalSide = side;
-        final String finalCollateralString = collateralString;
-        final String finalInitialMarginString = initialMarginString;
-        final Object finalInitialMarginPercentage = initialMarginPercentage;
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", symbol );
-            put( "notional", notional );
-            put( "marginMode", finalMarginMode );
-            put( "liquidationPrice", liquidationPrice );
-            put( "entryPrice", Blofin.this.parseNumber(entryPriceString) );
-            put( "exitPrice", Blofin.this.safeNumber(position, "closeAveragePrice") );
-            put( "unrealizedPnl", Blofin.this.parseNumber(unrealizedPnlString) );
-            put( "realizedPnl", Blofin.this.safeNumber(position, "realizedPnl") );
-            put( "percentage", percentage );
-            put( "contracts", contracts );
-            put( "contractSize", contractSize );
-            put( "markPrice", Blofin.this.parseNumber(markPriceString) );
-            put( "lastPrice", null );
-            put( "side", finalSide );
-            put( "hedged", hedged );
-            put( "timestamp", timestamp );
-            put( "datetime", Blofin.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", null );
-            put( "maintenanceMargin", maintenanceMargin );
-            put( "maintenanceMarginPercentage", maintenanceMarginPercentage );
-            put( "collateral", Blofin.this.parseNumber(finalCollateralString) );
-            put( "initialMargin", Blofin.this.parseNumber(finalInitialMarginString) );
-            put( "initialMarginPercentage", Blofin.this.parseNumber(finalInitialMarginPercentage) );
-            put( "leverage", Blofin.this.parseNumber(leverageString) );
-            put( "marginRatio", marginRatio );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-        }});
-    }
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
-    {
-        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+        return this.safePosition(Helpers.newMap(
+            "info", position,
+            "id", null,
+            "symbol", symbol,
+            "notional", notional,
+            "marginMode", marginMode,
+            "liquidationPrice", liquidationPrice,
+            "entryPrice", this.parseNumber(entryPriceString),
+            "exitPrice", this.safeNumber(position, "closeAveragePrice", (Object) null),
+            "unrealizedPnl", this.parseNumber(unrealizedPnlString),
+            "realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null),
+            "percentage", percentage,
+            "contracts", contracts,
+            "contractSize", contractSize,
+            "markPrice", this.parseNumber(markPriceString),
+            "lastPrice", null,
+            "side", side,
+            "hedged", hedged,
+            "timestamp", timestamp,
+            "datetime", this.iso8601(timestamp),
+            "lastUpdateTimestamp", null,
+            "maintenanceMargin", maintenanceMargin,
+            "maintenanceMarginPercentage", maintenanceMarginPercentage,
+            "collateral", this.parseNumber(collateralString),
+            "initialMargin", this.parseNumber(initialMarginString),
+            "initialMarginPercentage", this.parseNumber(initialMarginPercentage),
+            "leverage", this.parseNumber(leverageString),
+            "marginRatio", marginRatio,
+            "stopLossPrice", null,
+            "takeProfitPrice", null
+        ));
     }
 
     /**
@@ -3801,39 +3279,38 @@ public class Blofin extends BlofinApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Leverages> fetchLeverages(List<String> symbols2, Map<String, Object> parameters2)
+    public CompletableFuture<Leverages> fetchLeverages(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             if (java.util.Objects.equals(symbols, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchLeverages() requires a symbols argument")) ;
             }
             String marginMode = null;
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverages", parameters);
-            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            Object query = null;
+            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverages", parameters, (String) null);
+            marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
+            query = ((List<Object>) marginModequeryVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
-                marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
+                marginMode = this.safeString(query, "marginMode", "cross"); // cross as default marginMode
             }
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
                 throw new BadRequest((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
-            Object symbolsList = symbols;
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsList = symbolsNormalized;
             Object instIds = "";
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
-                Object entry = (symbolsList == null || i < 0 || i >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(i));
+                String entry = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
                 Map<String, Object> entryMarket = (Map<String, Object>) this.market(entry);
                 if (Helpers.isGreaterThan(i, 0))
                 {
@@ -3843,13 +3320,11 @@ public class Blofin extends BlofinApi
                     instIds = Helpers.add(instIds, ((Map<String, Object>)entryMarket).get("id"));
                 }
             }
-            final Object finalInstIds = instIds;
-            final String finalMarginMode = marginMode;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", finalInstIds );
-                put( "marginMode", finalMarginMode );
-            }};
-            Map<String, Object> response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "instId", instIds,
+                "marginMode", marginMode
+            );
+            Map<String, Object> response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, query))).join();
             //
             //     {
             //         "code": "0",
@@ -3864,23 +3339,9 @@ public class Blofin extends BlofinApi
             //     }
             //
             List<Object> leverages = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(leverages, symbols, "instId");
+            return this.parseLeverages(leverages, Helpers.toStringListArg(symbolsNormalized), "instId", (Object) null);
         }).thenApply(Leverages::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchLeverages
-     * @description fetch the set leverage for all contract markets
-     * @see https://docs.blofin.com/index.html#get-multiple-leverage
-     * @param {string[]} symbols a list of unified market symbols, required on blofin
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
-     */
-    public CompletableFuture<Leverages> fetchLeverages(Object... optionalArgs)
-    {
-        return this.fetchLeverages(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3893,34 +3354,34 @@ public class Blofin extends BlofinApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters2)
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String marginMode = null;
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
-            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            Object query = null;
+            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, (String) null);
+            marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
+            query = ((List<Object>) marginModequeryVariable).get(1);
             if (java.util.Objects.equals(marginMode, null))
             {
-                marginMode = this.safeString(parameters, "marginMode", "cross"); // cross as default marginMode
+                marginMode = this.safeString(query, "marginMode", "cross"); // cross as default marginMode
             }
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
                 throw new BadRequest((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final String finalMarginMode = marginMode;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
-                put( "marginMode", finalMarginMode );
-            }};
-            Map<String, Object> response = (this.privateGetAccountLeverageInfo(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "instId", ((Map<String, Object>)market).get("id"),
+                "marginMode", marginMode
+            );
+            Map<String, Object> response = (this.privateGetAccountLeverageInfo(this.extend(request, query))).join();
             //
             //     {
             //         "code": "0",
@@ -3933,23 +3394,9 @@ public class Blofin extends BlofinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage((Map<String, Object>) (data), Helpers.toMapArg(market));
         }).thenApply(Leverage::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchLeverage
-     * @description fetch the set leverage for a market
-     * @see https://docs.blofin.com/index.html#get-leverage
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
-     */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
-    {
-        return this.fetchLeverage(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
@@ -3958,15 +3405,11 @@ public class Blofin extends BlofinApi
         Long leverageValue = this.safeInteger(leverage, "leverage");
         return new HashMap<String, Object>() {{
             put( "info", leverage );
-            put( "symbol", Blofin.this.safeSymbol(marketId, market) );
+            put( "symbol", Blofin.this.safeSymbol(marketId, market, (String) null, (String) null) );
             put( "marginMode", Blofin.this.safeStringLower(leverage, "marginMode") );
             put( "longLeverage", leverageValue );
             put( "shortLeverage", leverageValue );
         }};
-    }
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
-    {
-        return this.parseLeverage(leverage, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3981,15 +3424,11 @@ public class Blofin extends BlofinApi
      * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage2, String symbol2, Map<String, Object> parameters2)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
-        final Object leverage3 = leverage2;
-        final String symbol3 = symbol2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object leverage = leverage3;
-            String symbol = symbol3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
@@ -4002,44 +3441,25 @@ public class Blofin extends BlofinApi
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String marginMode = null;
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
+            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            final Object finalLeverage = leverage;
-            final String finalMarginMode = marginMode;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "leverage", finalLeverage );
-                put( "marginMode", finalMarginMode );
-                put( "instId", ((Map<String, Object>)market).get("id") );
-            }};
-            Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
+            Map<String, Object> request = Helpers.newMap(
+                "leverage", leverage,
+                "marginMode", marginMode,
+                "instId", ((Map<String, Object>)market).get("id")
+            );
+            Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, paramsMarginMode))).join();
             return response;
         });
 
-    }
-    /**
-     * @method
-     * @name blofin#setLeverage
-     * @description set the level of leverage for a market
-     * @see https://blofin.com/docs#set-leverage
-     * @param {int} leverage the rate of leverage
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
-    {
-        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4059,55 +3479,32 @@ public class Blofin extends BlofinApi
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters2)
+    public CompletableFuture<Order> closePosition(Object symbol, String side, Map<String, Object> parameters)
     {
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            String marginMode = null;
-            List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
-            marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
-            final String finalMarginMode = marginMode;
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
+            String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
+            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
-                put( "marginMode", finalMarginMode );
+                put( "marginMode", marginMode );
             }};
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("clientOrderId", clientOrderId);
             }
-            Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, parameters))).join();
-            return this.safeDict(response, "data");
+            Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, paramsMarginMode))).join();
+            return this.safeDict(response, "data", (Object) null);
         }).thenApply(Order::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#closePosition
-     * @description closes open positions for a market
-     * @see https://blofin.com/docs#close-positions
-     * @param {string} symbol Unified CCXT market symbol
-     * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] a unique identifier for the order
-     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
-     * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
-     *
-     * EXCHANGE SPECIFIC PARAMETERS
-     * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
-     * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
-    {
-        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4124,28 +3521,23 @@ public class Blofin extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
-        final Long since3 = since2;
-        final Long limit3 = limit2;
-        final Map<String, Object> parameters3 = parameters2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
-            Long since = since3;
-            Long limit = limit3;
-            Map<String, Object> parameters = parameters3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean paginate = false;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
+                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -4162,12 +3554,11 @@ public class Blofin extends BlofinApi
             {
                 request.put("begin", since);
             }
-            Boolean isTrigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
-            String method = null;
-            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
-            method = (String) ((List<Object>) methodparametersVariable).get(0);
-            parameters = (Map<String, Object>) ((List<Object>) methodparametersVariable).get(1);
-            Object query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
+            Boolean isTrigger = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
+            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
+            String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
+            Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
+            Object query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
             {
@@ -4177,27 +3568,9 @@ public class Blofin extends BlofinApi
                 response = (this.privateGetTradeOrdersHistory(this.extend(request, query))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit);
+            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchClosedOrders
-     * @description fetches information on multiple closed orders made by the user
-     * @see https://blofin.com/docs#get-order-history
-     * @see https://blofin.com/docs#get-tpsl-order-history
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
-    {
-        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4216,7 +3589,7 @@ public class Blofin extends BlofinApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> response = (this.privateGetAccountMarginMode(parameters)).join();
@@ -4230,22 +3603,9 @@ public class Blofin extends BlofinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);
+            return this.parseMarginMode((Map<String, Object>) (data), Helpers.toMapArg(market));
         }).thenApply(MarginMode::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchMarginMode
-     * @description fetches the margin mode of a trading pair
-     * @see https://docs.blofin.com/index.html#get-margin-mode
-     * @param {string} symbol unified symbol of the market to fetch the margin mode for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
-     */
-    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
-    {
-        return this.fetchMarginMode(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarginMode(Map<String, Object> marginMode, Map<String, Object> market)
@@ -4255,10 +3615,6 @@ public class Blofin extends BlofinApi
             put( "symbol", Blofin.this.safeString(market, "symbol") );
             put( "marginMode", Blofin.this.safeString(marginMode, "marginMode") );
         }};
-    }
-    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
-    {
-        return this.parseMarginMode(marginMode, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4271,15 +3627,15 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol2, Map<String, Object> parameters)
+    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
+
             this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new ArrayList<Object>(Arrays.asList("cross", "isolated")));
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -4300,23 +3656,9 @@ public class Blofin extends BlofinApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+            return this.parseMarginMode((Map<String, Object>) (data), Helpers.toMapArg(market));  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
         });
 
-    }
-    /**
-     * @method
-     * @name blofin#setMarginMode
-     * @description set margin mode to 'cross' or 'isolated'
-     * @see https://docs.blofin.com/index.html#set-margin-mode
-     * @param {string} marginMode 'cross' or 'isolated'
-     * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setMarginMode(String marginMode, Object... optionalArgs)
-    {
-        return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4345,26 +3687,12 @@ public class Blofin extends BlofinApi
             //         }
             //     }
             //
-            final String finalPositionMode = positionMode;
-            return new HashMap<String, Object>() {{
-                put( "info", data );
-                put( "hedged", java.util.Objects.equals(finalPositionMode, "long_short_mode") );
-            }};
+            return Helpers.newMap(
+                "info", data,
+                "hedged", java.util.Objects.equals(positionMode, "long_short_mode")
+            );
         }).thenApply(PositionModeInfo::new);
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchPositionMode
-     * @description fetchs the position mode, hedged or one way
-     * @see https://docs.blofin.com/index.html#get-position-mode
-     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an object detailing whether the market is in hedged or one-way mode
-     */
-    public CompletableFuture<PositionModeInfo> fetchPositionMode(Object... optionalArgs)
-    {
-        return this.fetchPositionMode(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4398,20 +3726,6 @@ public class Blofin extends BlofinApi
         });
 
     }
-    /**
-     * @method
-     * @name blofin#setPositionMode
-     * @description set hedged to true or false for a market
-     * @see https://docs.blofin.com/index.html#set-position-mode
-     * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by setPositionMode ()
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
-     */
-    public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
-    {
-        return this.setPositionMode(hedged, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
-    }
 
     /**
      * @method
@@ -4422,16 +3736,16 @@ public class Blofin extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    public CompletableFuture<List<ADL>> fetchPositionsADLRank(List<String> symbols2, Map<String, Object> parameters)
+    public CompletableFuture<List<ADL>> fetchPositionsADLRank(List<String> symbols, Map<String, Object> parameters)
     {
-        final List<String> symbols3 = symbols2;
+
         return BaseExchange.supplyAsync(() -> {
-            List<String> symbols = symbols3;
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = Helpers.toStringListArg(this.marketSymbols(symbols, null, true, true, true));
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
             Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
             //
             //     {
@@ -4463,22 +3777,9 @@ public class Blofin extends BlofinApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseADLRanks(data, symbols);
+            return this.parseADLRanks(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
-    }
-    /**
-     * @method
-     * @name blofin#fetchPositionsADLRank
-     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
-     * @see https://docs.blofin.com/index.html#get-positions
-     * @param {string[]} [symbols] a list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
-     */
-    public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object... optionalArgs)
-    {
-        return this.fetchPositionsADLRank(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
@@ -4509,20 +3810,16 @@ public class Blofin extends BlofinApi
         //     }
         //
         String marketId = this.safeString(info, "instId");
-        Object timestamp = this.safeIntegerOmitZero(info, "createTime");
+        Object timestamp = this.safeIntegerOmitZero(info, "createTime", (Long) null);
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", Blofin.this.safeSymbol(marketId, market, null, "contract") );
+            put( "symbol", Blofin.this.safeSymbol(marketId, market, (String) null, "contract") );
             put( "rank", Blofin.this.safeInteger(info, "adl") );
             put( "rating", null );
             put( "percentage", null );
             put( "timestamp", timestamp );
             put( "datetime", Blofin.this.iso8601(timestamp) );
         }};
-    }
-    public Object parseADLRank(Map<String, Object> info, Object... optionalArgs)
-    {
-        return this.parseADLRank(info, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -4552,8 +3849,8 @@ public class Blofin extends BlofinApi
         //      code: '103003'
         //  }
         //
-        List<Object> data = (List<Object>) this.safeList(response, "data");
-        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
+        List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
         String insideMsg = this.safeString(first, "msg");
         String insideCode = this.safeString(first, "code");
         if (!java.util.Objects.equals(insideCode, null) && !java.util.Objects.equals(insideCode, "0"))
@@ -4571,24 +3868,25 @@ public class Blofin extends BlofinApi
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), request);
         // const type = this.getPathAuthenticationType (path);
-        if (java.util.Objects.equals(api, "public"))
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (!this.isEmpty(query))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(api, "private"))
+        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
-            headers = new HashMap<String, Object>() {{
+            Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "ACCESS-KEY", Blofin.this.apiKey );
                 put( "ACCESS-PASSPHRASE", Blofin.this.password );
                 put( "ACCESS-TIMESTAMP", timestamp );
                 put( "ACCESS-NONCE", timestamp );
             }};
-            Object sign_body = "";
-            if (java.util.Objects.equals(method, "GET"))
+            String sign_body = "";
+            String signedBody = null;
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 if (!this.isEmpty(query))
                 {
@@ -4600,28 +3898,27 @@ public class Blofin extends BlofinApi
             {
                 if (!this.isEmpty(query))
                 {
-                    body = (String) (this.json(query));
-                    sign_body = body;
+                    signedBody = this.json(query);
+                    sign_body = signedBody;
                 }
-                ((Map<String, Object>)headers).put("Content-Type", "application/json");
+                signedHeaders.put("Content-Type", "application/json");
             }
-            String auth = (((Helpers.add(request, method) + timestamp) + timestamp) + sign_body);
+            String auth = (((Helpers.add(request, java.util.Objects.requireNonNullElse(method, "GET")) + timestamp) + timestamp) + sign_body);
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
-            ((Map<String, Object>)headers).put("ACCESS-SIGN", signature);
+            signedHeaders.put("ACCESS-SIGN", signature);
+            Object bodyResolved = (((java.util.Objects.equals(signedBody, null)))) ? body : signedBody;
+            return Helpers.newMap(
+                "url", url,
+                "method", java.util.Objects.requireNonNullElse(method, "GET"),
+                "body", bodyResolved,
+                "headers", signedHeaders
+            );
         }
-        final Object finalUrl = url;
-        final Object finalMethod = method;
-        final String finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
-    }
-    public Object sign(Object path, Object... optionalArgs)
-    {
-        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
+        return Helpers.newMap(
+            "url", url,
+            "method", java.util.Objects.requireNonNullElse(method, "GET"),
+            "body", body,
+            "headers", headers
+        );
     }
 }
