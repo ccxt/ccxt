@@ -2450,11 +2450,9 @@ public class Bingx extends BingxApi
             {
                 throw new NotSupported((this.id + " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
@@ -2548,11 +2546,9 @@ public class Bingx extends BingxApi
             {
                 throw new NotSupported((this.id + " fetchFundingHistory() is not supported for inverse swap markets")) ;
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();

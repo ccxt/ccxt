@@ -2502,15 +2502,13 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for inverse swap markets"))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes187919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
-		ch <- BoxAbsent(retRes187919)
+		var retRes187719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
+		ch <- BoxAbsent(retRes187719)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -2613,15 +2611,13 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	if isInverse == true {
 		panic(NotSupported(this.Id + " fetchFundingHistory() is not supported for inverse swap markets"))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes195819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate))))
-		ch <- BoxAbsent(retRes195819)
+		var retRes195419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate))))
+		ch <- BoxAbsent(retRes195419)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3738,8 +3734,8 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan any, symbol any, side s
 	_ = params
 	AddElementToObject(params, "quoteOrderQty", cost)
 
-	var retRes311315 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, cost, nil, params))))
-	ch <- BoxAbsent(retRes311315)
+	var retRes310915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, cost, nil, params))))
+	ch <- BoxAbsent(retRes310915)
 	return nil
 }
 
@@ -3764,8 +3760,8 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
 	_ = params
 	AddElementToObject(params, "quoteOrderQty", cost)
 
-	var retRes312715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
-	ch <- BoxAbsent(retRes312715)
+	var retRes312315 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))))
+	ch <- BoxAbsent(retRes312315)
 	return nil
 }
 
@@ -3790,8 +3786,8 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan any, symbol any, co
 	_ = params
 	AddElementToObject(params, "quoteOrderQty", cost)
 
-	var retRes314115 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, nil, params))))
-	ch <- BoxAbsent(retRes314115)
+	var retRes313715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, nil, params))))
+	ch <- BoxAbsent(retRes313715)
 	return nil
 }
 func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -5934,8 +5930,8 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes538219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes538219)
+		var retRes537819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes537819)
 		return nil
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"fromAccount", "toAccount"}))
@@ -6487,8 +6483,8 @@ func (this *Bingx) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 		"type": 1,
 	}
 
-	var retRes582215 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes582215)
+	var retRes581815 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes581815)
 	return nil
 }
 func (this *Bingx) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
@@ -6505,8 +6501,8 @@ func (this *Bingx) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 		"type": 2,
 	}
 
-	var retRes582915 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes582915)
+	var retRes582515 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes582515)
 	return nil
 }
 

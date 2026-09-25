@@ -4495,7 +4495,10 @@ class phemex(Exchange, ImplicitAPI):
                 privateHeaders['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
             privateHeaders['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        url = self.implode_hostname(self.urls['api'][api]) + url
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl) + url
         isPrivatePost = (api == 'private') and (method == 'POST')
         bodyResolved = body
         if isPrivatePost:
@@ -4762,8 +4765,6 @@ class phemex(Exchange, ImplicitAPI):
         isUsdtSettled = market['settle'] == 'USDT' or market['settle'] == 'USDC'
         if market['swap'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)

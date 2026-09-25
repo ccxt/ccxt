@@ -4816,12 +4816,10 @@ public partial class whitebit : Exchange
             throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         int maxLimit = 100;
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit));
         }

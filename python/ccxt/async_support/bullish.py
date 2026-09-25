@@ -978,8 +978,6 @@ class bullish(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxLimit = 100
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             paramsPagination = self.handle_pagination_params('fetchTrades', since, paramsPaginate)
@@ -1039,8 +1037,6 @@ class bullish(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             response = await self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:
-            paginate = False
-            paramsPaginate = {}
             paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
             if paginate:
                 paramsPagination = self.handle_pagination_params('fetchMyTrades', since, paramsPaginate)
@@ -1345,8 +1341,6 @@ class bullish(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         maxLimit = 100
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -1415,8 +1409,6 @@ class bullish(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxLimit = 100
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             paramsPagination = self.handle_pagination_params('fetchFundingRateHistory', since, paramsPaginate)
@@ -2551,8 +2543,6 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
         maxLimit = 100
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             paramsPagination = self.handle_pagination_params('fetchTransfers', since, paramsPaginate)

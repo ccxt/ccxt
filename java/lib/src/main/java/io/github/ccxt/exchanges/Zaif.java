@@ -1017,7 +1017,12 @@ public class Zaif extends ZaifApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String baseUrl = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest");
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = baseApiUrl;
         String url = (baseUrl + "/");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {

@@ -4738,11 +4738,9 @@ public class Bitget extends BitgetApi
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchDeposits", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             var paramsUTA = ((List<Object>) utaparamsUTAVariable).get(1);
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 if (java.util.Objects.equals(uta, true))
@@ -4971,11 +4969,9 @@ public class Bitget extends BitgetApi
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             var paramsUTA = ((List<Object>) utaparamsUTAVariable).get(1);
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 if (java.util.Objects.equals(uta, true))
@@ -6652,11 +6648,9 @@ public class Bitget extends BitgetApi
             Object maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
             Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
             Boolean useHistoryEndpointForPagination = (Boolean) this.safeBool(parameters, "useHistoryEndpointForPagination", true);
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 Object limitForPagination = (((java.util.Objects.equals(useHistoryEndpointForPagination, true)))) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
@@ -12249,11 +12243,9 @@ public class Bitget extends BitgetApi
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             var paramsUTA = ((List<Object>) utaparamsUTAVariable).get(1);
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 if (java.util.Objects.equals(uta, true))
@@ -13442,11 +13434,9 @@ public class Bitget extends BitgetApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "minId", "idLessThan", (Long) null, (Long) null)).join();
@@ -13880,11 +13870,9 @@ public class Bitget extends BitgetApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "minId", "idLessThan", (Long) null, (Long) null)).join();

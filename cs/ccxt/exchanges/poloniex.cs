@@ -1804,12 +1804,10 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
         }

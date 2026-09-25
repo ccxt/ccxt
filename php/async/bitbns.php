@@ -1340,7 +1340,11 @@ class bitbns extends Exchange {
             'X-BITBNS-APIKEY' => $this->apiKey,
         );
         $requestHeaders = ($api !== 'www') ? $apiKeyHeaders : $headers;
-        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $this->implode_hostname($baseApiUrl);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();

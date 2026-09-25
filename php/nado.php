@@ -3106,7 +3106,11 @@ class nado extends Exchange {
         if (gettype($api) === 'string') {
             $endpoint = $api;
         }
-        $url = $this->urls['api'][$endpoint];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $endpoint);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $baseApiUrl;
         if ($path !== '') {
             $url .= '/' . $this->implode_params($path, $params);
         }

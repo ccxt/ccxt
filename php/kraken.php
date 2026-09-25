@@ -1210,8 +1210,6 @@ class kraken extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 720);
@@ -3725,7 +3723,11 @@ class kraken extends Exchange {
             } else {
                 $headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
-            $urlSigned = $this->urls['api'][$api] . $url;
+            $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+            if ($baseApiUrl === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $urlSigned = $baseApiUrl . $url;
             return array( 'url' => $urlSigned, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         } else {
             $url = '/' . $path;

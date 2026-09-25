@@ -2162,8 +2162,6 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        rpi = False
-        paramsRpi = {}
         rpi, paramsRpi = self.handle_option_bool_and_params(params, 'fetchOrderBook', 'rpi', False)
         method, paramsMethod = self.handle_option_string_and_params(paramsRpi, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
         defaultLimit = 5000 if (method == 'publicGetMarketBooksFull') else 100
@@ -2557,8 +2555,6 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', None, 100)
@@ -2665,8 +2661,6 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
@@ -2764,8 +2758,6 @@ class okx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)
@@ -4359,8 +4351,6 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         maxLimit = 100
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, paramsPaginate, maxLimit)
@@ -4698,8 +4688,6 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         maxLimit = 100
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, paramsPaginate, maxLimit)
@@ -4869,8 +4857,6 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
@@ -4964,8 +4950,6 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, paramsPaginate)
@@ -5394,8 +5378,6 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, paramsPaginate)
@@ -5498,8 +5480,6 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, paramsPaginate)
@@ -6403,7 +6383,10 @@ class okx(Exchange, ImplicitAPI):
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_hostname(self.urls['api']['rest']) + request
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest')
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl) + request
         privateHeaders = None
         hasJsonBody = False
         jsonBody = None

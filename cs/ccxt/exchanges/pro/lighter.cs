@@ -323,7 +323,7 @@ public partial class lighter : ccxt.lighter
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 Dictionary<string, object> ticker = this.parseTicker(getValue(data, marketId), market);
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ticker;
                 client.resolve(ticker, this.getMessageHash("ticker", symbol));
                 client.resolve(ticker, this.getMessageHash("ticker"));
             }
@@ -333,7 +333,7 @@ public partial class lighter : ccxt.lighter
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = this.parseTicker(data, market);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
             client.resolve(ticker, this.getMessageHash("ticker", symbol));
         }
     }
@@ -651,7 +651,7 @@ public partial class lighter : ccxt.lighter
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         int dataLength = data.Count;
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
@@ -1238,9 +1238,9 @@ public partial class lighter : ccxt.lighter
         Int64? timestamp = this.safeInteger(message, "timestamp");
         balance["timestamp"] = timestamp;
         balance["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.balance)[type] = this.safeBalance(balance);
+        this.balance[type] = this.safeBalance(balance);
         string? messageHash = this.getMessageHash("balances", null, type);
-        client.resolve(getValue(this.balance, type), messageHash);
+        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
         return true;
     }
 
@@ -1744,9 +1744,9 @@ public partial class lighter : ccxt.lighter
         string? subMessageHash = this.getMessageHash("ticker", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (inOp(this.tickers, symbol))
+        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
         {
-            ((IDictionary<string,object>)this.tickers).Remove(symbol);
+            this.tickers.Remove(symbol);
         }
     }
 
@@ -1756,9 +1756,9 @@ public partial class lighter : ccxt.lighter
         string? subMessageHash = this.getMessageHash("trade", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (inOp(this.trades, symbol))
+        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
         {
-            ((IDictionary<string,object>)this.trades).Remove(symbol);
+            this.trades.Remove(symbol);
         }
     }
 

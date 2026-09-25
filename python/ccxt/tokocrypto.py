@@ -2513,7 +2513,10 @@ class tokocrypto(Exchange, ImplicitAPI):
     def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         if not (api in self.urls['api']['rest']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        url = self.urls['api']['rest'][api]
+        baseApiUrl = self.safe_string(self.urls['api']['rest'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = baseApiUrl
         url += '/' + path
         if api == 'wapi':
             url += '.html'

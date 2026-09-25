@@ -3300,8 +3300,6 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxLimit = 1500
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchUTAOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -3379,8 +3377,6 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxLimit = 1500
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchSpotOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -3436,8 +3432,6 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxLimit = 200
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchContractOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -5351,8 +5345,6 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrdersByStatus', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate)
@@ -5459,8 +5451,6 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         maxLimit = 200
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrdersByStatus', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate, maxLimit)
@@ -5579,8 +5569,6 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, paramsPaginate)
@@ -5616,8 +5604,6 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, paramsPaginate)
@@ -6554,8 +6540,6 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
@@ -6636,8 +6620,6 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsRequest = None
         paginate, paramsRequest = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsRequest)
@@ -11105,8 +11087,6 @@ class kucoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsRequest = None
         paginate, paramsRequest = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, paramsRequest)

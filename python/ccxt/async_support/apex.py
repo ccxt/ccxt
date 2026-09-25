@@ -1891,7 +1891,10 @@ class apex(Exchange, ImplicitAPI):
         })
 
     def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl) + '/' + path
         headersValue = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',

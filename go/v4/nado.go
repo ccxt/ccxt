@@ -3891,7 +3891,11 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	if IsString(api) {
 		endpoint = api
 	}
-	var url any = GetValue(GetValue(this.Urls, "api"), endpoint)
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), endpoint)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = baseApiUrl
 	if path != "" {
 		url = Add(url, "/"+this.ImplodeParams(path, params))
 	}

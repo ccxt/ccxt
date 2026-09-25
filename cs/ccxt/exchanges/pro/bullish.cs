@@ -195,18 +195,18 @@ public partial class bullish : ccxt.bullish
         Dictionary<string, object> market = this.market(symbol);
         List<object> rawTrades = this.safeList(data, "trades", new List<object>() {});
         IList<object> trades = this.parseTrades(rawTrades, market);
-        if (!(inOp(this.trades, symbol)))
+        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
+            this.trades[(string)symbol] = tradesArrayCache;
         }
-        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
             tradesArray.append(trades[i]);
         }
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+        this.trades[(string)symbol] = tradesArray;
         string messageHash = ("trades::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         client.resolve(tradesArray, messageHash);
     }
@@ -298,9 +298,9 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged, market);
         }
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        this.tickers[(string)symbol] = parsed;
         string messageHash = ("ticker::" + symbol);
-        client.resolve(getValue(this.tickers, symbol), messageHash);
+        client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
     /**
@@ -741,9 +741,9 @@ public partial class bullish : ccxt.bullish
         {
             return;
         }
-        if (!(inOp(this.balance, tradingAccountId)))
+        if (!((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId))))
         {
-            ((IDictionary<string,object>)this.balance)[(string)tradingAccountId] = new Dictionary<string, object>() {};
+            this.balance[(string)tradingAccountId] = new Dictionary<string, object>() {};
         }
         string? messageType = this.safeString(message, "type");
         if (messageType == "snapshot")
@@ -754,9 +754,9 @@ public partial class bullish : ccxt.bullish
             for (int i = 0; i < parsedKeys.Count; i++)
             {
                 string? parsedKey = ((string)parsedKeys[i]);
-                ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))[(string)parsedKey] = getValue(parsed, parsedKey);
+                ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))[(string)parsedKey] = getValue(parsed, parsedKey);
             }
-            ((IDictionary<string,object>)this.balance)[(string)tradingAccountId] = this.safeBalance(getValue(this.balance, tradingAccountId));
+            this.balance[(string)tradingAccountId] = this.safeBalance((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null));
         } else
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -767,15 +767,15 @@ public partial class bullish : ccxt.bullish
             string? code = this.safeCurrencyCode(assetId);
             if (((tradingAccountId != null)) && ((code != null)))
             {
-                ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))[(string)code] = account;
             }
-            ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))["info"] = message;
-            ((IDictionary<string,object>)this.balance)[(string)tradingAccountId] = this.safeBalance(getValue(this.balance, tradingAccountId));
+            ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))["info"] = message;
+            this.balance[(string)tradingAccountId] = this.safeBalance((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null));
         }
         string messageHash = "balance";
         string tradingAccountIdHash = ("::" + tradingAccountId);
-        client.resolve(getValue(this.balance, tradingAccountId), messageHash);
-        client.resolve(getValue(this.balance, tradingAccountId), (messageHash + tradingAccountIdHash));
+        client.resolve((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null), messageHash);
+        client.resolve((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null), (messageHash + tradingAccountIdHash));
     }
 
     /**

@@ -279,7 +279,7 @@ public partial class derive : ccxt.derive
         string? tickerSymbol = ((string)GetValue(ticker, "symbol"));
         if ((tickerSymbol != null))
         {
-            ((IDictionary<string,object>)this.tickers)[(string)tickerSymbol] = ticker;
+            this.tickers[(string)tickerSymbol] = ticker;
         }
         client.resolve(ticker, topic);
         return message;
@@ -392,7 +392,7 @@ public partial class derive : ccxt.derive
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (inOp(this.orderbooks, symbol))
         {
-            ((IDictionary<string,object>)this.trades).Remove(symbol);
+            this.trades.Remove(symbol);
         }
         if (inOp(client.subscriptions, topic))
         {
@@ -496,7 +496,7 @@ public partial class derive : ccxt.derive
             Dictionary<string, object> trade = this.parseTrade(getValue(data, i));
             tradesArray.append(trade);
         }
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+        this.trades[(string)symbol] = tradesArray;
         client.resolve(tradesArray, topic);
     }
 

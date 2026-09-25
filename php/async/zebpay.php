@@ -2056,7 +2056,11 @@ class zebpay extends Exchange {
         if ($isV1) {
             $marketType = 'swap';
         }
-        $url = $this->urls['api'][$marketType];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $marketType);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $baseApiUrl;
         $tail = '/api/' . $this->implode_params($path, $paramsOmitted);
         $url .= $tail;
         $timestamp = (string) $this->milliseconds();

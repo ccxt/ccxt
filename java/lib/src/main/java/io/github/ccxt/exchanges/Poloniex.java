@@ -1879,11 +1879,9 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();

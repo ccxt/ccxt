@@ -121,7 +121,7 @@ public partial class bittrade : ccxt.bittrade
         ticker["timestamp"] = timestamp;
         ticker["datetime"] = this.iso8601(timestamp);
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         client.resolve(ticker, ch);
         return message;
     }
@@ -210,7 +210,7 @@ public partial class bittrade : ccxt.bittrade
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
+            this.trades[(string)symbol] = tradesCache;
         }
         for (int i = 0; i < data.Count; i++)
         {
@@ -300,13 +300,13 @@ public partial class bittrade : ccxt.bittrade
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(parts, 3);
         string? timeframe = this.findTimeframe(interval);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         IDictionary<string, object> tick = this.safeDict(message, "tick");
         IList<object> parsed = this.parseOHLCV(tick, market);

@@ -2923,7 +2923,10 @@ class nado(Exchange, ImplicitAPI):
         endpoint = api[0]
         if isinstance(api, str):
             endpoint = api
-        url = self.urls['api'][endpoint]
+        baseApiUrl = self.safe_string(self.urls['api'], endpoint)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = baseApiUrl
         if path != '':
             url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

@@ -594,8 +594,6 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchAccounts', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $paramsPaginate, 'next_starting_after', 'starting_after', null, 100));
@@ -670,8 +668,6 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchAccounts', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $paramsPaginate, 'cursor', 'cursor', null, 250));
@@ -2731,8 +2727,6 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $paramsPaginate, 'next_starting_after', 'starting_after', null, 100));
@@ -3817,8 +3811,6 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 1000));
@@ -3997,8 +3989,6 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100));
@@ -4027,8 +4017,6 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 1000));
@@ -4241,8 +4229,6 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 250));

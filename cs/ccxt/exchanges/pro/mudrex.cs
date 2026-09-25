@@ -233,7 +233,7 @@ public partial class mudrex : ccxt.mudrex
         Dictionary<string, object> market = this.safeMarket(s.ToUpper());
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> parsed = new List<object> {this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), tf));
         if ((stored == null))
         {
@@ -241,7 +241,7 @@ public partial class mudrex : ccxt.mudrex
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (tf != null))
             {
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)tf] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)tf] = stored;
             }
         }
         stored.append(parsed);
@@ -272,7 +272,7 @@ public partial class mudrex : ccxt.mudrex
                 { "close", last },
                 { "info", t },
             });
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
+            this.tickers[(string)symbol] = result;
             string messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);
             client.resolve(result, "tickers");

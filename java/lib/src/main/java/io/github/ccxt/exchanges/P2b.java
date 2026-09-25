@@ -1504,7 +1504,12 @@ public class P2b extends P2bApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = baseApiUrl;
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))

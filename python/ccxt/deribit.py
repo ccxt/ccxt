@@ -1450,8 +1450,6 @@ class deribit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 5000)
@@ -3159,8 +3157,6 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         maxEntriesPerRequest = 744  # seems exchange returns max 744 items per request
         eachItemDuration = '1h'
@@ -3274,8 +3270,6 @@ class deribit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLiquidations', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', None)
@@ -3821,7 +3815,10 @@ class deribit(Exchange, ImplicitAPI):
             signedHeaders = {
                 'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             }
-            signedUrl = self.urls['api']['rest'] + request
+            baseApiUrl = self.safe_string(self.urls['api'], 'rest')
+            if baseApiUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            signedUrl = baseApiUrl + request
             return {'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders}
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:

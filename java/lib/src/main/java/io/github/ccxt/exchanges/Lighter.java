@@ -3062,11 +3062,9 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
@@ -3184,11 +3182,9 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
@@ -3266,11 +3262,9 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "cursor", "cursor", (Long) null, 50L)).join();
@@ -3482,11 +3476,9 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, 50L)).join();
@@ -4080,10 +4072,20 @@ public class Lighter extends LighterApi
         Object url = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "root"))
         {
-            url = this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("public"));
+            String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "public");
+            if (java.util.Objects.equals(baseApiUrl, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = this.implodeHostname(baseApiUrl);
         } else
         {
-            url = ((((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"))) + "/api/") + this.version) + "/") + path);
+            String baseApiUrl2 = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            if (java.util.Objects.equals(baseApiUrl2, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Map<String, Object> authHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))

@@ -836,8 +836,6 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $maxLimit = 300;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);

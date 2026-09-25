@@ -4932,12 +4932,17 @@ public partial class aster : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((baseApiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((baseApiUrl + "/") + path);
         if (isEqual(api, "fapiPublic") || isEqual(api, "sapiPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.rawencode(parameters)));
+                url = url + ("?" + this.rawencode(parameters));
             }
         } else if (isEqual(api, "fapiPrivate") || isEqual(api, "sapiPrivate"))
         {
@@ -5021,7 +5026,7 @@ public partial class aster : Exchange
             object queryString = add(add(add(paramString, "&"), "signature="), signature);
             if ((method == "GET"))
             {
-                url = add(url, ("?" + (queryString)));
+                url = url + ("?" + (queryString));
             } else
             {
                 Dictionary<string, object> formHeaders = new Dictionary<string, object>() {

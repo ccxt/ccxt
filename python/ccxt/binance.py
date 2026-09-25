@@ -5396,8 +5396,6 @@ class binance(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, paramsPaginate)
@@ -8870,8 +8868,6 @@ class binance(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, paramsPaginate)
@@ -10320,8 +10316,6 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {}
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
@@ -12295,7 +12289,10 @@ class binance(Exchange, ImplicitAPI):
         urls = self.urls
         if not (api in urls['api']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        url = self.urls['api'][api]
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = baseApiUrl
         url += '/' + path
         signedHeaders = None
         signedBody = None
@@ -13383,8 +13380,6 @@ class binance(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyLiquidations', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchMyLiquidations', symbol, since, limit, paramsPaginate, 'current', 100)

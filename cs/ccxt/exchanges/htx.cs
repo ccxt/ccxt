@@ -3628,12 +3628,10 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
         }
@@ -3954,12 +3952,10 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
         }
@@ -5294,12 +5290,10 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, paramsPaginate, 100));
         }
@@ -5369,12 +5363,10 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, 100));
         }
@@ -8553,12 +8545,10 @@ public partial class htx : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "current_page", "page_index", 1, 50));
         }
@@ -9047,7 +9037,12 @@ public partial class htx : Exchange
                     url = add(url, ("?" + this.urlencode(query)));
                 }
             }
-            url = (this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), new Dictionary<string, object>() {
+            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+            if ((baseApiUrl == null))
+            {
+                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = (this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
     { "hostname", this.hostname },
 }) + (url));
         } else
@@ -9153,7 +9148,12 @@ public partial class htx : Exchange
                 }
             }
             object finalHostname = hostname; // java req
-            url = (this.implodeParams(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type), new Dictionary<string, object>() {
+            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
+            if ((baseApiUrl2 == null))
+            {
+                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = (this.implodeParams(baseApiUrl2, new Dictionary<string, object>() {
     { "hostname", finalHostname },
 }) + (url));
         }
@@ -9813,12 +9813,10 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 500));
         }

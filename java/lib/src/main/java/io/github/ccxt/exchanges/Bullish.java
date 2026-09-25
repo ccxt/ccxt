@@ -1189,11 +1189,9 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Integer maxLimit = 100;
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 Object paramsPagination = this.handlePaginationParams("fetchTrades", since, Helpers.toMapArg(paramsPaginate));
@@ -1267,11 +1265,9 @@ public class Bullish extends BullishApi
                 response = (this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, parameters))).join();
             } else
             {
-                Boolean paginate = false;
-                Object paramsPaginate = new HashMap<String, Object>() {{}};
                 List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-                paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-                paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+                Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+                Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
                 if (Boolean.TRUE.equals(paginate))
                 {
                     Object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, Helpers.toMapArg(paramsPaginate));
@@ -1647,11 +1643,9 @@ public class Bullish extends BullishApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Integer maxLimit = 100;
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
@@ -1733,11 +1727,9 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Integer maxLimit = 100;
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 Object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, Helpers.toMapArg(paramsPaginate));
@@ -3150,11 +3142,9 @@ public class Bullish extends BullishApi
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Integer maxLimit = 100;
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 Object paramsPagination = this.handlePaginationParams("fetchTransfers", since, Helpers.toMapArg(paramsPaginate));

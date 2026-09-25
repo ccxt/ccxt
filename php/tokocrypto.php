@@ -2612,7 +2612,11 @@ class tokocrypto extends Exchange {
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($api ?? '', $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
-        $url = $this->urls['api']['rest'][$api];
+        $baseApiUrl = $this->safe_string($this->urls['api']['rest'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $baseApiUrl;
         $url .= '/' . $path;
         if ($api === 'wapi') {
             $url .= '.html';

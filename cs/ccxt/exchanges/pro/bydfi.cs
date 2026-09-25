@@ -326,8 +326,8 @@ public partial class bydfi : ccxt.bydfi
         Dictionary<string, object> ticker = this.parseTicker(message);
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         string messageHash = ("ticker::" + symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        client.resolve(getValue(this.tickers, symbol), messageHash);
+        this.tickers[(string)symbol] = ticker;
+        client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
         client.resolve(this.tickers, "ticker::all");
     }
 
@@ -478,17 +478,17 @@ public partial class bydfi : ccxt.bydfi
         string? interval = this.safeString(message, "i");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(interval, timeframes);
-        if (!(inOp(this.ohlcvs, symbol)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         List<object> parsed = this.parseWsOHLCV(message);
         ohlcv.append(parsed);
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);

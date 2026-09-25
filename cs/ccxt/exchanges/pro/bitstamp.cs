@@ -394,7 +394,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+            this.trades[(string)symbol] = tradesArray;
         }
         tradesArray.append(trade);
         client.resolve(tradesArray, messageHash);
@@ -458,7 +458,7 @@ public partial class bitstamp : ccxt.bitstamp
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(data, market);
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        this.fundingRates[(string)symbol] = fundingRate;
         client.resolve(fundingRate, ("fundingRate:" + symbol));
     }
 

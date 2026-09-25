@@ -202,7 +202,7 @@ public partial class bitopro : ccxt.bitopro
         {
             tradesCache.append(trades[i]);
         }
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
+        this.trades[(string)symbol] = tradesCache;
         client.resolve(tradesCache, messageHash);
     }
 
@@ -439,7 +439,7 @@ public partial class bitopro : ccxt.bitopro
         Int64? timestamp = this.safeInteger(message, "timestamp");
         result["timestamp"] = timestamp;
         result["datetime"] = this.iso8601(timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
+        this.tickers[(string)symbol] = result;
         client.resolve(result, messageHash);
     }
 

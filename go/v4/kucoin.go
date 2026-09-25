@@ -4079,15 +4079,13 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 1500
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes339019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchUTAOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes339019)
+		var retRes338819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchUTAOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes338819)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4202,15 +4200,13 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 1500
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes347719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchSpotOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes347719)
+		var retRes347319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchSpotOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes347319)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4298,15 +4294,13 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 200
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes353919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchContractOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes353919)
+		var retRes353319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchContractOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes353319)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4465,16 +4459,16 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	paramsRequest = GetValue(utaparamsRequestVariable, 1)
 	if IsEqual(accountType, "contract") {
 
-		var retRes365219 map[string]any = MapTyped(PanicOnError((<-this.FetchContractDepositAddressAsync(code, paramsRequest))))
-		ch <- BoxAbsent(retRes365219)
+		var retRes364619 map[string]any = MapTyped(PanicOnError((<-this.FetchContractDepositAddressAsync(code, paramsRequest))))
+		ch <- BoxAbsent(retRes364619)
 		return nil
 	} else if (uta == true) || (IsEqual(accountType, "uta")) || (IsEqual(accountType, "unified")) {
 
-		retRes365419 := (<-this.Exchange.FetchDepositAddressAsync(code, this.Extend(paramsRequest, map[string]any{
+		retRes364819 := (<-this.Exchange.FetchDepositAddressAsync(code, this.Extend(paramsRequest, map[string]any{
 			"uta": true,
 		})))
-		PanicOnError(retRes365419)
-		ch <- retRes365419
+		PanicOnError(retRes364819)
+		ch <- retRes364819
 		return nil
 	}
 	var currency map[string]any = this.Currency(code)
@@ -4913,18 +4907,18 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol any, typeVar string, sid
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	if EvalTruthy(utaOption) {
 
-		var retRes402819 map[string]any = MapTyped(PanicOnError((<-this.CreateUtaOrderAsync(symbol, typeVar, side, amount, price, paramsUta))))
-		ch <- BoxAbsent(retRes402819)
+		var retRes402219 map[string]any = MapTyped(PanicOnError((<-this.CreateUtaOrderAsync(symbol, typeVar, side, amount, price, paramsUta))))
+		ch <- BoxAbsent(retRes402219)
 		return nil
 	} else if GetValue(market, "spot") == true {
 
-		var retRes403019 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, paramsUta))))
-		ch <- BoxAbsent(retRes403019)
+		var retRes402419 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, paramsUta))))
+		ch <- BoxAbsent(retRes402419)
 		return nil
 	} else if GetValue(market, "contract") == true {
 
-		var retRes403219 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, paramsUta))))
-		ch <- BoxAbsent(retRes403219)
+		var retRes402619 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, paramsUta))))
+		ch <- BoxAbsent(retRes402619)
 		return nil
 	} else {
 		panic(NotSupported(Add(this.Id+" createOrder() does not support market ", market["type"])))
@@ -5706,8 +5700,8 @@ func (this *Kucoin) createMarketOrderWithCostBody(ch chan any, symbol any, side 
 		"cost": cost,
 	}
 
-	var retRes466915 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes466915)
+	var retRes466315 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes466315)
 	return nil
 }
 
@@ -5737,8 +5731,8 @@ func (this *Kucoin) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var retRes468715 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
-	ch <- BoxAbsent(retRes468715)
+	var retRes468115 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
+	ch <- BoxAbsent(retRes468115)
 	return nil
 }
 
@@ -5768,8 +5762,8 @@ func (this *Kucoin) createMarketSellOrderWithCostBody(ch chan any, symbol any, c
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var retRes470515 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "sell", cost, params))))
-	ch <- BoxAbsent(retRes470515)
+	var retRes469915 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "sell", cost, params))))
+	ch <- BoxAbsent(retRes469915)
 	return nil
 }
 
@@ -5817,13 +5811,13 @@ func (this *Kucoin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		panic(BadRequest(this.Id + " createOrders() requires all orders to be either spot or contract"))
 	} else if isSpot {
 
-		var retRes474119 []any = ListTyped(PanicOnError((<-this.CreateSpotOrdersAsync(orders, params))))
-		ch <- BoxAbsent(retRes474119)
+		var retRes473519 []any = ListTyped(PanicOnError((<-this.CreateSpotOrdersAsync(orders, params))))
+		ch <- BoxAbsent(retRes473519)
 		return nil
 	} else if isContract {
 
-		var retRes474319 []any = ListTyped(PanicOnError((<-this.CreateContractOrdersAsync(orders, params))))
-		ch <- BoxAbsent(retRes474319)
+		var retRes473719 []any = ListTyped(PanicOnError((<-this.CreateContractOrdersAsync(orders, params))))
+		ch <- BoxAbsent(retRes473719)
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " createOrders() does not support the markets of the orders provided"))
@@ -6127,8 +6121,8 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	if EvalTruthy(utaOption) {
 
-		var retRes498019 map[string]any = MapTyped(PanicOnError((<-this.CancelUtaOrderAsync(id, symbol, paramsUta))))
-		ch <- BoxAbsent(retRes498019)
+		var retRes497419 map[string]any = MapTyped(PanicOnError((<-this.CancelUtaOrderAsync(id, symbol, paramsUta))))
+		ch <- BoxAbsent(retRes497419)
 		return nil
 	}
 	var market map[string]any = nil
@@ -6138,13 +6132,13 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, paramsUta)
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		var retRes498819 map[string]any = MapTyped(PanicOnError((<-this.CancelSpotOrderAsync(id, symbol, paramsMarketType))))
-		ch <- BoxAbsent(retRes498819)
+		var retRes498219 map[string]any = MapTyped(PanicOnError((<-this.CancelSpotOrderAsync(id, symbol, paramsMarketType))))
+		ch <- BoxAbsent(retRes498219)
 		return nil
 	} else {
 
-		var retRes499019 map[string]any = MapTyped(PanicOnError((<-this.CancelContractOrderAsync(id, symbol, paramsMarketType))))
-		ch <- BoxAbsent(retRes499019)
+		var retRes498419 map[string]any = MapTyped(PanicOnError((<-this.CancelContractOrderAsync(id, symbol, paramsMarketType))))
+		ch <- BoxAbsent(retRes498419)
 		return nil
 	}
 }
@@ -6516,8 +6510,8 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	if EvalTruthy(utaOption) {
 
-		var retRes527519 []any = ListTyped(PanicOnError((<-this.CancelAllUtaOrdersAsync(symbol, paramsUta))))
-		ch <- BoxAbsent(retRes527519)
+		var retRes526919 []any = ListTyped(PanicOnError((<-this.CancelAllUtaOrdersAsync(symbol, paramsUta))))
+		ch <- BoxAbsent(retRes526919)
 		return nil
 	}
 	var market map[string]any = nil
@@ -6527,13 +6521,13 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsUta)
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		var retRes528319 []any = ListTyped(PanicOnError((<-this.CancelAllSpotOrdersAsync(symbol, paramsMarketType))))
-		ch <- BoxAbsent(retRes528319)
+		var retRes527719 []any = ListTyped(PanicOnError((<-this.CancelAllSpotOrdersAsync(symbol, paramsMarketType))))
+		ch <- BoxAbsent(retRes527719)
 		return nil
 	} else {
 
-		var retRes528519 []any = ListTyped(PanicOnError((<-this.CancelAllContractOrdersAsync(symbol, paramsMarketType))))
-		ch <- BoxAbsent(retRes528519)
+		var retRes527919 []any = ListTyped(PanicOnError((<-this.CancelAllContractOrdersAsync(symbol, paramsMarketType))))
+		ch <- BoxAbsent(retRes527919)
 		return nil
 	}
 }
@@ -6833,18 +6827,18 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 			"marketType": marketType,
 		})
 
-		var retRes549819 []any = ListTyped(PanicOnError((<-this.FetchUtaOrdersByStatusAsync(status, symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes549819)
+		var retRes549219 []any = ListTyped(PanicOnError((<-this.FetchUtaOrdersByStatusAsync(status, symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes549219)
 		return nil
 	} else if (IsEqual(marketType, "spot")) || (IsEqual(marketType, "margin")) {
 
-		var retRes550019 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatusAsync(status, symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes550019)
+		var retRes549419 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersByStatusAsync(status, symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes549419)
 		return nil
 	} else {
 
-		var retRes550219 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersByStatusAsync(status, symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes550219)
+		var retRes549619 []any = ListTyped(PanicOnError((<-this.FetchContractOrdersByStatusAsync(status, symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes549619)
 		return nil
 	}
 }
@@ -7014,15 +7008,13 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrdersByStatus", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes567119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrdersByStatus", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes567119)
+		var retRes566319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrdersByStatus", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes566319)
 		return nil
 	}
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
@@ -7155,15 +7147,13 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var maxLimit int = 200
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrdersByStatus", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes578719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes578719)
+		var retRes577719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes577719)
 		return nil
 	}
 	var accountMode string = "unified"
@@ -7315,20 +7305,18 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchClosedOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes591619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes591619)
+		var retRes590419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes590419)
 		return nil
 	}
 
-	var retRes591815 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("done", symbol, since, limit, paramsPaginate))))
-	ch <- BoxAbsent(retRes591815)
+	var retRes590615 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("done", symbol, since, limit, paramsPaginate))))
+	ch <- BoxAbsent(retRes590615)
 	return nil
 }
 
@@ -7379,20 +7367,18 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOpenOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes595619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes595619)
+		var retRes594219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes594219)
 		return nil
 	}
 
-	var retRes595815 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("active", symbol, since, limit, paramsPaginate))))
-	ch <- BoxAbsent(retRes595815)
+	var retRes594415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("active", symbol, since, limit, paramsPaginate))))
+	ch <- BoxAbsent(retRes594415)
 	return nil
 }
 
@@ -7451,8 +7437,8 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	if uta == true {
 
-		var retRes599919 map[string]any = MapTyped(PanicOnError((<-this.FetchUtaOrderAsync(id, symbol, paramsOmitted))))
-		ch <- BoxAbsent(retRes599919)
+		var retRes598519 map[string]any = MapTyped(PanicOnError((<-this.FetchUtaOrderAsync(id, symbol, paramsOmitted))))
+		ch <- BoxAbsent(retRes598519)
 		return nil
 	}
 	var marketType *string = nil
@@ -7464,13 +7450,13 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		var retRes600919 map[string]any = MapTyped(PanicOnError((<-this.FetchSpotOrderAsync(id, symbol, paramsOmitted))))
-		ch <- BoxAbsent(retRes600919)
+		var retRes599519 map[string]any = MapTyped(PanicOnError((<-this.FetchSpotOrderAsync(id, symbol, paramsOmitted))))
+		ch <- BoxAbsent(retRes599519)
 		return nil
 	} else {
 
-		var retRes601119 map[string]any = MapTyped(PanicOnError((<-this.FetchContractOrderAsync(id, symbol, paramsOmitted))))
-		ch <- BoxAbsent(retRes601119)
+		var retRes599719 map[string]any = MapTyped(PanicOnError((<-this.FetchContractOrderAsync(id, symbol, paramsOmitted))))
+		ch <- BoxAbsent(retRes599719)
 		return nil
 	}
 }
@@ -8343,8 +8329,8 @@ func (this *Kucoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 		"orderId": id,
 	}
 
-	var retRes677515 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes677515)
+	var retRes676115 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes676115)
 	return nil
 }
 
@@ -8402,19 +8388,19 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			"marketType": marketType,
 		})
 
-		var retRes680919 []any = ListTyped(PanicOnError((<-this.FetchMyUtaTradesAsync(symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes680919)
+		var retRes679519 []any = ListTyped(PanicOnError((<-this.FetchMyUtaTradesAsync(symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes679519)
 		return nil
 	}
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		var retRes681219 []any = ListTyped(PanicOnError((<-this.FetchMySpotTradesAsync(symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes681219)
+		var retRes679819 []any = ListTyped(PanicOnError((<-this.FetchMySpotTradesAsync(symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes679819)
 		return nil
 	} else {
 
-		var retRes681419 []any = ListTyped(PanicOnError((<-this.FetchMyContractTradesAsync(symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes681419)
+		var retRes680019 []any = ListTyped(PanicOnError((<-this.FetchMyContractTradesAsync(symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes680019)
 		return nil
 	}
 }
@@ -8462,8 +8448,8 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 	paramsRequest = GetValue(paginateparamsRequestVariable, 1)
 	if paginate {
 
-		var retRes684219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes684219)
+		var retRes682819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes682819)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -8624,15 +8610,13 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes697319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes697319)
+		var retRes695719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes695719)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -8732,15 +8716,13 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsRequest any = nil
 	var paginateparamsRequestVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsRequestVariable, 0, false)
-	paramsRequest = GetValue(paginateparamsRequestVariable, 1)
+	var paginate bool = GetValueBool(paginateparamsRequestVariable, 0, false)
+	var paramsRequest map[string]any = MapTyped(GetValue(paginateparamsRequestVariable, 1))
 	if paginate {
 
-		var retRes706219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes706219)
+		var retRes704419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes704419)
 		return nil
 	}
 	var marketType *string = this.SafeString(paramsRequest, "marketType")
@@ -9666,8 +9648,8 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
 	if IsEqual(accountType, "contract") {
 
-		var retRes787819 []any = ListTyped(PanicOnError((<-this.FetchContractDepositsAsync(code, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes787819)
+		var retRes786019 []any = ListTyped(PanicOnError((<-this.FetchContractDepositsAsync(code, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes786019)
 		return nil
 	}
 	var paginate bool = false
@@ -9676,8 +9658,8 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	paramsRequest = GetValue(paginateparamsRequestVariable, 1)
 	if paginate {
 
-		var retRes788319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes788319)
+		var retRes786519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes786519)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -9876,8 +9858,8 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
 	if IsEqual(accountType, "contract") {
 
-		var retRes803319 []any = ListTyped(PanicOnError((<-this.FetchContractWithdrawalsAsync(code, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes803319)
+		var retRes801519 []any = ListTyped(PanicOnError((<-this.FetchContractWithdrawalsAsync(code, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes801519)
 		return nil
 	}
 	var maxLimit int = 500
@@ -9887,8 +9869,8 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	paramsRequest = GetValue(paginateparamsRequestVariable, 1)
 	if paginate {
 
-		var retRes803919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, paramsRequest, maxLimit))))
-		ch <- BoxAbsent(retRes803919)
+		var retRes802119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, paramsRequest, maxLimit))))
+		ch <- BoxAbsent(retRes802119)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -10093,8 +10075,8 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	if EvalTruthy(utaOption) {
 
-		var retRes820019 map[string]any = MapTyped(PanicOnError((<-this.FetchUtaBalanceAsync(paramsUta))))
-		ch <- BoxAbsent(retRes820019)
+		var retRes818219 map[string]any = MapTyped(PanicOnError((<-this.FetchUtaBalanceAsync(paramsUta))))
+		ch <- BoxAbsent(retRes818219)
 		return nil
 	}
 	var response map[string]any = nil
@@ -10112,8 +10094,8 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "type"))
 	if typeVar != nil && *typeVar == "contract" {
 
-		var retRes821419 map[string]any = MapTyped(PanicOnError((<-this.FetchContractBalanceAsync(paramsOmitted))))
-		ch <- BoxAbsent(retRes821419)
+		var retRes819619 map[string]any = MapTyped(PanicOnError((<-this.FetchContractBalanceAsync(paramsOmitted))))
+		ch <- BoxAbsent(retRes819619)
 		return nil
 	}
 	hfparamsHfVariable := this.HandleHfAndParams(paramsOmitted)
@@ -10544,13 +10526,13 @@ func (this *Kucoin) transferBody(ch chan any, code any, amount any, fromAccount 
 	var paramsUta map[string]any = MapTyped(GetValue(utaOptionparamsUtaVariable, 1))
 	if EvalTruthy(utaOption) {
 
-		var retRes858319 map[string]any = MapTyped(PanicOnError((<-this.TransferUtaAsync(code, amount, fromAccount, toAccount, paramsUta))))
-		ch <- BoxAbsent(retRes858319)
+		var retRes856519 map[string]any = MapTyped(PanicOnError((<-this.TransferUtaAsync(code, amount, fromAccount, toAccount, paramsUta))))
+		ch <- BoxAbsent(retRes856519)
 		return nil
 	}
 
-	var retRes858515 map[string]any = MapTyped(PanicOnError((<-this.TransferClassicAsync(code, amount, fromAccount, toAccount, paramsUta))))
-	ch <- BoxAbsent(retRes858515)
+	var retRes856715 map[string]any = MapTyped(PanicOnError((<-this.TransferClassicAsync(code, amount, fromAccount, toAccount, paramsUta))))
+	ch <- BoxAbsent(retRes856715)
 	return nil
 }
 
@@ -11205,8 +11187,8 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	paramsRequest = GetValue(paginateparamsRequestVariable, 1)
 	if paginate {
 
-		var retRes914419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsRequest, maxLimit))))
-		ch <- BoxAbsent(retRes914419)
+		var retRes912619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, paramsRequest, maxLimit))))
+		ch <- BoxAbsent(retRes912619)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -12234,8 +12216,8 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		market = this.Market(symbol)
 		if GetValue(market, "contract") == true {
 
-			var retRes997423 map[string]any = MapTyped(PanicOnError((<-this.SetContractLeverageAsync(leverage, symbol, paramsRequest))))
-			ch <- BoxAbsent(retRes997423)
+			var retRes995623 map[string]any = MapTyped(PanicOnError((<-this.SetContractLeverageAsync(leverage, symbol, paramsRequest))))
+			ch <- BoxAbsent(retRes995623)
 			return nil
 		}
 	}
@@ -12386,8 +12368,8 @@ func (this *Kucoin) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes1007815 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
-	ch <- BoxAbsent(retRes1007815)
+	var retRes1006015 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRateAsync(symbol, params))))
+	ch <- BoxAbsent(retRes1006015)
 	return nil
 }
 
@@ -14214,13 +14196,13 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 			}()) {
 				AddElementToObject(result, symbol, []any{})
 			}
-			retRes1159316 := func() any {
+			retRes1157516 := func() any {
 				if symbol == nil {
 					return nil
 				}
 				return result[*symbol]
 			}()
-			AppendToArray(&retRes1159316, tier)
+			AppendToArray(&retRes1157516, tier)
 		}
 	}
 
@@ -14366,8 +14348,8 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol any, option
 	var paramsPaginate map[string]any = MapTyped(GetValue(paginateOptionparamsPaginateVariable, 1))
 	if EvalTruthy(paginateOption) {
 
-		var retRes1170219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes1170219)
+		var retRes1168419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
+		ch <- BoxAbsent(retRes1168419)
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -14603,15 +14585,13 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsRequest any = nil
 	var paginateparamsRequestVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	paginate = GetValueBool(paginateparamsRequestVariable, 0, false)
-	paramsRequest = GetValue(paginateparamsRequestVariable, 1)
+	var paginate bool = GetValueBool(paginateparamsRequestVariable, 0, false)
+	var paramsRequest map[string]any = MapTyped(GetValue(paginateparamsRequestVariable, 1))
 	if paginate {
 
-		var retRes1188519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsRequest))))
-		ch <- BoxAbsent(retRes1188519)
+		var retRes1186519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, paramsRequest))))
+		ch <- BoxAbsent(retRes1186519)
 		return nil
 	}
 	var request map[string]any = map[string]any{

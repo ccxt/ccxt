@@ -256,7 +256,7 @@ public partial class modetrade : ccxt.modetrade
         data["date"] = timestamp;
         Dictionary<string, object> ticker = this.parseWsTicker(data, market);
         ticker["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+        this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         client.resolve(ticker, topic);
         return message;
     }
@@ -321,7 +321,7 @@ public partial class modetrade : ccxt.modetrade
             Dictionary<string, object> ticker = this.parseWsTicker(this.extend(data[i], new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
-            ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
+            this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
             result.Add(ticker);
         }
         client.resolve(result, topic);
@@ -384,7 +384,7 @@ public partial class modetrade : ccxt.modetrade
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ticker;
             }
             result.Add(ticker);
         }
@@ -484,15 +484,15 @@ public partial class modetrade : ccxt.modetrade
             return;
         }
         List<object> parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")};
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcvCache = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcvCache = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         ohlcvCache.append(parsed);
         client.resolve(ohlcvCache, topic);
     }
@@ -555,15 +555,15 @@ public partial class modetrade : ccxt.modetrade
         Dictionary<string, object> trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
             { "timestamp", timestamp },
         }), market);
-        if (!(inOp(this.trades, symbol)))
+        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         trades.append(trade);
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
+        this.trades[(string)symbol] = trades;
         client.resolve(trades, topic);
     }
 
@@ -1404,18 +1404,18 @@ public partial class modetrade : ccxt.modetrade
         IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
         Int64? ts = this.safeInteger(message, "ts");
-        ((IDictionary<string,object>)this.balance)["info"] = data;
-        ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
+        this.balance["info"] = data;
+        this.balance["timestamp"] = ts;
+        this.balance["datetime"] = this.iso8601(ts);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
             IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();
-            if (((code != null)) && (inOp(this.balance, code)))
+            if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
             {
-                account = getValue(this.balance, code);
+                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
             }
             string? total = this.safeString(value, "holding");
             string? used = this.safeString(value, "frozen");
@@ -1424,7 +1424,7 @@ public partial class modetrade : ccxt.modetrade
             ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         this.balance = this.safeBalance(this.balance);

@@ -219,7 +219,11 @@ export default class revolutx extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryLength = queryKeys.length;
-        const baseUrl: string = this.urls['api'][api];
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
         if (api === 'private') {

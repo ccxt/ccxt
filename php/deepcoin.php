@@ -1944,8 +1944,6 @@ class deepcoin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate);
@@ -2945,8 +2943,6 @@ class deepcoin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate);

@@ -811,7 +811,10 @@ class zaif(Exchange, ImplicitAPI):
         return format(nonce, '.8f')
 
     def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseUrl = self.urls['api']['rest']
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest')
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
         url = baseUrl + '/'
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)

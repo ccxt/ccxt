@@ -2650,8 +2650,6 @@ class lighter extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50));
@@ -2759,8 +2757,6 @@ class lighter extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50));
@@ -2827,8 +2823,6 @@ class lighter extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50));
@@ -3014,8 +3008,6 @@ class lighter extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'next_cursor', 'cursor', null, 50));
@@ -3493,9 +3485,17 @@ class lighter extends Exchange {
     public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = null;
         if ($api === 'root') {
-            $url = $this->implode_hostname($this->urls['api']['public']);
+            $baseApiUrl = $this->safe_string($this->urls['api'], 'public');
+            if ($baseApiUrl === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $this->implode_hostname($baseApiUrl);
         } else {
-            $url = $this->implode_hostname($this->urls['api'][$api]) . '/api/' . $this->version . '/' . $path;
+            $baseApiUrl2 = $this->safe_string($this->urls['api'], $api);
+            if ($baseApiUrl2 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $this->implode_hostname($baseApiUrl2) . '/api/' . $this->version . '/' . $path;
         }
         $authHeaders = null;
         if ($api === 'private') {

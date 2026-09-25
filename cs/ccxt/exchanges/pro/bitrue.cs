@@ -168,7 +168,7 @@ public partial class bitrue : ccxt.bitrue
         //         "t": 1657799510000
         //     }]
         //
-        ((IDictionary<string,object>)this.balance)["info"] = balances;
+        this.balance["info"] = balances;
         for (int i = 0; i < getArrayLength(balances); i++)
         {
             IDictionary<string, object> balance = this.safeDict(balances, i);
@@ -193,7 +193,7 @@ public partial class bitrue : ccxt.bitrue
                 }
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    this.balance[(string)code] = account;
                 }
             }
         }
@@ -601,7 +601,7 @@ public partial class bitrue : ccxt.bitrue
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 stored = new ArrayCache(limit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                this.trades[(string)symbol] = stored;
             }
             Dictionary<string, object> trade = this.parseWsTrade(data[i], market);
             stored.append(trade);
@@ -735,7 +735,7 @@ public partial class bitrue : ccxt.bitrue
         List<object> parsed = this.parseWsOHLCV(tick, market);
         if (!(inOp(this.ohlcvs, symbol)))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
         if (!(inOp(getValue(this.ohlcvs, symbol), timeframe)))
         {
@@ -835,7 +835,7 @@ public partial class bitrue : ccxt.bitrue
         }
         Int64? timestamp = this.safeInteger(message, "ts");
         Dictionary<string, object> parsed = this.parseWsTicker(tick, market, timestamp);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        this.tickers[(string)symbol] = parsed;
         string messageHash = ("ticker:" + (symbol));
         client.resolve(parsed, messageHash);
     }

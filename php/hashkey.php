@@ -1569,8 +1569,6 @@ class hashkey extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, $methodName, 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 1000);

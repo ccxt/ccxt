@@ -4280,7 +4280,11 @@ class aster extends Exchange {
     }
 
     public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $path;
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $baseApiUrl . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
             if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);

@@ -846,8 +846,6 @@ class bydfi extends Exchange {
             $this->load_markets();
         }
         $maxLimit = 500; // docs says max 1500, but in practice only 500 works
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);

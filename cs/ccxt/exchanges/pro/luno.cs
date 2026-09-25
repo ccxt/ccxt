@@ -111,7 +111,7 @@ public partial class luno : ccxt.luno
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         for (int i = 0; i < rawTrades.Count; i++)
         {
@@ -119,7 +119,7 @@ public partial class luno : ccxt.luno
             Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
             stored.append(trade);
         }
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        this.trades[(string)symbol] = stored;
         client.resolve(getValue(this.trades, symbol), messageHash);
     }
 

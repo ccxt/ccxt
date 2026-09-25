@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\woo as Exchange;
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
@@ -2022,8 +2023,6 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
@@ -2753,8 +2752,6 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
@@ -3659,7 +3656,11 @@ class woo extends Exchange {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$access]);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $access);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($baseApiUrl);
         $url .= '/' . $version . '/';
         $paramsSorted = $this->keysort($this->omit($params, $this->extract_params($path)));
         if ($access === 'public') {
@@ -3801,8 +3802,6 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
@@ -4040,8 +4039,6 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 25));

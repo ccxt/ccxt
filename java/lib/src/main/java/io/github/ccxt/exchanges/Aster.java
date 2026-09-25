@@ -5146,7 +5146,12 @@ public class Aster extends AsterApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), "/"), path);
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((baseApiUrl + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPublic") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPublic"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)

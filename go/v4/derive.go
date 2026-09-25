@@ -2279,15 +2279,13 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes178919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500))))
-		ch <- BoxAbsent(retRes178919)
+		var retRes178719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500))))
+		ch <- BoxAbsent(retRes178719)
 		return nil
 	}
 	var isTrigger *bool = this.SafeBool2(paramsPaginate, "trigger", "stop", false)
@@ -2411,8 +2409,8 @@ func (this *Derive) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status": "open",
 	})
 
-	var retRes188615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes188615)
+	var retRes188415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes188415)
 	return nil
 }
 
@@ -2452,8 +2450,8 @@ func (this *Derive) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "filled",
 	})
 
-	var retRes190615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes190615)
+	var retRes190415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes190415)
 	return nil
 }
 
@@ -2493,8 +2491,8 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "cancelled",
 	})
 
-	var retRes192615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
-	ch <- BoxAbsent(retRes192615)
+	var retRes192415 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))))
+	ch <- BoxAbsent(retRes192415)
 	return nil
 }
 func (this *Derive) ParseTimeInForce(timeInForce *string) *string {
@@ -2778,15 +2776,13 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes217219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500))))
-		ch <- BoxAbsent(retRes217219)
+		var retRes216819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500))))
+		ch <- BoxAbsent(retRes216819)
 		return nil
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchMyTrades", paramsPaginate)
@@ -3051,15 +3047,13 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes239919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500))))
-		ch <- BoxAbsent(retRes239919)
+		var retRes239319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500))))
+		ch <- BoxAbsent(retRes239319)
 		return nil
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", paramsPaginate)

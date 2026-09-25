@@ -7427,11 +7427,9 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
@@ -11813,11 +11811,9 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
@@ -13418,11 +13414,9 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
@@ -15892,7 +15886,12 @@ public class Binance extends BinanceApi
         {
             throw new NotSupported((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
         }
-        String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = baseApiUrl;
         url = (url + ("/" + path));
         Map<String, Object> signedHeaders = null;
         String signedBody = null;
@@ -15929,7 +15928,7 @@ public class Binance extends BinanceApi
         } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "eapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV4")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papiV2") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papi") && !java.util.Objects.equals(path, "ping")))
         {
             this.checkRequiredCredentials(true);
-            if ((Helpers.getIndexOf(url, "testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && (!java.util.Objects.equals(this.safeBool(this.options, "disableFuturesSandboxWarning", (Object) null), true)))
+            if ((((String)url).indexOf("testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && (!java.util.Objects.equals(this.safeBool(this.options, "disableFuturesSandboxWarning", (Object) null), true)))
             {
                 throw new NotSupported((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
@@ -17335,11 +17334,9 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "current", 100L)).join();

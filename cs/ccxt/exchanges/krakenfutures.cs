@@ -1034,12 +1034,10 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 2000));
         }
@@ -1133,12 +1131,10 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
         IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        if ((paginate == true))
+        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
+        var paramsPaginate = paginateparamsPaginateVariable[1];
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
         }

@@ -2102,7 +2102,11 @@ class bittrade extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        $url = $this->implode_params($this->urls['api'][$api], array(
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_params($baseApiUrl, array(
             'hostname' => $this->hostname,
         )) . $url;
         $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;

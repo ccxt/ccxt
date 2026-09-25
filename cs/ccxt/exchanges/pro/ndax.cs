@@ -105,7 +105,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbol);
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
         }
         string name = "SubscribeLevel1";
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
@@ -195,7 +195,7 @@ public partial class ndax : ccxt.ndax
             callDynamically(tradesArray, "append", new object[] {trade});
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+                this.trades[(string)symbol] = tradesArray;
             }
             if ((symbol != null))
             {
@@ -301,7 +301,7 @@ public partial class ndax : ccxt.ndax
             {
                 updates[(string)marketId] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             List<object> keys = new List<object>(this.timeframes.Keys);
             for (int j = 0; j < keys.Count; j++)
             {
@@ -314,7 +314,7 @@ public partial class ndax : ccxt.ndax
                     continue;
                 }
                 List<object> parsed = new List<object> {this.parseToInt(multiply((((double?)timestamp / duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)};
-                object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
+                object stored = this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe, new List<object>() {});
                 int length = getArrayLength(stored);
                 if ((length > 0) && (isEqual(((List<object>)parsed)[0], getValue(getValue(stored, (length - 1)), 0))))
                 {
@@ -359,7 +359,7 @@ public partial class ndax : ccxt.ndax
                         }
                     }
                 }
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
         }
         string name = "SubscribeTicker";
@@ -374,7 +374,7 @@ public partial class ndax : ccxt.ndax
                 string messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                List<object> stored = this.safeList(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
+                List<object> stored = this.safeList((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe, new List<object>() {});
                 client.resolve(stored, messageHash);
             }
         }

@@ -2827,8 +2827,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 1000);
@@ -3083,8 +3081,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 200);
@@ -5306,8 +5302,6 @@ class bybit extends Exchange {
         if (!$isUnifiedAccount) {
             return $this->fetch_order_classic($id, $symbol, $params);
         }
-        $acknowledge = false;
-        $paramsAcknowledged = array();
         list($acknowledge, $paramsAcknowledged) = $this->handle_option_bool_and_params($params, 'fetchOrder', 'acknowledged', false);
         if (!$acknowledge) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() can only access an $order if it is in last 500 orders (of any status) for your account. Set $params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
@@ -5411,8 +5405,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrdersClassic', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchOrdersClassic', $symbol, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 50);
@@ -5594,8 +5586,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 50);
@@ -5773,8 +5763,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 50);
@@ -5914,8 +5902,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 100);
@@ -6094,8 +6080,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 50);
@@ -6166,8 +6150,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 50);
@@ -6356,8 +6338,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 50);
@@ -6779,8 +6759,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchPositions', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchPositions', $symbols, null, null, $paramsPaginate, 'nextPageCursor', 'cursor', null, 200);
@@ -7833,8 +7811,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 50);
@@ -8780,8 +8756,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyLiquidations', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchMyLiquidations', $symbol, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 100);
@@ -8905,8 +8879,6 @@ class bybit extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'getLeverageTiersPaginated', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('getLeverageTiersPaginated', $symbol, null, null, $paramsPaginate, 'nextPageCursor', 'cursor', null, 100);
@@ -9045,8 +9017,6 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 100);

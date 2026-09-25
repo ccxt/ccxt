@@ -2678,7 +2678,12 @@ public class Bittrade extends BittradeApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        url = Helpers.add(this.implodeParams(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), new HashMap<String, Object>() {{
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        url = Helpers.add(this.implodeParams(baseApiUrl, new HashMap<String, Object>() {{
     put( "hostname", Bittrade.this.hostname );
 }}), url);
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;

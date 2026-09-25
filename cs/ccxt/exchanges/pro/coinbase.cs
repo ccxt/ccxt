@@ -523,7 +523,7 @@ public partial class coinbase : ccxt.coinbase
                 string? symbol = ((string)(result != null && ((IDictionary<string, object>)result).ContainsKey("symbol") ? ((IDictionary<string, object>)result)["symbol"] : null));
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
+                    this.tickers[(string)symbol] = result;
                 }
                 newTickers.Add(result);
                 string? messageHash = ((string)add(add(channel, "::"), symbol));
@@ -835,7 +835,7 @@ public partial class coinbase : ccxt.coinbase
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCacheBySymbolById(tradesLimit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
+            this.trades[(string)symbol] = tradesArray;
         }
         for (int i = 0; i < events.Count; i++)
         {

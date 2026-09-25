@@ -4857,7 +4857,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&isTestnet) {
             urlKey = Value::Str("test".into());
         }
-        let mut host: Value = self.implode_hostname(get_value(&get_value(&self.urls, &urlKey), &api));
+        let mut baseApiUrl: Value = self.safe_string(get_value(&self.urls, &urlKey), api, &[]);
+        if (baseApiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+        }
+        let mut host: Value = self.implode_hostname(baseApiUrl);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", host, Value::Str("/api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
         let mut paramsLen: f64 = ((object_keys(&paramsOmitted).len() as i64) as f64);

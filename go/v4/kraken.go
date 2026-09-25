@@ -1446,15 +1446,13 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes122519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 720))))
-		ch <- BoxAbsent(retRes122519)
+		var retRes122319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 720))))
+		ch <- BoxAbsent(retRes122319)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2040,8 +2038,8 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan any, symbol any, side 
 		"cost": cost,
 	}
 
-	var retRes169615 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes169615)
+	var retRes169415 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes169415)
 	return nil
 }
 
@@ -2070,8 +2068,8 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var retRes171315 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
-	ch <- BoxAbsent(retRes171315)
+	var retRes171115 map[string]any = MapTyped(PanicOnError((<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))))
+	ch <- BoxAbsent(retRes171115)
 	return nil
 }
 
@@ -3947,8 +3945,8 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if paginate {
 		AddElementToObject(paramsPaginate, "cursor", true)
 
-		var retRes320719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "next_cursor", "cursor"))))
-		ch <- BoxAbsent(retRes320719)
+		var retRes320519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "next_cursor", "cursor"))))
+		ch <- BoxAbsent(retRes320519)
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -4057,8 +4055,8 @@ func (this *Kraken) createDepositAddressBody(ch chan any, code any, optionalArgs
 		"new": "true",
 	}
 
-	var retRes329815 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes329815)
+	var retRes329615 map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes329615)
 	return nil
 }
 
@@ -4446,8 +4444,8 @@ func (this *Kraken) transferOutBody(ch chan any, code any, amount any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes361915 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "spot", "swap", params))))
-	ch <- BoxAbsent(retRes361915)
+	var retRes361715 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "spot", "swap", params))))
+	ch <- BoxAbsent(retRes361715)
 	return nil
 }
 
@@ -4597,7 +4595,11 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		} else {
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		var urlSigned any = Add(GetValue(GetValue(this.Urls, "api"), api), url)
+		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+		if baseApiUrl == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		var urlSigned *string = SafeStringPtr(Add(baseApiUrl, url))
 		return map[string]any{
 			"url":     urlSigned,
 			"method":  method,

@@ -297,7 +297,7 @@ public partial class grvt : ccxt.grvt
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> ticker = this.parseWsTicker(data, market);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         client.resolve(ticker, ("ticker::" + symbol));
     }
 
@@ -400,13 +400,13 @@ public partial class grvt : ccxt.grvt
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!(inOp(this.trades, symbol)))
+        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
+            this.trades[(string)symbol] = new ArrayCache(limit);
         }
         Dictionary<string, object> parsed = this.parseWsTrade(data);
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
@@ -524,13 +524,13 @@ public partial class grvt : ccxt.grvt
         string timeframeId = secondPart.Replace("-TRADE", (string)"");
         string? timeframe = this.findTimeframe(timeframeId);
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (!(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             object limit = this.handleOption("watchOHLCV", "limit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         List<object> parsed = this.parseWsOHLCV(data, market);
         stored.append(parsed);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};

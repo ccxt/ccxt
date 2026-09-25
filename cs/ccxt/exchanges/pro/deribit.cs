@@ -152,13 +152,13 @@ public partial class deribit : ccxt.deribit
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)this.balance)["info"] = data;
+        this.balance["info"] = data;
         string? currencyId = this.safeString(data, "currency");
         string? currencyCode = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> balance = this.parseBalance(data);
         if ((currencyCode != null))
         {
-            ((IDictionary<string,object>)this.balance)[(string)currencyCode] = balance;
+            this.balance[(string)currencyCode] = balance;
         }
         string messageHash = "balance";
         client.resolve(this.balance, messageHash);
@@ -297,7 +297,7 @@ public partial class deribit : ccxt.deribit
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> ticker = this.parseTicker(data);
         string? messageHash = this.safeString(parameters, "channel");
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         client.resolve(ticker, messageHash);
     }
 
@@ -367,7 +367,7 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsBidAsk(data);
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+        this.bidsasks[(string)symbol] = ticker;
         string? messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
     }
@@ -475,18 +475,18 @@ public partial class deribit : ccxt.deribit
         if ((this.safeDict(this.trades, symbol) == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
+            this.trades[(string)symbol] = new ArrayCache(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         for (int i = 0; i < trades.Count; i++)
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             Dictionary<string, object> parsed = this.parseTrade(trade, market);
             stored.append(parsed);
         }
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        this.trades[(string)symbol] = stored;
         string messageHash = ((("trades|" + symbol) + "|") + interval);
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
     /**
@@ -964,18 +964,18 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(wsOptions, "timeframes", new Dictionary<string, object>() {});
         string? unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if ((this.safeDict(getValue(this.ohlcvs, symbol), unifiedTimeframe) == null))
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        if ((this.safeDict((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe));
         IDictionary<string, object> ohlcv = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         // data contains a single OHLCV candle
         List<object> parsed = this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
-        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
+        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         string messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
         client.resolve(resolveData, messageHash);

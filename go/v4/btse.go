@@ -968,11 +968,9 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var maxLimit int = 300
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
 		ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
@@ -2002,8 +2000,8 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate == true {
 
-		var retRes164819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, this.Omit(params, "paginate")))))
-		ch <- BoxAbsent(retRes164819)
+		var retRes164619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, this.Omit(params, "paginate")))))
+		ch <- BoxAbsent(retRes164619)
 		return nil
 	}
 	var market any = nil
@@ -2162,8 +2160,8 @@ func (this *Btse) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 		}
 	}
 
-	var retRes177715 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(params, orderIdParams)))))
-	ch <- BoxAbsent(retRes177715)
+	var retRes177515 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(params, orderIdParams)))))
+	ch <- BoxAbsent(retRes177515)
 	return nil
 }
 func (this *Btse) ParseTrade(trade any, optionalArgs ...any) any {
@@ -2319,13 +2317,13 @@ func (this *Btse) createOrderBody(ch chan any, symbol any, typeVar string, side 
 	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "spot") == true {
 
-		var retRes191819 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes191819)
+		var retRes191619 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes191619)
 		return nil
 	} else {
 
-		var retRes192019 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
-		ch <- BoxAbsent(retRes192019)
+		var retRes191819 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
+		ch <- BoxAbsent(retRes191819)
 		return nil
 	}
 }
@@ -4020,8 +4018,8 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
 		"symbol": this.FuturesRequestId(market),
 	}, params)
 
-	var retRes328515 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, paramsExtended))))
-	ch <- BoxAbsent(retRes328515)
+	var retRes328315 []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, paramsExtended))))
+	ch <- BoxAbsent(retRes328315)
 	return nil
 }
 func (this *Btse) ParsePosition(position any, optionalArgs ...any) any {

@@ -2077,8 +2077,6 @@ class gate extends Exchange {
                 throw new BadRequest($this->id . ' getMarginMode() does not support $trigger orders for cross margin');
             }
         }
-        $isUnifiedAccount = false;
-        $paramsUnifiedAccount = array();
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsOmitted, 'getMarginMode', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $marginMode = 'unified';
@@ -3323,8 +3321,6 @@ class gate extends Exchange {
         Async\await($this->load_unified_status());
         $symbol = $this->safe_string($params, 'symbol');
         $paramsOmitted = $this->omit($params, 'symbol');
-        $isUnifiedAccount = false;
-        $paramsUnifiedAccount = array();
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchBalance', 'unifiedAccount', false);
         list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $paramsUnifiedAccount);
         list($request, $requestParams) = $this->prepare_request(null, $type, $query);
@@ -3615,8 +3611,6 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 1000));
@@ -3714,8 +3708,6 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate));
@@ -3829,8 +3821,6 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $paramsPaginate));
@@ -4005,8 +3995,6 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_unified_status());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate));
@@ -4311,8 +4299,6 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $paramsPaginate));
@@ -4357,8 +4343,6 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $paramsPaginate));
@@ -5074,8 +5058,6 @@ class gate extends Exchange {
         $market = $this->market($symbol);
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('editOrder', $market, $params);
         $account = $this->convert_type_to_account($marketType);
-        $isUnifiedAccount = false;
-        $paramsUnifiedAccount = array();
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsMarketType, 'editOrder', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $account = 'unified';
@@ -5687,8 +5669,6 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_unified_status());
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             // see https://github.com/ccxt/ccxt/issues/22825
@@ -7122,8 +7102,6 @@ class gate extends Exchange {
             'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $isUnifiedAccount = false;
-        $paramsUnifiedAccount = array();
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'repayCrossMargin', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $request['type'] = 'repay';
@@ -7229,8 +7207,6 @@ class gate extends Exchange {
             'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $isUnifiedAccount = false;
-        $paramsUnifiedAccount = array();
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'borrowCrossMargin', 'unifiedAccount', false);
         if ($isUnifiedAccount) {
             $request['type'] = 'borrow';
@@ -7335,8 +7311,6 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_unified_status());
-        $isUnifiedAccount = false;
-        $paramsUnifiedAccount = array();
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'fetchBorrowInterest', 'unifiedAccount', false);
         $request = array();
         list($requestUntil, $paramsUntil) = $this->handle_until_option('to', $request, $paramsUnifiedAccount);
@@ -7966,8 +7940,6 @@ class gate extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $paramsPaginate));

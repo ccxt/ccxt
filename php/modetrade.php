@@ -1035,8 +1035,6 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 25);
@@ -1140,8 +1138,6 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 500);
@@ -2135,8 +2131,6 @@ class modetrade extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $maxLimit = ($isTrigger === true) ? 100 : 500;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', $maxLimit);
@@ -2322,8 +2316,6 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'page', 500);

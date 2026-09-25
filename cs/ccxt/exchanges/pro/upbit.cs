@@ -249,7 +249,7 @@ public partial class upbit : ccxt.upbit
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
         }
         string messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
@@ -340,7 +340,7 @@ public partial class upbit : ccxt.upbit
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         stored.append(trade);
         string messageHash = ("trade:" + symbol);
@@ -750,8 +750,8 @@ public partial class upbit : ccxt.upbit
         //
         List<object> data = this.safeList(message, "assets", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> balance = this.safeDict(data, i);
@@ -764,7 +764,7 @@ public partial class upbit : ccxt.upbit
             account["used"] = frozen;
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
             this.balance = this.safeBalance(this.balance);
         }

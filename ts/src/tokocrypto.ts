@@ -2622,7 +2622,11 @@ export default class tokocrypto extends Exchange {
         if (!(api in this.urls['api']['rest'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
-        let url: string = this.urls['api']['rest'][api];
+        const baseApiUrl = this.safeString (this.urls['api']['rest'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = baseApiUrl;
         url += '/' + path;
         if (api === 'wapi') {
             url += '.html';

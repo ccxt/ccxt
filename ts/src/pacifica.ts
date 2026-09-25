@@ -3516,7 +3516,11 @@ export default class pacifica extends Exchange {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const host = this.implodeHostname (this.urls[urlKey][api]);
+        const baseApiUrl = this.safeString (this.urls[urlKey], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const host = this.implodeHostname (baseApiUrl);
         let url = host + '/api/' + this.version + '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const paramsLen = Object.keys (paramsOmitted).length;

@@ -2759,8 +2759,6 @@ class bybit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000)
@@ -2999,8 +2997,6 @@ class bybit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 200)
@@ -5032,8 +5028,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
         if not isUnifiedAccount:
             return self.fetch_order_classic(id, symbol, params)
-        acknowledge = False
-        paramsAcknowledged = {}
         acknowledge, paramsAcknowledged = self.handle_option_bool_and_params(params, 'fetchOrder', 'acknowledged', False)
         if not acknowledge:
             raise ArgumentsRequired(self.id + ' fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params["acknowledged"] = True to hide self warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder')
@@ -5131,8 +5125,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrdersClassic', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrdersClassic', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 50)
@@ -5297,8 +5289,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 50)
@@ -5464,8 +5454,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOpenOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 50)
@@ -5595,8 +5583,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 100)
@@ -5763,8 +5749,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 50)
@@ -5829,8 +5813,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 50)
@@ -6009,8 +5991,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 50)
@@ -6410,8 +6390,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchPositions', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchPositions', symbols, None, None, paramsPaginate, 'nextPageCursor', 'cursor', None, 200)
@@ -7385,8 +7363,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 50)
@@ -8273,8 +8249,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyLiquidations', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyLiquidations', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 100)
@@ -8390,8 +8364,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'getLeverageTiersPaginated', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('getLeverageTiersPaginated', symbol, None, None, paramsPaginate, 'nextPageCursor', 'cursor', None, 100)
@@ -8517,8 +8489,6 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', None, 100)

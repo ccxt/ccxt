@@ -1822,8 +1822,6 @@ class deepcoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate)
@@ -2752,8 +2750,6 @@ class deepcoin(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)

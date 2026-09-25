@@ -3943,9 +3943,9 @@ public partial class myriad : PredictionExchange
         if (isEqual(this.safeValue(this.trades, sym), null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
+            this.trades[(string)sym] = new ArrayCache(tradesLimit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && sym != null && this.trades.ContainsKey(sym) ? this.trades[sym] : null));
         stored.append(trade);
         client.resolve(stored, ("trades::" + sym));
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
@@ -4160,7 +4160,7 @@ public partial class myriad : PredictionExchange
                 { "quoteVolume", null },
                 { "info", oc },
             }, market);
-            ((IDictionary<string,object>)this.tickers)[(string)sym] = ((object)ticker);
+            this.tickers[(string)sym] = ((object)ticker);
             client.resolve(ticker, ("ticker::" + sym));
         }
         client.resolve(this.tickers, "tickers");

@@ -2953,7 +2953,12 @@ public class Tokocrypto extends TokocryptoApi
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
         }
-        String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = baseApiUrl;
         url = (url + ("/" + path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi"))
         {

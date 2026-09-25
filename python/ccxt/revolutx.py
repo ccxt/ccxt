@@ -225,7 +225,10 @@ class revolutx(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryLength = len(queryKeys)
-        baseUrl = self.urls['api'][api]
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
         url = baseUrl + '/' + implodedPath
         queryString = ''
         if api == 'private':

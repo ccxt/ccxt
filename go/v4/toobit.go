@@ -1983,15 +1983,13 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes163919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
-		ch <- BoxAbsent(retRes163919)
+		var retRes163719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate))))
+		ch <- BoxAbsent(retRes163719)
 		return nil
 	}
 	if symbol == nil {
@@ -3237,8 +3235,8 @@ func (this *Toobit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes275215 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("deposits", code, since, limit, params))))
-	ch <- BoxAbsent(retRes275215)
+	var retRes275015 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("deposits", code, since, limit, params))))
+	ch <- BoxAbsent(retRes275015)
 	return nil
 }
 
@@ -3270,8 +3268,8 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes276715 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("withdrawals", code, since, limit, params))))
-	ch <- BoxAbsent(retRes276715)
+	var retRes276515 []any = ListTyped(PanicOnError((<-this.FetchDepositsOrWithdrawalsHelperAsync("withdrawals", code, since, limit, params))))
+	ch <- BoxAbsent(retRes276515)
 	return nil
 }
 func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan any {
@@ -3819,8 +3817,12 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
-	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl *string = baseApiUrl
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var isPost bool = (method == "POST")
 	var isDelete bool = (method == "DELETE")
 	var extraQuery map[string]any = map[string]any{}
@@ -3829,7 +3831,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 		// Public endpoints
 		if !isPost {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		}
 	} else {
@@ -3863,7 +3865,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 		if queryString != "" {
 			queryString += "&signature=" + signature
-			url = Add(url, "?"+queryString)
+			url += "?" + queryString
 		} else {
 			privateBody = Add(privateBody, "&signature="+signature)
 		}

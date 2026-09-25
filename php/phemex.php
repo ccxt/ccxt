@@ -4741,7 +4741,11 @@ class phemex extends Exchange {
             $auth = $requestPath . $queryString . $expiryString . $payload;
             $privateHeaders['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
-        $url = $this->implode_hostname($this->urls['api'][$api]) . $url;
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($baseApiUrl) . $url;
         $isPrivatePost = ($api === 'private') && ($method === 'POST');
         $bodyResolved = $body;
         if ($isPrivatePost) {
@@ -5035,8 +5039,6 @@ class phemex extends Exchange {
         if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, 100);

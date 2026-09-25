@@ -128,14 +128,14 @@ public partial class backpack : ccxt.backpack
                 string symbol = ((string)messageHash).Replace("unsubscribe:ticker:", (string)"");
                 if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
                 {
-                    ((IDictionary<string,object>)this.tickers).Remove(symbol);
+                    this.tickers.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "bidask") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
                 if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
                 {
-                    ((IDictionary<string,object>)this.bidsasks).Remove(symbol);
+                    this.bidsasks.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "candles") >= 0)
             {
@@ -161,7 +161,7 @@ public partial class backpack : ccxt.backpack
                 string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
                 if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
                 {
-                    ((IDictionary<string,object>)this.trades).Remove(symbol);
+                    this.trades.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "orders") >= 0)
             {
@@ -331,7 +331,7 @@ public partial class backpack : ccxt.backpack
         string? symbol = this.safeSymbol(marketId, market);
         Dictionary<string, object> parsedTicker = this.parseWsTicker(ticker, market);
         string messageHash = (("ticker" + ":") + symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
+        this.tickers[(string)symbol] = parsedTicker;
         client.resolve(parsedTicker, messageHash);
     }
 
@@ -463,7 +463,7 @@ public partial class backpack : ccxt.backpack
         string? symbol = this.safeSymbol(marketId, market);
         Dictionary<string, object> parsedBidAsk = this.parseWsBidAsk(data, market);
         string messageHash = (("bidask" + ":") + symbol);
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedBidAsk;
+        this.bidsasks[(string)symbol] = parsedBidAsk;
         client.resolve(parsedBidAsk, messageHash);
     }
 
@@ -654,17 +654,17 @@ public partial class backpack : ccxt.backpack
         string? stream = this.safeString(message, "stream", "");
         List<object> parts = stream.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? timeframe = this.safeString(parts, 1, "");
-        if (!(inOp(this.ohlcvs, symbol)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         List<object> parsed = this.parseWsOHLCV(data);
         ohlcv.append(parsed);
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
@@ -826,13 +826,13 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.market(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!(inOp(this.trades, symbol)))
+        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         Dictionary<string, object> trade = this.parseWsTrade(data, market);
         cache.append(trade);
         string messageHash = ("trades:" + symbol);

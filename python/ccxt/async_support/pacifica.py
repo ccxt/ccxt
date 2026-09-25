@@ -3304,7 +3304,10 @@ class pacifica(Exchange, ImplicitAPI):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        host = self.implode_hostname(self.urls[urlKey][api])
+        baseApiUrl = self.safe_string(self.urls[urlKey], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        host = self.implode_hostname(baseApiUrl)
         url = host + '/api/' + self.version + '/' + self.implode_params(path, params)
         paramsOmitted = self.omit(params, self.extract_params(path))
         paramsLen = len(paramsOmitted)

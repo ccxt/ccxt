@@ -466,7 +466,7 @@ public partial class hitbtc : ccxt.hitbtc
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = this.parseWsTicker(getValue(data, marketId), market);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((topic + "::") + symbol);
             client.resolve(ticker, messageHash);
@@ -603,7 +603,7 @@ public partial class hitbtc : ccxt.hitbtc
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = this.parseWsBidAsk(getValue(data, marketId), market);
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            this.bidsasks[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((topic + "::") + symbol);
             client.resolve(ticker, messageHash);
@@ -722,7 +722,7 @@ public partial class hitbtc : ccxt.hitbtc
             if ((stored == null))
             {
                 stored = new ArrayCache(tradesLimit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                this.trades[(string)symbol] = stored;
             }
             IList<object> trades = this.parseWsTrades(getValue(data, marketId), market);
             for (int j = 0; j < (trades?.Count ?? 0); j++)
@@ -867,13 +867,13 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             List<object> ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
             for (int j = 0; j < (ohlcvs?.Count ?? 0); j++)

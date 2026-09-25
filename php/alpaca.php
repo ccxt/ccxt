@@ -2229,7 +2229,11 @@ class alpaca extends Exchange {
 
     public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$api[0]]);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $api[0]);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($baseApiUrl);
         $headersValue = array();
         if ($headers !== null) {
             $headersValue = $headers;

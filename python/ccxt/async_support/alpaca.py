@@ -2118,7 +2118,10 @@ class alpaca(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][api[0]])
+        baseApiUrl = self.safe_string(self.urls['api'], api[0])
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl)
         headersValue = {}
         if headers is not None:
             headersValue = headers

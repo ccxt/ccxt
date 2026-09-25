@@ -3121,7 +3121,11 @@ export default class nado extends Exchange {
         if (typeof api === 'string') {
             endpoint = api;
         }
-        let url = this.urls['api'][endpoint];
+        const baseApiUrl = this.safeString (this.urls['api'], endpoint);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = baseApiUrl;
         if (path !== '') {
             url += '/' + this.implodeParams (path, params);
         }

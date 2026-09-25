@@ -2180,8 +2180,6 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $rpi = false;
-        $paramsRpi = array();
         list($rpi, $paramsRpi) = $this->handle_option_bool_and_params($params, 'fetchOrderBook', 'rpi', false);
         list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsRpi, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         $defaultLimit = ($method === 'publicGetMarketBooksFull') ? 5000 : 100;
@@ -2597,8 +2595,6 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'tradeId', 'after', null, 100);
@@ -2712,8 +2708,6 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200);
@@ -2826,8 +2820,6 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, 100);
@@ -4576,8 +4568,6 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $maxLimit = 100;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $paramsPaginate, $maxLimit);
@@ -4933,8 +4923,6 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $maxLimit = 100;
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $paramsPaginate, $maxLimit);
@@ -5114,8 +5102,6 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate);
@@ -5216,8 +5202,6 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $paramsPaginate);
@@ -5675,8 +5659,6 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $paramsPaginate);
@@ -5788,8 +5770,6 @@ class okx extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $paramsPaginate);
@@ -6752,7 +6732,11 @@ class okx extends Exchange {
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
+        $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($baseApiUrl) . $request;
         $privateHeaders = null;
         $hasJsonBody = false;
         $jsonBody = null;

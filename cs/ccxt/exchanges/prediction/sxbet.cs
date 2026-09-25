@@ -2817,7 +2817,7 @@ public partial class sxbet : PredictionExchange
             IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             IDictionary<string, object> raw = ((IDictionary<string, object>)this.parseSxbetSnapshotBestOdds(snapshot));
             Dictionary<string, object> ticker = this.parsePredictionTicker(raw, ((object)outcomeObj));
-            ((IDictionary<string,object>)this.tickers)[(string)sym] = ((object)ticker);
+            this.tickers[(string)sym] = ((object)ticker);
             hydrated = true;
         }
         Int64 requestId = this.requestId(url);
@@ -2880,7 +2880,7 @@ public partial class sxbet : PredictionExchange
                 }
                 object outcomeObj = this.outcome(sym);
                 Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
-                ((IDictionary<string,object>)this.tickers)[(string)sym] = ((object)ticker);
+                this.tickers[(string)sym] = ((object)ticker);
                 client.resolve(ticker, ("ticker::" + sym));
             }
         }
@@ -2980,9 +2980,9 @@ public partial class sxbet : PredictionExchange
             if (isEqual(this.safeValue(this.trades, sym), null))
             {
                 Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-                ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
+                this.trades[(string)sym] = new ArrayCache(tradesLimit);
             }
-            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
+            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && sym != null && this.trades.ContainsKey(sym) ? this.trades[sym] : null));
             stored.append(trade);
             client.resolve(stored, ("trades::" + sym));
         }

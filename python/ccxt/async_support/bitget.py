@@ -2990,8 +2990,6 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         uta, paramsUTA = await self.handle_uta_and_params(params, 'fetchDeposits', False)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(paramsUTA, 'fetchDeposits', 'paginate', False)
         if paginate:
             if uta is True:
@@ -3168,8 +3166,6 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         uta, paramsUTA = await self.handle_uta_and_params(params, 'fetchWithdrawals', False)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(paramsUTA, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             if uta is True:
@@ -4576,8 +4572,6 @@ class bitget(Exchange, ImplicitAPI):
         maxLimitForHistoryEndpoint = 200  # note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
         useHistoryEndpointForPagination = self.safe_bool(params, 'useHistoryEndpointForPagination', True)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             limitForPagination = maxLimitForHistoryEndpoint if (useHistoryEndpointForPagination is True) else maxLimitForRecentEndpoint
@@ -9155,8 +9149,6 @@ class bitget(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         uta, paramsUTA = await self.handle_uta_and_params(params, 'fetchFundingHistory', False)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(paramsUTA, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             if uta is True:
@@ -10193,8 +10185,6 @@ class bitget(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyLiquidations', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyLiquidations', symbol, since, limit, paramsPaginate, 'minId', 'idLessThan')
@@ -10569,8 +10559,6 @@ class bitget(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchBorrowInterest', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchBorrowInterest', symbol, since, limit, paramsPaginate, 'minId', 'idLessThan')

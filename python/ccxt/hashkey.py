@@ -1553,8 +1553,6 @@ class hashkey(Exchange, ImplicitAPI):
         methodName = 'fetchOHLCV'
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, methodName, 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000)

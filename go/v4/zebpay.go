@@ -2508,7 +2508,11 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	if isV1 {
 		marketType = "swap"
 	}
-	var url any = GetValue(GetValue(this.Urls, "api"), marketType)
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), marketType)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = baseApiUrl
 	var tail string = "/api/" + this.ImplodeParams(path, paramsOmitted)
 	url = Add(url, tail)
 	var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)

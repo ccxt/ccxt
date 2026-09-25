@@ -327,7 +327,14 @@ function csharpHelperDeclarationOfLine (line: string): { type: string, name: str
 // the C# type the emitted text declares for `name` at `line`: a local declared before the read,
 // else a parameter of the enclosing signature. A name the region declares with two different
 // types is left to the helper (the read may sit behind either binding)
+// hand-written ws cache fields declared `IDictionary<string, object>` (cs/ccxt/base/Exchange.Options.cs);
+// (orderbooks reads go through getOrderBook); a field may still be null, so reads keep a null test
+const CSHARP_WS_CACHE_DICT_FIELDS = [ 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs' ];
+
 function csharpHelperReceiverType (region, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
+    if (name.startsWith ('this.')) {
+        return CSHARP_WS_CACHE_DICT_FIELDS.includes (name.slice (5)) ? { type: 'IDictionary<string, object>', kind: 'field', value: '' } : undefined;
+    }
     const all = region.declarations.filter ((d) => d.name === name);
     const types = [];
     for (const declaration of all) {
@@ -362,7 +369,7 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
 
 // rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
 // from the original line
-function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType): string | undefined {
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false): string | undefined {
     const edits = [];
     const lengthCall = /getArrayLength[ ]*\(/g;
     let match;
@@ -387,22 +394,25 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const firstComma = csharpHelperTopLevelComma (masked, open, close);
         if (firstComma === undefined) continue;
         const name = masked.substring (open + 1, firstComma).trim ();
-        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name)) continue;
         const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
         if (secondComma !== undefined) continue; // more than two arguments
         const keyMask = masked.substring (firstComma + 1, close).trim ();
         const receiver = takeType (name);
         if (receiver === undefined) continue;
-        if (!takeKeyType (keyMask)) continue;
+        const nullableKey = (receiver.kind === 'field') && takeNullableKeyType (keyMask);
+        if (!nullableKey && !takeKeyType (keyMask)) continue;
         const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
         const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
         if (!isDict && !isList) continue;
         const keyText = original.substring (firstComma + 1, close).trim ();
         const call = `${name}.${isDict ? 'ContainsKey' : 'Contains'}(${keyText})`;
-        const guarded = (receiver.type.endsWith ('?')
+        const guarded = nullableKey || (receiver.type.endsWith ('?')
             || (receiver.kind === 'param' && !receiver.paramsBag)
-            || (receiver.kind === 'local' && !receiver.nonNull));
-        edits.push ({ start: match.index, end: close + 1, text: guarded ? `(${name} != null && ${call})` : call });
+            || (receiver.kind === 'local' && !receiver.nonNull)
+            || (receiver.kind === 'field'));
+        const nullTest = nullableKey ? `${name} != null && ${keyText} != null` : `${name} != null`;
+        edits.push ({ start: match.index, end: close + 1, text: guarded ? `(${nullTest} && ${call})` : call });
     }
     const valueCall = /(?<![A-Za-z_.])getValue[ ]*\(/g;
     while ((match = valueCall.exec (masked)) !== null) {
@@ -412,7 +422,7 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const firstComma = csharpHelperTopLevelComma (masked, open, close);
         if (firstComma === undefined) continue;
         const name = masked.substring (open + 1, firstComma).trim ();
-        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name)) continue;
         const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
         if (secondComma !== undefined) continue; // more than two arguments
         const keyMask = masked.substring (firstComma + 1, close).trim ();
@@ -430,9 +440,11 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         // the helper's dictionary branch hands back the boxed value; a value-typed dictionary
         // (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries
         if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) continue;
-        if (!takeKeyType (keyMask)) continue;
+        const nullableValueKey = (receiver.kind === 'field') && takeNullableKeyType (keyMask);
+        if (!nullableValueKey && !takeKeyType (keyMask)) continue;
+        const valueNullTest = nullableValueKey ? `${name} != null && ${keyText} != null` : `${name} != null`;
         edits.push ({ start: match.index, end: close + 1,
-            text: `(${name} != null && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
+            text: `(${valueNullTest} && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
     }
     csharpHelperOperatorEdits (original, masked, takeType, edits);
     if (edits.length === 0) {
@@ -665,7 +677,13 @@ export function nativeDeclaredHelperCalls (content: string): string {
             if (keyMask.startsWith ('"')) return true; // a string literal is never null
             return rewrite (keyMask, true) === true;
         };
-        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType);
+        // a `string?` local/param key: a ws cache field read tests it for null first, as the helper does
+        const takeNullableKeyType = (keyMask) => {
+            if (!/^[A-Za-z_]\w*$/.test (keyMask)) return false;
+            const key = csharpHelperReceiverType (region, keyMask, i, region.params);
+            return (key !== undefined) && (key.type === 'string?');
+        };
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType);
         if (rewritten === undefined) {
             return line;
         }

@@ -1190,8 +1190,6 @@ class paradex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
@@ -2144,8 +2142,6 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 50)
@@ -2315,8 +2311,6 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
@@ -2553,8 +2547,6 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
@@ -2611,8 +2603,6 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
@@ -2669,8 +2659,6 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
@@ -3144,8 +3132,6 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
@@ -3281,7 +3267,10 @@ class paradex(Exchange, ImplicitAPI):
             pathValue = path.replace('v2/', '')
         if path.find('v2/') == 0:
             version = 'v2'
-        url = self.implode_hostname(self.urls['api'][version]) + '/' + self.implode_params(pathValue, params)
+        baseApiUrl = self.safe_string(self.urls['api'], version)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl) + '/' + self.implode_params(pathValue, params)
         query = self.omit(params, self.extract_params(pathValue))
         if api == 'public':
             if len(query) > 0:

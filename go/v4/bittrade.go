@@ -2896,7 +2896,11 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
 	}
-	url = Add(this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	url = Add(this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
 	}), url)
 	var headersResult any = func() any {

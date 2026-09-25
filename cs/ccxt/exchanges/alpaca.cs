@@ -2561,7 +2561,12 @@ public partial class alpaca : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        object url = this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(api, 0)));
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(api, 0));
+        if ((baseApiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = this.implodeHostname(baseApiUrl);
         object headersValue = new Dictionary<string, object>() {};
         if ((headers != null))
         {

@@ -458,7 +458,11 @@ impl RevolutxCore {
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut queryKeys: Value = object_keys(&query);
         let mut queryLength: f64 = ((queryKeys.len() as i64) as f64);
-        let mut baseUrl: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
+        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        if (baseApiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+        }
+        let mut baseUrl: Value = baseApiUrl;
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath).into());
         let mut queryString: Value = Value::Str("".into());
         if (api.as_str() == Some("private")) {

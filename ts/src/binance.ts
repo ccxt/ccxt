@@ -13093,7 +13093,11 @@ export default class binance extends Exchange {
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
-        let url = this.urls['api'][api];
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = baseApiUrl;
         url += '/' + path;
         let signedHeaders: NullableDict = undefined;
         let signedBody: Str = undefined;

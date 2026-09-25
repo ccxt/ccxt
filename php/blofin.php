@@ -997,8 +997,6 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'tradeId', 'after', null, 100);
@@ -1794,8 +1792,6 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOpenOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $paramsPaginate);
@@ -1845,8 +1841,6 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate);
@@ -1912,8 +1906,6 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $paramsPaginate);
@@ -1954,8 +1946,6 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $paramsPaginate);
@@ -2126,8 +2116,6 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $paramsPaginate);
@@ -2898,8 +2886,6 @@ class blofin extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchClosedOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $paramsPaginate);

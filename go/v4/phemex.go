@@ -5609,7 +5609,11 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 		var auth string = requestPath + queryString + expiryString + payload
 		AddElementToObject(privateHeaders, "x-phemex-request-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 	}
-	url = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)) + url
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	url = this.ImplodeHostname(baseApiUrl) + url
 	var isPrivatePost bool = (IsEqual(api, "private")) && (method == "POST")
 	var bodyResolved *string = body
 	if isPrivatePost {
@@ -5991,15 +5995,13 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes508119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100))))
-		ch <- BoxAbsent(retRes508119)
+		var retRes508319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100))))
+		ch <- BoxAbsent(retRes508319)
 		return nil
 	}
 	var customSymbol any = nil

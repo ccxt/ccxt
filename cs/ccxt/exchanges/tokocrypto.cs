@@ -2843,7 +2843,12 @@ public partial class tokocrypto : Exchange
         {
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
-        object url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api);
+        string? baseApiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api);
+        if ((baseApiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = baseApiUrl;
         url = add(url, ("/" + path));
         if (isEqual(api, "wapi"))
         {

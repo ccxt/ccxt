@@ -445,8 +445,8 @@ public partial class aster : ccxt.aster
         string messageHash = ("ticker:" + symbol);
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
-            client.resolve(getValue(this.tickers, symbol), messageHash);
+            this.tickers[(string)symbol] = parsed;
+            client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
         }
     }
 
@@ -612,7 +612,7 @@ public partial class aster : ccxt.aster
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            this.bidsasks[(string)symbol] = ticker;
         }
         string messageHash = ("bidask:" + symbol);
         client.resolve(ticker, messageHash);
@@ -807,12 +807,12 @@ public partial class aster : ccxt.aster
         {
             return;
         }
-        if (!(inOp(this.trades, symbol)))
+        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
+            this.trades[(string)symbol] = new ArrayCache(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
@@ -1401,14 +1401,14 @@ public partial class aster : ccxt.aster
         IDictionary<string, object> ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
         if ((ohlcvsByTimeframe == null))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
         if (isEqual(this.safeValue(ohlcvsByTimeframe, timeframe), null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         List<object> parsed = this.parseWsOHLCV(kline);
         stored.append(parsed);
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
@@ -1596,7 +1596,7 @@ public partial class aster : ccxt.aster
             }
         } else
         {
-            ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
+            this.balance[(string)type] = new Dictionary<string, object>() {};
         }
     }
 
@@ -1606,7 +1606,7 @@ public partial class aster : ccxt.aster
             { "type", type },
         };
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
+        this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
@@ -1673,11 +1673,11 @@ public partial class aster : ccxt.aster
         //
         string accountType = this.getAccountTypeFromUrl(client.url);
         string messageHash = (accountType + ":balance");
-        if (isEqual(getValue(this.balance, accountType), null))
+        if (isEqual((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), null))
         {
-            ((IDictionary<string,object>)this.balance)[accountType] = new Dictionary<string, object>() {};
+            this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         IDictionary<string, object> messageValue = this.safeDict(message, "a", message);
         List<object> B = this.safeList(messageValue, "B", new List<object>() {});
         string? wallet = this.safeString(this.options, "wallet", "wb");
@@ -1692,14 +1692,14 @@ public partial class aster : ccxt.aster
             account["total"] = this.safeString(entry, wallet);
             if (((accountType != null)) && ((code != null)))
             {
-                ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(messageValue, "E");
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.balance)[accountType] = this.safeBalance(getValue(this.balance, accountType));
-        client.resolve(getValue(this.balance, accountType), messageHash);
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        client.resolve((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
     /**

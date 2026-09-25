@@ -1493,8 +1493,6 @@ class deribit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 5000);
@@ -3320,8 +3318,6 @@ class deribit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         $maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         $eachItemDuration = '1h';
@@ -3444,8 +3440,6 @@ class deribit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLiquidations', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $paramsPaginate, 'continuation', 'continuation', null);
@@ -4023,7 +4017,11 @@ class deribit extends Exchange {
             $signedHeaders = array(
                 'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',' . 'nonce=' . $nonce,
             );
-            $signedUrl = $this->urls['api']['rest'] . $request;
+            $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
+            if ($baseApiUrl === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $signedUrl = $baseApiUrl . $request;
             return array( 'url' => $signedUrl, 'method' => $method, 'body' => $body, 'headers' => $signedHeaders );
         }
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');

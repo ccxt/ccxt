@@ -2614,8 +2614,6 @@ class htx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
@@ -2899,8 +2897,6 @@ class htx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000)
@@ -4005,8 +4001,6 @@ class htx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchCanceledOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchCanceledOrders', symbol, since, limit, paramsPaginate, 100)
@@ -4056,8 +4050,6 @@ class htx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, paramsPaginate, 100)
@@ -6675,8 +6667,6 @@ class htx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50)
@@ -7133,7 +7123,10 @@ class htx(Exchange, ImplicitAPI):
             else:
                 if (query is not None) and (len(query) > 0):
                     url += '?' + self.urlencode(query)
-            url = self.implode_params(self.urls['api'][api], {
+            baseApiUrl = self.safe_string(self.urls['api'], api)
+            if baseApiUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = self.implode_params(baseApiUrl, {
                 'hostname': self.hostname,
             }) + url
         else:
@@ -7206,7 +7199,10 @@ class htx(Exchange, ImplicitAPI):
                         'Content-Type': 'application/x-www-form-urlencoded',
                     }
             finalHostname = hostname  # java req
-            url = self.implode_params(self.urls['api'][type], {
+            baseApiUrl2 = self.safe_string(self.urls['api'], type)
+            if baseApiUrl2 is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = self.implode_params(baseApiUrl2, {
                 'hostname': finalHostname,
             }) + url
         headersResolved = signedHeaders if (signedHeaders is not None) else headers
@@ -7951,8 +7947,6 @@ class htx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, paramsPaginate, 500)

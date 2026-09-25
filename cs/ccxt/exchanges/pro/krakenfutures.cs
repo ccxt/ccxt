@@ -636,9 +636,9 @@ public partial class krakenfutures : ccxt.krakenfutures
             if ((this.safeList(this.trades, symbol) == null))
             {
                 Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(tradesLimit);
+                this.trades[(string)symbol] = new ArrayCache(tradesLimit);
             }
-            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
             if (channel == "trade_snapshot")
             {
                 List<object> trades = this.safeList(message, "trades", new List<object>() {});
@@ -1166,7 +1166,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+                this.tickers[(string)symbol] = ticker;
             }
             string? messageHash = this.getMessageHash("ticker", null, symbol);
             client.resolve(ticker, messageHash);
@@ -1198,7 +1198,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+                this.bidsasks[(string)symbol] = ticker;
             }
             string? messageHash = this.getMessageHash("bidask", null, symbol);
             client.resolve(ticker, messageHash);
@@ -1565,8 +1565,8 @@ public partial class krakenfutures : ccxt.krakenfutures
                     holdingResult[(string)code] = newAccount;
                 }
             }
-            ((IDictionary<string,object>)this.balance)["cash"] = holdingResult;
-            ((IDictionary<string,object>)this.balance)["cash"] = this.safeBalance(getValue(this.balance, "cash"));
+            this.balance["cash"] = holdingResult;
+            this.balance["cash"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null));
             client.resolve(holdingResult, messageHash);
         }
         if ((futures != null))
@@ -1594,9 +1594,9 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)getValue(futuresResult, symbol))[(string)code] = newAccount;
                 }
             }
-            ((IDictionary<string,object>)this.balance)["margin"] = futuresResult;
-            ((IDictionary<string,object>)this.balance)["margin"] = this.safeBalance(getValue(this.balance, "margin"));
-            client.resolve(getValue(this.balance, "margin"), (messageHash + "futures"));
+            this.balance["margin"] = futuresResult;
+            this.balance["margin"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null));
+            client.resolve((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), (messageHash + "futures"));
         }
         if ((flexFutures != null))
         {
@@ -1621,9 +1621,9 @@ public partial class krakenfutures : ccxt.krakenfutures
                     flexFuturesResult[(string)code] = newAccount;
                 }
             }
-            ((IDictionary<string,object>)this.balance)["flex"] = flexFuturesResult;
-            ((IDictionary<string,object>)this.balance)["flex"] = this.safeBalance(getValue(this.balance, "flex"));
-            client.resolve(getValue(this.balance, "flex"), (messageHash + "flex_futures"));
+            this.balance["flex"] = flexFuturesResult;
+            this.balance["flex"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null));
+            client.resolve((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), (messageHash + "flex_futures"));
         }
         client.resolve(this.balance, messageHash);
     }

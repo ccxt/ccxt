@@ -7638,7 +7638,11 @@ export default class htx extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             }
-            url = this.implodeParams (this.urls['api'][api], {
+            const baseApiUrl = this.safeString (this.urls['api'], api);
+            if (baseApiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = this.implodeParams (baseApiUrl, {
                 'hostname': this.hostname,
             }) + url;
         } else {
@@ -7724,7 +7728,11 @@ export default class htx extends Exchange {
                 }
             }
             const finalHostname = hostname; // java req
-            url = this.implodeParams (this.urls['api'][type as string], {
+            const baseApiUrl2 = this.safeString (this.urls['api'], type);
+            if (baseApiUrl2 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = this.implodeParams (baseApiUrl2, {
                 'hostname': finalHostname,
             }) + url;
         }

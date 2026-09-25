@@ -467,8 +467,6 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000)
@@ -540,8 +538,6 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         maxEntriesPerRequest = 100
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest)
@@ -2039,8 +2035,6 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         portfolio, paramsPortfolio = await self.handle_portfolio_and_params('fetchOpenOrders', params)
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(paramsPortfolio, 'fetchOpenOrders', 'paginate', False)
         maxEntriesPerRequest = 100
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest)
@@ -2117,8 +2111,6 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         pageKey = 'ccxtPageKey'
         maxEntriesPerRequest, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100)

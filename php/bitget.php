@@ -3024,8 +3024,6 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         list($uta, $paramsUTA) = $this->handle_uta_and_params($params, 'fetchDeposits', false);
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsUTA, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
             if ($uta === true) {
@@ -3216,8 +3214,6 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         list($uta, $paramsUTA) = $this->handle_uta_and_params($params, 'fetchWithdrawals', false);
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsUTA, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
             if ($uta === true) {
@@ -4699,8 +4695,6 @@ class bitget extends Exchange {
         $maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
         $useHistoryEndpointForPagination = $this->safe_bool($params, 'useHistoryEndpointForPagination', true);
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
             $limitForPagination = ($useHistoryEndpointForPagination === true) ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
@@ -9646,8 +9640,6 @@ class bitget extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
         }
         list($uta, $paramsUTA) = $this->handle_uta_and_params($params, 'fetchFundingHistory', false);
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsUTA, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
             if ($uta === true) {
@@ -10759,8 +10751,6 @@ class bitget extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyLiquidations', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchMyLiquidations', $symbol, $since, $limit, $paramsPaginate, 'minId', 'idLessThan');
@@ -11152,8 +11142,6 @@ class bitget extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = false;
-        $paramsPaginate = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchBorrowInterest', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchBorrowInterest', $symbol, $since, $limit, $paramsPaginate, 'minId', 'idLessThan');

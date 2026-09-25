@@ -207,13 +207,13 @@ public partial class blockchaincom : ccxt.blockchaincom
             string? timeframeId = this.safeString(request, "granularity");
             string? timeframe = this.findTimeframe(timeframeId);
             List<object> ohlcv = this.safeList(message, "price", new List<object>() {});
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             stored.append(ohlcv);
             client.resolve(stored, messageHash);
@@ -299,7 +299,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             ticker = this.parseWsUpdatedTicker(message, lastTicker, market);
         }
         string messageHash = ("ticker:" + symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         client.resolve(ticker, messageHash);
     }
 
@@ -410,12 +410,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseWsTrade(message, market);
         stored.append(parsed);
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        this.trades[(string)symbol] = stored;
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
     public override Dictionary<string, object> parseWsTrade(object trade, object market = null)

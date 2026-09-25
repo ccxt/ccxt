@@ -307,7 +307,7 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
         }
         string messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
@@ -517,7 +517,7 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            this.bidsasks[(string)symbol] = ticker;
         }
         string messageHash = ("bidask:" + symbol);
         client.resolve(ticker, messageHash);
@@ -746,7 +746,7 @@ public partial class bitget : ccxt.bitget
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? interval = this.safeString(arg, "interval");
         bool? isUta = null;
@@ -769,7 +769,7 @@ public partial class bitget : ccxt.bitget
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
@@ -1333,7 +1333,7 @@ public partial class bitget : ccxt.bitget
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         int length = data.Count;
@@ -2814,9 +2814,9 @@ public partial class bitget : ccxt.bitget
                     string? currencyId = this.safeString(entry, "coin");
                     string? code = this.safeCurrencyCode(currencyId);
                     object account = this.account();
-                    if (((code != null)) && (inOp(this.balance, code)))
+                    if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
                     {
-                        account = getValue(this.balance, code);
+                        account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
                     }
                     string? borrow = this.safeString(entry, "borrow");
                     string? debts = this.safeString(entry, "debts");
@@ -2829,7 +2829,7 @@ public partial class bitget : ccxt.bitget
                     ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
                     if ((code != null))
                     {
-                        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                        this.balance[(string)code] = account;
                     }
                 }
             } else
@@ -2837,9 +2837,9 @@ public partial class bitget : ccxt.bitget
                 string? currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
                 string? code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
-                if (((code != null)) && (inOp(this.balance, code)))
+                if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
                 {
-                    account = getValue(this.balance, code);
+                    account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
                 }
                 string? borrow = this.safeString(rawBalance, "borrow");
                 if ((borrow != null))
@@ -2857,13 +2857,13 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "frozen");
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    this.balance[(string)code] = account;
                 }
             }
         }
         // REST parseBalance sets info, keep the ws structure at parity,
         // see https://github.com/ccxt/ccxt/issues/21973
-        ((IDictionary<string,object>)this.balance)["info"] = message;
+        this.balance["info"] = message;
         this.balance = this.safeBalance(this.balance);
         string messageHash = ("balance:" + instType);
         client.resolve(this.balance, messageHash);
@@ -3283,9 +3283,9 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("unsubscribe:trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string subMessageHash = ("trade:" + symbol);
-        if (inOp(this.trades, symbol))
+        if ((this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))
         {
-            ((IDictionary<string,object>)this.trades).Remove(symbol);
+            this.trades.Remove(symbol);
         }
         if (inOp(client.subscriptions, subMessageHash))
         {
@@ -3320,9 +3320,9 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("unsubscribe:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string subMessageHash = ("ticker:" + symbol);
-        if (inOp(this.tickers, symbol))
+        if ((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol)))
         {
-            ((IDictionary<string,object>)this.tickers).Remove(symbol);
+            this.tickers.Remove(symbol);
         }
         if (inOp(client.subscriptions, subMessageHash))
         {
@@ -3383,11 +3383,11 @@ public partial class bitget : ccxt.bitget
             messageHash = ((("unsubscribe:candles:" + timeframe) + ":") + symbol);
             subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         }
-        if (inOp(this.ohlcvs, symbol))
+        if ((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))
         {
-            if (((timeframe != null)) && (inOp(getValue(this.ohlcvs, symbol), timeframe)))
+            if (((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
             {
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove(timeframe);
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
             }
         }
         this.cleanUnsubscription(client, subMessageHash, messageHash);

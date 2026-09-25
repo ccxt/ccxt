@@ -3265,15 +3265,13 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes255219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes255219)
+		var retRes255019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes255019)
 		return nil
 	}
 	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchTransfers", "accountIndex", "account_index"))))
@@ -3400,15 +3398,13 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchDeposits", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes265719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes265719)
+		var retRes265319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes265319)
 		return nil
 	}
 	var addressparamsAddressVariable []any = this.HandleOptionStringAndParams2(paramsPaginate, "fetchDeposits", "address", "l1_address")
@@ -3494,15 +3490,13 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchWithdrawals", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes272119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes272119)
+		var retRes271519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes271519)
 		return nil
 	}
 	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchWithdrawals", "accountIndex", "account_index"))))
@@ -3734,15 +3728,13 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes290219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes290219)
+		var retRes289419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "next_cursor", "cursor", nil, 50))))
+		ch <- BoxAbsent(retRes289419)
 		return nil
 	}
 	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchMyTrades", "accountIndex", "account_index"))))
@@ -3933,8 +3925,8 @@ func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires an marginMode parameter"))
 	}
 
-	var retRes305715 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, paramsMarginMode))))
-	ch <- BoxAbsent(retRes305715)
+	var retRes304915 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, paramsMarginMode))))
+	ch <- BoxAbsent(retRes304915)
 	return nil
 }
 
@@ -3972,8 +3964,8 @@ func (this *Lighter) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an leverage parameter"))
 	}
 
-	var retRes308015 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, paramsLeverage))))
-	ch <- BoxAbsent(retRes308015)
+	var retRes307215 map[string]any = MapTyped(PanicOnError((<-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, paramsLeverage))))
+	ch <- BoxAbsent(retRes307215)
 	return nil
 }
 func (this *Lighter) ModifyLeverageAndMarginModeAsync(leverage any, marginMode any, optionalArgs ...any) <-chan any {
@@ -4293,8 +4285,8 @@ func (this *Lighter) addMarginBody(ch chan any, symbol any, amount any, optional
 		"direction": 1,
 	}
 
-	var retRes326215 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes326215)
+	var retRes325415 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes325415)
 	return nil
 }
 
@@ -4321,8 +4313,8 @@ func (this *Lighter) reduceMarginBody(ch chan any, symbol any, amount any, optio
 		"direction": 0,
 	}
 
-	var retRes327815 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes327815)
+	var retRes327015 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes327015)
 	return nil
 }
 
@@ -4426,9 +4418,17 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var url any = nil
 	if IsEqual(api, "root") {
-		url = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))
+		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "public")
+		if baseApiUrl == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = this.ImplodeHostname(baseApiUrl)
 	} else {
-		url = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)) + "/api/" + this.Version + "/" + path
+		var baseApiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), api)
+		if baseApiUrl2 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = this.ImplodeHostname(baseApiUrl2) + "/api/" + this.Version + "/" + path
 	}
 	var authHeaders map[string]any = nil
 	if IsEqual(api, "private") {

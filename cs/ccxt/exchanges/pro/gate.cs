@@ -1037,13 +1037,13 @@ public partial class gate : ccxt.gate
             {
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedItem;
+                    this.tickers[(string)symbol] = parsedItem;
                 }
             } else
             {
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedItem;
+                    this.bidsasks[(string)symbol] = parsedItem;
                 }
             }
             object messageHash = add(add(objectName, ":"), symbol);
@@ -1196,7 +1196,7 @@ public partial class gate : ccxt.gate
                 cachedTrades = new ArrayCache(limit);
                 if ((symbol != null))
                 {
-                    ((IDictionary<string,object>)this.trades)[(string)symbol] = cachedTrades;
+                    this.trades[(string)symbol] = cachedTrades;
                 }
             }
             cachedTrades.append(trade);
@@ -1290,7 +1290,7 @@ public partial class gate : ccxt.gate
             string marketId = subscription.Replace(prefix, (string)"");
             string? symbol = this.safeSymbol(marketId, null, "_", marketType);
             IList<object> parsed = this.parseOHLCV(ohlcv);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            this.ohlcvs[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
             if ((stored == null))
             {
@@ -1298,7 +1298,7 @@ public partial class gate : ccxt.gate
                 stored = new ArrayCacheByTimestamp(limit);
                 if ((symbol != null) && (timeframe != null))
                 {
-                    ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)timeframe] = stored;
                 }
             }
             stored.append(parsed);
@@ -1311,7 +1311,7 @@ public partial class gate : ccxt.gate
             object timeframe = getValue(marketIds, symbol);
             string? interval = this.findTimeframe(timeframe);
             string hash = (((("candles" + ":") + interval) + ":") + symbol);
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), interval));
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), interval));
             client.resolve(stored, hash);
         }
     }
@@ -1541,7 +1541,7 @@ public partial class gate : ccxt.gate
         //   }
         //
         List<object> result = this.safeList(message, "result", new List<object>() {});
-        ((IDictionary<string,object>)this.balance)["info"] = result;
+        this.balance["info"] = result;
         for (int i = 0; i < result.Count; i++)
         {
             IDictionary<string, object> rawBalance = this.safeDict(result, i);
@@ -1549,14 +1549,14 @@ public partial class gate : ccxt.gate
             string? currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             string? code = this.safeCurrencyCode(currencyId);
             Int64? timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
-            ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+            this.balance["timestamp"] = timestamp;
+            this.balance["datetime"] = this.iso8601(timestamp);
             account["used"] = this.safeString(rawBalance, "freeze");
             account["free"] = this.safeString(rawBalance, "available");
             account["total"] = this.safeString2(rawBalance, "total", "balance");
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         string channel = this.safeString(message, "channel");

@@ -978,8 +978,6 @@ class extended(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 100)
@@ -1043,8 +1041,6 @@ class extended(Exchange, ImplicitAPI):
         :returns FundingHistory[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 100)
@@ -1290,8 +1286,6 @@ class extended(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 10000)
@@ -1574,8 +1568,6 @@ class extended(Exchange, ImplicitAPI):
         :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
         """
         self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchLedger', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, paramsPaginate, 'cursor', 'cursor', None, 50)
@@ -1659,8 +1651,6 @@ class extended(Exchange, ImplicitAPI):
         :returns Transaction[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransactions', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransactions', code, since, limit, paramsPaginate, 'cursor', 'cursor', None, 50)
@@ -1815,8 +1805,6 @@ class extended(Exchange, ImplicitAPI):
         :returns TransferEntry[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, paramsPaginate, 'cursor', 'cursor', None, 50)
@@ -2267,8 +2255,6 @@ class extended(Exchange, ImplicitAPI):
         symbolsList = symbols
         if isinstance(symbols, str):
             symbolsList = [symbols]
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchPositionsHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', None, 10000)
@@ -3037,8 +3023,6 @@ class extended(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 100)
@@ -3386,7 +3370,10 @@ class extended(Exchange, ImplicitAPI):
         endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryPost = (path == 'user/deadmanswitch')
-        url = self.implode_hostname(self.urls['api']['rest'])
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest')
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl)
         if accessibility == 'private':
             # this.checkRequiredCredentials ();
             if self.apiKey is None:

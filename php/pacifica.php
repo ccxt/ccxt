@@ -3508,7 +3508,11 @@ class pacifica extends Exchange {
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $host = $this->implode_hostname($this->urls[$urlKey][$api]);
+        $baseApiUrl = $this->safe_string($this->urls[$urlKey], $api);
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $host = $this->implode_hostname($baseApiUrl);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $paramsOmitted = $this->omit($params, $this->extract_params($path));
         $paramsLen = count($paramsOmitted);

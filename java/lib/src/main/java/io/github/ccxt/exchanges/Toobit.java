@@ -1911,11 +1911,9 @@ public class Toobit extends ToobitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
@@ -3596,7 +3594,12 @@ public class Toobit extends ToobitApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = baseApiUrl;
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Boolean isPost = java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST");
         Boolean isDelete = java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE");

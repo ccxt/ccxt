@@ -264,7 +264,12 @@ public class Revolutx extends RevolutxApi
         Object query = this.omit(parameters, this.extractParams(path));
         List<Object> queryKeys = Helpers.objectKeys(query);
         Integer queryLength = ((List<?>)queryKeys).size();
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = baseApiUrl;
         String url = ((baseUrl + "/") + implodedPath);
         String queryString = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))

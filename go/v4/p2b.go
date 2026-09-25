@@ -1591,12 +1591,16 @@ func (this *P2b) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var baseUrl any = GetValue(GetValue(this.Urls, "api"), api)
-	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl *string = baseApiUrl
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
 		if len(ObjectKeys(paramsOmitted)) > 0 {
-			url = Add(url, "?"+this.Urlencode(paramsOmitted))
+			url += "?" + this.Urlencode(paramsOmitted)
 		}
 	}
 	if IsEqual(api, "private") {

@@ -227,13 +227,13 @@ public partial class lbank : ccxt.lbank
             List<object> parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
             string? timeframeId = this.safeString(message, "kbar");
             string? timeframe = this.findTimeframe(timeframeId, timeframes);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             stored.append(parsed);
             string messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
@@ -245,13 +245,13 @@ public partial class lbank : ccxt.lbank
             string? datetime = this.safeString(rawOHLCV, "t");
             List<object> parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             string? timeframe = this.findTimeframe(timeframeId, timeframes);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(getValue(this.ohlcvs, symbol), timeframe));
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
             }
             stored.append(parsed);
             string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
@@ -345,7 +345,7 @@ public partial class lbank : ccxt.lbank
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> parsedTicker = this.parseWsTicker(message, market);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
+        this.tickers[(string)symbol] = parsedTicker;
         string messageHash = ("ticker:" + symbol);
         client.resolve(parsedTicker, messageHash);
         messageHash = ("fetchTicker:" + symbol);
@@ -506,7 +506,7 @@ public partial class lbank : ccxt.lbank
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         IDictionary<string, object> rawTrade = this.safeDict(message, "trade");
         List<object> rawTrades = this.safeList(message, "trades", new List<object>() {rawTrade});
@@ -516,11 +516,11 @@ public partial class lbank : ccxt.lbank
             trade["symbol"] = symbol;
             stored.append(trade);
         }
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        this.trades[(string)symbol] = stored;
         string messageHash = ("trades:" + symbol);
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
         messageHash = ("fetchTrades:" + symbol);
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
     public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
@@ -806,9 +806,9 @@ public partial class lbank : ccxt.lbank
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.parse8601(this.safeString(message, "TS"));
         string? datetime = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.balance)["info"] = data;
-        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)this.balance)["datetime"] = datetime;
+        this.balance["info"] = data;
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = datetime;
         string? currencyId = this.safeString(data, "assetCode");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();
@@ -817,7 +817,7 @@ public partial class lbank : ccxt.lbank
         account["total"] = this.safeString(data, "asset");
         if ((code != null))
         {
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            this.balance[(string)code] = account;
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");

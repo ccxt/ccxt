@@ -257,9 +257,9 @@ public partial class cex : ccxt.cex
         if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
+            this.trades[(string)symbol] = new ArrayCache(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
         Dictionary<string, object> market = this.market(symbol);
         int dataLength = data.Count;
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
@@ -270,8 +270,8 @@ public partial class cex : ccxt.cex
             stored.append(parsed);
         }
         string messageHash = "trades";
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        this.trades[(string)symbol] = stored;
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
     /**
@@ -402,7 +402,7 @@ public partial class cex : ccxt.cex
         {
             return;
         }
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        this.tickers[(string)symbol] = ticker;
         string? messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
         client.resolve(ticker, "tickers");
@@ -1289,11 +1289,11 @@ public partial class cex : ccxt.cex
         {
             callDynamically(stored, "append", new object[] {this.parseOHLCV(sorted[i], market)});
         }
-        if (!(inOp(this.ohlcvs, symbol)))
+        if (!((this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[symbol] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
+        ((IDictionary<string,object>)(this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
         client.resolve(stored, messageHash);
     }
 
@@ -1360,7 +1360,7 @@ public partial class cex : ccxt.cex
         }
         string messageHash = ("ohlcv:" + symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), "unknown"));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
         for (int i = 0; i < data.Count; i++)
         {
             List<object> ohlcv = new List<object> {this.safeTimestamp(data[i], 0), this.safeNumber(data[i], 1), this.safeNumber(data[i], 2), this.safeNumber(data[i], 3), this.safeNumber(data[i], 4), this.safeNumber(data[i], 5)};

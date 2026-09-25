@@ -381,7 +381,7 @@ public partial class okx : ccxt.okx
             if ((stored == null))
             {
                 stored = new ArrayCache(tradesLimit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                this.trades[(string)symbol] = stored;
             }
             stored.append(trade);
             client.resolve(stored, messageHash);
@@ -488,7 +488,7 @@ public partial class okx : ccxt.okx
             string? symbol = ((string)(fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null));
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+                this.fundingRates[(string)symbol] = fundingRate;
             }
             client.resolve(fundingRate, (("funding-rate" + ":") + ((fundingRate != null && ((IDictionary<string, object>)fundingRate).ContainsKey("symbol") ? ((IDictionary<string, object>)fundingRate)["symbol"] : null))));
         }
@@ -697,7 +697,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> ticker = this.parseTicker(data[i]);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            this.tickers[(string)symbol] = ticker;
             newTickers[(string)symbol] = ticker;
         }
         string? messageHash = ((string)add(add(channel, "::"), symbol));
@@ -804,7 +804,7 @@ public partial class okx : ccxt.okx
         string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+            this.bidsasks[(string)symbol] = parsedTicker;
         }
         string messageHash = ("bidask::" + symbol);
         client.resolve(parsedTicker, messageHash);
@@ -1352,7 +1352,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < data.Count; i++)
         {
             IList<object> parsed = this.parseOHLCV(data[i], market);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+            this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
             if ((stored == null))
             {
@@ -1360,7 +1360,7 @@ public partial class okx : ccxt.okx
                 stored = new ArrayCacheByTimestamp(limit);
                 if ((symbol != null) && (timeframe != null))
                 {
-                    ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
+                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
                 }
             }
             stored.append(parsed);
@@ -3003,7 +3003,7 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.trades, symbol))
         {
-            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+            this.trades.Remove((string)symbol);
         }
     }
 
@@ -3042,7 +3042,7 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.tickers, symbol))
         {
-            ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
+            this.tickers.Remove((string)symbol);
         }
     }
 

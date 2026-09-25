@@ -1940,7 +1940,11 @@ export default class zebpay extends Exchange {
         if (isV1) {
             marketType = 'swap';
         }
-        let url: string = this.urls['api'][marketType];
+        const baseApiUrl = this.safeString (this.urls['api'], marketType);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = baseApiUrl;
         const tail = '/api/' + this.implodeParams (path, paramsOmitted);
         url += tail;
         const timestamp = this.milliseconds ().toString ();

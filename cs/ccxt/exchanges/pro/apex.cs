@@ -150,7 +150,7 @@ public partial class apex : ccxt.apex
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         int length = (trades?.Count ?? 0);
         for (object j = 0; isLessThan(j, length); postFixIncrement(ref j))
@@ -508,9 +508,9 @@ public partial class apex : ccxt.apex
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         parsed["timestamp"] = timestamp;
         parsed["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+        this.tickers[(string)symbol] = parsed;
         string messageHash = ("ticker:" + symbol);
-        client.resolve(getValue(this.tickers, symbol), messageHash);
+        client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
     /**
@@ -619,16 +619,16 @@ public partial class apex : ccxt.apex
         }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!(inOp(this.ohlcvs, symbol)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         for (int i = 0; i < data.Count; i++)
         {
             List<object> parsed = this.parseWsOHLCV(data[i]);

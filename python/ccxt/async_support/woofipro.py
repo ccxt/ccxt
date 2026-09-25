@@ -1316,8 +1316,6 @@ class woofipro(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25)
@@ -1414,8 +1412,6 @@ class woofipro(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500)
@@ -2302,8 +2298,6 @@ class woofipro(Exchange, ImplicitAPI):
             await self.load_markets()
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         maxLimit = 100 if (isTrigger is True) else 500
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit)
@@ -2474,8 +2468,6 @@ class woofipro(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paramsPaginate = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500)

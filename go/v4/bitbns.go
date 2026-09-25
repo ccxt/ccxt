@@ -1668,7 +1668,11 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 		}
 		return headers
 	}()
-	var baseUrl string = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api))
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if baseApiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl string = this.ImplodeHostname(baseApiUrl)
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var nonce string = ToString(this.Nonce())

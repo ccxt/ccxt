@@ -2005,7 +2005,11 @@ export default class apex extends Exchange {
     }
 
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (baseApiUrl) + '/' + path;
         const headersValue: NullableDict = {
             'User-Agent': 'apex-CCXT',
             'Accept': 'application/json',

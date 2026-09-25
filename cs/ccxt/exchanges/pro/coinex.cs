@@ -162,7 +162,7 @@ public partial class coinex : ccxt.coinex
             string? symbol = this.safeSymbol(marketId, null, null, defaultType);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
             Dictionary<string, object> parsedTicker = this.parseWSTicker(entry, market);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
+            this.tickers[(string)symbol] = parsedTicker;
             newTickers[(string)symbol] = parsedTicker;
         }
         List<object> messageHashes = this.findMessageHashes(client, "tickers::");
@@ -381,12 +381,12 @@ public partial class coinex : ccxt.coinex
         {
             if ((this.safeDict(this.balance, account) == null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)account] = new Dictionary<string, object>() {};
+                this.balance[(string)account] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)getValue(this.balance, account))["info"] = info;
-            ((IDictionary<string,object>)this.balance)[(string)account] = this.safeBalance(getValue(this.balance, account));
+            ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["info"] = info;
+            this.balance[(string)account] = this.safeBalance((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null));
             messageHash = ("balances:" + account);
-            client.resolve(getValue(this.balance, account), messageHash);
+            client.resolve((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null), messageHash);
         }
     }
 
@@ -424,7 +424,7 @@ public partial class coinex : ccxt.coinex
         {
             if ((this.safeDict(this.balance, accountType) == null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
+                this.balance[(string)accountType] = new Dictionary<string, object>() {};
             }
             if (((accountType != null)) && ((code != null)))
             {
@@ -434,7 +434,7 @@ public partial class coinex : ccxt.coinex
         {
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
     }
@@ -541,13 +541,13 @@ public partial class coinex : ccxt.coinex
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         Dictionary<string, object> parsed = this.parseWsTrade(data, market);
         stored.append(parsed);
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        client.resolve(getValue(this.trades, symbol), messageWithType);
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        this.trades[(string)symbol] = stored;
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageWithType);
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -608,7 +608,7 @@ public partial class coinex : ccxt.coinex
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         for (int i = 0; i < trades.Count; i++)
         {
@@ -616,8 +616,8 @@ public partial class coinex : ccxt.coinex
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
-        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        client.resolve(getValue(this.trades, symbol), messageHash);
+        this.trades[(string)symbol] = stored;
+        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
     }
 
     public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
@@ -1461,7 +1461,7 @@ public partial class coinex : ccxt.coinex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(data);
         string? symbol = ((string)(parsedTicker != null && ((IDictionary<string, object>)parsedTicker).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTicker)["symbol"] : null));
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        this.bidsasks[(string)symbol] = parsedTicker;
         string messageHash = ("bidsasks:" + symbol);
         client.resolve(parsedTicker, messageHash);
     }

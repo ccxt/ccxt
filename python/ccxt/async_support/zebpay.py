@@ -1833,7 +1833,10 @@ class zebpay(Exchange, ImplicitAPI):
         marketType = 'spot'
         if isV1:
             marketType = 'swap'
-        url = self.urls['api'][marketType]
+        baseApiUrl = self.safe_string(self.urls['api'], marketType)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = baseApiUrl
         tail = '/api/' + self.implode_params(path, paramsOmitted)
         url += tail
         timestamp = str(self.milliseconds())

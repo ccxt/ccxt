@@ -2468,15 +2468,13 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes196819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes196819)
+		var retRes196619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes196619)
 		return nil
 	}
 	var trigger *bool = this.SafeBool(paramsPaginate, "trigger", false)
@@ -2625,8 +2623,8 @@ func (this *Deepcoin) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 		"state": "canceled",
 	})
 
-	var retRes209015 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsExtended2))))
-	ch <- BoxAbsent(retRes209015)
+	var retRes208815 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsExtended2))))
+	ch <- BoxAbsent(retRes208815)
 	return nil
 }
 
@@ -2666,8 +2664,8 @@ func (this *Deepcoin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"state": "filled",
 	})
 
-	var retRes210915 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsExtended2))))
-	ch <- BoxAbsent(retRes210915)
+	var retRes210715 []any = ListTyped(PanicOnError((<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, paramsExtended2))))
+	ch <- BoxAbsent(retRes210715)
 	return nil
 }
 
@@ -3758,15 +3756,13 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes297119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
-		ch <- BoxAbsent(retRes297119)
+		var retRes296719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, paramsPaginate))))
+		ch <- BoxAbsent(retRes296719)
 		return nil
 	}
 	var market map[string]any = nil
@@ -3870,8 +3866,8 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		"ordId": id,
 	}, params)
 
-	var retRes304715 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, paramsExtended))))
-	ch <- BoxAbsent(retRes304715)
+	var retRes304315 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, paramsExtended))))
+	ch <- BoxAbsent(retRes304315)
 	return nil
 }
 

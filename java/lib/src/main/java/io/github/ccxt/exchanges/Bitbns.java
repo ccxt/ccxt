@@ -1540,7 +1540,12 @@ public class Bitbns extends BitbnsApi
             put( "X-BITBNS-APIKEY", Bitbns.this.apiKey );
         }};
         Object requestHeaders = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "www"), "www")))) ? apiKeyHeaders : headers;
-        String baseUrl = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "www")));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "www"));
+        if (java.util.Objects.equals(baseApiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = (String) this.implodeHostname(baseApiUrl);
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String nonce = String.valueOf(this.nonce());

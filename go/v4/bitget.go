@@ -4776,21 +4776,19 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchDeposits", false))))
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		if IsEqual(uta, true) {
 
-			var retRes304123 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", nil, since, limit, paramsPaginate, "orderId", "cursor", nil, 100))))
-			ch <- BoxAbsent(retRes304123)
+			var retRes303923 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", nil, since, limit, paramsPaginate, "orderId", "cursor", nil, 100))))
+			ch <- BoxAbsent(retRes303923)
 			return nil
 		}
 
-		var retRes304319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", nil, since, limit, paramsPaginate, "idLessThan", "idLessThan", nil, 100))))
-		ch <- BoxAbsent(retRes304319)
+		var retRes304119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", nil, since, limit, paramsPaginate, "idLessThan", "idLessThan", nil, 100))))
+		ch <- BoxAbsent(retRes304119)
 		return nil
 	}
 	var defaultWindow int = func() int {
@@ -5044,21 +5042,19 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchWithdrawals", false))))
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		if IsEqual(uta, true) {
 
-			var retRes323323 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, paramsPaginate, "orderId", "cursor", nil, 100))))
-			ch <- BoxAbsent(retRes323323)
+			var retRes322923 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, paramsPaginate, "orderId", "cursor", nil, 100))))
+			ch <- BoxAbsent(retRes322923)
 			return nil
 		}
 
-		var retRes323519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, paramsPaginate, "idLessThan", "idLessThan", nil, 100))))
-		ch <- BoxAbsent(retRes323519)
+		var retRes323119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, paramsPaginate, "idLessThan", "idLessThan", nil, 100))))
+		ch <- BoxAbsent(retRes323119)
 		return nil
 	}
 	var currency map[string]any = nil
@@ -6269,8 +6265,8 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	paramsPaginate = GetValue(paginateparamsPaginateVariable, 1)
 	if paginate {
 
-		var retRes427919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "idLessThan", "idLessThan"))))
-		ch <- BoxAbsent(retRes427919)
+		var retRes427519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "idLessThan", "idLessThan"))))
+		ch <- BoxAbsent(retRes427519)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -6796,11 +6792,9 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var maxLimitForHistoryEndpoint int = 200 // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
 	var useHistoryEndpoint *bool = this.SafeBool(params, "useHistoryEndpoint", false)
 	var useHistoryEndpointForPagination *bool = this.SafeBool(params, "useHistoryEndpointForPagination", true)
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		var limitForPagination int = func() int {
 			if useHistoryEndpointForPagination != nil && *useHistoryEndpointForPagination == true {
@@ -6809,8 +6803,8 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			return maxLimitForRecentEndpoint
 		}()
 
-		var retRes471619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, limitForPagination))))
-		ch <- BoxAbsent(retRes471619)
+		var retRes471019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, limitForPagination))))
+		ch <- BoxAbsent(retRes471019)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -7718,8 +7712,8 @@ func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		"createMarketBuyOrderRequiresPrice": false,
 	}
 
-	var retRes558215 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes558215)
+	var retRes557615 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))))
+	ch <- BoxAbsent(retRes557615)
 	return nil
 }
 
@@ -8384,8 +8378,8 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if uta == true {
 
-		var retRes615119 []any = ListTyped(PanicOnError((<-this.CreateUtaOrdersAsync(orders, paramsUTA))))
-		ch <- BoxAbsent(retRes615119)
+		var retRes614519 []any = ListTyped(PanicOnError((<-this.CreateUtaOrdersAsync(orders, paramsUTA))))
+		ch <- BoxAbsent(retRes614519)
 		return nil
 	}
 	var ordersRequests []any = []any{}
@@ -9046,8 +9040,8 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if uta == true {
 
-		var retRes671019 []any = ListTyped(PanicOnError((<-this.CancelUtaOrdersAsync(ids, symbol, paramsUTA))))
-		ch <- BoxAbsent(retRes671019)
+		var retRes670419 []any = ListTyped(PanicOnError((<-this.CancelUtaOrdersAsync(ids, symbol, paramsUTA))))
+		ch <- BoxAbsent(retRes670419)
 		return nil
 	}
 	var marginMode *string = nil
@@ -9540,8 +9534,8 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			cursorSent = "idLessThan"
 		}
 
-		var retRes714519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent))))
-		ch <- BoxAbsent(retRes714519)
+		var retRes713919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent))))
+		ch <- BoxAbsent(retRes713919)
 		return nil
 	}
 	var response map[string]any = nil
@@ -10061,8 +10055,8 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if uta == true {
 
-		var retRes758219 []any = ListTyped(PanicOnError((<-this.FetchUtaCanceledAndClosedOrdersAsync(symbol, since, limit, paramsUTA))))
-		ch <- BoxAbsent(retRes758219)
+		var retRes757619 []any = ListTyped(PanicOnError((<-this.FetchUtaCanceledAndClosedOrdersAsync(symbol, since, limit, paramsUTA))))
+		ch <- BoxAbsent(retRes757619)
 		return nil
 	}
 	if this.Markets == nil {
@@ -10095,8 +10089,8 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 			cursorReceived = "endId"
 		}
 
-		var retRes760819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsUTA, cursorReceived, "idLessThan"))))
-		ch <- BoxAbsent(retRes760819)
+		var retRes760219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsUTA, cursorReceived, "idLessThan"))))
+		ch <- BoxAbsent(retRes760219)
 		return nil
 	}
 	var response any = nil
@@ -10433,8 +10427,8 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	paramsProductType = GetValue(paginateparamsProductTypeVariable, 1)
 	if paginate {
 
-		var retRes789319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsProductType, "cursor", "cursor"))))
-		ch <- BoxAbsent(retRes789319)
+		var retRes788719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsProductType, "cursor", "cursor"))))
+		ch <- BoxAbsent(retRes788719)
 		return nil
 	}
 	var requestparamsProductTypeVariable []any = this.HandleUntilOption("endTime", request, paramsProductType)
@@ -10615,8 +10609,8 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 				})
 			}
 
-			var retRes804123 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsOmitted, "id", "cursor", nil, 100))))
-			ch <- BoxAbsent(retRes804123)
+			var retRes803523 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsOmitted, "id", "cursor", nil, 100))))
+			ch <- BoxAbsent(retRes803523)
 			return nil
 		}
 		var cursorReceived any = nil
@@ -10632,8 +10626,8 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			})
 		}
 
-		var retRes805119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsOmitted, cursorReceived, "idLessThan"))))
-		ch <- BoxAbsent(retRes805119)
+		var retRes804519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, paramsOmitted, cursorReceived, "idLessThan"))))
+		ch <- BoxAbsent(retRes804519)
 		return nil
 	}
 	var currency map[string]any = nil
@@ -11132,8 +11126,8 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			cursorSent = "idLessThan"
 		}
 
-		var retRes855019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsUTA, cursorReceived, cursorSent))))
-		ch <- BoxAbsent(retRes855019)
+		var retRes854419 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsUTA, cursorReceived, cursorSent))))
+		ch <- BoxAbsent(retRes854419)
 		return nil
 	}
 	var response map[string]any = nil
@@ -11485,8 +11479,8 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	paramsPaginate = GetValue(paginateparamsPaginateVariable, 1)
 	if paginate {
 
-		var retRes885319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, paramsPaginate, "endId", "idLessThan"))))
-		ch <- BoxAbsent(retRes885319)
+		var retRes884719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, paramsPaginate, "endId", "idLessThan"))))
+		ch <- BoxAbsent(retRes884719)
 		return nil
 	}
 	var method *string = nil
@@ -11983,8 +11977,8 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		paramsProductType = GetValue(paginateparamsProductTypeVariable, 1)
 		if paginate {
 
-			var retRes930823 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, paramsProductType, "pageNo", 100))))
-			ch <- BoxAbsent(retRes930823)
+			var retRes930223 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, paramsProductType, "pageNo", 100))))
+			ch <- BoxAbsent(retRes930223)
 			return nil
 		}
 		if limit != nil {
@@ -12237,8 +12231,8 @@ func (this *Bitget) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) 
 		"method": "publicMixGetV2MixMarketCurrentFundRate",
 	}, params)
 
-	var retRes954415 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRatesAsync(symbols, paramsExtended))))
-	ch <- BoxAbsent(retRes954415)
+	var retRes953815 map[string]any = MapTyped(PanicOnError((<-this.FetchFundingRatesAsync(symbols, paramsExtended))))
+	ch <- BoxAbsent(retRes953815)
 	return nil
 }
 func (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -12372,21 +12366,19 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchFundingHistory", false))))
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(GetValue(utaparamsUTAVariable, 1))
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 		if IsEqual(uta, true) {
 
-			var retRes966323 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "cursor", "cursor"))))
-			ch <- BoxAbsent(retRes966323)
+			var retRes965523 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "cursor", "cursor"))))
+			ch <- BoxAbsent(retRes965523)
 			return nil
 		}
 
-		var retRes966519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "endId", "idLessThan"))))
-		ch <- BoxAbsent(retRes966519)
+		var retRes965719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "endId", "idLessThan"))))
+		ch <- BoxAbsent(retRes965719)
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -12597,8 +12589,8 @@ func (this *Bitget) reduceMarginBody(ch chan any, symbol any, amount any, option
 		panic(ArgumentsRequired(this.Id + " reduceMargin() requires a holdSide parameter, either long or short"))
 	}
 
-	var retRes988115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes988115)
+	var retRes987315 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes987315)
 	return nil
 }
 
@@ -12627,8 +12619,8 @@ func (this *Bitget) addMarginBody(ch chan any, symbol any, amount any, optionalA
 		panic(ArgumentsRequired(this.Id + " addMargin() requires a holdSide parameter, either long or short"))
 	}
 
-	var retRes989915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes989915)
+	var retRes989115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes989115)
 	return nil
 }
 
@@ -13675,15 +13667,13 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchMyLiquidations", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes1077519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "minId", "idLessThan"))))
-		ch <- BoxAbsent(retRes1077519)
+		var retRes1076519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "minId", "idLessThan"))))
+		ch <- BoxAbsent(retRes1076519)
 		return nil
 	}
 	var market map[string]any = nil
@@ -14131,15 +14121,13 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var paginate bool = false
-	var paramsPaginate map[string]any = map[string]any{}
 	var paginateparamsPaginateVariable []any = this.HandleOptionBoolAndParams(params, "fetchBorrowInterest", "paginate", false)
-	paginate = GetValueBool(paginateparamsPaginateVariable, 0, false)
-	paramsPaginate = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
+	var paginate bool = GetValueBool(paginateparamsPaginateVariable, 0, false)
+	var paramsPaginate map[string]any = MapTyped(GetValue(paginateparamsPaginateVariable, 1))
 	if paginate {
 
-		var retRes1116819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, paramsPaginate, "minId", "idLessThan"))))
-		ch <- BoxAbsent(retRes1116819)
+		var retRes1115619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, paramsPaginate, "minId", "idLessThan"))))
+		ch <- BoxAbsent(retRes1115619)
 		return nil
 	}
 	var market map[string]any = nil

@@ -283,8 +283,8 @@ public partial class bithumb : ccxt.bithumb
         }
         Dictionary<string, object> ticker = this.parseWsTicker(tickerMessage);
         string messageHash = ("ticker:" + symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        client.resolve(getValue(this.tickers, symbol), messageHash);
+        this.tickers[(string)symbol] = ticker;
+        client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
     public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
@@ -719,9 +719,9 @@ public partial class bithumb : ccxt.bithumb
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 var stored = new ArrayCache(limit);
-                ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+                this.trades[(string)symbol] = stored;
             }
-            ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+            ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
             trades.append(parsed);
             string messageHash = (("trade" + ":") + symbol);
             client.resolve(trades, messageHash);
@@ -906,13 +906,13 @@ public partial class bithumb : ccxt.bithumb
             account["used"] = this.safeString(asset, "locked");
             if ((code != null))
             {
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
-        ((IDictionary<string,object>)this.balance)["info"] = message;
+        this.balance["info"] = message;
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
