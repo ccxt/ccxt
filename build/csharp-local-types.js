@@ -9222,6 +9222,33 @@ function marketRowUseDisqualifies (n) {
     return false;
 }
 
+// `(market === undefined) ? this.safeMarket (...) : market` over an unwritten MARKET-ROW PARAMETER
+function marketRowParamConditional (csharp, scope, index, node) {
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return false;
+    }
+    const arm = (value) => {
+        while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            value = value.expression;
+        }
+        if (marketRowValueOrNullish (value)) {
+            return true;
+        }
+        if (value?.kind !== ts.SyntaxKind.Identifier || (index.declarations.get (value.escapedText) ?? []).length !== 0) {
+            return false;
+        }
+        const params = (index.bindings.get (value.escapedText) ?? []).filter ((candidate) => candidate.kind === ts.SyntaxKind.Parameter);
+        if (params.length !== 1 || !MARKET_ROW_PARAM_TYPES.includes (marketRowParamAnnotation (params[0]))) {
+            return false;
+        }
+        return (index.identifiers.get (value.escapedText) ?? []).every ((n) => n === params[0].name || !marketRowUseDisqualifies (n));
+    };
+    return arm (node.whenTrue) && arm (node.whenFalse);
+}
+
 // `market['swap']` on a PROVEN row receiver: the literal key, else undefined. Two receiver
 // shapes: a LOCAL whose single binding is a market-row producer (or a nullish reset), and a
 // MARKET-ROW PARAMETER (the TS annotation, see MARKET_ROW_PARAM_TYPES). Every other use of the
@@ -9252,7 +9279,7 @@ function marketRowReadKey (csharp, initializer) {
     let declaration;
     if (candidates.length === 1) {
         declaration = candidates[0];
-        if (declaration.initializer === undefined || !marketRowValueOrNullish (declaration.initializer)) {
+        if (declaration.initializer === undefined || !(marketRowValueOrNullish (declaration.initializer) || marketRowParamConditional (csharp, scope, index, declaration.initializer))) {
             return undefined;
         }
         if (declaration.getStart () > initializer.getStart ()) {
