@@ -18,7 +18,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaNonNullStringLocals } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -2338,6 +2338,7 @@ class NewTranspiler {
         // numeric-literal equality on declared Long/Double params and tuple bindings (section 35)
         patchJavaDeclaredBoxLiteralEquality(this.transpiler);
         patchJavaObjectKeysLength(this.transpiler);
+        patchJavaNonNullStringLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
