@@ -507,7 +507,7 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const keyText = original.substring (firstComma + 1, close).trim ();
         // the helper's IList<object> branch: an index at or past Count reads null, a negative one
         // throws in both forms; only an `int` local or a non-negative int literal is a C# index
-        if (CSHARP_DECLARED_LIST_TYPES.includes (receiver.type)) {
+        if (CSHARP_DECLARED_LIST_TYPES.includes (receiver.type) || (receiver.type === 'List<string>')) {
             if (!(/^\d{1,9}$/.test (keyMask) || takeIndexType (keyMask))) continue;
             edits.push ({ start: match.index, end: close + 1,
                 text: `(${name} != null && ${keyText} < ${name}.Count ? ${name}[${keyText}] : null)` });
@@ -516,7 +516,8 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         // the helper's dictionary branch hands back the boxed value; a value-typed dictionary
         // (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries
         if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) continue;
-        const nullableValueKey = (receiver.kind === 'field') && takeNullableKeyType (keyMask);
+        // a `string?` key: the helper's null-key test is kept, so a null key reads null
+        const nullableValueKey = takeNullableKeyType (keyMask);
         if (!nullableValueKey && !takeKeyType (keyMask)) continue;
         const valueNullTest = nullableValueKey ? `${name} != null && ${keyText} != null` : `${name} != null`;
         edits.push ({ start: match.index, end: close + 1,
