@@ -1909,7 +1909,7 @@ func (this *Hashkey) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1993,7 +1993,7 @@ func (this *Hashkey) FetchLastPricesAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2437,7 +2437,7 @@ func (this *Hashkey) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3902,9 +3902,9 @@ func (this *Hashkey) CheckTypeParam(methodName string, params any) {
 	}
 }
 func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
+	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
-	var isTrigger any = defaultValue
+	var isTrigger *bool = defaultValue
 	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", isTrigger)
 	isTriggerStop := GetValue(isTriggerStopparamsStopVariable, 0)
 	paramsStop := GetValue(isTriggerStopparamsStopVariable, 1)
@@ -4198,7 +4198,7 @@ func (this *Hashkey) FetchFundingRatesAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4791,7 +4791,7 @@ func (this *Hashkey) FetchLeverageTiersAsync(optionalArgs ...any) <-chan any {
 func (this *Hashkey) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

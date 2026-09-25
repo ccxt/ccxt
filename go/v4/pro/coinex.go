@@ -760,7 +760,7 @@ func (this *Coinex) WatchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -773,7 +773,7 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
-		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+		for i := 0; i < len(symbols); i++ {
 			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 			market = this.Market(symbol)
 			messageHashes = append(messageHashes, ccxt.Add("tickers::", ccxt.GetValue(market, "symbol")))
@@ -1477,7 +1477,7 @@ func (this *Coinex) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
 func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1490,7 +1490,7 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
-		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+		for i := 0; i < len(symbols); i++ {
 			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 			market = this.Market(symbol)
 			messageHashes = append(messageHashes, ccxt.Add("bidsasks:", ccxt.GetValue(market, "symbol")))

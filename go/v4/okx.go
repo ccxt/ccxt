@@ -3466,7 +3466,7 @@ func (this *Okx) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3589,7 +3589,7 @@ func (this *Okx) FetchMarkPricesAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7220,7 +7220,7 @@ func (this *Okx) WithdrawAsync(code string, amount any, address any, optionalArg
 func (this *Okx) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7950,7 +7950,7 @@ func (this *Okx) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -7961,7 +7961,7 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		var marketIds []any = []any{}
-		for i := 0; i < GetArrayLength(symbols); i++ {
+		for i := 0; i < len(symbols); i++ {
 			var entry *string = SafeStringPtr(GetValue(symbols, i))
 			var market map[string]any = this.Market(entry)
 			marketIds = append(marketIds, market["id"])
@@ -8830,7 +8830,7 @@ func (this *Okx) FetchFundingRatesAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10188,7 +10188,7 @@ func (this *Okx) FetchOpenInterestsAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10425,7 +10425,7 @@ func (this *Okx) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10854,7 +10854,7 @@ func (this *Okx) FetchAllGreeksAsync(optionalArgs ...any) <-chan any {
 func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

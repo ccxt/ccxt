@@ -4812,6 +4812,12 @@ export const CCXT_GO_GETARG_SAFE_CONSUMERS = {
     // bodies read the value only through derefScalar-ing helpers (IsGreaterThan/IsEqual/
     // InArray/NumberToString/FilterByCurrencySinceLimit)
     'GetClosestLimit': {'0': 'deref'}, 'CheckRequiredArgument': {'1': 'deref'},
+    // TS-name keys (non-pointer lookups): IsEmpty/IsArray/derefScalar and the filterBy values
+    // slot (IsEqual(values, nil), InArray, GetArg forward) read a nil slice/map box as absent
+    'isEmpty': {'0': 'deref'}, 'isArray': {'0': 'deref'}, 'filterByArray': {'2': 'deref'},
+    'filterByArrayTickers': {'2': 'deref'}, 'filterByArrayPositions': {'2': 'deref'},
+    // tag slot: IsDictionary/IsEqual deref it; a present value is handed back as the tuple's element 0
+    'handleWithdrawTagAndParams': {'0': 'deref'},
     'FindNearestCeiling': {'1': 'deref'}, 'ParseToInt': {'0': 'deref'}, 'ParseToNumeric': {'0': 'deref'},
     'ParseBorrowRateHistory': {'1': 'deref', '2': 'deref', '3': 'deref'},
 };
@@ -6449,6 +6455,35 @@ function installCcxtGoStringParamNilGuards (goTranspiler) {
     };
 }
 
+// An overloaded callee (`marketSymbols`) resolves to its first signature, which carries no
+// defaults; the Go body is printed from the implementation, so its defaults decide GetArg binding.
+function installCcxtGoGetArgOverloadDefaults (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoGetArgOverloadDefaultsInstalled
+        || (typeof goTranspiler.goGetArgPositionIsDefaulted !== 'function')) {
+        return;
+    }
+    const shipped = goTranspiler.goGetArgPositionIsDefaulted;
+    goTranspiler.goGetArgPositionIsDefaulted = function (callee, argIndex) {
+        if (shipped.call (this, callee, argIndex)) {
+            return true;
+        }
+        if (argIndex < 0) {
+            return false;
+        }
+        let decls;
+        try {
+            decls = this.getChecker ().getSymbolAtLocation (callee)?.declarations ?? [];
+        } catch (e) {
+            decls = [];
+        }
+        const impls = decls.map ((d) => ((typeof d?.resolve === 'function') ? d.resolve () : d))
+            .filter ((d) => (d?.kind === ts.SyntaxKind.MethodDeclaration) && (d.body !== undefined));
+        const param = (impls.length === 1) ? impls[0].parameters?.[argIndex] : undefined;
+        return (param?.initializer !== undefined) && (param.dotDotDotToken === undefined);
+    };
+    goTranspiler.__ccxtGoGetArgOverloadDefaultsInstalled = true;
+}
+
 export function installCcxtGoLocalTypes (goTranspiler) {
     if (goTranspiler === undefined || goTranspiler.__ccxtGoLocalTypesInstalled) {
         return;
@@ -6463,6 +6498,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     installCcxtGoGetArgTernaryStore (goTranspiler);
     installCcxtGoGetArgAddArithmetic (goTranspiler);
     installCcxtGoGetArgMapAlias (goTranspiler);
+    installCcxtGoGetArgOverloadDefaults (goTranspiler);
     installCcxtGoTypedConcat (goTranspiler);
     installCcxtGoStringParamNilGuards (goTranspiler);
     const upstream = goTranspiler.goTypeOfInitializer;

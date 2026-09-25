@@ -4051,7 +4051,7 @@ func (this *Bybit) FetchFundingRatesAsync(optionalArgs ...any) <-chan any {
 func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -8365,7 +8365,7 @@ func (this *Bybit) WithdrawAsync(code string, amount any, address any, optionalA
 func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -10862,7 +10862,7 @@ func (this *Bybit) FetchAllGreeksAsync(optionalArgs ...any) <-chan any {
 func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11213,7 +11213,7 @@ func (this *Bybit) FetchLeverageTiersAsync(optionalArgs ...any) <-chan any {
 func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11255,7 +11255,7 @@ func (this *Bybit) ParseLeverageTiers(response any, optionalArgs ...any) any {
 	//      }
 	//  ]
 	//
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	marketIdKey := GetArg(optionalArgs, 1, nil)
 	_ = marketIdKey
@@ -12358,7 +12358,7 @@ func (this *Bybit) FetchPositionsADLRankAsync(optionalArgs ...any) <-chan any {
 func (this *Bybit) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
