@@ -2566,7 +2566,6 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = this.implodeHostname(baseApiUrl);
         object headersValue = new Dictionary<string, object>() {};
         if ((headers != null))
         {
@@ -2591,7 +2590,7 @@ public partial class alpaca : Exchange
                 ((IDictionary<string,object>)headersValue)["Content-Type"] = "application/json";
             }
         }
-        url = add(url, endpoint);
+        string url = (this.implodeHostname(baseApiUrl) + endpoint);
         object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
         return new Dictionary<string, object>() {
             { "url", url },

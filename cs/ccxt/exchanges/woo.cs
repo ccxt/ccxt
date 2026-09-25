@@ -3863,30 +3863,30 @@ public partial class woo : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         object requestBody = null;
-        object version = getValue(section, 0);
-        object access = getValue(section, 1);
+        string? version = this.safeString(section, 0);
+        string? access = this.safeString(section, 1);
         string? pathWithParams = this.implodeParams(path, parameters);
         string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = this.implodeHostname(baseApiUrl);
-        url = add(url, (("/" + (version)) + "/"));
+        string url = this.implodeHostname(baseApiUrl);
+        url = url + (("/" + version) + "/");
         Dictionary<string, object> paramsSorted = this.keysort(this.omit(parameters, this.extractParams(path)));
-        if ((access is "public"))
+        if (access == "public")
         {
-            url = add(url, add(add(access, "/"), pathWithParams));
+            url = url + ("public/" + pathWithParams);
             if ((new List<object>(paramsSorted.Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(paramsSorted)));
+                url = url + ("?" + this.urlencode(paramsSorted));
             }
-        } else if ((access is "pub"))
+        } else if (access == "pub")
         {
-            url = add(url, pathWithParams);
+            url = url + pathWithParams;
             if ((new List<object>(paramsSorted.Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(paramsSorted)));
+                url = url + ("?" + this.urlencode(paramsSorted));
             }
         } else
         {
@@ -3911,14 +3911,14 @@ public partial class woo : Exchange
             Dictionary<string, object> paramsSigned = this.keysort(paramsSorted);
             object auth = "";
             string ts = this.nonce().ToString();
-            url = add(url, pathWithParams);
+            url = url + pathWithParams;
             requestHeaders = new Dictionary<string, object>() {
                 { "x-api-key", this.apiKey },
                 { "x-api-timestamp", ts },
             };
-            if (isEqual(version, "v3"))
+            if (version == "v3")
             {
-                auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
+                auth = (((((ts + method) + "/") + version) + "/") + pathWithParams);
                 if ((method == "POST") || (method == "PUT"))
                 {
                     requestBody = this.json(paramsSigned);
@@ -3929,7 +3929,7 @@ public partial class woo : Exchange
                     if ((new List<object>(paramsSigned.Keys)).Count > 0)
                     {
                         string query = this.urlencode(paramsSigned);
-                        url = add(url, ("?" + query));
+                        url = url + ("?" + query);
                         auth = add(auth, ("?" + query));
                     }
                 }
@@ -3943,7 +3943,7 @@ public partial class woo : Exchange
                 {
                     if ((new List<object>(paramsSigned.Keys)).Count > 0)
                     {
-                        url = add(url, ("?" + (auth)));
+                        url = url + ("?" + (auth));
                     }
                 }
                 auth = add(auth, ("|" + ts));

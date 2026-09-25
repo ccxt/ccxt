@@ -1223,27 +1223,24 @@ public partial class bitbank : Exchange
             string requestTime = this.milliseconds().ToString();
             string? timeWindow = this.safeString(this.options, "timeWindow", "5000");
             string nonce = ((object)this.incrementingNonce()).ToString();
-            object auth = null;
+            string auth = nonce;
             if (isTimeWindow)
             {
                 auth = (requestTime + timeWindow);
-            } else
-            {
-                auth = nonce;
             }
             url = url + ((this.version + "/") + this.implodeParams(path, parameters));
             if ((method == "POST"))
             {
                 requestBody = this.json(query);
-                auth = add(auth, requestBody);
+                auth = auth + requestBody;
             } else
             {
-                auth = add(auth, ((("/" + this.version) + "/") + path));
+                auth = auth + ((("/" + this.version) + "/") + path);
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     query = this.urlencode(query);
                     url = url + ("?" + (query));
-                    auth = add(auth, ("?" + (query)));
+                    auth = auth + ("?" + (query));
                 }
             }
             requestHeaders = new Dictionary<string, object>() {

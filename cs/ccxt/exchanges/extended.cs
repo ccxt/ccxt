@@ -3952,7 +3952,6 @@ public partial class extended : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = this.implodeHostname(baseApiUrl);
         if (accessibility == "private")
         {
             // this.checkRequiredCredentials ();
@@ -3969,10 +3968,10 @@ public partial class extended : Exchange
                 ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
             }
         }
-        url = add(add(add(url, "/api/"), version), endpoint);
+        string url = (((this.implodeHostname(baseApiUrl) + "/api/") + version) + endpoint);
         if (((method == "GET") || (method == "DELETE") || queryPost) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
         {
-            url = add(url, ("?" + this.urlencodeWithArrayRepeat(query)));
+            url = url + ("?" + this.urlencodeWithArrayRepeat(query));
         }
         return new Dictionary<string, object>() {
             { "url", url },

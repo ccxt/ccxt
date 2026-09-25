@@ -2462,18 +2462,18 @@ public partial class bittrade : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
-        object url = "/";
+        string url = "/";
         if ((api is "market"))
         {
-            url = add(url, api);
+            url = url + "market";
         } else if (((api is "public")) || ((api is "private")))
         {
-            url = add(url, this.version);
+            url = url + this.version;
         } else if ((isEqual(api, "v2Public")) || (isEqual(api, "v2Private")))
         {
-            url = add(url, "v2");
+            url = url + "v2";
         }
-        url = add(url, ("/" + this.implodeParams(path, parameters)));
+        url = url + ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((api is "private") || isEqual(api, "v2Private"))
         {
@@ -2499,7 +2499,7 @@ public partial class bittrade : Exchange
             auth = auth + ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 }));
-            url = add(url, ("?" + auth));
+            url = url + ("?" + auth);
             if ((method == "POST"))
             {
                 requestBody = this.json(query);
@@ -2516,7 +2516,7 @@ public partial class bittrade : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = url + ("?" + this.urlencode(parameters));
             }
         }
         string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
@@ -2526,7 +2526,7 @@ public partial class bittrade : Exchange
         }
         url = (this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
     { "hostname", this.hostname },
-}) + (url));
+}) + url);
         object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
         object bodyResult = ((requestBody != null)) ? requestBody : body;
         return new Dictionary<string, object>() {

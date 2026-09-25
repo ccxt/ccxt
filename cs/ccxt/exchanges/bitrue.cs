@@ -3504,25 +3504,17 @@ public partial class bitrue : Exchange
         string? type = this.safeString(api, 0);
         string? version = this.safeString(api, 1);
         string? access = this.safeString(api, 2);
-        object url = null;
-        if ((type == "api" && version == "kline") || (type == "open" && path.IndexOf("listenKey", StringComparison.Ordinal) >= 0))
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
+        if ((apiUrl == null))
         {
-            string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
-            if ((apiUrl2 == null))
-            {
-                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
-            }
-            url = apiUrl2;
-        } else
-        {
-            string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
-            if ((apiUrl == null))
-            {
-                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
-            }
-            url = ((apiUrl + "/") + version);
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = add(add(url, "/"), this.implodeParams(path, parameters));
+        string url = apiUrl;
+        if (!((type == "api" && version == "kline") || (type == "open" && path.IndexOf("listenKey", StringComparison.Ordinal) >= 0)))
+        {
+            url = url + ("/" + version);
+        }
+        url = url + ("/" + this.implodeParams(path, parameters));
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (access == "private")
         {
@@ -3541,7 +3533,7 @@ public partial class bitrue : Exchange
                 };
                 if (((method == "GET")) || ((method == "DELETE")))
                 {
-                    url = add(url, ("?" + query));
+                    url = url + ("?" + query);
                 } else
                 {
                     requestBody = query;
@@ -3574,7 +3566,7 @@ public partial class bitrue : Exchange
                         { "X-CH-SIGN", signature },
                         { "X-CH-TS", timestamp },
                     };
-                    url = add(url, ("?" + this.urlencode(paramsOmitted)));
+                    url = url + ("?" + this.urlencode(paramsOmitted));
                 } else
                 {
                     Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
@@ -3595,7 +3587,7 @@ public partial class bitrue : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(paramsOmitted)));
+                url = url + ("?" + this.urlencode(paramsOmitted));
             }
         }
         object bodyResult = ((requestBody == null)) ? body : requestBody;

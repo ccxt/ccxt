@@ -8965,7 +8965,7 @@ public partial class htx : Exchange
         Dictionary<string, object> signedHeaders = null;
         string? signedBody = null;
         string pathString = path;
-        object url = "/";
+        string url = "/";
         bool isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object query = null;
         if (isArrayParams)
@@ -8980,12 +8980,12 @@ public partial class htx : Exchange
             // signing implementation for the old endpoints
             if (((api is "public")) || ((api is "private")))
             {
-                url = add(url, this.version);
+                url = url + this.version;
             } else if ((isEqual(api, "v2Public")) || (isEqual(api, "v2Private")))
             {
-                url = add(url, "v2");
+                url = url + "v2";
             }
-            url = add(url, ("/" + this.implodeParams(path, parameters)));
+            url = url + ("/" + this.implodeParams(path, parameters));
             if ((api is "private") || isEqual(api, "v2Private"))
             {
                 this.checkRequiredCredentials();
@@ -9009,7 +9009,7 @@ public partial class htx : Exchange
                 auth = auth + ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 }));
-                url = add(url, ("?" + auth));
+                url = url + ("?" + auth);
                 if ((method == "POST"))
                 {
                     object bodyRequest = null;
@@ -9034,7 +9034,7 @@ public partial class htx : Exchange
             {
                 if (((query != null)) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             }
             string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
@@ -9044,7 +9044,7 @@ public partial class htx : Exchange
             }
             url = (this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
     { "hostname", this.hostname },
-}) + (url));
+}) + url);
         } else
         {
             // signing implementation for the new endpoints
@@ -9064,12 +9064,12 @@ public partial class htx : Exchange
                 }
             }
             hostname = hostnames;
-            url = add(url, this.implodeParams(path, parameters));
+            url = url + this.implodeParams(path, parameters);
             if (access == "public")
             {
                 if (((query != null)) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else if (access == "private")
             {
@@ -9121,7 +9121,7 @@ public partial class htx : Exchange
                 auth = auth + ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 }));
-                url = add(url, ("?" + auth));
+                url = url + ("?" + auth);
                 if ((method == "POST"))
                 {
                     object bodyRequest = null;
@@ -9155,7 +9155,7 @@ public partial class htx : Exchange
             }
             url = (this.implodeParams(baseApiUrl2, new Dictionary<string, object>() {
     { "hostname", finalHostname },
-}) + (url));
+}) + url);
         }
         object headersResolved = ((signedHeaders != null)) ? signedHeaders : headers;
         object bodyResolved = ((signedBody != null)) ? signedBody : body;

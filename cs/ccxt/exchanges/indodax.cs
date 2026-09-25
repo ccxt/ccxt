@@ -1657,7 +1657,7 @@ public partial class indodax : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = apiUrl;
+        string url = apiUrl;
         string? privateBody = null;
         Dictionary<string, object> privateHeaders = null;
         bool isPublic = ((api is "public"));
@@ -1665,10 +1665,10 @@ public partial class indodax : Exchange
         {
             object query = this.omit(parameters, this.extractParams(path));
             string requestPath = ("/" + this.implodeParams(path, parameters));
-            url = add(url, requestPath);
+            url = url + requestPath;
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencodeWithArrayRepeat(query)));
+                url = url + ("?" + this.urlencodeWithArrayRepeat(query));
             }
         } else
         {

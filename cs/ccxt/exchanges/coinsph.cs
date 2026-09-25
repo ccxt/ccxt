@@ -2591,10 +2591,9 @@ public partial class coinsph : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = apiUrl;
         object query = this.omit(parameters, this.extractParams(path));
         string? endpoint = this.implodeParams(path, parameters);
-        url = add(add(url, "/"), endpoint);
+        string url = ((apiUrl + "/") + endpoint);
         if ((api is "private"))
         {
             this.checkRequiredCredentials();
@@ -2610,7 +2609,7 @@ public partial class coinsph : Exchange
             }
             string? signedQuery = this.urlEncodeQuery(query);
             string signature = this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256);
-            url = add(add(add(add(url, "?"), signedQuery), "&signature="), signature);
+            url = ((((url + "?") + signedQuery) + "&signature=") + signature);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "X-COINS-APIKEY", this.apiKey },
             };
@@ -2624,7 +2623,7 @@ public partial class coinsph : Exchange
         string? encodedQuery = this.urlEncodeQuery(query);
         if ((encodedQuery.Length != 0))
         {
-            url = add(url, ("?" + encodedQuery));
+            url = url + ("?" + encodedQuery);
         }
         return new Dictionary<string, object>() {
             { "url", url },

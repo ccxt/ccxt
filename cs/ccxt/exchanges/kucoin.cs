@@ -13270,7 +13270,6 @@ public partial class kucoin : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = apiUrl;
         string? tradeType = this.safeString(query, "tradeType");
         if (!this.isEmpty(query))
         {
@@ -13288,7 +13287,7 @@ public partial class kucoin : Exchange
                 ((IDictionary<string,object>)headersBase)["Content-Type"] = "application/json";
             }
         }
-        url = add(url, endpoint);
+        object headersResult = headersBase;
         bool isFuturePrivate = ((api is "futuresPrivate"));
         bool isPrivate = ((api is "private"));
         bool isBroker = ((api is "broker"));
@@ -13336,18 +13335,13 @@ public partial class kucoin : Exchange
                     headersSigned["KC-BROKER-NAME"] = brokerName;
                 }
             }
-            return new Dictionary<string, object>() {
-                { "url", url },
-                { "method", method },
-                { "body", bodyJson },
-                { "headers", headersSigned },
-            };
+            headersResult = headersSigned;
         }
         return new Dictionary<string, object>() {
-            { "url", url },
+            { "url", (apiUrl + endpoint) },
             { "method", method },
             { "body", bodyJson },
-            { "headers", headersBase },
+            { "headers", headersResult },
         };
     }
 

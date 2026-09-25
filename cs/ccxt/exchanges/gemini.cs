@@ -2404,7 +2404,7 @@ public partial class gemini : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = ("/" + this.implodeParams(path, parameters));
+        string url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersSigned = null;
         if ((api is "private"))
@@ -2417,7 +2417,7 @@ public partial class gemini : Exchange
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
             string nonce = ((object)this.incrementingNonce()).ToString();
-            object finalUrl = url;
+            string finalUrl = url;
             Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
                 { "request", finalUrl },
                 { "nonce", nonce },
@@ -2435,15 +2435,15 @@ public partial class gemini : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         }
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = add(apiUrl, url);
+        string fullUrl = (apiUrl + url);
         object headersResolved = ((api is "private")) ? headersSigned : headers;
         object bodyResolved = body;
         if (((method == "POST")) || ((method == "DELETE")))
@@ -2451,7 +2451,7 @@ public partial class gemini : Exchange
             bodyResolved = this.json(query);
         }
         return new Dictionary<string, object>() {
-            { "url", url },
+            { "url", fullUrl },
             { "method", method },
             { "body", bodyResolved },
             { "headers", headersResolved },
