@@ -804,7 +804,7 @@ public class Coinsph extends CoinsphApi
             String networkCode = this.networkIdToCode(network, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", networkItem,
     "id", network,
     "network", networkCode,
@@ -1660,7 +1660,7 @@ public class Coinsph extends CoinsphApi
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2265,7 +2265,7 @@ public class Coinsph extends CoinsphApi
                 String symbol = (String) fee.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, fee);
+                    result.put(symbol, fee);
                 }
             }
             return result;
@@ -2675,7 +2675,7 @@ public class Coinsph extends CoinsphApi
     public Object urlEncodeQuery(Map<String, Object> query)
     {
         String encodedArrayParams = "";
-        Object remainingQuery = query;
+        Map<String, Object> remainingQuery = query;
         List<String> keys = new ArrayList<String>(query.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {

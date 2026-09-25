@@ -804,10 +804,14 @@ func (this *Kraken) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("ticker", "ticker", symbolsNormalized, nil, params))))
+	ticker := (<-this.WatchMultiHelperAsync("ticker", "ticker", symbolsNormalized, nil, params))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil
@@ -843,10 +847,14 @@ func (this *Kraken) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	params["event_trigger"] = "bbo"
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("bidask", "ticker", symbolsNormalized, nil, params))))
+	ticker := (<-this.WatchMultiHelperAsync("bidask", "ticker", symbolsNormalized, nil, params))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil
@@ -1639,11 +1647,11 @@ func (this *Kraken) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes133415 := (<-this.WatchPrivateAsync("orders", symbol, since, limit, this.Extend(params, map[string]any{
+	retRes134015 := (<-this.WatchPrivateAsync("orders", symbol, since, limit, this.Extend(params, map[string]any{
 		"snap_orders": true,
 	})))
-	ccxt.PanicOnError(retRes133415)
-	ch <- retRes133415
+	ccxt.PanicOnError(retRes134015)
+	ch <- retRes134015
 	return nil
 }
 func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {

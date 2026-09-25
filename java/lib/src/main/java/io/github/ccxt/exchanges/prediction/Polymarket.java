@@ -641,7 +641,7 @@ public class Polymarket extends PolymarketApi
                 if ((!java.util.Objects.equals(eventSlug, null)) && (!java.util.Objects.equals(eventSlug, "")))
                 {
                     String eventKey = this.shortenSlug((String) (eventSlug));
-                    eventsDict.put((String)eventKey, parsedEvent);
+                    eventsDict.put(eventKey, parsedEvent);
                 }
             }
             this.events = eventsDict;
@@ -769,7 +769,7 @@ public class Polymarket extends PolymarketApi
                     String eventId = this.safeString(rawEvent, "id");
                     if ((!java.util.Objects.equals(eventId, null) && !java.util.Objects.equals(eventId, "")) && !(seen.containsKey(eventId)))
                     {
-                        seen.put((String)eventId, true);
+                        seen.put(eventId, true);
                         ((List<Object>)rawEvents).add(rawEvent);
                     }
                 }
@@ -879,7 +879,7 @@ public class Polymarket extends PolymarketApi
                         String eventId = this.safeString(rawEvent, "id");
                         if ((!java.util.Objects.equals(eventId, null)) && !(seen.containsKey(eventId)))
                         {
-                            seen.put((String)eventId, true);
+                            seen.put(eventId, true);
                             ((List<Object>)unioned).add(rawEvent);
                         }
                     }
@@ -1477,7 +1477,7 @@ public class Polymarket extends PolymarketApi
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if ((!java.util.Objects.equals(tokenId, null)) && !(outcomesByTokenId.containsKey(tokenId)))
                 {
-                    outcomesByTokenId.put((String)tokenId, outcomeObj);
+                    outcomesByTokenId.put(tokenId, outcomeObj);
                     tokenIds.add(tokenId);
                 }
             }
@@ -1516,7 +1516,7 @@ public class Polymarket extends PolymarketApi
                     String lastTradeTokenId = this.safeString(lastTradeEntry, "token_id");
                     if (!java.util.Objects.equals(lastTradeTokenId, null))
                     {
-                        lastTradesByTokenId.put((String)lastTradeTokenId, lastTradeEntry);
+                        lastTradesByTokenId.put(lastTradeTokenId, lastTradeEntry);
                     }
                 }
                 Integer booksLength = ((List<?>)books).size();
@@ -1539,7 +1539,7 @@ public class Polymarket extends PolymarketApi
                     );
                     Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (tickerInput), Helpers.toMapArg(outcomeObj));
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
-                    result.put((String)symbolKey, ticker);
+                    result.put(symbolKey, ticker);
                 }
                 startIndex = this.sum(startIndex, chunkSize);
             }
@@ -1791,7 +1791,7 @@ public class Polymarket extends PolymarketApi
                 String bucketKey = String.valueOf(snappedMs);
                 if (!(buckets.containsKey(bucketKey)))
                 {
-                    buckets.put((String)bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
+                    buckets.put(bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
                 } else
                 {
                     Object candle = (buckets == null || bucketKey == null ? null : buckets.get(bucketKey));
@@ -1803,7 +1803,7 @@ public class Polymarket extends PolymarketApi
                         Object prevVol = ((List<Object>)candle).get(5);
                         Helpers.addElementToObject(candle, 5, (((java.util.Objects.equals(prevVol, null)))) ? vol : this.sum(prevVol, vol)); // volume
                     }
-                    buckets.put((String)bucketKey, candle); // reassign after mutation, php arrays are value types
+                    buckets.put(bucketKey, candle); // reassign after mutation, php arrays are value types
                 }
             }
             List<String> bucketKeys = new ArrayList<String>(buckets.keySet());
@@ -3953,7 +3953,7 @@ public class Polymarket extends PolymarketApi
             Helpers.callDynamically(sideRef, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size))});
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
-            updated.put((String)outcome, true);
+            updated.put(outcome, true);
         }
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         for (var k = 0; k < ((List<?>)updatedSymbols).size(); k++)

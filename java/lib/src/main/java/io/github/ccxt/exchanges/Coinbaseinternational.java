@@ -1931,7 +1931,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 String marketId = this.safeString(instrument, "symbol");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 Map<String, Object> quote = (Map<String, Object>) this.safeDict(instrument, "quote", new HashMap<String, Object>() {{}});
-                tickers.put((String)symbol, this.parseTicker(quote, Helpers.toMapArg(this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null))));
+                tickers.put(symbol, this.parseTicker(quote, Helpers.toMapArg(this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null))));
             }
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -2089,7 +2089,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             account.put("used", this.safeString(rawBalance, "hold"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

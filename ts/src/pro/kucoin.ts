@@ -481,7 +481,10 @@ export default class kucoin extends kucoinRest {
             tickers = await this.subscribeMultiple (url, messageHashes, symbolsTopic, topics, query);
             if (this.newUpdates) {
                 const newDict: Dict = {};
-                newDict[(tickers as Dict)['symbol']] = tickers;
+                const tickersSymbol = this.safeString (tickers, 'symbol');
+                if (tickersSymbol !== undefined) {
+                    newDict[tickersSymbol] = tickers;
+                }
                 return newDict;
             }
         }
@@ -773,7 +776,10 @@ export default class kucoin extends kucoinRest {
         const ticker = await this.watchMultiHelper ('watchBidsAsks', channelName, isFuturesMethod, symbolsNormalized, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);

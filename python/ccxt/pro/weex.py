@@ -212,7 +212,9 @@ class weex(ccxt.async_support.weex):
         newTicker = await self.subscribe_public(messageHashes, channels, isContract, params)
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
@@ -931,7 +933,9 @@ class weex(ccxt.async_support.weex):
         newTicker = await self.subscribe_public(messageHashes, channels, False, params)
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 

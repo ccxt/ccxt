@@ -927,7 +927,7 @@ public class Cryptocom extends CryptocomApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put((String)network, Helpers.newMap(
+                networks.put(network, Helpers.newMap(
     "info", chain,
     "id", networkId,
     "network", network,
@@ -1607,7 +1607,7 @@ public class Cryptocom extends CryptocomApi
             account.put("used", this.safeString(balance, "reserved_qty"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2720,7 +2720,7 @@ public class Cryptocom extends CryptocomApi
                 String network = this.networkIdToCode(networkId, responseCode);
                 if (!java.util.Objects.equals(network, null))
                 {
-                    result.put((String)network, Helpers.newMap(
+                    result.put(network, Helpers.newMap(
         "info", value,
         "currency", responseCode,
         "network", network,

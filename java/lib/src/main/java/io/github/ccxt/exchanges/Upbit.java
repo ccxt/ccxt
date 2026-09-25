@@ -794,7 +794,7 @@ public class Upbit extends UpbitApi
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -913,7 +913,7 @@ public class Upbit extends UpbitApi
                 String marketId = this.safeString(orderbook, "market");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "symbol", symbol );
         put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size", 2), 0, true) );
         put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size", 2), 0) );
@@ -1395,7 +1395,7 @@ public class Upbit extends UpbitApi
                 String feeSymbol = this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol");
                 if (!java.util.Objects.equals(feeSymbol, null))
                 {
-                    response.put((String)feeSymbol, element);
+                    response.put(feeSymbol, element);
                 }
             }
             return response;

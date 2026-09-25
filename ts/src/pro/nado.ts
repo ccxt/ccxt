@@ -450,7 +450,10 @@ export default class nado extends nadoRest {
                 return this.filterByArray (ticker, 'symbol', symbolsNormalized);
             }
             const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
@@ -511,7 +514,10 @@ export default class nado extends nadoRest {
                 return this.filterByArray (ticker, 'symbol', symbolsNormalized);
             }
             const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);

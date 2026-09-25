@@ -549,7 +549,7 @@ public class Independentreserve extends IndependentreserveApi
             account.put("total", this.safeString(balance, "TotalBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1118,7 +1118,7 @@ public class Independentreserve extends IndependentreserveApi
                 Double tradingFee = this.safeNumber(fee, "Fee", (Object) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    fees.put((String)code, new HashMap<String, Object>() {{
+                    fees.put(code, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "fee", tradingFee );
     }});
@@ -1131,7 +1131,7 @@ public class Independentreserve extends IndependentreserveApi
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, market.get("base"), new HashMap<String, Object>() {{}});
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", Independentreserve.this.safeDict(fee, "info", (Object) null) );
         put( "symbol", symbol );
         put( "maker", Independentreserve.this.safeNumber(fee, "fee", (Object) null) );

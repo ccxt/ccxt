@@ -509,10 +509,14 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribePublicMultipleAsync(messageHashes, this.Extend(request, params)))))
+	newTicker := (<-this.SubscribePublicMultipleAsync(messageHashes, this.Extend(request, params)))
+	ccxt.PanicOnError(newTicker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
+		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
+		if newTickerSymbol != nil {
+			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+		}
 
 		ch <- result
 		return nil

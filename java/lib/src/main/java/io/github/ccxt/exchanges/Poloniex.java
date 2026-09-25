@@ -919,7 +919,7 @@ public class Poloniex extends PoloniexApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put((String)keyStart, since);
+                request.put(keyStart, since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1565,7 +1565,7 @@ public class Poloniex extends PoloniexApi
             String networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", chainId,
     "name", null,
@@ -1908,7 +1908,7 @@ public class Poloniex extends PoloniexApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put((String)startKey, since);
+                request.put(startKey, since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2487,7 +2487,7 @@ public class Poloniex extends PoloniexApi
         String hedged = (String) ((List<Object>) hedgedparamsHedgedVariable).get(0);
         Map<String, Object> paramsHedged = (Map<String, Object>) ((List<Object>) hedgedparamsHedgedVariable).get(1);
         // marginMode and hedged are consumed for contract markets only
-        Object query = parameters;
+        Map<String, Object> query = parameters;
         if (Boolean.TRUE.equals(isContract))
         {
             query = paramsHedged;
@@ -2505,7 +2505,7 @@ public class Poloniex extends PoloniexApi
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
-                if (!(((Map<?, ?>)query).containsKey("posSide")))
+                if (!(query.containsKey("posSide")))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
@@ -2513,8 +2513,8 @@ public class Poloniex extends PoloniexApi
         }
         String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = java.util.Objects.equals(upperCaseType, "MARKET");
-        Boolean isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), Helpers.toMapArg(query));
-        Object queryOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
+        Boolean isPostOnly = this.isPostOnly(isMarket, java.util.Objects.equals(upperCaseType, "LIMIT_MAKER"), query);
+        Map<String, Object> queryOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
             if (!java.util.Objects.equals(market.get("spot"), true))
@@ -2597,7 +2597,7 @@ public class Poloniex extends PoloniexApi
             {
                 clientOrderIdKey = "clientOrderId";
             }
-            request.put((String)clientOrderIdKey, clientOrderId);
+            request.put(clientOrderIdKey, clientOrderId);
             queryOmitted = this.omit(queryOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
         }
         // remember the timestamp before issuing the request
@@ -2971,7 +2971,7 @@ public class Poloniex extends PoloniexApi
                 account.put("used", this.safeString(balance, "im"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -2991,7 +2991,7 @@ public class Poloniex extends PoloniexApi
                 newAccount.put("used", this.safeString(balance, "hold"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, newAccount);
+                    result.put(code, newAccount);
                 }
             }
         }
@@ -3112,7 +3112,7 @@ public class Poloniex extends PoloniexApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Poloniex.this.safeNumber(response, "makerRate", (Object) null) );
@@ -3704,7 +3704,7 @@ public class Poloniex extends PoloniexApi
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> currency = this.currency(code);
-                depositWithdrawFees.put((String)code, this.parseDepositWithdrawFee(feeInfo, currency));
+                depositWithdrawFees.put(code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
                 Integer chainsLength = Helpers.getArrayLength(childChains);
                 if ((chainsLength != null && chainsLength > 0))
@@ -3719,7 +3719,7 @@ public class Poloniex extends PoloniexApi
                         Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee", (Object) null);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
-                            networkObject.put((String)networkCode, Helpers.newMap(
+                            networkObject.put(networkCode, Helpers.newMap(
     "withdraw", Helpers.newMap(
         "fee", withdrawFee,
         "percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null

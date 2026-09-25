@@ -223,7 +223,10 @@ export default class weex extends weexRest {
         const newTicker = await this.subscribePublic (messageHashes, channels, isContract, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
@@ -1006,7 +1009,10 @@ export default class weex extends weexRest {
         const newTicker = await this.subscribePublic (messageHashes, channels, false, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString (newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);

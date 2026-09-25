@@ -971,7 +971,7 @@ public class Toobit extends ToobitApi
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     String code = (String) parsed.get("code");
-                    result.put((String)code, parsed);
+                    result.put(code, parsed);
                 }
             }
             return result;
@@ -992,7 +992,7 @@ public class Toobit extends ToobitApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "margin", null,
@@ -2008,7 +2008,7 @@ public class Toobit extends ToobitApi
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2679,7 +2679,7 @@ public class Toobit extends ToobitApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(requestUntil, "symbol", market.get("id"));
+                requestUntil.put("symbol", market.get("id"));
             }
             String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrders", market, paramsUntil, (String) null)).get(0);
             List<Object> response = new ArrayList<Object>(Arrays.asList());

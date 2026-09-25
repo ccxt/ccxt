@@ -341,17 +341,17 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
         }
         Boolean isCreateOrder = (java.util.Objects.equals(method, "createOrderWs"));
-        Object paramsCreate = paramsPostOnly;
+        Map<String, Object> paramsCreate = paramsPostOnly;
         if (Boolean.TRUE.equals(isCreateOrder))
         {
             paramsCreate = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("reduceOnly", "timeInForce")));
         }
-        Object paramsPreset = paramsCreate;
+        Map<String, Object> paramsPreset = paramsCreate;
         if (Boolean.TRUE.equals(isCreateOrder) && (Boolean.TRUE.equals(isPresetStopLoss) || Boolean.TRUE.equals(isPresetTakeProfit)))
         {
             paramsPreset = this.omit(paramsCreate, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
         }
-        Object paramsOmitted = this.omit(paramsPreset, new ArrayList<Object>(Arrays.asList("clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
+        Map<String, Object> paramsOmitted = this.omit(paramsPreset, new ArrayList<Object>(Arrays.asList("clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
         return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
     }
 
@@ -827,7 +827,11 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -856,7 +860,11 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -1032,7 +1040,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         Map<String, Object> market = this.market(symbol);
                         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                         String wsName = this.safeString(info, "wsname");
-                        marketsByWsName.put((String)wsName, market);
+                        marketsByWsName.put(wsName, market);
                     }
                 }
                 Helpers.addElementToObject(this.options, "marketsByWsName", marketsByWsName);
@@ -1642,7 +1650,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 stored.append(newOrder);
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    symbols.put((String)symbol, true);
+                    symbols.put(symbol, true);
                 }
             }
             String name = "orders";
@@ -1893,7 +1901,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         String channelId = this.safeString(message, "channelID");
         if (!java.util.Objects.equals(channelId, null))
         {
-            ((Map)client.subscriptions).put((String)channelId, message);
+            ((Map)client.subscriptions).put(channelId, message);
         }
     }
 

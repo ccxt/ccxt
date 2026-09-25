@@ -560,7 +560,7 @@ public class Luno extends LunoApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "limits", new HashMap<String, Object>() {{
@@ -803,7 +803,7 @@ public class Luno extends LunoApi
                 Map<String, Object> account = this.account();
                 account.put("used", reservedUnconfirmed);
                 account.put("total", balanceUnconfirmed);
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1154,7 +1154,7 @@ public class Luno extends LunoApi
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
-                result.put((String)symbol, this.parseTicker(ticker, market));
+                result.put(symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);

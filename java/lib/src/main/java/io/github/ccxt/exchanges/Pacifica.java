@@ -1102,7 +1102,7 @@ public class Pacifica extends PacificaApi
                 // skip a spot USDC entry so it can't clobber the perp-collateral account above
                 if ((!java.util.Objects.equals(code, null)) && !(result.containsKey(code)))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
             Long timestamp = this.safeInteger(data, "updated_at");
@@ -1273,7 +1273,7 @@ public class Pacifica extends PacificaApi
             Object marketId = ((Map<String, Object>)(settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i))).get("symbol");
             Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) market.get("symbol");
-            settingsBySymbol.put((String)symbol, (settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)));
+            settingsBySymbol.put(symbol, (settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)));
         }
         return settingsBySymbol;
     }
@@ -1730,10 +1730,10 @@ public class Pacifica extends PacificaApi
             io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            Helpers.addElementToObject(requestUntil, "account", userAddress);
+            requestUntil.put("account", userAddress);
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(requestUntil, "symbol", this.safeString(market, "id"));
+                requestUntil.put("symbol", this.safeString(market, "id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2685,7 +2685,7 @@ public class Pacifica extends PacificaApi
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);

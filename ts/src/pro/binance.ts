@@ -2504,7 +2504,10 @@ export default class binance extends binanceRest {
             return result;
         } else {
             const newDict: Dict = {};
-            newDict[result['symbol']] = result;
+            const resultSymbol = this.safeString (result, 'symbol');
+            if (resultSymbol !== undefined) {
+                newDict[resultSymbol] = result;
+            }
             return newDict;
         }
     }

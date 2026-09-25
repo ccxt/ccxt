@@ -209,7 +209,9 @@ class bitget(ccxt.async_support.bitget):
         tickers = await self.watch_public_multiple(uta, messageHashes, topics, paramsValue)
         if self.newUpdates:
             result = {}
-            result[tickers['symbol']] = tickers
+            tickersSymbol = self.safe_string(tickers, 'symbol')
+            if tickersSymbol is not None:
+                result[tickersSymbol] = tickers
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsList)
 
@@ -450,7 +452,9 @@ class bitget(ccxt.async_support.bitget):
         tickers = await self.watch_public_multiple(uta, messageHashes, topics, paramsValue)
         if self.newUpdates:
             result = {}
-            result[tickers['symbol']] = tickers
+            tickersSymbol = self.safe_string(tickers, 'symbol')
+            if tickersSymbol is not None:
+                result[tickersSymbol] = tickers
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsList)
 

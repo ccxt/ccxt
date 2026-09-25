@@ -1857,7 +1857,7 @@ public class Nado extends NadoApi
                 String pairProductId = this.safeString(rawPair, "product_id");
                 if (!java.util.Objects.equals(pairProductId, null))
                 {
-                    pairsById.put((String)pairProductId, rawPair);
+                    pairsById.put(pairProductId, rawPair);
                 }
             }
             Map<String, Object> assetsById = new HashMap<String, Object>() {{}};
@@ -1867,7 +1867,7 @@ public class Nado extends NadoApi
                 String assetProductId = this.safeString(rawAsset, "product_id");
                 if (!java.util.Objects.equals(assetProductId, null))
                 {
-                    assetsById.put((String)assetProductId, rawAsset);
+                    assetsById.put(assetProductId, rawAsset);
                 }
             }
             Map<String, Object> assetsByCode = new HashMap<String, Object>() {{}};
@@ -1883,7 +1883,7 @@ public class Nado extends NadoApi
                 Map<String, Object> previous = (Map<String, Object>) this.safeDict(assetsByCode, assetCode, (Object) null);
                 if (java.util.Objects.equals(previous, null))
                 {
-                    assetsByCode.put((String)assetCode, rawAsset);
+                    assetsByCode.put(assetCode, rawAsset);
                 } else
                 {
                     Boolean previousDeposit = (Boolean) this.safeBool(previous, "can_deposit", false);
@@ -1892,7 +1892,7 @@ public class Nado extends NadoApi
                     Boolean currentWithdraw = (Boolean) this.safeBool(rawAsset, "can_withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(currentDeposit, true)) || (java.util.Objects.equals(currentWithdraw, true))))
                     {
-                        assetsByCode.put((String)assetCode, rawAsset);
+                        assetsByCode.put(assetCode, rawAsset);
                     }
                 }
             }
@@ -2032,14 +2032,14 @@ public class Nado extends NadoApi
                 Boolean canWithdraw = (Boolean) this.safeBool(currency, "can_withdraw", false);
                 if (java.util.Objects.equals(previous, null))
                 {
-                    result.put((String)code, parsed);
+                    result.put(code, parsed);
                 } else
                 {
                     Boolean previousDeposit = (Boolean) this.safeBool(previous, "deposit", false);
                     Boolean previousWithdraw = (Boolean) this.safeBool(previous, "withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(canDeposit, true)) || (java.util.Objects.equals(canWithdraw, true))))
                     {
-                        result.put((String)code, parsed);
+                        result.put(code, parsed);
                     }
                 }
             }
@@ -2907,7 +2907,7 @@ public class Nado extends NadoApi
             account.put("free", amount);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

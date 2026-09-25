@@ -220,7 +220,10 @@ export default class bitget extends bitgetRest {
         const tickers = await this.watchPublicMultiple (uta, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[tickers['symbol']] = tickers;
+            const tickersSymbol = this.safeString (tickers, 'symbol');
+            if (tickersSymbol !== undefined) {
+                result[tickersSymbol] = tickers;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsList);
@@ -471,7 +474,10 @@ export default class bitget extends bitgetRest {
         const tickers = await this.watchPublicMultiple (uta, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[tickers['symbol']] = tickers;
+            const tickersSymbol = this.safeString (tickers, 'symbol');
+            if (tickersSymbol !== undefined) {
+                result[tickersSymbol] = tickers;
+            }
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsList);

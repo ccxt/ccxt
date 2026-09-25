@@ -268,7 +268,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -294,7 +298,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbols, true);
@@ -1106,7 +1114,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbols.put((String)symbol, true);
+                symbols.put(symbol, true);
             }
             cachedOrders.append(parsed);
         }
@@ -1644,7 +1652,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 newAccount.put("total", this.safeString(holding, key));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    holdingResult.put((String)code, newAccount);
+                    holdingResult.put(code, newAccount);
                 }
             }
             Helpers.addElementToObject(this.balance, "cash", holdingResult);
@@ -1670,7 +1678,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 newAccount.put("free", this.safeString(future, "available"));
                 newAccount.put("used", this.safeString(future, "initial_margin"));
                 newAccount.put("total", this.safeString(future, "balance"));
-                futuresResult.put((String)symbol, new HashMap<String, Object>() {{}});
+                futuresResult.put(symbol, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(code, null)))
                 {
                     Helpers.addElementToObject((futuresResult == null || symbol == null ? null : futuresResult.get(symbol)), code, newAccount);
@@ -1700,7 +1708,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 newAccount.put("total", this.safeString(flexFuture, "quantity"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    flexFuturesResult.put((String)code, newAccount);
+                    flexFuturesResult.put(code, newAccount);
                 }
             }
             Helpers.addElementToObject(this.balance, "flex", flexFuturesResult);

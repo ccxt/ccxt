@@ -796,7 +796,7 @@ public class Onetrading extends OnetradingApi
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
                 Map<String, Object> tierObject = (((java.util.Objects.equals(market.get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
         put( "maker", Onetrading.this.safeNumber(tierObject, "maker_fee", (Object) null) );
@@ -873,7 +873,7 @@ public class Onetrading extends OnetradingApi
                 Map<String, Object> market = this.market(symbol);
                 String makerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
                 String takerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Onetrading.this.parseNumber(makerFee) );
@@ -1057,7 +1057,7 @@ public class Onetrading extends OnetradingApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
@@ -1362,7 +1362,7 @@ public class Onetrading extends OnetradingApi
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

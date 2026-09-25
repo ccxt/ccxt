@@ -320,7 +320,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             String marketId = (String) market.get("id");
             if (!java.util.Objects.equals(marketId, null))
             {
-                marketIds.put((String)marketId, true);
+                marketIds.put(marketId, true);
             }
         }
         // non-symbol specific
@@ -469,7 +469,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             String marketId = (String) market.get("id");
             if (!java.util.Objects.equals(marketId, null))
             {
-                marketIds.put((String)marketId, true);
+                marketIds.put(marketId, true);
             }
         }
         // non-symbol specific

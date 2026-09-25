@@ -417,7 +417,9 @@ class nado(ccxt.async_support.nado):
             if messageHash == 'ticker':
                 return self.filter_by_array(ticker, 'symbol', symbolsNormalized)
             tickers = {}
-            tickers[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                tickers[tickerSymbol] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
@@ -470,7 +472,9 @@ class nado(ccxt.async_support.nado):
             if messageHash == 'bidask':
                 return self.filter_by_array(ticker, 'symbol', symbolsNormalized)
             tickers = {}
-            tickers[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                tickers[tickerSymbol] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 

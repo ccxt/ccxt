@@ -1552,7 +1552,7 @@ public class Mexc extends MexcApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put((String)network, Helpers.newMap(
+                networks.put(network, Helpers.newMap(
     "info", chain,
     "id", networkId,
     "network", network,
@@ -2285,7 +2285,7 @@ public class Mexc extends MexcApi
             Object candles = new ArrayList<Object>(Arrays.asList());
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "endTime");
             Boolean omitUntil = (!java.util.Objects.equals(until, null)) && (java.util.Objects.equals(since, null));
-            Object paramsUntil = paramsPaginate;
+            Map<String, Object> paramsUntil = paramsPaginate;
             if (Boolean.TRUE.equals(omitUntil))
             {
                 paramsUntil = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
@@ -2348,7 +2348,7 @@ public class Mexc extends MexcApi
                     }
                 }
                 String priceType = this.safeString(paramsUntil, "price", "default");
-                Object paramsOmitted = this.omit(paramsUntil, "price");
+                Map<String, Object> paramsOmitted = this.omit(paramsUntil, "price");
                 Object response = null;
                 if (java.util.Objects.equals(priceType, "default"))
                 {
@@ -3155,7 +3155,7 @@ public class Mexc extends MexcApi
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             String symbol = null;
-            Object paramsLoop = parameters;
+            Map<String, Object> paramsLoop = parameters;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
@@ -3181,7 +3181,7 @@ public class Mexc extends MexcApi
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginMode = null;
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsLoopVariable = this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsLoop), (String) null);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsLoopVariable = this.handleMarginModeAndParams("createOrder", paramsLoop, (String) null);
                 marginMode = marginModeparamsLoopVariable.first();
                 paramsLoop = marginModeparamsLoopVariable.second();
                 Object orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, Helpers.toStringArg(marginMode), orderParams);
@@ -4591,7 +4591,7 @@ public class Mexc extends MexcApi
                 account.put("used", this.safeString(entry, "frozenBalance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    ((Map<String, Object>)result).put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -4607,7 +4607,7 @@ public class Mexc extends MexcApi
                 account.put("used", this.safeString(entry, "locked"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    ((Map<String, Object>)result).put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -6420,7 +6420,7 @@ public class Mexc extends MexcApi
                 Map<String, Object> market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isIsolatedMargin))
             {
                 paramsOmitted = this.omit(parameters, "symbol");

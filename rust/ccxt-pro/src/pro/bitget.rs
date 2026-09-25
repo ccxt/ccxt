@@ -569,7 +569,10 @@ impl BitgetCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut result, &crate::value::get_value_k(&tickers, "symbol"), tickers.clone());
+            let mut tickersSymbol: Value = self.safe_string_k(tickers.clone(), "symbol", &[]);
+            if (tickersSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickersSymbol), tickers.clone()); }
+            }
             return result;
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsList]);
@@ -853,7 +856,10 @@ impl BitgetCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut result, &crate::value::get_value_k(&tickers, "symbol"), tickers.clone());
+            let mut tickersSymbol: Value = self.safe_string_k(tickers.clone(), "symbol", &[]);
+            if (tickersSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickersSymbol), tickers); }
+            }
             return result;
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsList]);

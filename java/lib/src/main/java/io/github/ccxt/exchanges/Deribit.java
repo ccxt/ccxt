@@ -1382,7 +1382,7 @@ public class Deribit extends DeribitApi
                     }
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        parsedMarkets.put((String)symbol, true);
+                        parsedMarkets.put(symbol, true);
                     }
                     Double minTradeAmount = this.safeNumber(market, "min_trade_amount", (Object) null);
                     Double tickSize = this.safeNumber(market, "tick_size", (Object) null);
@@ -1468,7 +1468,7 @@ public class Deribit extends DeribitApi
             account.put("total", this.safeString(data, "equity"));
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                result.put((String)currencyCode, account);
+                result.put(currencyCode, account);
             }
         }
         return this.safeBalance(result);
@@ -1899,7 +1899,7 @@ public class Deribit extends DeribitApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    tickers.put((String)symbol, ticker);
+                    tickers.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
@@ -2300,7 +2300,7 @@ public class Deribit extends DeribitApi
                 {
                     fee = this.extend(fee, optionFee);
                 }
-                parsedFees.put((String)symbol, fee);
+                parsedFees.put(symbol, fee);
             }
             return parsedFees;
         }).thenApply(TradingFees::new);
@@ -2812,7 +2812,7 @@ public class Deribit extends DeribitApi
             }
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isTrailingAmountOrder))
             {
                 paramsOmitted = this.omit(parameters, "trigger_offset");
@@ -4024,7 +4024,7 @@ public class Deribit extends DeribitApi
                 request.put("end_timestamp", time);
             }
             Boolean isPaginationCall = (paramsUntil.containsKey("isDeribitPaginationCall"));
-            Object paramsOmitted = paramsUntil;
+            Map<String, Object> paramsOmitted = paramsUntil;
             if (Boolean.TRUE.equals(isPaginationCall))
             {
                 paramsOmitted = this.omit(paramsUntil, "isDeribitPaginationCall");

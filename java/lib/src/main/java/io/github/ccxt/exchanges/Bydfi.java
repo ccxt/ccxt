@@ -2981,7 +2981,7 @@ public class Bydfi extends BydfiApi
             String contractType = contractTypeparamsContractTypeVariable.first();
             Map<String, Object> paramsContractType = contractTypeparamsContractTypeVariable.second();
             Object settleCoin = "USDT";
-            Object query = paramsContractType;
+            Map<String, Object> query = paramsContractType;
             if (java.util.Objects.equals(symbol, null))
             {
                 io.github.ccxt.base.Pair<String, Map<String, Object>> settleCoinqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "fetchPositionMode", "settleCoin", Helpers.toStringArg(settleCoin));
@@ -3132,7 +3132,7 @@ public class Bydfi extends BydfiApi
             account.put("free", this.safeString2(balance, "available", "availableBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

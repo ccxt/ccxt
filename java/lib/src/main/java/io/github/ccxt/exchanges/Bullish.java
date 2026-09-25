@@ -1328,14 +1328,14 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object paramsExtended = parameters;
+            Map<String, Object> paramsExtended = parameters;
             if (java.util.Objects.equals(clientOrderId, null))
             {
                 paramsExtended = this.extend(new HashMap<String, Object>() {{
                     put( "orderId", id );
                 }}, parameters);
             }
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchMyTrades(symbol, since, limit, paramsExtended)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1674,8 +1674,8 @@ public class Bullish extends BullishApi
             {
                 until = this.sum(startTime, maxDelta);
             }
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(startTime));
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
+            requestUntil.put("createdAtDatetime[gte]", this.iso8601(startTime));
+            requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
             List<Object> response = (this.publicGetV1MarketsSymbolCandle(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [
@@ -1903,7 +1903,7 @@ public class Bullish extends BullishApi
     {
         Object until = this.safeInteger(parameters, "until");
         Boolean sinceFromUntil = (java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(until, null));
-        Object paramsResult = parameters;
+        Map<String, Object> paramsResult = parameters;
         if (Boolean.TRUE.equals(sinceFromUntil))
         {
             paramsResult = this.omit(parameters, "until");
@@ -2487,11 +2487,11 @@ public class Bullish extends BullishApi
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
+                requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(since));
+                requestUntil.put("createdAtDatetime[gte]", this.iso8601(since));
             }
             Map<String, Object> response = (this.privateGetV1WalletsTransactions(this.extend(requestUntil, paramsUntil))).join();
             //
@@ -3000,7 +3000,7 @@ public class Bullish extends BullishApi
             account.put("used", this.safeString(balance, "lockedQuantity"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -3162,14 +3162,14 @@ public class Bullish extends BullishApi
             Long until = this.safeInteger(paramsPaginate, "until");
             // since and until are mandatory for this endpoint, set until to now if both are undefined
             Boolean untilMissing = (java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null));
-            Object paramsUntil = paramsPaginate;
+            Map<String, Object> paramsUntil = paramsPaginate;
             if (Boolean.TRUE.equals(untilMissing))
             {
                 paramsUntil = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "until", Bullish.this.milliseconds() );
                 }});
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsUntil), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsUntil, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
@@ -3339,8 +3339,8 @@ public class Bullish extends BullishApi
             {
                 until = now;
             }
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(startTimestamp));
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
+            requestUntil.put("createdAtDatetime[gte]", this.iso8601(startTimestamp));
+            requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
             List<Object> response = (this.privateGetV1HistoryBorrowInterest(this.extend(requestUntil, paramsUntil))).join();
             //
             //     [

@@ -531,7 +531,10 @@ class kucoin extends \ccxt\async\kucoin {
             $tickers = Async\await($this->subscribe_multiple($url, $messageHashes, $symbolsTopic, $topics, $query));
             if ($this->newUpdates) {
                 $newDict = array();
-                $newDict[$tickers['symbol']] = $tickers;
+                $tickersSymbol = $this->safe_string($tickers, 'symbol');
+                if ($tickersSymbol !== null) {
+                    $newDict[$tickersSymbol] = $tickers;
+                }
                 return $newDict;
             }
         }
@@ -835,7 +838,10 @@ class kucoin extends \ccxt\async\kucoin {
         $ticker = Async\await($this->watch_multi_helper('watchBidsAsks', $channelName, $isFuturesMethod, $symbolsNormalized, $params));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $tickers[$tickerSymbol] = $ticker;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);

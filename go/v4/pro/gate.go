@@ -1162,10 +1162,14 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 		messageHashes = append(messageHashes, prefix+":"+symbol)
 	}
 
-	var tickerOrBidAsk map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, paramsMethod))))
+	tickerOrBidAsk := (<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, paramsMethod))
+	ccxt.PanicOnError(tickerOrBidAsk)
 	if this.NewUpdates {
 		var items map[string]any = map[string]any{}
-		ccxt.AddElementToObject(items, ccxt.GetValue(tickerOrBidAsk, "symbol"), tickerOrBidAsk)
+		var tickerOrBidAskSymbol *string = this.SafeString(tickerOrBidAsk, "symbol")
+		if tickerOrBidAskSymbol != nil {
+			ccxt.AddElementToObject(items, tickerOrBidAskSymbol, tickerOrBidAsk)
+		}
 
 		ch <- items
 		return nil

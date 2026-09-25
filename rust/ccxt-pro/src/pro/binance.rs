@@ -3400,7 +3400,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut newDict, &crate::value::get_value_k(&result, "symbol"), result.clone());
+            let mut resultSymbol: Value = self.safe_string_k(result.clone(), "symbol", &[]);
+            if (resultSymbol != Value::Null) {
+                if let Value::Dict(__d) = &mut newDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&resultSymbol), result); }
+            }
             return newDict;
         }
 

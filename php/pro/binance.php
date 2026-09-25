@@ -2605,7 +2605,10 @@ class binance extends \ccxt\async\binance {
             return $result;
         } else {
             $newDict = array();
-            $newDict[$result['symbol']] = $result;
+            $resultSymbol = $this->safe_string($result, 'symbol');
+            if ($resultSymbol !== null) {
+                $newDict[$resultSymbol] = $result;
+            }
             return $newDict;
         }
     }

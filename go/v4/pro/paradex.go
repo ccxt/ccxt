@@ -385,10 +385,14 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, channel)
 	}
 
-	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))))
+	newTicker := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
+	ccxt.PanicOnError(newTicker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
+		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
+		if newTickerSymbol != nil {
+			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+		}
 
 		ch <- result
 		return nil
@@ -638,10 +642,14 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		messageHashes = append(messageHashes, channel)
 	}
 
-	var newFundingRates map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))))
+	newFundingRates := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
+	ccxt.PanicOnError(newFundingRates)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(newFundingRates, "symbol"), newFundingRates)
+		var newFundingRatesSymbol *string = this.SafeString(newFundingRates, "symbol")
+		if newFundingRatesSymbol != nil {
+			ccxt.AddElementToObject(result, newFundingRatesSymbol, newFundingRates)
+		}
 
 		ch <- result
 		return nil

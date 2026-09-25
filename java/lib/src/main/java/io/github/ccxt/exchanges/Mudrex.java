@@ -550,7 +550,7 @@ public class Mudrex extends MudrexApi
                 {
                     continue;
                 }
-                resultTickers.put((String)symbol, this.parseTicker(t, m));
+                resultTickers.put(symbol, this.parseTicker(t, m));
             }
             return this.filterByArrayTickers(resultTickers, "symbol", symbols, true);
         }).thenApply(Tickers::new);
@@ -803,7 +803,7 @@ public class Mudrex extends MudrexApi
             account.put("total", this.safeString(data, "total"));
             account.put("free", this.safeString(data, "withdrawable"));
         }
-        result.put((String)currency, account);
+        result.put(currency, account);
         return this.safeBalance(result);
     }
 

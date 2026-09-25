@@ -586,7 +586,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     return this.filterByArray(ticker, "symbol", symbolsNormalized, true);
                 }
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    tickers.put(tickerSymbol, ticker);
+                }
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -665,7 +669,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     return this.filterByArray(ticker, "symbol", symbolsNormalized, true);
                 }
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    tickers.put(tickerSymbol, ticker);
+                }
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -1975,7 +1983,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-        tickers.put((String)symbol, ticker);
+        tickers.put(symbol, ticker);
         client.resolve(ticker, ("bidask:" + symbol));
         client.resolve(ticker, ("ticker:" + symbol));
         client.resolve(tickers, "bidask");
@@ -2016,7 +2024,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     put( "info", bbo );
                 }}, market);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, ticker);
+                result.put(symbol, ticker);
             }
         }
         return result;
@@ -2151,7 +2159,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         if (!java.util.Objects.equals(messageHash, null))
         {
             ((Map<String,Object>)client.subscriptions).remove(("authentication:" + id));
-            ((Map)client.subscriptions).put((String)messageHash, true);
+            ((Map)client.subscriptions).put(messageHash, true);
             client.resolve(message, messageHash);
         }
     }

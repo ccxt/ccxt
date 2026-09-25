@@ -206,7 +206,10 @@ class grvt extends \ccxt\async\grvt {
         $ticker = Async\await($this->subscribe_multiple($messageHashes, $this->extend($paramsInterval, $request), $rawHashes));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $tickers[$tickerSymbol] = $ticker;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);

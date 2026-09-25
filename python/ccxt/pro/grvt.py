@@ -178,7 +178,9 @@ class grvt(ccxt.async_support.grvt):
         ticker = await self.subscribe_multiple(messageHashes, self.extend(paramsInterval, request), rawHashes)
         if self.newUpdates:
             tickers = {}
-            tickers[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                tickers[tickerSymbol] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 

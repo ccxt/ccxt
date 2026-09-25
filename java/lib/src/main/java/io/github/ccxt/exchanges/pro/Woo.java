@@ -461,7 +461,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watchPublic(topic, (Map<String, Object>) (message))).join();
         }).thenApply(Ticker::new);
 
@@ -589,7 +589,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             Object tickers = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -698,7 +698,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             Object bidsasks = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             if (this.newUpdates)
             {
@@ -775,7 +775,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                result.put((String)symbol, parsedTicker);
+                result.put(symbol, parsedTicker);
             }
         }
         client.resolve(result, topic);
@@ -832,7 +832,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             List<Object> ohlcv = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -945,7 +945,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1221,7 +1221,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 "event", "subscribe",
                 "topic", topic
             );
-            Object message = this.extend(request, paramsOmitted);
+            Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1272,7 +1272,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 "event", "subscribe",
                 "topic", topic
             );
-            Object message = this.extend(request, paramsOmitted);
+            Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1731,7 +1731,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
@@ -1822,7 +1822,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watchPublic(topic, (Map<String, Object>) (message))).join();
         }).thenApply(FundingRate::new);
 

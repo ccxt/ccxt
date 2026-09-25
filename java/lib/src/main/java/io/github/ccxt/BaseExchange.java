@@ -5289,7 +5289,7 @@ public Object describe()
                 continue;
             }
             String code = (String) ((Map<String, Object>)parsed).get("code");
-            result.put((String)code, parsed);
+            result.put(code, parsed);
         }
         return result;
     }
@@ -6304,29 +6304,29 @@ public Object describe()
         }};
         if (!java.util.Objects.equals(market, null))
         {
-            Object result = this.extend(cleanStructure, market);
+            Map<String, Object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (java.util.Objects.equals(Helpers.GetValue(result, "spot"), true))
+            if (java.util.Objects.equals(result.get("spot"), true))
             {
-                if (java.util.Objects.equals(Helpers.GetValue(result, "contract"), null))
+                if (java.util.Objects.equals(result.get("contract"), null))
                 {
-                    Helpers.addElementToObject(result, "contract", false);
+                    result.put("contract", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "swap"), null))
+                if (java.util.Objects.equals(result.get("swap"), null))
                 {
-                    Helpers.addElementToObject(result, "swap", false);
+                    result.put("swap", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "future"), null))
+                if (java.util.Objects.equals(result.get("future"), null))
                 {
-                    Helpers.addElementToObject(result, "future", false);
+                    result.put("future", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "option"), null))
+                if (java.util.Objects.equals(result.get("option"), null))
                 {
-                    Helpers.addElementToObject(result, "option", false);
+                    result.put("option", false);
                 }
-                if (java.util.Objects.equals(Helpers.GetValue(result, "index"), null))
+                if (java.util.Objects.equals(result.get("index"), null))
                 {
-                    Helpers.addElementToObject(result, "index", false);
+                    result.put("index", false);
                 }
             }
             return result;
@@ -7299,7 +7299,7 @@ public Object describe()
                 }
                 if (!(reduced.containsKey(feeCurrencyCode)))
                 {
-                    reduced.put((String)feeCurrencyCode, new HashMap<String, Object>() {{}});
+                    reduced.put(feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
                 if (Helpers.inOp((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey))
@@ -8205,7 +8205,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
-                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
+                    tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         } else
@@ -8220,7 +8220,7 @@ public Object describe()
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized))))
                 {
-                    tiers.put((String)symbol, this.parseMarketLeverageTiers(item, market));
+                    tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
                 }
             }
         }
@@ -10034,7 +10034,7 @@ public Object describe()
 
     public Object handleWithdrawTagAndParams(Object tag, Map<String, Object> parameters)
     {
-        Object paramsExtended = parameters;
+        Map<String, Object> paramsExtended = parameters;
         Object tagValue = tag;
         if (Boolean.TRUE.equals(this.isDictionary(tag)))
         {
@@ -10043,7 +10043,7 @@ public Object describe()
         }
         Object tagResolved = (((java.util.Objects.equals(tagValue, null)))) ? this.safeString(paramsExtended, "tag") : tagValue;
         Boolean tagFromParams = (java.util.Objects.equals(tagValue, null)) && (!java.util.Objects.equals(tagResolved, null));
-        Object paramsOmitted = paramsExtended;
+        Map<String, Object> paramsOmitted = paramsExtended;
         if (Boolean.TRUE.equals(tagFromParams))
         {
             paramsOmitted = this.omit(paramsExtended, "tag");
@@ -11693,7 +11693,7 @@ public Object describe()
             String uniqValue = ((java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
             if (!java.util.Objects.equals(uniqValue, null) && !(uniqueDic.containsKey(uniqValue)))
             {
-                uniqueDic.put((String)uniqValue, 1);
+                uniqueDic.put(uniqValue, 1);
                 ((List<Object>)uniqueResult).add(entry);
             }
         }
@@ -11742,7 +11742,7 @@ public Object describe()
             }
             if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
             {
-                uniqueResult.put((String)id, entry);
+                uniqueResult.put(id, entry);
             }
         }
         Object values = Helpers.objectValues(uniqueResult);
@@ -11758,7 +11758,7 @@ public Object describe()
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!this.inArray(key, removeKeys))
             {
-                newDict.put((String)key, (dict == null || key == null ? null : dict.get(key)));
+                newDict.put(key, (dict == null || key == null ? null : dict.get(key)));
             }
         }
         return newDict;

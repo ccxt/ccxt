@@ -755,7 +755,7 @@ public class Bitvavo extends BitvavoApi
             String networkCode = this.networkIdToCode(Helpers.toStringArg(networkId), code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", rawCurrency,
     "id", networkId,
     "network", networkCode,
@@ -1368,7 +1368,7 @@ public class Bitvavo extends BitvavoApi
             account.put("used", this.safeString(balance, "inOrder"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1759,7 +1759,7 @@ public class Bitvavo extends BitvavoApi
         String stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
-        Object paramsCost = paramsOmitted;
+        Map<String, Object> paramsCost = paramsOmitted;
         if (Boolean.TRUE.equals(isMarketOrder))
         {
             paramsCost = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost")));

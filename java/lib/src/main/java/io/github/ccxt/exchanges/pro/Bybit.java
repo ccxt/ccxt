@@ -509,7 +509,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                String tickerSymbol = this.safeString(ticker, "symbol");
+                if (!java.util.Objects.equals(tickerSymbol, null))
+                {
+                    result.put(tickerSymbol, ticker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsValue, true);
@@ -1259,7 +1263,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             Object bidask = this.parseWsBidAsk(((Map<?, ?>)this.orderbooks).get(symbol), market);
             Map<String, Object> newBidsAsks = new HashMap<String, Object>() {{}};
-            newBidsAsks.put((String)symbol, bidask);
+            newBidsAsks.put(symbol, bidask);
             Helpers.addElementToObject(this.bidsasks, symbol, bidask);
             client.resolve(newBidsAsks, ("bidask:" + symbol));
         }
@@ -1806,7 +1810,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            symbols.put((String)symbol, true);
+            symbols.put(symbol, true);
             trades.append(parsed);
         }
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
@@ -2425,7 +2429,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            symbols.put((String)symbol, true);
+            symbols.put(symbol, true);
             orders.append(parsed);
         }
         List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());

@@ -658,7 +658,7 @@ public class Mercado extends MercadoApi
                 account.put("total", this.safeString(balance, "total"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, account);
+                    result.put(code, account);
                 }
             }
         }

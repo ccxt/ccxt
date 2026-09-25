@@ -532,7 +532,7 @@ public class Indodax extends IndodaxApi
             account.put("used", this.safeString(used, currencyId));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -751,7 +751,7 @@ public class Indodax extends IndodaxApi
                 String marketId = Helpers.replace(key, (String)"_", (String)"");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
-                parsedTickers.put((String)marketId, parsed);
+                parsedTickers.put(marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols, true);
         }).thenApply(Tickers::new);
@@ -1159,7 +1159,7 @@ public class Indodax extends IndodaxApi
             Boolean priceIsRequired = false;
             Boolean quantityIsRequired = false;
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isMarketBuy))
             {
                 paramsOmitted = this.omit(parameters, "cost");
@@ -1739,7 +1739,7 @@ public class Indodax extends IndodaxApi
                     Object finalNetwork = network; // java req
                     if (!java.util.Objects.equals(code, null))
                     {
-                        result.put((String)code, Helpers.newMap(
+                        result.put(code, Helpers.newMap(
         "info", new HashMap<String, Object>() {{}},
         "currency", code,
         "network", finalNetwork,

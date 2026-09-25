@@ -1795,7 +1795,7 @@ public class Grvt extends GrvtApi
             account.put("free", availableBalance); // todo: revise after API team clarification
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

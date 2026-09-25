@@ -713,7 +713,10 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(tickers)
 		if this.NewUpdates {
 			var newDict map[string]any = map[string]any{}
-			ccxt.AddElementToObject(newDict, ccxt.GetValue(tickers, "symbol"), tickers)
+			var tickersSymbol *string = this.SafeString(tickers, "symbol")
+			if tickersSymbol != nil {
+				ccxt.AddElementToObject(newDict, tickersSymbol, tickers)
+			}
 
 			ch <- newDict
 			return nil
@@ -1056,10 +1059,14 @@ func (this *Kucoin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		channelName = "/contractMarket/tickerV2:"
 	}
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("watchBidsAsks", channelName, isFuturesMethod, symbolsNormalized, params))))
+	ticker := (<-this.WatchMultiHelperAsync("watchBidsAsks", channelName, isFuturesMethod, symbolsNormalized, params))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+		}
 
 		ch <- tickers
 		return nil

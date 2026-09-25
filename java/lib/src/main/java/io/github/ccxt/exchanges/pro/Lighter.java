@@ -503,7 +503,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -1337,7 +1341,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 account.put("total", this.safeString(asset, "balance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    balance.put((String)code, account);
+                    balance.put(code, account);
                 }
             }
         } else

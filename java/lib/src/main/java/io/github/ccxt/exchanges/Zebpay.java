@@ -585,7 +585,7 @@ public class Zebpay extends ZebpayApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", networkId,
     "network", networkCode,
@@ -749,7 +749,7 @@ public class Zebpay extends ZebpayApi
                 String symbol = (String) fee.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, fee);
+                    result.put(symbol, fee);
                 }
             }
             return result;
@@ -2175,7 +2175,7 @@ public class Zebpay extends ZebpayApi
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

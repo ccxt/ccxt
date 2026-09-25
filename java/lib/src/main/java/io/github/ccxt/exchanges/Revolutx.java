@@ -561,7 +561,7 @@ public class Revolutx extends RevolutxApi
                 {
                     continue;
                 }
-                result.put((String)code, parsed);
+                result.put(code, parsed);
             }
             return result;
         });
@@ -685,7 +685,7 @@ public class Revolutx extends RevolutxApi
                 {
                     continue;
                 }
-                result.put((String)symbol, ticker);
+                result.put(symbol, ticker);
             }
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -695,7 +695,7 @@ public class Revolutx extends RevolutxApi
                     String s = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     if (result.containsKey(s))
                     {
-                        filtered.put((String)s, (result == null || s == null ? null : result.get(s)));
+                        filtered.put(s, (result == null || s == null ? null : result.get(s)));
                     }
                 }
                 return filtered;
@@ -1031,7 +1031,7 @@ public class Revolutx extends RevolutxApi
                 }
                 account.put("used", used);
                 account.put("total", this.safeString(balance, "total"));
-                result.put((String)code, account);
+                result.put(code, account);
             }
             return this.safeBalance(result);
         }).thenApply(Balances::new);

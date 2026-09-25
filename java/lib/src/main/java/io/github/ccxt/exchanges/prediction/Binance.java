@@ -602,7 +602,7 @@ public class Binance extends BinanceApi
                         String already = this.safeString(seen, topicId);
                         if (java.util.Objects.equals(already, null))
                         {
-                            seen.put((String)topicId, topicId);
+                            seen.put(topicId, topicId);
                             ((List<Object>)collected).add(rawTopic);
                         }
                     }
@@ -1042,11 +1042,11 @@ public class Binance extends BinanceApi
                         "marketId", marketId
                     );
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
-                    responsesByMarketId.put((String)marketId, response);
+                    responsesByMarketId.put(marketId, response);
                 }
                 Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
                 String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
-                result.put((String)symbolKey, ticker);
+                result.put(symbolKey, ticker);
             }
             return result;
         }).thenApply(PredictionTickers::new);
@@ -1268,7 +1268,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
@@ -1365,7 +1365,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
@@ -1473,7 +1473,7 @@ public class Binance extends BinanceApi
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
                     Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Object) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
-                    requestedOutcomeSymbols.put((String)requestedOutcome, true);
+                    requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
             }
             Object wallet = (this.fetchWallet("fetchPositions", parameters)).join();
@@ -1668,7 +1668,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
+            Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
@@ -2182,7 +2182,7 @@ public class Binance extends BinanceApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 String key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
-                request.put((String)key, (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
+                request.put(key, (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
             }
             Map<String, Object> response = (this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters))).join();
             //

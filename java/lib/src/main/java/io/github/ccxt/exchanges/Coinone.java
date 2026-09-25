@@ -661,7 +661,7 @@ public class Coinone extends CoinoneApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1565,7 +1565,7 @@ public class Coinone extends CoinoneApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put((String)code, depositAddress);
+                    result.put(code, depositAddress);
                 }
             }
             return result;

@@ -517,7 +517,10 @@ class nado extends \ccxt\async\nado {
                 return $this->filter_by_array($ticker, 'symbol', $symbolsNormalized);
             }
             $tickers = array();
-            $tickers[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $tickers[$tickerSymbol] = $ticker;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
@@ -586,7 +589,10 @@ class nado extends \ccxt\async\nado {
                 return $this->filter_by_array($ticker, 'symbol', $symbolsNormalized);
             }
             $tickers = array();
-            $tickers[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $tickers[$tickerSymbol] = $ticker;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);

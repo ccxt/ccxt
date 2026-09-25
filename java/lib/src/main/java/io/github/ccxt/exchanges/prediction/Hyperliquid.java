@@ -259,7 +259,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 String key = Helpers.slice(part, 0, colonIndex);
                 String value = Helpers.slice(part, Helpers.add(colonIndex, 1), null);
-                result.put((String)key, value);
+                result.put(key, value);
             }
         }
         return result;
@@ -496,7 +496,7 @@ public class Hyperliquid extends HyperliquidApi
                 if (!java.util.Objects.equals(fallbackOutcome, null))
                 {
                     String fallbackKey = String.valueOf(fallbackOutcome);
-                    outcomesToQuestions.put((String)fallbackKey, question);
+                    outcomesToQuestions.put(fallbackKey, question);
                 }
                 List<Object> namedOutcomes = (List<Object>) this.safeList(question, "namedOutcomes", new ArrayList<Object>(Arrays.asList()));
                 for (var ni = 0; ni < ((List<?>)namedOutcomes).size(); ni++)
@@ -505,7 +505,7 @@ public class Hyperliquid extends HyperliquidApi
                     if (!java.util.Objects.equals(namedOutcomeId, null))
                     {
                         String namedKey = String.valueOf(namedOutcomeId);
-                        outcomesToQuestions.put((String)namedKey, question);
+                        outcomesToQuestions.put(namedKey, question);
                     }
                 }
             }
@@ -801,7 +801,7 @@ public class Hyperliquid extends HyperliquidApi
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
                     Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Object) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
-                    requestedOutcomeSymbols.put((String)requestedOutcome, true);
+                    requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
             } else
             {
@@ -843,7 +843,7 @@ public class Hyperliquid extends HyperliquidApi
                     "levels", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList()))),
                     "mid", mid
                 ), Helpers.toMapArg(((Object)outcomeObj)));
-                tickers.put((String)outcomeHandle, ticker);
+                tickers.put(outcomeHandle, ticker);
             }
             return tickers;
         }).thenApply(PredictionTickers::new);
@@ -1135,7 +1135,7 @@ public class Hyperliquid extends HyperliquidApi
                 account.put("used", used);
                 if (!java.util.Objects.equals(coin, null))
                 {
-                    result.put((String)coin, account);
+                    result.put(coin, account);
                 }
             }
             return this.safeBalance(result);
@@ -1169,7 +1169,7 @@ public class Hyperliquid extends HyperliquidApi
                     Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
                     Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Object) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
-                    requestedOutcomeSymbols.put((String)requestedOutcome, true);
+                    requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
             } else
             {
@@ -1833,14 +1833,14 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     if (!(deduped.containsKey(oid)))
                     {
-                        deduped.put((String)oid, raw);
+                        deduped.put(oid, raw);
                     } else
                     {
                         Long existingTs = this.safeInteger((deduped == null || oid == null ? null : deduped.get(oid)), "statusTimestamp");
                         Long currentTs = this.safeInteger(raw, "statusTimestamp");
                         if (!java.util.Objects.equals(currentTs, null) && (java.util.Objects.equals(existingTs, null) || (currentTs != null && (existingTs == null || currentTs > existingTs))))
                         {
-                            deduped.put((String)oid, raw);
+                            deduped.put(oid, raw);
                         }
                     }
                 }
@@ -2333,7 +2333,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     if (!java.util.Objects.equals(parentSymbol, null))
                     {
-                        groupMap.put((String)parentSymbol, new ArrayList<Object>(Arrays.asList()));
+                        groupMap.put(parentSymbol, new ArrayList<Object>(Arrays.asList()));
                     }
                 }
                 // push through a local and write the slice back — the go transpiler's
@@ -2343,7 +2343,7 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)parentMarkets).add(mkt);
                 if (!java.util.Objects.equals(parentSymbol, null))
                 {
-                    groupMap.put((String)parentSymbol, parentMarkets);
+                    groupMap.put(parentSymbol, parentMarkets);
                 }
             }
             List<Object> events = new ArrayList<Object>(Arrays.asList());

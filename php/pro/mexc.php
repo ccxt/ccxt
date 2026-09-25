@@ -272,7 +272,10 @@ class mexc extends \ccxt\async\mexc {
         $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsMarketType), $messageHashes));
         if ($isSpot && $this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
@@ -475,7 +478,10 @@ class mexc extends \ccxt\async\mexc {
         $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $paramsMarketType), $messageHashes));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $tickers[$tickerSymbol] = $ticker;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);

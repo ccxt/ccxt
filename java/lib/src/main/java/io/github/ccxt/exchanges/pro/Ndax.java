@@ -230,7 +230,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                updates.put((String)symbol, true);
+                updates.put(symbol, true);
             }
         }
         List<String> symbols = new ArrayList<String>(updates.keySet());
@@ -332,7 +332,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String symbol = (String) market.get("symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
-                updates.put((String)marketId, new HashMap<String, Object>() {{}});
+                updates.put(marketId, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             List<Object> keys = Helpers.objectKeys(this.timeframes);

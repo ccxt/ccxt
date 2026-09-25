@@ -693,7 +693,7 @@ public class Bittrade extends BittradeApi
             for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
             {
                 String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
-                result.put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
+                result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
         });
@@ -1143,7 +1143,7 @@ public class Bittrade extends BittradeApi
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 ticker.put("timestamp", timestamp);
                 ticker.put("datetime", this.iso8601(timestamp));
-                result.put((String)symbol, ticker);
+                result.put(symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -1605,7 +1605,7 @@ public class Bittrade extends BittradeApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

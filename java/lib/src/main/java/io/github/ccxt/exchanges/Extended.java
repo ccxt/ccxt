@@ -551,7 +551,7 @@ public class Extended extends ExtendedApi
             {
                 continue;
             }
-            result.put((String)numericIdString, item);
+            result.put(numericIdString, item);
         }
         return result;
     }
@@ -1040,7 +1040,7 @@ public class Extended extends ExtendedApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    tickers.put((String)symbol, ticker);
+                    tickers.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized, true);
@@ -1826,7 +1826,7 @@ public class Extended extends ExtendedApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2601,7 +2601,7 @@ public class Extended extends ExtendedApi
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, parsed);
+                    result.put(symbol, parsed);
                 }
             }
             return result;
@@ -3144,7 +3144,7 @@ public class Extended extends ExtendedApi
             String fee = this.safeString(parameters, "fee", "0.0005");
             String builderFeeRate = null;
             String builderId = null;
-            Object paramsBuilder = null;
+            Map<String, Object> paramsBuilder = null;
             if (this.isSandboxModeEnabled)
             {
                 builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
@@ -3340,7 +3340,7 @@ public class Extended extends ExtendedApi
                     request.put("trigger", trigger);
                 }
             }
-            Object paramsOmitted = this.omit(paramsBuilder, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
+            Map<String, Object> paramsOmitted = this.omit(paramsBuilder, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
             return Helpers.newMap(
                 "request", this.extend(request, paramsOmitted),
                 "market", market,

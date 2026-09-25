@@ -290,7 +290,9 @@ class paradex(ccxt.async_support.paradex):
         newTicker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
-            result[newTicker['symbol']] = newTicker
+            newTickerSymbol = self.safe_string(newTicker, 'symbol')
+            if newTickerSymbol is not None:
+                result[newTickerSymbol] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
@@ -474,7 +476,9 @@ class paradex(ccxt.async_support.paradex):
         newFundingRates = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
-            result[newFundingRates['symbol']] = newFundingRates
+            newFundingRatesSymbol = self.safe_string(newFundingRates, 'symbol')
+            if newFundingRatesSymbol is not None:
+                result[newFundingRatesSymbol] = newFundingRates
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbolsNormalized)
 

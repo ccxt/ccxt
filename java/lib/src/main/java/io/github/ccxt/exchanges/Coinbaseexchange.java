@@ -754,7 +754,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "name", this.safeString(network, "name"),
     "network", networkCode,
@@ -1016,7 +1016,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1228,7 +1228,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 List<Object> first = (List<Object>) this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, this.parseTicker(first, market));
+                result.put(symbol, this.parseTicker(first, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -1960,7 +1960,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice")));
             Double costParam = this.safeNumber2(paramsOmitted, "cost", "funds", (Object) null);
             Boolean omitCost = (java.util.Objects.equals(type, "market")) && (!java.util.Objects.equals(costParam, null));
-            Object paramsCost = paramsOmitted;
+            Map<String, Object> paramsCost = paramsOmitted;
             if (Boolean.TRUE.equals(omitCost))
             {
                 paramsCost = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("cost", "funds")));

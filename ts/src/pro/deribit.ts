@@ -243,7 +243,10 @@ export default class deribit extends deribitRest {
         const newTickers = await this.watchMultiple (url, channels, request, channels, request);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[newTickers['symbol']] = newTickers;
+            const newTickersSymbol = this.safeString (newTickers, 'symbol');
+            if (newTickersSymbol !== undefined) {
+                tickers[newTickersSymbol] = newTickers;
+            }
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
@@ -321,7 +324,10 @@ export default class deribit extends deribitRest {
         const newTickers = await this.watchMultiple (url, channels, request, channels, request);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[newTickers['symbol']] = newTickers;
+            const newTickersSymbol = this.safeString (newTickers, 'symbol');
+            if (newTickersSymbol !== undefined) {
+                tickers[newTickersSymbol] = newTickers;
+            }
             return tickers;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);

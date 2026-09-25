@@ -980,7 +980,7 @@ public class Bitopro extends BitoproApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", first );
         put( "symbol", symbol );
         put( "maker", maker );
@@ -1138,7 +1138,7 @@ public class Bitopro extends BitoproApi
             }};
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1460,7 +1460,7 @@ public class Bitopro extends BitoproApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(id, null))
             {
-                request.put((String)id, ids);
+                request.put(id, ids);
             }
             Map<String, Object> response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //
@@ -2077,7 +2077,7 @@ public class Bitopro extends BitoproApi
                 put( "address", address );
             }};
             Boolean hasNetwork = (((Map<?, ?>)paramsWithdrawTag).containsKey("network"));
-            Object paramsOmitted = paramsWithdrawTag;
+            Map<String, Object> paramsOmitted = paramsWithdrawTag;
             if (Boolean.TRUE.equals(hasNetwork))
             {
                 paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("network")));

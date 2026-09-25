@@ -754,7 +754,10 @@ impl HitbtcCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                add_element_to_object(&mut tickers, &crate::value::get_value_k(&newTickers, "symbol"), newTickers.clone());
+                let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
+                if (newTickersSymbol != Value::Null) {
+                    if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers.clone()); }
+                }
                 return tickers;
             }
         }
@@ -937,7 +940,10 @@ impl HitbtcCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                add_element_to_object(&mut tickers, &crate::value::get_value_k(&newTickers, "symbol"), newTickers.clone());
+                let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
+                if (newTickersSymbol != Value::Null) {
+                    if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers.clone()); }
+                }
                 return tickers;
             }
         }

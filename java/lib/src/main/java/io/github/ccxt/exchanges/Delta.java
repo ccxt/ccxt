@@ -736,7 +736,7 @@ public class Delta extends DeltaApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "name", this.safeString(chain, "name"),
@@ -822,7 +822,7 @@ public class Delta extends DeltaApi
             {
                 continue;
             }
-            result.put((String)numericIdString, item);
+            result.put(numericIdString, item);
         }
         return result;
     }
@@ -1624,7 +1624,7 @@ public class Delta extends DeltaApi
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);

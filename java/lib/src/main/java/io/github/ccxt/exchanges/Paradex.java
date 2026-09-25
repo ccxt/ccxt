@@ -3018,7 +3018,7 @@ public class Paradex extends ParadexApi
             account.put("total", this.safeString(balance, "size"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

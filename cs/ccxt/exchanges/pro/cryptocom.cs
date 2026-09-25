@@ -614,7 +614,11 @@ public partial class cryptocom : ccxt.cryptocom
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(ticker, "symbol")] = ticker;
+            string? tickerSymbol = this.safeString(ticker, "symbol");
+            if ((tickerSymbol != null))
+            {
+                result[(string)tickerSymbol] = ticker;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
@@ -781,7 +785,11 @@ public partial class cryptocom : ccxt.cryptocom
         if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-            tickers[(string)getValue(newTickers, "symbol")] = newTickers;
+            string? newTickersSymbol = this.safeString(newTickers, "symbol");
+            if ((newTickersSymbol != null))
+            {
+                tickers[(string)newTickersSymbol] = newTickers;
+            }
             return ccxt.BaseExchange.ToTickers(tickers);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));

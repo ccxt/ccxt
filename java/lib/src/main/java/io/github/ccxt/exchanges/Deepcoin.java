@@ -549,14 +549,14 @@ public class Deepcoin extends DeepcoinApi
         String instType = this.safeString(parameters, "instType");
         Map<String, Object> paramsOmitted = this.omit(parameters, "instType");
         String type = this.safeString(paramsOmitted, "type");
-        Object paramsExtended = paramsOmitted;
+        Map<String, Object> paramsExtended = paramsOmitted;
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
         {
             paramsExtended = this.extend(paramsOmitted, Helpers.newMap(
                 "type", instType
             ));
         }
-        return super.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(paramsExtended), defaultValue);
+        return super.handleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue);
     }
 
     public String convertToInstrumentType(String type)

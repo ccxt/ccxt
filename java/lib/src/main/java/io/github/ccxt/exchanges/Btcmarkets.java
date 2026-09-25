@@ -763,7 +763,7 @@ public class Btcmarkets extends BtcmarketsApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1211,12 +1211,12 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 request.put("clientOrderId", clientOrderId);
             }
-            Object paramsTriggerPrice = parameters;
+            Map<String, Object> paramsTriggerPrice = parameters;
             if (Boolean.TRUE.equals(triggerPriceIsRequired))
             {
                 paramsTriggerPrice = this.omit(parameters, "triggerPrice");
             }
-            Object paramsOmitted = this.omit(paramsTriggerPrice, "clientOrderId");
+            Map<String, Object> paramsOmitted = this.omit(paramsTriggerPrice, "clientOrderId");
             Map<String, Object> response = (this.privatePostOrders(this.extend(request, paramsOmitted))).join();
             //
             //     {

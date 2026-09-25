@@ -476,7 +476,7 @@ public Object describe()
             String identity = this.safeString2(eventVar, "id", "event", (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             if (!(seen.containsKey(identity)))
             {
-                seen.put((String)identity, true);
+                seen.put(identity, true);
                 ((List<Object>)result).add(eventVar);
             }
         }

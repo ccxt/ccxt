@@ -376,10 +376,14 @@ func (this *Blofin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.NotSupported(this.Id + " watchTickers() requires a list of symbols"))
 	}
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultipleWrapperAsync(true, "tickers", "watchTickers", symbols, params))))
+	ticker := (<-this.WatchMultipleWrapperAsync(true, "tickers", "watchTickers", symbols, params))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+		}
 
 		ch <- tickers
 		return nil
@@ -470,10 +474,14 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request any = this.GetSubscriptionRequest(args)
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, paramsMarketType), messageHashes))))
+	ticker := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, paramsMarketType), messageHashes))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
-		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+		}
 
 		ch <- tickers
 		return nil

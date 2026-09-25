@@ -284,7 +284,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -759,7 +763,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = this.market(firstSymbol);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String priceType = "LAST_PRICE";
-            Object paramsPriceType = paramsOmitted;
+            Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
             {
                 io.github.ccxt.base.Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), callerMethodName, "price", "priceType", priceType);
@@ -783,7 +787,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)channels).add(channel);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            var symboltimeframestoredVariable = (this.subscribePublic(messageHashes, channels, isContract, Helpers.toMapArg(paramsPriceType), new HashMap<String, Object>() {{}})).join();
+            var symboltimeframestoredVariable = (this.subscribePublic(messageHashes, channels, isContract, paramsPriceType, new HashMap<String, Object>() {{}})).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
@@ -849,7 +853,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = this.market(firstSymbol);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String priceType = "LAST_PRICE";
-            Object paramsPriceType = paramsOmitted;
+            Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
             {
                 io.github.ccxt.base.Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), callerMethodName, "price", "priceType", priceType);
@@ -882,7 +886,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "subMessageHashes", subHashes );
                 put( "topic", "ohlcv" );
             }};
-            return (this.subscribePublic(unSubHashes, channels, isContract, Helpers.toMapArg(paramsPriceType), subscription)).join();
+            return (this.subscribePublic(unSubHashes, channels, isContract, paramsPriceType, subscription)).join();
         });
 
     }
@@ -1222,7 +1226,11 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -1492,7 +1500,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbols.put((String)symbol, true);
+                symbols.put(symbol, true);
             }
             trades.append(parsed);
         }
@@ -1740,7 +1748,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                symbols.put((String)symbol, true);
+                symbols.put(symbol, true);
             }
         }
         String messageHash = "orders";

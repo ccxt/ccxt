@@ -1336,7 +1336,7 @@ public class Kraken extends KrakenApi
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
-                result.put((String)symbol, this.parseTicker(ticker, market));
+                result.put(symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -1893,7 +1893,7 @@ public class Kraken extends KrakenApi
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -2725,14 +2725,14 @@ public class Kraken extends KrakenApi
             {
                 throw new NotSupported((((this.id + " editOrder() does not support ") + market.get("type")) + " orders, only spot orders are accepted")) ;
             }
-            Object request = new HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "txid", id );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
             Object paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id"))) : parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
+                request.put("cl_ord_id", clientOrderId);
                 request = this.omit(request, "txid");
             }
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
@@ -2742,7 +2742,7 @@ public class Kraken extends KrakenApi
             paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
             if (java.util.Objects.equals(postOnly, true))
             {
-                ((Map<String, Object>)request).put("post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+                request.put("post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
             if (!java.util.Objects.equals(amount, null))
             {
@@ -2760,7 +2760,7 @@ public class Kraken extends KrakenApi
                 if (!java.util.Objects.equals(offset, null))
                 {
                     allTriggerPrices = (offset + allTriggerPrices);
-                    ((Map<String, Object>)request).put("trigger_price", allTriggerPrices);
+                    request.put("trigger_price", allTriggerPrices);
                 } else
                 {
                     Helpers.addElementToObject(request, "trigger_price", this.priceToPrecision(symbol, allTriggerPrices));
@@ -2805,7 +2805,7 @@ public class Kraken extends KrakenApi
                 "trades", true,
                 "txid", id
             );
-            Object query = parameters;
+            Map<String, Object> query = parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("userref", clientOrderId);
@@ -3104,14 +3104,14 @@ public class Kraken extends KrakenApi
             Map<String, Object> response = null;
             Object requestId = this.safeValue(parameters, "userref", id); // string or integer
             Map<String, Object> paramsUserref = this.omit(parameters, "userref");
-            Object request = new HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "txid", requestId );
             }};
             String clientOrderId = this.safeString2(paramsUserref, "clientOrderId", "cl_ord_id");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsUserref, new ArrayList<Object>(Arrays.asList("clientOrderId", "cl_ord_id"))) : paramsUserref;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                ((Map<String, Object>)request).put("cl_ord_id", clientOrderId);
+                request.put("cl_ord_id", clientOrderId);
                 request = this.omit(request, "txid");
             }
             try

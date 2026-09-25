@@ -290,7 +290,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
+                String newTickersSymbol = this.safeString(newTickers, "symbol");
+                if (!java.util.Objects.equals(newTickersSymbol, null))
+                {
+                    tickers.put(newTickersSymbol, newTickers);
+                }
                 return tickers;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -378,7 +382,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
+                String newTickersSymbol = this.safeString(newTickers, "symbol");
+                if (!java.util.Objects.equals(newTickersSymbol, null))
+                {
+                    tickers.put(newTickersSymbol, newTickers);
+                }
                 return tickers;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -695,12 +703,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 descriptor = ((((group + ".") + depth) + ".") + interval);
             }
-            Object paramsResolved = paramsUseDepthEndpoint;
+            Map<String, Object> paramsResolved = paramsUseDepthEndpoint;
             if (Boolean.TRUE.equals(useDepthEndpoint))
             {
                 paramsResolved = paramsGroup;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, Helpers.toMapArg(paramsResolved))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, paramsResolved)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

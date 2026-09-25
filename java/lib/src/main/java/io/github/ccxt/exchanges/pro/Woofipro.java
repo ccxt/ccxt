@@ -150,7 +150,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -221,7 +221,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watchPublic(topic, (Map<String, Object>) (message))).join();
         }).thenApply(Ticker::new);
 
@@ -321,7 +321,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             Object tickers = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -391,7 +391,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             Object tickers = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -484,7 +484,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             List<Object> ohlcv = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -566,7 +566,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -836,7 +836,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 "event", "subscribe",
                 "topic", topic
             );
-            Object message = this.extend(request, paramsOmitted);
+            Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -892,7 +892,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 "event", "subscribe",
                 "topic", topic
             );
-            Object message = this.extend(request, paramsOmitted);
+            Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1437,7 +1437,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
-            Object message = this.extend(request, parameters);
+            Map<String, Object> message = this.extend(request, parameters);
             return (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 

@@ -683,7 +683,7 @@ public class Bitbank extends BitbankApi
                 String marketId = this.safeString(pair, "name");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) market.get("symbol");
-                result.put((String)symbol, new HashMap<String, Object>() {{
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", pair );
         put( "symbol", symbol );
         put( "maker", Bitbank.this.safeNumber(pair, "maker_fee_rate_quote", (Object) null) );
@@ -792,7 +792,7 @@ public class Bitbank extends BitbankApi
             account.put("total", this.safeString(balance, "onhand_amount"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

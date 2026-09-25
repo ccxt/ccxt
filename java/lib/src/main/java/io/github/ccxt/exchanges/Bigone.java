@@ -626,7 +626,7 @@ public class Bigone extends BigoneApi
             Object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "id", networkId,
     "network", networkCode,
     "margin", null,
@@ -1609,7 +1609,7 @@ public class Bigone extends BigoneApi
             account.put("used", this.safeString(balance, "locked_balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);

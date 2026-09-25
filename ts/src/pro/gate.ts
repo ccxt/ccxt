@@ -881,7 +881,10 @@ export default class gate extends gateRest {
         const tickerOrBidAsk = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, paramsMethod);
         if (this.newUpdates) {
             const items: Dict = {};
-            items[tickerOrBidAsk['symbol']] = tickerOrBidAsk;
+            const tickerOrBidAskSymbol = this.safeString (tickerOrBidAsk, 'symbol');
+            if (tickerOrBidAskSymbol !== undefined) {
+                items[tickerOrBidAskSymbol] = tickerOrBidAsk;
+            }
             return items;
         }
         const result = isWatchTickers ? this.tickers : this.bidsasks;

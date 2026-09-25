@@ -620,7 +620,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(marketIdsByInterval.containsKey(interval)))
                 {
-                    marketIdsByInterval.put((String)interval, new ArrayList<Object>(Arrays.asList()));
+                    marketIdsByInterval.put(interval, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(market.get("id"));
@@ -707,7 +707,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(marketIdsByInterval.containsKey(interval)))
                 {
-                    marketIdsByInterval.put((String)interval, new ArrayList<Object>(Arrays.asList()));
+                    marketIdsByInterval.put(interval, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
                 ((List<Object>)intervalIds).add(market.get("id"));

@@ -260,7 +260,10 @@ export default class mexc extends mexcRest {
         const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsMarketType), messageHashes);
         if (isSpot && this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
@@ -460,7 +463,10 @@ export default class mexc extends mexcRest {
         const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsMarketType), messageHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);

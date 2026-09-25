@@ -1088,7 +1088,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             if (this.newUpdates)
             {
                 Map<String, Object> items = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(items, Helpers.GetValue(tickerOrBidAsk, "symbol"), tickerOrBidAsk);
+                String tickerOrBidAskSymbol = this.safeString(tickerOrBidAsk, "symbol");
+                if (!java.util.Objects.equals(tickerOrBidAskSymbol, null))
+                {
+                    items.put(tickerOrBidAskSymbol, tickerOrBidAsk);
+                }
                 return items;
             }
             Object result = ((Boolean.TRUE.equals(isWatchTickers))) ? this.tickers : this.bidsasks;
@@ -1416,7 +1420,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             stored.append(parsed);
-            marketIds.put((String)symbol, timeframe);
+            marketIds.put(symbol, timeframe);
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1539,7 +1543,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String symbol = (String) ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                marketIds.put((String)symbol, true);
+                marketIds.put(symbol, true);
             }
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());
@@ -1724,7 +1728,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             }
             String type = null;
-            Object query = null;
+            Map<String, Object> query = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, (String) null);
             type = typequeryVariable.first();
             query = typequeryVariable.second();
@@ -1748,7 +1752,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String channel = (typeId + ".positions");
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchPositions", market, Helpers.toMapArg(query), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchPositions", market, query, (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -2161,7 +2165,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             String type = null;
-            Object query = null;
+            Map<String, Object> query = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters, (String) null);
             type = typequeryVariable.first();
             query = typequeryVariable.second();
@@ -2171,7 +2175,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "option", "options" );
             }});
             String subType = null;
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, Helpers.toMapArg(query), (Object) null);
+            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query, (Object) null);
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
@@ -2762,7 +2766,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
                     String tempSubscriptionHash = String.valueOf(requestId);
-                    ((Map)client.subscriptions).put((String)tempSubscriptionHash, messageHash);
+                    ((Map)client.subscriptions).put(tempSubscriptionHash, messageHash);
                 }
             }
             Map<String, Object> message = this.extend(request, parameters);
@@ -2931,7 +2935,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 String tempSubscriptionHash = String.valueOf(requestId);
                 // in case of authenticationError we will throw
-                ((Map)client.subscriptions).put((String)tempSubscriptionHash, messageHash);
+                ((Map)client.subscriptions).put(tempSubscriptionHash, messageHash);
             }
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, messageHash)).join();

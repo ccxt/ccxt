@@ -388,7 +388,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                String newTickerSymbol = this.safeString(newTicker, "symbol");
+                if (!java.util.Objects.equals(newTickerSymbol, null))
+                {
+                    result.put(newTickerSymbol, newTicker);
+                }
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -624,7 +628,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newFundingRates, "symbol"), newFundingRates);
+                String newFundingRatesSymbol = this.safeString(newFundingRates, "symbol");
+                if (!java.util.Objects.equals(newFundingRatesSymbol, null))
+                {
+                    result.put(newFundingRatesSymbol, newFundingRates);
+                }
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbolsNormalized, true);

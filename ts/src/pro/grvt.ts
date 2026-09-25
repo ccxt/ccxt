@@ -188,7 +188,10 @@ export default class grvt extends grvtRest {
         const ticker = await this.subscribeMultiple (messageHashes, this.extend (paramsInterval, request), rawHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                tickers[tickerSymbol] = ticker;
+            }
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);

@@ -285,10 +285,14 @@ func (this *Weex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		channels = append(channels, channelName)
 	}
 
-	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHashes, channels, isContract, params))))
+	newTicker := (<-this.SubscribePublicAsync(messageHashes, channels, isContract, params))
+	ccxt.PanicOnError(newTicker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
+		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
+		if newTickerSymbol != nil {
+			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+		}
 
 		ch <- result
 		return nil
@@ -1283,10 +1287,14 @@ func (this *Weex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		channels = append(channels, channelName)
 	}
 
-	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHashes, channels, false, params))))
+	newTicker := (<-this.SubscribePublicAsync(messageHashes, channels, false, params))
+	ccxt.PanicOnError(newTicker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
+		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
+		if newTickerSymbol != nil {
+			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+		}
 
 		ch <- result
 		return nil

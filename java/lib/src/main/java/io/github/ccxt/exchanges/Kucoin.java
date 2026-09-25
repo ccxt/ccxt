@@ -2194,7 +2194,7 @@ public class Kucoin extends KucoinApi
         return BaseExchange.supplyAsync(() -> {
 
             Object fetchTickersFees = null;
-            Object paramsRequest = null;
+            Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> fetchTickersFeesparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "fetchTickersFees", true);
             fetchTickersFees = fetchTickersFeesparamsRequestVariable.first();
             paramsRequest = fetchTickersFeesparamsRequestVariable.second();
@@ -2204,7 +2204,7 @@ public class Kucoin extends KucoinApi
             paramsRequest = utaparamsRequestVariable.second();
             if (Boolean.TRUE.equals(uta))
             {
-                return (this.fetchUTAMarkets(Helpers.toMapArg(paramsRequest))).join();
+                return (this.fetchUTAMarkets(paramsRequest)).join();
             }
             List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "contract"));
             Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
@@ -2271,7 +2271,7 @@ public class Kucoin extends KucoinApi
             }
             if (Boolean.TRUE.equals(fetchContractMarkets))
             {
-                ((List<Object>)promises).add(this.fetchContractMarkets(Helpers.toMapArg(paramsRequest)));
+                ((List<Object>)promises).add(this.fetchContractMarkets(paramsRequest));
             }
             if (Boolean.TRUE.equals(credentialsSet))
             {
@@ -2924,7 +2924,7 @@ public class Kucoin extends KucoinApi
             String networkCode = this.networkIdToCode(chainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, Helpers.newMap(
+                networks.put(networkCode, Helpers.newMap(
     "info", chain,
     "id", chainId,
     "name", this.safeString(chain, "chainName"),
@@ -3627,7 +3627,7 @@ public class Kucoin extends KucoinApi
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    result.put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
@@ -6548,7 +6548,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            Object paramsRequest = null;
+            Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrdersByStatus", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
@@ -6584,13 +6584,13 @@ public class Kucoin extends KucoinApi
                 paramsRequest = this.extend(paramsRequest, Helpers.newMap(
                     "marketType", marketType
                 ));
-                return (this.fetchUtaOrdersByStatus(status, symbol, since, limit, Helpers.toMapArg(paramsRequest))).join();
+                return (this.fetchUtaOrdersByStatus(status, symbol, since, limit, paramsRequest)).join();
             } else if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.fetchSpotOrdersByStatus(status, symbol, since, limit, Helpers.toMapArg(paramsRequest))).join();
+                return (this.fetchSpotOrdersByStatus(status, symbol, since, limit, paramsRequest)).join();
             } else
             {
-                return (this.fetchContractOrdersByStatus((String) (status), symbol, since, limit, Helpers.toMapArg(paramsRequest))).join();
+                return (this.fetchContractOrdersByStatus((String) (status), symbol, since, limit, paramsRequest)).join();
             }
         });
 
@@ -7133,19 +7133,19 @@ public class Kucoin extends KucoinApi
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrder", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
-            Object paramsOmitted = paramsRequest;
+            Map<String, Object> paramsOmitted = paramsRequest;
             if (Helpers.isTrue(uta))
             {
                 paramsOmitted = this.omit(paramsRequest, "uta");
             }
             if (Helpers.isTrue(uta))
             {
-                return (this.fetchUtaOrder((String) (id), symbol, Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchUtaOrder((String) (id), symbol, paramsOmitted)).join();
             }
             String marketType = null;
             if (java.util.Objects.equals(symbol, null))
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsOmittedVariable = this.handleMarketTypeAndParams("fetchOrder", (Map<String, Object>) null, Helpers.toMapArg(paramsOmitted), (String) null);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsOmittedVariable = this.handleMarketTypeAndParams("fetchOrder", (Map<String, Object>) null, paramsOmitted, (String) null);
                 marketType = marketTypeparamsOmittedVariable.first();
                 paramsOmitted = marketTypeparamsOmittedVariable.second();
             } else
@@ -7155,10 +7155,10 @@ public class Kucoin extends KucoinApi
             }
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.fetchSpotOrder(id, symbol, Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchSpotOrder(id, symbol, paramsOmitted)).join();
             } else
             {
-                return (this.fetchContractOrder((String) (id), symbol, Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchContractOrder((String) (id), symbol, paramsOmitted)).join();
             }
         }).thenApply(Order::new);
 
@@ -8056,7 +8056,7 @@ public class Kucoin extends KucoinApi
             {
                 market = this.market(symbol);
             }
-            Object paramsRequest = null;
+            Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsRequestVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
             marketType = marketTypeparamsRequestVariable.first();
             paramsRequest = marketTypeparamsRequestVariable.second();
@@ -8069,14 +8069,14 @@ public class Kucoin extends KucoinApi
                 paramsRequest = this.extend(paramsRequest, Helpers.newMap(
                     "marketType", marketType
                 ));
-                return (this.fetchMyUtaTrades(symbol, since, limit, Helpers.toMapArg(paramsRequest))).join();
+                return (this.fetchMyUtaTrades(symbol, since, limit, paramsRequest)).join();
             }
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.fetchMySpotTrades(symbol, since, limit, Helpers.toMapArg(paramsRequest))).join();
+                return (this.fetchMySpotTrades(symbol, since, limit, paramsRequest)).join();
             } else
             {
-                return (this.fetchMyContractTrades(symbol, since, limit, Helpers.toMapArg(paramsRequest))).join();
+                return (this.fetchMyContractTrades(symbol, since, limit, paramsRequest)).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -9841,7 +9841,7 @@ public class Kucoin extends KucoinApi
                     String codeInner = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(codeInner, null))
                     {
-                        ((Map<String, Object>)result).put((String)codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
+                        ((Map<String, Object>)result).put(codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
                     }
                 }
             } else
@@ -9861,7 +9861,7 @@ public class Kucoin extends KucoinApi
                         account.put("used", this.safeString(balance, "holds"));
                         if (!java.util.Objects.equals(codeInner2, null))
                         {
-                            ((Map<String, Object>)result).put((String)codeInner2, account);
+                            ((Map<String, Object>)result).put(codeInner2, account);
                         }
                     }
                 }
@@ -9931,7 +9931,7 @@ public class Kucoin extends KucoinApi
             account.put("total", this.safeString(data, "accountEquity"));
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                result.put((String)currencyCode, account);
+                result.put(currencyCode, account);
             }
             return this.safeBalance(result);
         });
@@ -10086,7 +10086,7 @@ public class Kucoin extends KucoinApi
                     String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(currencyCode, null))
                     {
-                        ((Map<String, Object>)result).put((String)currencyCode, this.parseBalanceHelper((Map<String, Object>) (currencyEntry)));
+                        ((Map<String, Object>)result).put(currencyCode, this.parseBalanceHelper((Map<String, Object>) (currencyEntry)));
                     }
                 }
             }
@@ -11321,7 +11321,7 @@ public class Kucoin extends KucoinApi
             {
                 if (!(borrowRateHistories.containsKey(code)))
                 {
-                    borrowRateHistories.put((String)code, new ArrayList<Object>(Arrays.asList()));
+                    borrowRateHistories.put(code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
                 Object borrowRateHistoriesCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
@@ -11332,7 +11332,7 @@ public class Kucoin extends KucoinApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            borrowRateHistories.put((String)code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
+            borrowRateHistories.put(code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
         }
         return borrowRateHistories;
     }
@@ -12493,7 +12493,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            Object paramsRequest = null;
+            Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositionsHistory", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
@@ -12830,7 +12830,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            Object paramsRequest = null;
+            Map<String, Object> paramsRequest = null;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "cancelOrders", "uta", uta);
             uta = utaparamsRequestVariable.first();
             paramsRequest = utaparamsRequestVariable.second();
@@ -12889,11 +12889,11 @@ public class Kucoin extends KucoinApi
                 paramsRequest = accountModeparamsRequestVariable.second();
                 request.put("accountMode", accountMode);
                 String marginMode = null;
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("cancelOrders", Helpers.toMapArg(paramsRequest), (String) null);
+                io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("cancelOrders", paramsRequest, (String) null);
                 marginMode = marginModeparamsRequestVariable.first();
                 paramsRequest = marginModeparamsRequestVariable.second();
                 Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
-                Object tradeType = this.handleTradeType(isContractMarket, marginMode, isUnified, Helpers.toMapArg(paramsRequest));
+                Object tradeType = this.handleTradeType(isContractMarket, marginMode, isUnified, paramsRequest);
                 request.put("tradeType", tradeType);
                 request.put("cancelOrderList", ordersRequests);
                 response = (this.utaPrivatePostAccountModeOrderCancelBatch(this.extend(request, paramsRequest))).join();
@@ -12906,7 +12906,7 @@ public class Kucoin extends KucoinApi
                 {
                     requestKey = "clientOidsList";
                 }
-                request.put((String)requestKey, ordersRequests);
+                request.put(requestKey, ordersRequests);
                 response = (this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, paramsRequest))).join();
                 //
                 //   {
@@ -13543,7 +13543,7 @@ public class Kucoin extends KucoinApi
                 {
                     if (!(result.containsKey(symbol)))
                     {
-                        result.put((String)symbol, new ArrayList<Object>(Arrays.asList()));
+                        result.put(symbol, new ArrayList<Object>(Arrays.asList()));
                     }
                     ((List<Object>)(result == null || symbol == null ? null : result.get(symbol))).add(tier);
                 }

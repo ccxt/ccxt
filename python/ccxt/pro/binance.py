@@ -2267,7 +2267,9 @@ class binance(ccxt.async_support.binance):
             return result
         else:
             newDict = {}
-            newDict[result['symbol']] = result
+            resultSymbol = self.safe_string(result, 'symbol')
+            if resultSymbol is not None:
+                newDict[resultSymbol] = result
             return newDict
 
     def parse_ws_ticker(self, message: object, marketType: object) -> Ticker:

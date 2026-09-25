@@ -653,7 +653,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "name", topic );
                 put( "params", paramsDeriveSubaccountId );
             }};
-            Object message = this.extend(request, paramsDeriveSubaccountId);
+            Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -795,7 +795,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "name", topic );
                 put( "params", paramsDeriveSubaccountId );
             }};
-            Object message = this.extend(request, paramsDeriveSubaccountId);
+            Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
             List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
             Long limitResolved = limit;
             if (this.newUpdates)

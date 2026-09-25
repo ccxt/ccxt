@@ -221,10 +221,14 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan any, optionalArgs ...any)
 	var channel string = "ticker"
 	var messageHash string = "ticker"
 
-	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribeMultipleAsync(channel, symbols, messageHash, params))))
+	ticker := (<-this.SubscribeMultipleAsync(channel, symbols, messageHash, params))
+	ccxt.PanicOnError(ticker)
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+		var tickerSymbol *string = this.SafeString(ticker, "symbol")
+		if tickerSymbol != nil {
+			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		}
 
 		ch <- result
 		return nil
@@ -885,8 +889,8 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 						ccxt.AddElementToObject(previousOrder, "trades", []any{})
 					}
-					retRes70124 := ccxt.GetValue(previousOrder, "trades")
-					ccxt.AppendToArray(&retRes70124, trade)
+					retRes70424 := ccxt.GetValue(previousOrder, "trades")
+					ccxt.AppendToArray(&retRes70424, trade)
 					ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 					var totalCost any = "0"
 					var totalAmount any = "0"

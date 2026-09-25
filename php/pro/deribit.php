@@ -260,7 +260,10 @@ class deribit extends \ccxt\async\deribit {
         $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$newTickers['symbol']] = $newTickers;
+            $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
+            if ($newTickersSymbol !== null) {
+                $tickers[$newTickersSymbol] = $newTickers;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
@@ -342,7 +345,10 @@ class deribit extends \ccxt\async\deribit {
         $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$newTickers['symbol']] = $newTickers;
+            $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
+            if ($newTickersSymbol !== null) {
+                $tickers[$newTickersSymbol] = $newTickers;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);

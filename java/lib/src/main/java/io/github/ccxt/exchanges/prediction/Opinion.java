@@ -273,7 +273,7 @@ public class Opinion extends OpinionApi
                         String eventKey = this.safeString(eventVar, "event");
                         if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")) && !(seenEvents.containsKey(eventKey)))
                         {
-                            seenEvents.put((String)eventKey, true);
+                            seenEvents.put(eventKey, true);
                             ((List<Object>)eventsList).add(eventVar);
                         }
                     } else
@@ -921,7 +921,7 @@ public class Opinion extends OpinionApi
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
-                    result.put((String)symbolKey, ticker);
+                    result.put(symbolKey, ticker);
                 }
             }
             return result;
@@ -1086,7 +1086,7 @@ public class Opinion extends OpinionApi
                 String address = this.safeStringLower(entry, "quoteTokenAddress");
                 if (!java.util.Objects.equals(address, null))
                 {
-                    quoteTokens.put((String)address, entry);
+                    quoteTokens.put(address, entry);
                 }
             }
             Helpers.addElementToObject(this.options, "quoteTokens", quoteTokens);
@@ -1665,7 +1665,7 @@ public class Opinion extends OpinionApi
             String marketHandle = this.safeString(market, "market", "");
             Helpers.addElementToObject(this.markets, marketHandle, market);
             this.indexMarketOutcomes(market);
-            cached.put((String)idStr, market);
+            cached.put(idStr, market);
             Helpers.addElementToObject(this.options, cacheKey, cached);
             return market;
         });
@@ -1758,7 +1758,7 @@ public class Opinion extends OpinionApi
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String code = this.safeString(balance, "symbol", "USDT");
-            result.put((String)code, new HashMap<String, Object>() {{
+            result.put(code, new HashMap<String, Object>() {{
     put( "free", Opinion.this.safeNumber(balance, "availableBalance", (Object) null) );
     put( "used", Opinion.this.safeNumber(balance, "frozenBalance", (Object) null) );
     put( "total", Opinion.this.safeNumber(balance, "totalBalance", (Object) null) );
@@ -1812,7 +1812,7 @@ public class Opinion extends OpinionApi
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if (!java.util.Objects.equals(tokenId, null))
                 {
-                    wantedTokenIds.put((String)tokenId, true);
+                    wantedTokenIds.put(tokenId, true);
                 }
             }
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
