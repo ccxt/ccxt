@@ -788,6 +788,7 @@ function csharpHelperTopLevelComma (line: string, open: number, close: number): 
 // `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
 // null receiver) for every receiver the emitted signature / declarations type as a collection
 export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
+    content = nativeTypedForIncrements (content);
     if (!CSHARP_HELPER_LINE_RE.test (content)) {
         return content;
     }
@@ -8792,4 +8793,10 @@ async function runMain () {
 
 if (isMainEntry(metaUrl)) {
     await runMain();
+}
+
+// `for (T i = ...; ...; postFixIncrement(ref i))` with T int / Int64 / double: the typed
+// overload is exactly `i = i + 1`, so the header's own declaration proves native `i++`
+export function nativeTypedForIncrements (content: string): string {
+    return content.replace (/\bfor \(((?:int|Int64|double) ([A-Za-z_]\w*) = [^;]*;[^;]*;) postFixIncrement\(ref \2\)\)/g, 'for ($1 $2++)');
 }
