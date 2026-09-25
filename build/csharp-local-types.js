@@ -16309,6 +16309,12 @@ export const CORE_LIST_ARGS = {
     'cancelOrdersWs': { 0: 'IList<object>' },
     'cancelUtaOrders': { 0: 'IList<object>' },
     'checkNoStockSymbols': { 0: 'IList<object>' },
+    'createOrders': { 0: 'IList<object>' },
+    'createOrdersRequest': { 0: 'IList<object>' },
+    'createOrdersWs': { 0: 'IList<object>' },
+    'customHandleDeltas': { 1: 'IList<object>' },
+    'editOrders': { 0: 'IList<object>' },
+    'editOrdersRequest': { 0: 'IList<object>' },
     'fetchAccountPositions': { 0: 'IList<object>' },
     'fetchAllGreeks': { 0: 'IList<object>' },  // FetchAllGreeks
     'fetchBidsAsks': { 0: 'IList<object>' },  // FetchBidsAsks
@@ -16336,8 +16342,10 @@ export const CORE_LIST_ARGS = {
     'fetchTradingLimits': { 0: 'IList<object>' },  // FetchTradingLimits
     'filterByOutcomesSinceLimit': { 1: 'IList<object>' },
     'filterBySymbolsSinceLimit': { 1: 'IList<object>' },
+    'getCacheIndex': { 1: 'IList<object>' },
     'getDexFromSymbols': { 1: 'IList<object>' },
     'getSubscriptionRequest': { 0: 'IList<object>' },
+    'handleBidAsks': { 1: 'IList<object>' },
     'handleOrderBookSubscriptions': { 2: 'IList<object>' },
     'idsQueryStrings': { 0: 'IList<object>' },
     'loadTradingLimits': { 0: 'IList<object>' },
@@ -16353,6 +16361,7 @@ export const CORE_LIST_ARGS = {
     'parseMarginModifications': { 1: 'IList<object>' },
     'parseOpenInterests': { 1: 'IList<object>' },
     'parsePositions': { 1: 'IList<object>' },
+    'parseSettlements': { 0: 'IList<object>' },
     'parseTickers': { 1: 'IList<object>' },
     'parseTickersForRolling': { 1: 'IList<object>' },
     'pruneCachedBySymbols': { 2: 'IList<object>' },
