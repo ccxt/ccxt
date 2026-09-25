@@ -7,7 +7,6 @@ import type { Int, Trade, Dict, OrderBook, OHLCV , Market } from '../base/types.
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
-import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -258,7 +257,7 @@ export default class dydx extends dydxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
+    override handleDelta (bookside: any, delta: any) {
         if (Array.isArray (delta)) {
             const price = this.safeFloat (delta, 0);
             const amount = this.safeFloat (delta, 1);

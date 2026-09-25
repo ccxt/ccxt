@@ -8,7 +8,6 @@ import type { Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Po
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
-import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -356,12 +355,12 @@ export default class apex extends apexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

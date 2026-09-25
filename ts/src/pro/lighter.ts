@@ -7,7 +7,6 @@ import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
-import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -118,13 +117,13 @@ export default class lighter extends lighterRest {
         return await this.subscribePublic (messageHash, params);
     }
 
-    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 'price');
         const amount = this.safeFloat (delta, 'size');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

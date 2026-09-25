@@ -40,7 +40,6 @@ import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { Future, type FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
-import type { IOrderBookSide } from './ws/OrderBookSide.js';
 // ----------------------------------------------------------------------------
 //
 // import types
@@ -3351,13 +3350,13 @@ export class BaseExchange {
         }
     }
 
-    handleDeltas (bookside: IOrderBookSide<any>, deltas: any) {
+    handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleDelta (bookside: IOrderBookSide<any>, delta: any) {
+    handleDelta (bookside: any, delta: any) {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 

@@ -8,7 +8,6 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import type { Bool, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
-import type { IOrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1650,7 +1649,7 @@ export default class nado extends nadoRest {
         client.resolve (tickers, 'ticker');
     }
 
-    override handleDelta (bookside: IOrderBookSide<any>, delta: any) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = [
             this.parseX18 (this.safeString (delta, 0)),
             this.parseX18 (this.safeString (delta, 1)),
