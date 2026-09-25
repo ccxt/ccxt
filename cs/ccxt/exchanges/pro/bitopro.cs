@@ -275,9 +275,13 @@ public partial class bitopro : ccxt.bitopro
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? baseId = this.safeString(data, "base");
         string? quoteId = this.safeString(data, "quote");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = this.symbol(add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return;
+        }
+        string? symbol = this.symbol(((bs + "/") + quote));
         object messageHash = this.safeString(message, "event");
         if ((this.myTrades == null))
         {
