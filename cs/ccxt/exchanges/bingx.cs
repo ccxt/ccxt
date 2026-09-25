@@ -5405,19 +5405,19 @@ public partial class bingx : Exchange
         {
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["startTime"] = since;
+                request["startTime"] = since;
             }
-            Int64? until = this.safeInteger2(parameters, "until", "till");
-            if (!isEqual(until, null))
+            Int64? until = this.safeInteger2(paramsStandard, "until", "till");
+            if (!(until == null))
             {
-                ((IDictionary<string,object>)request)["endTime"] = until;
+                request["endTime"] = until;
             }
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            Dictionary<string, object> paramsSpot = this.omit(paramsStandard, new List<object>() {"until", "till"});
             if ((limit != null))
             {
                 request["pageSize"] = limit;
             }
-            response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, paramsStandard));
+            response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, paramsSpot));
         } else
         {
             bool? isTwapOrder = this.safeBool(paramsStandard, "twap", false);
