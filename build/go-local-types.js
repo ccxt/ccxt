@@ -3219,7 +3219,9 @@ function isUndefinedLiteral (node) {
 
 // the printed callee of a whole call, e.g. `this.Iso8601(...)` → 'this.Iso8601'
 function printedCalleeOfCall (goTranspiler, node) {
-    const printed = (goTranspiler.printNode (node, 0) ?? '').trim ();
+    // a tuple-result call prints as TupleSlice(<call>); its callee is the inner call's
+    const text = (goTranspiler.printNode (node, 0) ?? '').trim ();
+    const printed = (ccxtGoTupleResultUnwrap (text) ?? text).trim ();
     const open = printed.indexOf ('(');
     if (open <= 0 || !goTranspiler.isWholePrintedCall (printed, open)) {
         return undefined;
