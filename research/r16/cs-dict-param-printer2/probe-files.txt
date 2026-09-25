@@ -1,8 +1,0 @@
-ts/src/base/PredictionExchange.ts ts/src/pro/coinbaseexchange.ts ts/src/coinbaseexchange.ts ts/src/prediction/binance.ts
-ts/src/prediction/kalshi.ts
-ts/src/prediction/limitless.ts
-ts/src/prediction/myriad.ts
-ts/src/prediction/opinion.ts
-ts/src/prediction/polymarket.ts
-ts/src/prediction/predictfun.ts
-ts/src/prediction/sxbet.ts ts/src/kraken.ts ts/src/pro/kraken.ts ts/src/bitfinex.ts ts/src/grvt.ts ts/src/pro/grvt.ts ts/src/paradex.ts
