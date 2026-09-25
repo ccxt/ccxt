@@ -5282,7 +5282,7 @@ public class Weex extends WeexApi
             }
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.nonce());
-            Object payload = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + endpoint);
+            String payload = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + endpoint);
             if (Boolean.TRUE.equals(hasJsonBody))
             {
                 payload = (payload + requestBody);

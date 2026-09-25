@@ -1335,7 +1335,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- ccxt.BoxAbsent(retRes106819)
 		return nil
 	}
-	var page any = ccxt.Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
+	var page int64 = *this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1
 	var request map[string]any = map[string]any{}
 	var offSet *int64 = this.SafeInteger(paramsMaxEntriesPerRequest, "offset", ccxt.Multiply(page, maxEntriesPerRequest))
 	if offSet != nil && *offSet > 0 {
@@ -1442,7 +1442,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- ccxt.BoxAbsent(retRes115119)
 		return nil
 	}
-	var page any = ccxt.Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
+	var page int64 = *this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1
 	var request map[string]any = map[string]any{}
 	var offSet *int64 = this.SafeInteger(paramsMaxEntriesPerRequest, "offset", ccxt.Multiply(page, maxEntriesPerRequest))
 	if offSet != nil && *offSet > 0 {
@@ -1774,7 +1774,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- ccxt.BoxAbsent(retRes141719)
 		return nil
 	}
-	var page any = ccxt.Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
+	var page int64 = *this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1
 	var request map[string]any = map[string]any{
 		"status": "FILLED",
 	}

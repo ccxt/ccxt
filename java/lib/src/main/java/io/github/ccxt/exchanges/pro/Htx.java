@@ -1839,7 +1839,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object messageHash = "";
+            String messageHash = "";
             if ((!this.isEmpty(symbols)) && (!java.util.Objects.equals(symbols, null)))
             {
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
@@ -1874,7 +1874,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
             Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
-            messageHash = Helpers.add((marginMode + ":positions"), messageHash);
+            messageHash = ((marginMode + ":positions") + messageHash);
             String channel = "positions.*";
             if (java.util.Objects.equals(marginMode, "cross"))
             {
@@ -1895,7 +1895,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 "isV5", isV5Linear,
                 "margin", marginMode
             );
-            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, (String) (messageHash), (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2023,8 +2023,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             Object marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
@@ -2116,7 +2116,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Map<String, Object> market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
                 Map<String, Object> currencyCode = (((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null;
                 marginMode = this.safeString(paramsOmitted, "margin", "cross");
-                Object prefix = "accounts";
+                String prefix = "accounts";
                 messageHash = prefix;
                 if (java.util.Objects.equals(subType, "linear"))
                 {

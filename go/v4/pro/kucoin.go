@@ -372,7 +372,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	var refreshInterval any = (1000 * 60) * 60 * 24 // 24 hours
 	refreshInterval = ccxt.DerefScalar(this.SafeInteger(this.Options, "utaTokenRefreshInterval", refreshInterval))
 	var now int64 = this.Milliseconds()
-	var expired bool = ccxt.IsGreaterThanOrEqual((ccxt.Subtract(now, lastUpdate)), refreshInterval)
+	var expired bool = ccxt.IsGreaterThanOrEqual((now - *lastUpdate), refreshInterval)
 	var messageHash string = "utaToken"
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var client ccxt.ClientInterface = this.Client(url)

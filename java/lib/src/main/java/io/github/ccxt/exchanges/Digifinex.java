@@ -4632,8 +4632,8 @@ public class Digifinex extends DigifinexApi
                 return position;
             } else
             {
-                Helpers.addElementToObject(position, "collateral", this.safeNumber(response, "margin", (Object) null));
-                Helpers.addElementToObject(position, "marginRatio", this.safeNumber(response, "margin_rate", (Object) null));
+                position.put("collateral", this.safeNumber(response, "margin", (Object) null));
+                position.put("marginRatio", this.safeNumber(response, "margin_rate", (Object) null));
                 return position;
             }
         }).thenApply(Position::new);
@@ -5429,7 +5429,7 @@ public class Digifinex extends DigifinexApi
     {
         Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
         String endpoint = this.safeString(api, 1);
-        Object pathPart = "/swap/v2";
+        String pathPart = "/swap/v2";
         if (java.util.Objects.equals(endpoint, "spot"))
         {
             pathPart = "/v3";

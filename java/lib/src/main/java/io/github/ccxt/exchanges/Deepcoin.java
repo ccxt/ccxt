@@ -3740,7 +3740,7 @@ public class Deepcoin extends DeepcoinApi
             this.checkRequiredCredentials(true);
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
-            Object payload = (((dateTime + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + requestPath);
+            String payload = (((dateTime + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + requestPath);
             Map<String, Object> privateHeaders = Helpers.newMap(
                 "DC-ACCESS-KEY", this.apiKey,
                 "DC-ACCESS-TIMESTAMP", dateTime,

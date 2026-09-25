@@ -1287,12 +1287,12 @@ public class Bitbank extends BitbankApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (this.implodeHostname(apiUrl) + "/");
+        String url = (this.implodeHostname(apiUrl) + "/");
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "markets")))
         {
-            url = Helpers.add(url, this.implodeParams(path, parameters));
+            url = (url + this.implodeParams(path, parameters));
             if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
@@ -1317,7 +1317,7 @@ public class Bitbank extends BitbankApi
             {
                 auth = nonce;
             }
-            url = Helpers.add(url, Helpers.add((this.version + "/"), this.implodeParams(path, parameters)));
+            url = (url + Helpers.add((this.version + "/"), this.implodeParams(path, parameters)));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestBody = this.json(query);
@@ -1328,7 +1328,7 @@ public class Bitbank extends BitbankApi
                 if (Helpers.objectKeys(query).size() > 0)
                 {
                     query = this.urlencode(query);
-                    url = Helpers.add(url, Helpers.add("?", query));
+                    url = (url + Helpers.add("?", query));
                     auth = Helpers.add(auth, Helpers.add("?", query));
                 }
             }

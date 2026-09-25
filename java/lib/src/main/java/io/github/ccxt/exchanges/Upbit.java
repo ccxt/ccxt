@@ -1046,14 +1046,14 @@ public class Upbit extends UpbitApi
                     }
                 }
                 Object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
-                Object quoteCurrencies = "";
+                String quoteCurrencies = "";
                 for (var i = 0; i < ((List<?>)sortedQuoteIds).size(); i++)
                 {
                     if (!java.util.Objects.equals(quoteCurrencies, ""))
                     {
                         quoteCurrencies = (quoteCurrencies + ",");
                     }
-                    quoteCurrencies = Helpers.add(quoteCurrencies, (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
+                    quoteCurrencies = (quoteCurrencies + (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
                 }
                 Map<String, Object> request = Helpers.newMap(
                     "quote_currencies", quoteCurrencies
@@ -1113,7 +1113,7 @@ public class Upbit extends UpbitApi
         {
             return new ArrayList<Object>(Arrays.asList());
         }
-        Object idsString = "";
+        String idsString = "";
         List<Object> queries = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
@@ -1122,7 +1122,7 @@ public class Upbit extends UpbitApi
             {
                 idsString = (idsString + ",");
             }
-            idsString = Helpers.add(idsString, id);
+            idsString = (idsString + id);
             if (Helpers.isGreaterThanOrEqual(((String)idsString).length(), maxQueryLength))
             {
                 ((List<Object>)queries).add(idsString);

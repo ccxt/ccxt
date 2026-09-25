@@ -3423,14 +3423,14 @@ public class Nado extends NadoApi
         {
             throw new ArgumentsRequired((this.id + " padHex() requires length")) ;
         }
-        Object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        Object padded = null;
+        String zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        String padded = null;
         if (Helpers.isTrue(java.util.Objects.requireNonNullElse(left, true)))
         {
-            padded = (Helpers.add(zeros, value));
+            padded = ((zeros + value));
         } else
         {
-            padded = (Helpers.add(value, zeros));
+            padded = ((value + zeros));
         }
         if (Helpers.isTrue(java.util.Objects.requireNonNullElse(left, true)))
         {

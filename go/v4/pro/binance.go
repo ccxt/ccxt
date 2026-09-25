@@ -1218,7 +1218,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan any, client any, message
 						continue
 					}
 					// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-					if (ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), ccxt.GetValue(orderbook, "nonce"))) && (ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), ccxt.GetValue(orderbook, "nonce"))) {
+					if (ccxt.IsLessThanOrEqual((*U - 1), ccxt.GetValue(orderbook, "nonce"))) && (ccxt.IsGreaterThanOrEqual((*u - 1), ccxt.GetValue(orderbook, "nonce"))) {
 						this.HandleOrderBookMessage(client, messageItem, orderbook)
 					}
 				}
@@ -1342,10 +1342,10 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 						var conditional bool
 						if timestamp == nil {
 							// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-							conditional = (ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), nonce)) && (ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), nonce))
+							conditional = (ccxt.IsLessThanOrEqual((*U - 1), nonce)) && (ccxt.IsGreaterThanOrEqual((*u - 1), nonce))
 						} else {
 							// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-							conditional = (ccxt.IsEqual((ccxt.Subtract(U, 1)), nonce))
+							conditional = (ccxt.IsEqual((*U - 1), nonce))
 						}
 						if conditional == true {
 							this.HandleOrderBookMessage(client, message, orderbook)
@@ -3617,7 +3617,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any,
 	var listenTokenRefreshRate *int64 = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
 	var time int64 = this.Milliseconds()
 	var delay int64 = ccxt.Add(listenTokenRefreshRate, 10000).(int64)
-	if ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay) {
+	if time - *lastAuthenticatedTime > delay {
 		// the future covers the REST create plus the ws subscribe, including the
 		// renewal timer re-entry through renewListenToken, so a concurrent caller
 		// waits for the leader rather than minting a second listenToken
@@ -3702,8 +3702,8 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any,
 				}))
 				// Schedule token renewal before expiration
 				if expirationTime != nil {
-					var renewalTime any = ccxt.Subtract(ccxt.Subtract(expirationTime, time), 60000) // Renew 1 minute before expiration
-					if ccxt.IsGreaterThan(renewalTime, 0) {
+					var renewalTime int64 = (*expirationTime - time) - 60000 // Renew 1 minute before expiration
+					if renewalTime > 0 {
 						var extendedParams map[string]any = this.Extend(params, map[string]any{
 							"type": marketType,
 						})
@@ -3796,7 +3796,7 @@ func (this *Binance) authenticateBody(ch chan any, optionalArgs ...any) any {
 	}
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, refreshRateKey, 1200000)
 	var delay int64 = ccxt.Add(listenKeyRefreshRate, 10000).(int64)
-	if ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay) {
+	if time - *lastAuthenticatedTime > delay {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
 		// the flight is registered on a never-dialed client because the
 		// user-data url embeds the listenKey, so no real client exists

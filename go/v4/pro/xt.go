@@ -192,7 +192,7 @@ func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
 	var firstDeltaNonce *int64 = this.SafeInteger2(firstDelta, "i", "u")
-	if (nonce != nil) && (firstDeltaNonce != nil) && (ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaNonce, 1))) {
+	if (nonce != nil) && (firstDeltaNonce != nil) && (*nonce < *firstDeltaNonce - 1) {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(cache); i++ {

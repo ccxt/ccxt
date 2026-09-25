@@ -2009,14 +2009,14 @@ public partial class bitvavo : Exchange
      * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isGreaterThan(timeout, 300000))
+        if ((timeout > 300000))
         {
             throw new BadRequest ((this.id + " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
         }
-        if ((isGreaterThan(timeout, 0)) && (isLessThan(timeout, 10000)))
+        if (((timeout > 0)) && (((timeout == null || timeout < 10000))))
         {
             throw new BadRequest ((this.id + " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
         }
@@ -2029,7 +2029,7 @@ public partial class bitvavo : Exchange
         IDictionary<string, object> paramsCodGroupId = ((IDictionary<string, object>)codGroupIdparamsCodGroupIdVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "codGroupId", codGroupId },
-            { "expiryAfterSeconds", (isGreaterThan(timeout, 0)) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+            { "expiryAfterSeconds", ((timeout > 0)) ? this.parseToInt(((double?)timeout / 1000)) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostCancelOrdersAfter(this.extend(request, paramsCodGroupId));
         //

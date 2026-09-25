@@ -4520,7 +4520,7 @@ public class Hitbtc extends HitbtcApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = ((apiUrl + "/") + implodedPath);
+        String url = ((apiUrl + "/") + implodedPath);
         String getRequest = null;
         List<Object> keys = Helpers.objectKeys(query);
         Integer queryLength = ((List<?>)keys).size();

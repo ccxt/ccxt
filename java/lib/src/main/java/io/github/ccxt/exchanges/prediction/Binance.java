@@ -2204,7 +2204,7 @@ public class Binance extends BinanceApi
             Integer failedOrdersLength = ((List<?>)failedOrders).size();
             if ((failedOrdersLength != null && failedOrdersLength > 0))
             {
-                Object failedDetails = "";
+                String failedDetails = "";
                 for (var i = 0; (failedOrdersLength != null && i < failedOrdersLength); i++)
                 {
                     Map<String, Object> failedOrder = (Map<String, Object>) this.safeDict(failedOrders, i, (Object) null);
@@ -2214,7 +2214,7 @@ public class Binance extends BinanceApi
                     {
                         failedDetails = (failedDetails + ", ");
                     }
-                    failedDetails = ((Helpers.add(failedDetails, failedOrderId) + ": ") + failedReason);
+                    failedDetails = (((failedDetails + failedOrderId) + ": ") + failedReason);
                 }
                 throw new OrderNotFound(((this.id + " cancelOrders() failed for ") + failedDetails)) ;
             }

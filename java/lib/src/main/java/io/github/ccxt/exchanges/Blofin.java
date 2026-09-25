@@ -1586,7 +1586,7 @@ public class Blofin extends BlofinApi
                 account.put("total", eq);
                 account.put("free", availEq);
             }
-            Helpers.addElementToObject(result, code, account);
+            result.put(code, account);
         }
         result.put("timestamp", timestamp);
         result.put("datetime", this.iso8601(timestamp));
@@ -1624,7 +1624,7 @@ public class Blofin extends BlofinApi
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "frozen"));
-            Helpers.addElementToObject(result, code, account);
+            result.put(code, account);
         }
         return this.safeBalance(result);
     }
@@ -3299,7 +3299,7 @@ public class Blofin extends BlofinApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<String> symbolsList = symbolsNormalized;
-            Object instIds = "";
+            String instIds = "";
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String entry = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
@@ -3309,7 +3309,7 @@ public class Blofin extends BlofinApi
                     instIds = ((instIds + ",") + entryMarket.get("id"));
                 } else
                 {
-                    instIds = Helpers.add(instIds, entryMarket.get("id"));
+                    instIds = (instIds + entryMarket.get("id"));
                 }
             }
             Map<String, Object> request = Helpers.newMap(
@@ -3861,7 +3861,7 @@ public class Blofin extends BlofinApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (apiUrl + request);
+        String url = (apiUrl + request);
         // const type = this.getPathAuthenticationType (path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {

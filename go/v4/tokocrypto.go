@@ -777,7 +777,7 @@ func (this *Tokocrypto) Describe() any {
 	})
 }
 func (this *Tokocrypto) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**

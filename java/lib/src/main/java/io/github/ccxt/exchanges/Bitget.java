@@ -6082,10 +6082,10 @@ public class Bitget extends BitgetApi
             Boolean deduction = ((java.util.Objects.equals(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
             if (Boolean.TRUE.equals(deduction))
             {
-                Helpers.addElementToObject(fee, "cost", feeCostString);
+                fee.put("cost", feeCostString);
             } else
             {
-                Helpers.addElementToObject(fee, "cost", Precise.stringNeg(feeCostString));
+                fee.put("cost", Precise.stringNeg(feeCostString));
             }
         }
         return this.safeTrade(Helpers.newMap(
@@ -14763,7 +14763,7 @@ public class Bitget extends BitgetApi
     {
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
-        Object pathPart = "/api";
+        String pathPart = "/api";
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = (pathPart + request);
         String apiUrl = this.safeString(this.urls.get("api"), endpoint);
@@ -14771,7 +14771,7 @@ public class Bitget extends BitgetApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (this.implodeHostname(apiUrl) + payload);
+        String url = (this.implodeHostname(apiUrl) + payload);
         Object query = this.omit(parameters, this.extractParams(path));
         if (!Boolean.TRUE.equals(signed) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
         {

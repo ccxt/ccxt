@@ -2966,7 +2966,7 @@ func (this *Backpack) Nonce() any {
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
 	}
-	return Subtract(this.Milliseconds(), timeDifference)
+	return this.Milliseconds() - *timeDifference
 }
 func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

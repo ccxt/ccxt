@@ -1468,8 +1468,8 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		if parsedTimeframe == nil {
 			panic(ExchangeError(this.Id + " fetchOHLCV() missing parsedTimeframe"))
 		}
-		var timeFrameInSeconds any = Multiply(parsedTimeframe, 60)
-		request["since"] = this.NumberToString(Subtract(scaledSince, timeFrameInSeconds)) // expected to be in seconds
+		var timeFrameInSeconds int64 = *parsedTimeframe * 60
+		request["since"] = this.NumberToString(scaledSince-timeFrameInSeconds) // expected to be in seconds
 	}
 
 	response := (<-this.PublicGetOHLC(this.Extend(request, paramsPaginate)))
@@ -4616,7 +4616,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Kraken) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Kraken) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 520) {

@@ -940,7 +940,7 @@ func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
 	if (nonce == nil) || (firstDeltaNonce == nil) {
 		return ccxt.OpNeg(1)
 	}
-	if ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaNonce, 1)) {
+	if ccxt.IsLessThan(nonce, *firstDeltaNonce-1) {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(cache); i++ {

@@ -1746,7 +1746,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		return mathMin(limit, maxLimit)
 	}()
 	if since != nil {
-		request["startTime"] = mathMax(Subtract(since, 1), 0)
+		request["startTime"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = requestLimit

@@ -323,7 +323,7 @@ public Object describe()
         String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
-        Object s = "";
+        String s = "";
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
@@ -334,7 +334,7 @@ public Object describe()
                 {
                     s = (s + " ");
                 }
-                s = Helpers.add(s, ch);
+                s = (s + ch);
                 pendingSep = false;
             } else
             {
@@ -2162,20 +2162,20 @@ public Object describe()
 
     public Object rlpEncodeList(Object items)
     {
-        Object concatenated = "";
+        String concatenated = "";
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            concatenated = Helpers.add(concatenated, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
+            concatenated = (concatenated + (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
         }
         Long byteLength = this.parseToInt((((double) ((String)concatenated).length()) / ((double) 2)));
         if (((byteLength == null || byteLength < 56)))
         {
-            return Helpers.add(this.intToBase16((192L + byteLength)), concatenated);
+            return (this.intToBase16((192L + byteLength)) + concatenated);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven((String) (lengthHex));
         Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
-        return Helpers.add(Helpers.add(this.intToBase16((247L + lengthOfLength)), lengthHex), concatenated);
+        return (Helpers.add(this.intToBase16((247L + lengthOfLength)), lengthHex) + concatenated);
     }
 
     public Object intToRlpHex(Object value)

@@ -792,7 +792,7 @@ public class Polymarket extends PolymarketApi
         String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
-        Object slug = "";
+        String slug = "";
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
@@ -803,7 +803,7 @@ public class Polymarket extends PolymarketApi
                 {
                     slug = (slug + "-");
                 }
-                slug = Helpers.add(slug, ch);
+                slug = (slug + ch);
                 pendingSep = false;
             } else
             {
@@ -3641,16 +3641,16 @@ public class Polymarket extends PolymarketApi
         Object addrChars = this.stringToCharsArray(cleaned);
         Object hashChars = this.stringToCharsArray(hashHex);
         String upperNibbles = "89abcdef";
-        Object result = "";
+        String result = "";
         for (var i = 0; i < ((List<?>)addrChars).size(); i++)
         {
             Object ch = (addrChars == null || i < 0 || i >= ((List<?>)addrChars).size() ? null : ((List<?>)addrChars).get(i));
             if (Helpers.getIndexOf(upperNibbles, (hashChars == null || i < 0 || i >= ((List<?>)hashChars).size() ? null : ((List<?>)hashChars).get(i))) >= 0)
             {
-                result = Helpers.add(result, ((String)ch).toUpperCase());
+                result = (result + ((String)ch).toUpperCase());
             } else
             {
-                result = Helpers.add(result, ch);
+                result = (result + ch);
             }
         }
         return ("0x" + result);

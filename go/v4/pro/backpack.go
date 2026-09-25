@@ -1281,7 +1281,7 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache any) any {
 	if firstDeltaStart == nil {
 		return ccxt.OpNeg(1)
 	}
-	if ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaStart, 1)) {
+	if ccxt.IsLessThan(nonce, *firstDeltaStart-1) {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
@@ -1291,7 +1291,7 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache any) any {
 		if (deltaStart == nil) || (deltaEnd == nil) {
 			return ccxt.GetArrayLength(cache)
 		}
-		if (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) && (deltaEnd != nil && (nonce == nil || *nonce < *deltaEnd)) {
+		if (ccxt.IsGreaterThanOrEqual(nonce, *deltaStart-1)) && (deltaEnd != nil && (nonce == nil || *nonce < *deltaEnd)) {
 			return i
 		}
 	}

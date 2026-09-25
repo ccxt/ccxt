@@ -2697,7 +2697,7 @@ func (this *Okx) Nonce() any {
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
 	}
-	return Subtract(this.Milliseconds(), timeDifference)
+	return this.Milliseconds() - *timeDifference
 }
 
 /**
@@ -3934,7 +3934,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 			}()
 			limitResolved = mathMin(limitResolved, maxLimit)
 		}
-		var startTime any = mathMax(Subtract(since, 1), 0)
+		var startTime any = mathMax(*since-1, 0)
 		request["before"] = startTime
 		request["after"] = this.Sum(since, Multiply(durationInMilliseconds, limitResolved))
 	}
@@ -4053,7 +4053,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		"instId": market["id"],
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -7344,7 +7344,7 @@ func (this *Okx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -7488,7 +7488,7 @@ func (this *Okx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["ccy"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -9904,7 +9904,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 		request["ccy"] = currency["id"]
 	}
 	if since != nil {
-		request["before"] = Subtract(since, 1)
+		request["before"] = *since - 1
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -10611,7 +10611,7 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) an
 		"uly":      Add(Add(market["baseId"], "-"), market["quoteId"]),
 	}
 	if since != nil {
-		request["before"] = Subtract(since, 1)
+		request["before"] = *since - 1
 	}
 	if limit != nil {
 		request["limit"] = limit

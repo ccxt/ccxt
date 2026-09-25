@@ -6406,11 +6406,11 @@ public class Coinex extends CoinexApi
                 this.checkRequiredCredentials(true);
                 query = this.keysort(query);
                 String urlencoded = this.rawencode(query);
-                Object preparedString = ((((java.util.Objects.requireNonNullElse(method, "GET") + "/") + version) + "/") + pathValue);
+                String preparedString = ((((java.util.Objects.requireNonNullElse(method, "GET") + "/") + version) + "/") + pathValue);
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
                     signedBody = this.json(query);
-                    preparedString = Helpers.add(preparedString, signedBody);
+                    preparedString = (preparedString + signedBody);
                 } else if (!java.util.Objects.equals(urlencoded, ""))
                 {
                     preparedString = (preparedString + ("?" + urlencoded));

@@ -3070,14 +3070,14 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((timeout == null))
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
-        if (isGreaterThan(timeout, 86400000))
+        if ((timeout > 86400000))
         {
             throw new BadRequest ((this.id + " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
@@ -3090,7 +3090,7 @@ public partial class kraken : Exchange
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "timeout", (isGreaterThan(timeout, 0)) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+            { "timeout", ((timeout > 0)) ? (this.parseToInt(((double?)timeout / 1000))) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostCancelAllOrdersAfter(this.extend(request, parameters));
         //

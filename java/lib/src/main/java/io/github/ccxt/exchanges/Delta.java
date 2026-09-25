@@ -4600,7 +4600,7 @@ public class Delta extends DeltaApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (apiUrl + requestPath);
+        String url = (apiUrl + requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
@@ -4618,7 +4618,7 @@ public class Delta extends DeltaApi
                 put( "api-key", Delta.this.apiKey );
                 put( "timestamp", timestamp );
             }};
-            Object auth = ((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath);
+            String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 if (Helpers.objectKeys(query).size() > 0)

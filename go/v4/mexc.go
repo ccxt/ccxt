@@ -3561,7 +3561,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			if end == nil {
 				request["end_time"] = this.Sum(since, maxTimeTillEnd)
 			} else {
-				if IsGreaterThan((Subtract(end, since)), maxTimeTillEnd) {
+				if IsGreaterThan((*end - *since), maxTimeTillEnd) {
 					panic(BadRequest(this.Id + " end is invalid, i.e. exceeds allowed 90 days."))
 				} else {
 					request["end_time"] = until
@@ -7561,7 +7561,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode string, optionalArgs
 	return nil
 }
 func (this *Mexc) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

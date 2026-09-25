@@ -1594,7 +1594,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object messageHash = "";
+            String messageHash = "";
             String subscriptionHash = "positions";
             String instType = "USDT-FUTURES";
             List<Object> utaparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchPositions", "uta", false);
@@ -1617,7 +1617,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 instType = "UTA";
             }
-            messageHash = Helpers.add((instType + ":positions"), messageHash);
+            messageHash = ((instType + ":positions") + messageHash);
             Map<String, Object> args = Helpers.newMap(
                 "instType", instType
             );
@@ -1909,12 +1909,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             var isTriggerparamsTriggerVariable = this.isTriggerOrder(parameters);
             var isTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(0);
             var paramsTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(1);
-            Object messageHash = "order";
+            String messageHash = "order";
             if (java.util.Objects.equals(isTrigger, true))
             {
                 messageHash = "triggerOrder";
             }
-            Object subscriptionHash = "order:trades";
+            String subscriptionHash = "order:trades";
             String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2513,7 +2513,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2540,7 +2540,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 instType = "UTA";
             }
-            Object subscriptionHash = ("fill:" + instType);
+            String subscriptionHash = ("fill:" + instType);
             Map<String, Object> args = Helpers.newMap(
                 "instType", instType
             );

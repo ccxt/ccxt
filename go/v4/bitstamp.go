@@ -1358,7 +1358,7 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan any, optionalArgs ...any
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires *int64 = this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
-	if (timestamp == nil) || (IsGreaterThan((Subtract(now, timestamp)), expires)) {
+	if (timestamp == nil) || (IsGreaterThan((now - *timestamp), expires)) {
 
 		response := (<-this.PublicGetMarkets(params)).Raw
 		PanicOnError(response)
@@ -3020,7 +3020,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["timedelta"] = Subtract(this.Milliseconds(), since)
+		request["timedelta"] = this.Milliseconds() - *since
 	} else {
 		request["timedelta"] = 50000000 // use max bitstamp approved value
 	}

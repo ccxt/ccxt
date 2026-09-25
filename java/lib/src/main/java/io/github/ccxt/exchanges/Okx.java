@@ -8333,7 +8333,7 @@ public class Okx extends OkxApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (this.implodeHostname(baseApiUrl) + request);
+        String url = (this.implodeHostname(baseApiUrl) + request);
         Map<String, Object> privateHeaders = null;
         Boolean hasJsonBody = false;
         String jsonBody = null;
@@ -8382,7 +8382,7 @@ public class Okx extends OkxApi
                 "OK-ACCESS-PASSPHRASE", this.password,
                 "OK-ACCESS-TIMESTAMP", timestamp
             );
-            Object auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + request);
+            String auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + request);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 if (Helpers.objectKeys(query).size() > 0)

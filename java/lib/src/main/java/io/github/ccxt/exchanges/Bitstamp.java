@@ -3668,9 +3668,9 @@ public class Bitstamp extends BitstampApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (apiUrl + "/");
-        url = Helpers.add(url, (this.version + "/"));
-        url = Helpers.add(url, this.implodeParams(path, parameters));
+        String url = (apiUrl + "/");
+        url = (url + (this.version + "/"));
+        url = (url + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isPrivatePost = (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object

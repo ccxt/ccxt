@@ -1479,7 +1479,7 @@ func (this *Sxbet) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	// the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
 	// chunk larger batches instead of letting the whole request 400
 	var chunkSize *int64 = this.SafeInteger(this.Options, "cancelOrdersBatchSize", 100)
-	var chunkCount int64 = this.ParseToInt(ccxt.Divide(this.Sum(idsLength, ccxt.Subtract(chunkSize, 1)), chunkSize))
+	var chunkCount int64 = this.ParseToInt(ccxt.Divide(this.Sum(idsLength, *chunkSize-1), chunkSize))
 	var result []any = []any{}
 	for c := 0; ccxt.IsLessThan(c, chunkCount); c++ {
 		var start any = ccxt.Multiply(c, chunkSize)
@@ -2561,7 +2561,7 @@ func (this *Sxbet) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var chunkSize *int64 = this.SafeInteger(this.Options, "bestOddsBatchSize", 100)
-	var chunkCount int64 = this.ParseToInt(ccxt.Divide(this.Sum(hashesLength, ccxt.Subtract(chunkSize, 1)), chunkSize))
+	var chunkCount int64 = this.ParseToInt(ccxt.Divide(this.Sum(hashesLength, *chunkSize-1), chunkSize))
 	for c := 0; ccxt.IsLessThan(c, chunkCount); c++ {
 		var start any = ccxt.Multiply(c, chunkSize)
 		var end any = ccxt.Add(start, chunkSize)

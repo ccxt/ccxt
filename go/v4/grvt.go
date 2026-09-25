@@ -1425,7 +1425,7 @@ func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1TradeHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -1617,7 +1617,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Kline(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -1719,7 +1719,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Funding(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -1928,7 +1928,7 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
@@ -2010,7 +2010,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
@@ -2272,7 +2272,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1TransferHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -2988,7 +2988,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1FillHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -3411,7 +3411,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -3514,7 +3514,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1OrderHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -4185,13 +4185,13 @@ func (this *Grvt) FormatSignatureRS(value any) any {
 	}
 }
 func (this *Grvt) DefaultSignature() any {
-	var expiration any = Add(this.Milliseconds()*1000000, Multiply(Multiply(1000000, this.SafeInteger(this.Options, "expirationSeconds", 30)), 1000))
+	var expiration int64 = (this.Milliseconds() * 1000000) + (1000000 * *this.SafeInteger(this.Options, "expirationSeconds", 30) * 1000)
 	return map[string]any{
 		"signer":     "",
 		"r":          "",
 		"s":          "",
 		"v":          0,
-		"expiration": ToString(expiration),
+		"expiration": strconv.FormatInt(expiration, 10),
 		"nonce":      this.Nonce(),
 		"chain_id": func() string {
 			if this.IsSandboxModeEnabled {

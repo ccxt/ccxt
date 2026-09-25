@@ -1060,7 +1060,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // getBook is a one-shot request but this.watch tracks it as a persistent
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
-        Object snapshotHash = ("getBook@" + marketId);
+        String snapshotHash = ("getBook@" + marketId);
         if (((Map<?, ?>)client.subscriptions).containsKey(snapshotHash))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)snapshotHash);

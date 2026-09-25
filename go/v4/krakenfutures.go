@@ -3066,7 +3066,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 		// each trade execution emits two rows and the position-size legs are
 		// filtered out below, so ask for twice the limit to compensate,
 		// parseLedger re-applies the limit on the filtered entries
-		request["count"] = Multiply(limit, 2)
+		request["count"] = *limit * 2
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {

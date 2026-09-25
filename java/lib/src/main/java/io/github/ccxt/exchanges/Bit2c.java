@@ -1070,11 +1070,11 @@ public class Bit2c extends Bit2cApi
 
     public Object removeCommaFromValue(Object str)
     {
-        Object newString = "";
+        String newString = "";
         List<Object> strParts = new ArrayList<Object>(Arrays.asList(((String)str).split(java.util.regex.Pattern.quote(","))));
         for (var i = 0; i < ((List<?>)strParts).size(); i++)
         {
-            newString = Helpers.add(newString, (strParts == null || i < 0 || i >= strParts.size() ? null : strParts.get(i)));
+            newString = (newString + (strParts == null || i < 0 || i >= strParts.size() ? null : strParts.get(i)));
         }
         return newString;
     }
