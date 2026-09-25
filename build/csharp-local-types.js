@@ -7547,6 +7547,9 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // but the left spine still selects add(string, …) (see
                         // stringAccumulatorWriteType)
                         const selfStringWrite = (csharpType === 'string') && nonNullStringInit (csharp, context, declaration) && (stringAccumulatorWriteType (csharp, context, declaration, parent.right) === 'string');
+                        // a write whose value is a statically-`string`, provably non-null string
+                        // (nonNullStringValue): the non-null spelling holds that same box
+                        const nonNullWrite = (csharpType === 'string') && nonNullStringValue (csharp, declaration, parent.right, 0);
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
 // the same arm as the join's: a write that reads this very declaration
                         // resolves the read to the candidate type it is being checked against
@@ -7563,7 +7566,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         const selfTernaryCollection = (written === undefined) && safeCollectionFamilyLocal (declaration.initializer)
                             && assignable (csharpType, selfTernaryCollectionWriteType (csharp, context, declaration, parent.right));
                         const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
-                        if (!selfConcat && !selfStringWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
+                        if (!selfConcat && !selfStringWrite && !nonNullWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
                             return false;
                         }
                     }
@@ -8225,6 +8228,10 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
                     continue;
                 }
                 if (exitGuardProvesNonNull (candidate, csharp, scope, declaration)) {
+                    proof = candidate;
+                    continue;
+                }
+                if (statementDefinitelyWritesNonNullString (candidate, csharp, scope, declaration, writes, context, 0)) {
                     proof = candidate;
                     continue;
                 }
@@ -11177,6 +11184,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     if (!safe && csharpType === 'string?' && nonNullStringDefaultCall (csharp, declaration.initializer, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
         cast = 'string';
+        safe = true;
+    }
+    // a `string?` candidate whose initializer is a proven non-null string (and whose every write
+    // the scan accepts as one): the non-null spelling binds add(string, *) on its `+` reads
+    // (see nonNullStringValue)
+    if (!safe && csharpType === 'string?' && nonNullStringValue (csharp, declaration, declaration.initializer, 0) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
         safe = true;
     }
     // the safeValue-twin box is only named when no use of the local treats it as the other
@@ -17206,4 +17220,94 @@ export function installCsharpNativeIntProducts (transpiler) {
     const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
     csharp.printCustomBinaryExpressionIfAny = (node, identation) => nativeIntLiteralProduct (csharp, node) ?? upstream (node, identation);
     csharp._nativeIntProductsPatched = true;
+}
+
+// ===== non-null string locals (native `+` on their reads) =====
+// A value proven to be a non-null C# `string` whose PRINTED static type is `string`: a
+// literal, a `+` tree whose left spine ends in such a value (add(string, *) / a native
+// concat never returns null), a conditional over two such arms, a read of the declaration
+// being classified (its running type), a `string` local, a `string?` local proven non-null
+// at this read by a dominating guard or write (stringValueIsNonNullAtUse), a call the
+// return tables name `string`, or implodeHostname / implodeParams of a non-null string path
+// (their only null result is a null path).
+const NON_NULL_PATH_STRING_CALLS = [ 'implodeHostname', 'implodeParams' ];
+
+function nonNullStringValue (csharp, declaration, node, depth) {
+    if (depth > 8) {
+        return false;
+    }
+    const current = stripParens (node);
+    if (current === undefined) {
+        return false;
+    }
+    if (isStringLiteral (current)) {
+        return true;
+    }
+    switch (current.kind) {
+    case ts.SyntaxKind.Identifier: {
+        if (isSelfRead (csharp, current, declaration)) {
+            return true;
+        }
+        const type = localIdentifierType (csharp, current);
+        if (type === 'string') {
+            return true;
+        }
+        if (type !== 'string?') {
+            return false;
+        }
+        const binding = resolveReference (csharp, current);
+        if (binding?.kind !== ts.SyntaxKind.VariableDeclaration || binding.name?.kind !== ts.SyntaxKind.Identifier) {
+            return false;
+        }
+        const scope = enclosingFunction (binding);
+        return stringValueIsNonNullAtUse (csharp, scope, binding, binding.name.text, current, { scope, stack: new Set (), depth: 0 });
+    }
+    case ts.SyntaxKind.BinaryExpression:
+        return (current.operatorToken.kind === ts.SyntaxKind.PlusToken) && nonNullStringValue (csharp, declaration, current.left, depth + 1);
+    case ts.SyntaxKind.ConditionalExpression:
+        return nonNullStringValue (csharp, declaration, current.whenTrue, depth + 1) && nonNullStringValue (csharp, declaration, current.whenFalse, depth + 1);
+    case ts.SyntaxKind.CallExpression: {
+        const callee = current.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && NON_NULL_PATH_STRING_CALLS.includes (callee.name?.text) && current.arguments?.length >= 1) {
+            return nonNullStringValue (csharp, declaration, current.arguments[0], depth + 1);
+        }
+        return nonNullStringWriteLeaf (csharp, current);
+    }
+    case ts.SyntaxKind.PropertyAccessExpression:
+        return nonNullStringWriteLeaf (csharp, current);
+    }
+    return false;
+}
+
+// every path through `statement` that reaches its end leaves the binding holding a proven
+// non-null string: an if/else whose both branches do, or a block whose last statement
+// touching the binding does (statements after it never write it). Exits need no write.
+function statementDefinitelyWritesNonNullString (statement, csharp, scope, declaration, writes, context, depth) {
+    if (statement === undefined || depth > 8) {
+        return false;
+    }
+    if (plainStringWriteQualifies (statement, csharp, scope, declaration, context)) {
+        return true;
+    }
+    if (statement.kind === ts.SyntaxKind.IfStatement) {
+        if (statement.elseStatement === undefined) {
+            return false;
+        }
+        const branch = (s) => statementAlwaysExits (s) || statementDefinitelyWritesNonNullString (s, csharp, scope, declaration, writes, context, depth + 1);
+        const touchesCondition = writes.some ((w) => w.getStart () >= statement.expression.getStart () && w.getEnd () <= statement.expression.getEnd ());
+        return !touchesCondition && branch (statement.thenStatement) && branch (statement.elseStatement);
+    }
+    if (statement.kind === ts.SyntaxKind.Block) {
+        const statements = statement.statements ?? [];
+        for (let i = statements.length - 1; i >= 0; i--) {
+            const candidate = statements[i];
+            const touches = writes.some ((w) => w.getStart () >= candidate.getStart () && w.getEnd () <= candidate.getEnd ());
+            if (!touches) {
+                continue;
+            }
+            return statementDefinitelyWritesNonNullString (candidate, csharp, scope, declaration, writes, context, depth + 1);
+        }
+    }
+    return false;
 }
