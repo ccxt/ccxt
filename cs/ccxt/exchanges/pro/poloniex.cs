@@ -424,7 +424,7 @@ public partial class poloniex : ccxt.poloniex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -592,7 +592,7 @@ public partial class poloniex : ccxt.poloniex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
@@ -624,7 +624,7 @@ public partial class poloniex : ccxt.poloniex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -714,7 +714,7 @@ public partial class poloniex : ccxt.poloniex
                     ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
                 }
             }
-            callDynamically(stored, "append", new object[] {parsed});
+            ccxt.pro.BaseCache.appendTo(stored, parsed);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -760,7 +760,7 @@ public partial class poloniex : ccxt.poloniex
                         this.trades[(string)symbol] = tradesArray;
                     }
                 }
-                callDynamically(tradesArray, "append", new object[] {trade});
+                ccxt.pro.BaseCache.appendTo(tradesArray, trade);
                 client.resolve(tradesArray, messageHash);
             }
         }

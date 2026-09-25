@@ -757,7 +757,7 @@ public partial class binance : ccxt.binance
             Int64? limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
             cache = new ArrayCache(limit);
         }
-        callDynamically(cache, "append", new object[] {liquidation});
+        ccxt.pro.BaseCache.appendTo(cache, liquidation);
         this.myLiquidations = cache;
         client.resolve(new List<object>() {liquidation}, "myLiquidations");
         client.resolve(new List<object>() {liquidation}, ("myLiquidations::" + symbol));
@@ -1909,7 +1909,7 @@ public partial class binance : ccxt.binance
             object stockLimit = limit;
             if (this.newUpdates)
             {
-                stockLimit = callDynamically(stockCandles, "getLimit", new object[] {stockSymbol, limit});
+                stockLimit = ccxt.pro.BaseCache.getLimitOf(stockCandles, stockSymbol, limit);
             }
             IList<object> stockFiltered = this.filterBySinceLimit(stockCandles, since, stockLimit, 0, true);
             return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(stockSymbol,((string)stockTimeframe), stockFiltered));
@@ -1984,7 +1984,7 @@ public partial class binance : ccxt.binance
         object limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = callDynamically(candles, "getLimit", new object[] {symbol, limit});
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));

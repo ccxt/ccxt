@@ -100,7 +100,7 @@ public partial class nado : ccxt.nado
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -156,7 +156,7 @@ public partial class nado : ccxt.nado
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -329,7 +329,7 @@ public partial class nado : ccxt.nado
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(stored, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(stored, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(stored, since, limitResolved, 0, true));
     }
@@ -376,7 +376,7 @@ public partial class nado : ccxt.nado
         object limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = callDynamically(stored, "getLimit", new object[] {resultSymbol, limit});
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, resultSymbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(resultSymbol,((string)resultTimeframe), filtered));
@@ -656,7 +656,7 @@ public partial class nado : ccxt.nado
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -743,7 +743,7 @@ public partial class nado : ccxt.nado
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }

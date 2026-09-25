@@ -928,7 +928,7 @@ public partial class lighter : ccxt.lighter
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
@@ -1077,7 +1077,7 @@ public partial class lighter : ccxt.lighter
         {
             object iReversed = subtract((dataLength - 1), i);
             Dictionary<string, object> liquidation = this.parseWsLiquidation(getValue(data, iReversed), market);
-            callDynamically(stored, "append", new object[] {liquidation});
+            ccxt.pro.BaseCache.appendTo(stored, liquidation);
         }
         string? messageHash = this.getMessageHash("liquidations", symbol);
         client.resolve(stored, messageHash);
@@ -1280,7 +1280,7 @@ public partial class lighter : ccxt.lighter
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }

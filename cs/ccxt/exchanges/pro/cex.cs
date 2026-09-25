@@ -1240,7 +1240,7 @@ public partial class cex : ccxt.cex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolValue, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -1287,7 +1287,7 @@ public partial class cex : ccxt.cex
         List<object> sorted = this.sortBy(data, 0);
         for (int i = 0; i < (sorted?.Count ?? 0); i++)
         {
-            callDynamically(stored, "append", new object[] {this.parseOHLCV(sorted[i], market)});
+            ccxt.pro.BaseCache.appendTo(stored, this.parseOHLCV(sorted[i], market));
         }
         if (!((this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol))))
         {
@@ -1336,7 +1336,7 @@ public partial class cex : ccxt.cex
         string messageHash = ("ohlcv:" + symbol);
         List<object> ohlcv = new List<object> {this.safeTimestamp(data, "time"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
         IDictionary<string, object> stored = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
-        callDynamically(stored, "append", new object[] {ohlcv});
+        ccxt.pro.BaseCache.appendTo(stored, ohlcv);
         client.resolve(stored, messageHash);
     }
 

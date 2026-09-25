@@ -310,7 +310,7 @@ public partial class onetrading : ccxt.onetrading
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
         trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
         int numTrades = getArrayLength(trades);
@@ -496,7 +496,7 @@ public partial class onetrading : ccxt.onetrading
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolResolved, limit}));
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
         orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
         int numOrders = getArrayLength(orders);

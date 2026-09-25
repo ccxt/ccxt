@@ -194,6 +194,14 @@ public partial class BaseTest
         Assert(Convert.ToInt64(counting.getLimit("BTC/USDT", 10)) == 2, "getLimit must report the per-symbol update count");
         counting.append(orderRow("BTC/USDT", "3"));
         Assert(Convert.ToInt64(counting.getLimit("BTC/USDT", 10)) == 1, "getLimit must reset the per-symbol counter after it is read");
+
+        // the static twins dispatch on the runtime cache type and throw NRE on a non-cache
+        object boxed = new ArrayCacheByTimestamp();
+        BaseCache.appendTo(boxed, ohlcvRow(100, 1, 1, 1));
+        Assert(Convert.ToInt64(BaseCache.getLimitOf(boxed, null, 10)) == 1, "getLimitOf must dispatch to ArrayCacheByTimestamp.getLimit");
+        var threw = false;
+        try { BaseCache.getLimitOf(new List<object>(), "BTC/USDT", 5); } catch (NullReferenceException) { threw = true; }
+        Assert(threw, "getLimitOf on a non-cache must throw NullReferenceException");
     }
 
     // 5. clear() dropped the rows but kept the hashmap, so the next append of a

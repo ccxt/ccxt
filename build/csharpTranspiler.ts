@@ -752,6 +752,8 @@ export function nativeDeclaredWsCalls (content: string): string {
 const WS_CACHE_CLASSES = /^(?:ccxt\.pro\.)?ArrayCache(?:ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById)?\??$/
 const WS_CACHE_FIELDS = [ 'this.orders', 'this.myTrades', 'this.liquidations' ]
 const WS_CACHE_METHOD_ARITY: { [method: string]: number } = { 'append': 1, 'getLimit': 2 }
+// any other receiver goes through the static BaseCache twin (same NRE for null/non-cache)
+const WS_CACHE_STATIC_TWIN: { [method: string]: string } = { 'append': 'appendTo', 'getLimit': 'getLimitOf' }
 const CSHARP_MEMBER_START_RE = /^    (?:public|private|protected|internal)\b/
 
 function csharpWsCacheReceiverDeclared (lines: string[], lineIndex: number, receiver: string): boolean {
@@ -791,10 +793,13 @@ export function nativeWsCacheCalls (content: string): string {
                 continue
             }
             const args = line.slice (argsAt, argsEnd)
-            if (csharpArgumentCount (args) !== WS_CACHE_METHOD_ARITY[m[2]] || !csharpWsCacheReceiverDeclared (lines, i, m[1])) {
+            if (csharpArgumentCount (args) !== WS_CACHE_METHOD_ARITY[m[2]]) {
                 continue
             }
-            out += line.slice (cursor, m.index) + m[1] + '.' + m[2] + '(' + args.trim () + ')'
+            const native = csharpWsCacheReceiverDeclared (lines, i, m[1])
+                ? m[1] + '.' + m[2] + '(' + args.trim () + ')'
+                : 'ccxt.pro.BaseCache.' + WS_CACHE_STATIC_TWIN[m[2]] + '(' + m[1] + ', ' + args.trim () + ')'
+            out += line.slice (cursor, m.index) + native
             cursor = argsEnd + 2
             call.lastIndex = cursor
         }
