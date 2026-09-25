@@ -12563,7 +12563,21 @@ function handleTupleElement0ReadType (csharp, initializer) {
     if (helper === undefined) {
         return undefined;
     }
-    return DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (call, helper);
+    return destructuredHelperElement0Type (call, helper);
+}
+
+// the element-0 box of an audited tuple helper call (see the element-0 / string / dict tables)
+function destructuredHelperElement0Type (call, helper) {
+    if (Object.prototype.hasOwnProperty.call (DESTRUCTURED_DECLARATION_ELEMENT0, helper)) {
+        return DESTRUCTURED_DECLARATION_ELEMENT0[helper];
+    }
+    if (Object.prototype.hasOwnProperty.call (DESTRUCTURED_ELEMENT0_TYPES, helper)) {
+        return DESTRUCTURED_ELEMENT0_TYPES[helper];
+    }
+    if (DESTRUCTURED_DICT_HELPERS.includes (helper)) {
+        return 'Dictionary<string, object>';
+    }
+    return destructuredStringHelperElement0 (call, helper);
 }
 
 // the C# type retypeDestructuredElement0 declares slot `slot` of `const [ ... ] = this.<helper> (...)` with
@@ -12572,15 +12586,12 @@ function destructuredSlotType (csharp, scope, declaration, slot, context) {
     if (helper === undefined || scope === undefined) {
         return undefined;
     }
-    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (declaration.initializer, helper);
-    const slots = (DESTRUCTURED_DECLARATION_ELEMENT0[helper] === undefined) ? stringElementIndexes (helper) : [ 0 ];
+    const type = destructuredHelperElement0Type (declaration.initializer, helper);
+    const stringSlots = Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, helper) && STRING_TYPES.includes (type);
+    const slots = stringSlots ? stringElementIndexes (helper) : [ 0 ];
     const element = declaration.name.elements?.[slot];
     const target = element?.name;
     if (type === undefined || !slots.includes (slot) || target?.kind !== ts.SyntaxKind.Identifier || context.stack.has (element)) {
-        return undefined;
-    }
-    // the printer reads the slot as `var x = holder[i]` only when it typed the holder
-    if (typeof csharp.csharpDestructuringTempType !== 'function' || !csharp.csharpDestructuringTempType (declaration.initializer)) {
         return undefined;
     }
     const index = indexScope (csharp, scope);
@@ -12596,35 +12607,22 @@ function destructuredSlotType (csharp, scope, declaration, slot, context) {
     }
 }
 
+// the slot read prints `holder[i]` (typed holder) or `((IList<object>) holder)[i]`
 function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
-    const helper = destructuredHandleCallName (declaration.initializer);
-    if (helper === undefined || scope === undefined) {
-        return printed;
-    }
-    const type = DESTRUCTURED_DECLARATION_ELEMENT0[helper] ?? destructuredStringHelperElement0 (declaration.initializer, helper);
-    if (type === undefined) {
-        return printed;
-    }
-    // slot 0, plus the other string slots an audited string helper carries (stringElementIndexes)
-    const slots = (DESTRUCTURED_DECLARATION_ELEMENT0[helper] === undefined) ? stringElementIndexes (helper) : [ 0 ];
-    const index = indexScope (csharp, scope);
-    for (const slot of slots) {
-        const target = declaration.name.elements?.[slot]?.name;
-        if (target?.kind !== ts.SyntaxKind.Identifier) {
+    const elements = declaration.name.elements ?? [];
+    for (let slot = 0; slot < elements.length; slot++) {
+        const type = destructuredSlotType (csharp, scope, declaration, slot, { scope, stack: new Set (), depth: 0 });
+        if (type === undefined) {
             continue;
         }
-        const re = new RegExp ('^([ \\t]*)var ([A-Za-z_]\\w*) = ([A-Za-z_]\\w*\\[' + slot + '\\])(?=;?$)', 'm');
+        const name = csharp.printNode (elements[slot].name, 0);
+        const re = new RegExp ('^([ \\t]*)var ' + name + ' = ((?:\\(\\(IList<object>\\) ?[A-Za-z_]\\w*\\)|[A-Za-z_]\\w*)\\[' + slot + '\\])(?=;?$)', 'm');
         const match = re.exec (printed);
-        // the element is the only binding of its printed name in the function
-        const bindingCount = (index.bindingCounts.get (match?.[2]) ?? 0) + (index.patternBindingCounts.get (match?.[2]) ?? 0);
-        if (match === null || match[2] !== csharp.printNode (target, 0) || bindingCount !== 1) {
-            continue;
-        }
-        if (destructuredSlotType (csharp, scope, declaration, slot, { scope, stack: new Set (), depth: 0 }) === undefined) {
+        if (match === null) {
             continue;
         }
         const cast = (type === 'string?') ? 'string' : type;
-        printed = printed.replace (match[0], match[1] + type + ' ' + match[2] + ' = (' + cast + ')' + match[3]);
+        printed = printed.replace (match[0], match[1] + type + ' ' + name + ' = (' + cast + ')' + match[2]);
     }
     return printed;
 }
