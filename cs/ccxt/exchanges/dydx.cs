@@ -2814,7 +2814,7 @@ public partial class dydx : Exchange
         throw new ArgumentsRequired ((this.id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")) ;
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -2824,7 +2824,7 @@ public partial class dydx : Exchange
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         url = add(url, ("/" + pathWithParams));
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {

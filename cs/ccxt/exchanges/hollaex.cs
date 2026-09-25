@@ -2226,14 +2226,14 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(coins, codes, "symbol"));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         path = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
-        if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+        if (((method == "GET")) || ((method == "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2247,12 +2247,12 @@ public partial class hollaex : Exchange
             Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
             Int64 expires = this.sum(this.seconds(), defaultExpires);
             string expiresString = expires.ToString();
-            object auth = add(add(method, path), expiresString);
+            object auth = ((method + (path)) + expiresString);
             headers = new Dictionary<string, object>() {
                 { "api-key", this.apiKey },
                 { "api-expires", expiresString },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-type"] = "application/json";
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)

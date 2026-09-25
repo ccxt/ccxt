@@ -4057,7 +4057,7 @@ public partial class woofipro : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -4078,7 +4078,7 @@ public partial class woofipro : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            if ((isEqual(method, "POST") || isEqual(method, "PUT")) && (isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order")))
+            if (((method == "POST") || (method == "PUT")) && (isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order")))
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if ((isSandboxMode != true))
@@ -4111,8 +4111,8 @@ public partial class woofipro : Exchange
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
+            if ((method == "POST") || (method == "PUT"))
             {
                 body = this.json(parameters);
                 auth = add(auth, body);
@@ -4125,7 +4125,7 @@ public partial class woofipro : Exchange
                     auth = add(auth, ("?" + this.rawencode(parameters)));
                 }
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
-                if (isEqual(method, "DELETE"))
+                if ((method == "DELETE"))
                 {
                     body = "";
                 }

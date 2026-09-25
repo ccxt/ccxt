@@ -6804,7 +6804,7 @@ public partial class xt : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -6858,8 +6858,8 @@ public partial class xt : Exchange
                     ((IDictionary<string,object>)body)["media"] = id;
                 }
             }
-            bool isUndefinedBody = ((isEqual(method, "GET")) || (isEqual(path, "order/{orderId}")) || (isEqual(path, "ws-token")));
-            if ((isEqual(method, "PUT")) && (isEqual(endpoint, "spot")))
+            bool isUndefinedBody = (((method == "GET")) || (isEqual(path, "order/{orderId}")) || (isEqual(path, "ws-token")));
+            if (((method == "PUT")) && (isEqual(endpoint, "spot")))
             {
                 isUndefinedBody = false;
             }
@@ -6873,21 +6873,21 @@ public partial class xt : Exchange
                     if (urlencoded != "")
                     {
                         url = add(url, ("?" + urlencoded));
-                        payloadString = add(payloadString, ((((("#" + (method)) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
+                        payloadString = add(payloadString, ((((("#" + method) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
                     } else
                     {
-                        payloadString = add(payloadString, ((("#" + (method)) + "#") + payload));
+                        payloadString = add(payloadString, ((("#" + method) + "#") + payload));
                     }
                 } else
                 {
-                    payloadString = add(payloadString, ((((("#" + (method)) + "#") + payload) + "#") + (body)));
+                    payloadString = add(payloadString, ((((("#" + method) + "#") + payload) + "#") + (body)));
                 }
                 ((IDictionary<string,object>)headers)["xt-validate-algorithms"] = "HmacSHA256";
                 ((IDictionary<string,object>)headers)["xt-validate-recvwindow"] = recvWindow;
             } else
             {
                 payloadString = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
-                if (isEqual(method, "GET"))
+                if ((method == "GET"))
                 {
                     if (urlencoded != "")
                     {

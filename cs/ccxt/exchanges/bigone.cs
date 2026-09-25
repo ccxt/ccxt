@@ -2139,7 +2139,7 @@ public partial class bigone : Exchange
         return ((Int64)((object)(this.sum((this.microseconds() * 1000), exchangeTimeCorrection)))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2165,13 +2165,13 @@ public partial class bigone : Exchange
             };
             string token = jwt(request, this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + token);
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     url = add(url, ("?" + this.urlencode(query)));
                 }
-            } else if (isEqual(method, "POST"))
+            } else if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(query);

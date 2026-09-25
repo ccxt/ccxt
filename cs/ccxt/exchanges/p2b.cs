@@ -1425,14 +1425,14 @@ public partial class p2b : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {

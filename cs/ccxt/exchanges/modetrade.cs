@@ -3589,7 +3589,7 @@ public partial class modetrade : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -3610,7 +3610,7 @@ public partial class modetrade : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            bool isPostOrPut = isEqual(method, "POST") || isEqual(method, "PUT");
+            bool isPostOrPut = (method == "POST") || (method == "PUT");
             bool isOrder = isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order");
             if (isPostOrPut && isOrder)
             {
@@ -3645,8 +3645,8 @@ public partial class modetrade : Exchange
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
+            if ((method == "POST") || (method == "PUT"))
             {
                 body = this.json(parameters);
                 auth = add(auth, body);
@@ -3659,7 +3659,7 @@ public partial class modetrade : Exchange
                     auth = add(auth, ("?" + this.rawencode(parameters)));
                 }
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
-                if (isEqual(method, "DELETE"))
+                if ((method == "DELETE"))
                 {
                     body = "";
                 }

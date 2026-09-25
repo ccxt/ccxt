@@ -3408,7 +3408,7 @@ public partial class nado : Exchange
         return ((string?)((object)(marketId)));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3429,7 +3429,7 @@ public partial class nado : Exchange
         {
             ((IDictionary<string,object>)headers)["Accept-Encoding"] = "gzip, br, deflate";
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

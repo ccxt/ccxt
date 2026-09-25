@@ -2483,7 +2483,7 @@ public partial class opinion : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "opinion";
         method ??= "GET";
@@ -2531,7 +2531,7 @@ public partial class opinion : PredictionExchange
                 ((IDictionary<string,object>)headers)["apikey"] = apiKey;
             }
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

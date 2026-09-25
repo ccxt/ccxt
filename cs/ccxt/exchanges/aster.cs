@@ -4938,7 +4938,7 @@ public partial class aster : Exchange
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -5030,7 +5030,7 @@ public partial class aster : Exchange
             byte[] encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             string signature = this.signMessage(encodedMessage, this.privateKey);
             object queryString = add(add(add(paramString, "&"), "signature="), signature);
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 url = add(url, ("?" + (queryString)));
             } else

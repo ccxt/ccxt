@@ -2564,7 +2564,7 @@ public partial class bitteam : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2576,7 +2576,7 @@ public partial class bitteam : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 body = this.json(request);
             } else if ((query.Length != 0))
@@ -2612,7 +2612,7 @@ public partial class bitteam : Exchange
         {
             if (isEqual(code, 404))
             {
-                if ((url.IndexOf("/ccxt/order/", StringComparison.Ordinal) >= 0) && (isEqual(method, "GET")))
+                if ((url.IndexOf("/ccxt/order/", StringComparison.Ordinal) >= 0) && ((method == "GET")))
                 {
                     List<object> parts = url.Split(new [] {"/order/"}, StringSplitOptions.None).ToList<object>();
                     string? orderId = this.safeString(parts, 1);

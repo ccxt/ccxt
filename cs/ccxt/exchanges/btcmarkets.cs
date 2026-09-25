@@ -1593,7 +1593,7 @@ public partial class btcmarkets : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1605,8 +1605,8 @@ public partial class btcmarkets : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             byte[] secret = this.base64ToBinary(this.secret);
-            object auth = add(add(method, request), nonce);
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+            object auth = ((method + request) + nonce);
+            if (((method == "GET")) || ((method == "DELETE")))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

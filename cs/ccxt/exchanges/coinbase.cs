@@ -5949,7 +5949,7 @@ public partial class coinbase : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5965,7 +5965,7 @@ public partial class coinbase : Exchange
         string fullPath = ((("/" + pathPart) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string savedPath = fullPath;
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -5988,7 +5988,7 @@ public partial class coinbase : Exchange
                 this.checkRequiredCredentials();
                 Int64 seconds = this.seconds();
                 object payload = "";
-                if (!isEqual(method, "GET"))
+                if ((method != "GET"))
                 {
                     if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                     {
@@ -6044,7 +6044,7 @@ public partial class coinbase : Exchange
                     Int64 nonce = this.nonce();
                     Int64? timestamp = this.parseToInt((nonce / 1000));
                     string timestampString = ((object)timestamp).ToString();
-                    object auth = (((timestampString + (method)) + savedPath) + (payload));
+                    object auth = (((timestampString + method) + savedPath) + (payload));
                     string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "CB-ACCESS-KEY", this.apiKey },
@@ -6060,7 +6060,7 @@ public partial class coinbase : Exchange
                     { "Authorization", authorizationString },
                     { "Content-Type", "application/json" },
                 };
-                if (!isEqual(method, "GET"))
+                if ((method != "GET"))
                 {
                     if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                     {

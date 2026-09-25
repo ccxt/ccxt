@@ -1426,7 +1426,7 @@ public partial class bitbns : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "www";
         method ??= "GET";
@@ -1447,13 +1447,13 @@ public partial class bitbns : Exchange
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string nonce = this.nonce().ToString();
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
-        } else if (isEqual(method, "POST"))
+        } else if ((method == "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

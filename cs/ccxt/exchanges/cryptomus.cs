@@ -1296,7 +1296,7 @@ public partial class cryptomus : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1311,7 +1311,7 @@ public partial class cryptomus : Exchange
             headers = new Dictionary<string, object>() {
                 { "userId", this.uid },
             };
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 body = this.json(parameters);
                 jsonParams = body;

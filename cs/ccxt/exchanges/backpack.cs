@@ -2665,7 +2665,7 @@ public partial class backpack : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2682,7 +2682,7 @@ public partial class backpack : Exchange
             IDictionary<string, object> optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});
             string? instruction = this.safeString(optionPathInstructions, method, "");
             string payload = "";
-            if ((isEqual(path, "api/v1/orders")) && (isEqual(method, "POST")))
+            if ((isEqual(path, "api/v1/orders")) && ((method == "POST")))
             {
                 payload = this.generateBatchPayload(sortedParams, ts, recvWindow, instruction);
             } else
@@ -2704,13 +2704,13 @@ public partial class backpack : Exchange
                 { "X-Signature", signature },
                 { "X-Broker-Id", "1400" },
             };
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 body = this.json(sortedParams);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             string query = this.urlencode(sortedParams);
             if ((query.Length != 0))

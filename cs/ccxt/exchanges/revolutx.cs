@@ -229,7 +229,7 @@ public partial class revolutx : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -244,14 +244,14 @@ public partial class revolutx : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
                     url = add(url, ("?" + queryString));
                 }
-            } else if (isEqual(method, "DELETE"))
+            } else if ((method == "DELETE"))
             {
                 if (queryLength > 0)
                 {
@@ -268,20 +268,20 @@ public partial class revolutx : Exchange
             {
                 bodyString = body;
             }
-            string message = ((((timestamp + ((string)method).ToUpper()) + requestPath) + queryString) + (bodyString));
+            string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + (bodyString));
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
             headers = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
                 { "X-Revx-Timestamp", timestamp },
                 { "X-Revx-Signature", signature },
             };
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            if ((method == "POST") || (method == "PUT"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         } else
         {
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if (queryLength > 0)
                 {

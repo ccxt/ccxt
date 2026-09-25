@@ -5307,7 +5307,7 @@ public partial class phemex : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -5316,7 +5316,7 @@ public partial class phemex : Exchange
         string requestPath = ("/" + this.implodeParams(path, parameters));
         string url = requestPath;
         string queryString = "";
-        if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(method, "PUT")) || (url == "/positions/assign"))
+        if (((method == "GET")) || ((method == "DELETE")) || ((method == "PUT")) || (url == "/positions/assign"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -5336,7 +5336,7 @@ public partial class phemex : Exchange
                 { "x-phemex-request-expiry", expiryString },
             };
             string payload = "";
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 bool isOrderPlacement = (isEqual(path, "g-orders")) || (isEqual(path, "spot/orders")) || (isEqual(path, "orders"));
                 if (isOrderPlacement)

@@ -3310,7 +3310,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         api ??= "gamma";
@@ -3335,7 +3335,7 @@ public partial class polymarket : PredictionExchange
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -3425,7 +3425,7 @@ public partial class polymarket : PredictionExchange
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 string requestPath = ("/" + this.implodeParams(path, parameters));
-                object auth = ((timestamp + (method)) + requestPath);
+                object auth = ((timestamp + method) + requestPath);
                 if ((body != null))
                 {
                     auth = add(auth, body);

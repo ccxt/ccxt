@@ -3154,7 +3154,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "sxbet";
         method ??= "GET";
@@ -3180,8 +3180,8 @@ public partial class sxbet : PredictionExchange
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
-        bool sendAsQuery = (isEqual(method, "GET"));
-        if (isEqual(method, "DELETE"))
+        bool sendAsQuery = ((method == "GET"));
+        if ((method == "DELETE"))
         {
             bool hasOrdersList = (inOp(query, "orders"));
             sendAsQuery = !hasOrdersList;

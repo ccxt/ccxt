@@ -4021,7 +4021,7 @@ public partial class pacifica : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4039,12 +4039,12 @@ public partial class pacifica : Exchange
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
-        if ((isEqual(method, "GET")) && (paramsLen > 0))
+        if (((method == "GET")) && (paramsLen > 0))
         {
             url = add(url, ("?" + this.urlencode(parameters)));
             ((IDictionary<string,object>)headers)["Accept"] = "*/*";
         }
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             body = this.json(parameters);
         }

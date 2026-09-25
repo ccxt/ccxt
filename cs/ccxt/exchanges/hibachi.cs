@@ -1949,7 +1949,7 @@ public partial class hibachi : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1959,7 +1959,7 @@ public partial class hibachi : Exchange
         headers = new Dictionary<string, object>() {
             { "Hibachi-Client", "HibachiCCXT/unversioned" },
         };
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             object request = this.omit(parameters, this.extractParams(path));
             string query = this.urlencode(request);
@@ -1968,7 +1968,7 @@ public partial class hibachi : Exchange
                 url = add(url, ("?" + query));
             }
         }
-        if (isEqual(method, "POST") || isEqual(method, "PUT") || isEqual(method, "DELETE"))
+        if ((method == "POST") || (method == "PUT") || (method == "DELETE"))
         {
             ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             body = this.json(parameters);

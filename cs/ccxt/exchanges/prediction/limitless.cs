@@ -3608,7 +3608,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "limitless";
         method ??= "GET";
@@ -3620,7 +3620,7 @@ public partial class limitless : PredictionExchange
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencodeWithArrayRepeat(query);
-        if (isEqual(method, "GET") && (querystring != ""))
+        if ((method == "GET") && (querystring != ""))
         {
             url = add(url, ("?" + querystring));
         }
@@ -3631,7 +3631,7 @@ public partial class limitless : PredictionExchange
             {
                 headers = new Dictionary<string, object>() {};
             }
-            if (isEqual(method, "POST") && (querystring != ""))
+            if ((method == "POST") && (querystring != ""))
             {
                 bodyString = this.json(query);
                 body = bodyString;

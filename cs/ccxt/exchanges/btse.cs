@@ -4196,7 +4196,7 @@ public partial class btse : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4208,9 +4208,9 @@ public partial class btse : Exchange
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        bool isBodyDelete = (isEqual(method, "DELETE")) && ((((string)path).StartsWith("futures/api/v3/") == true));
+        bool isBodyDelete = ((method == "DELETE")) && ((((string)path).StartsWith("futures/api/v3/") == true));
         string queryString = "";
-        if (((isEqual(method, "GET")) || (isEqual(method, "DELETE"))) && !isBodyDelete)
+        if ((((method == "GET")) || ((method == "DELETE"))) && !isBodyDelete)
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -4223,7 +4223,7 @@ public partial class btse : Exchange
             this.checkRequiredCredentials();
             Int64 nonce = this.nonce();
             string bodyString = this.json(query);
-            if (((isEqual(method, "GET")) || (isEqual(method, "DELETE"))) && !isBodyDelete)
+            if ((((method == "GET")) || ((method == "DELETE"))) && !isBodyDelete)
             {
                 bodyString = "";
             } else

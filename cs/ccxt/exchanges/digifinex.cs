@@ -5166,7 +5166,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDict(await this.privateSwapPostAccountPositionMode(this.extend(request, parameters)));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5183,7 +5183,7 @@ public partial class digifinex : Exchange
         object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), payload);
         object query = this.omit(parameters, this.extractParams(path));
         string? urlencoded = null;
-        if (signed && (pathPart == "/swap/v2") && (isEqual(method, "POST")))
+        if (signed && (pathPart == "/swap/v2") && ((method == "POST")))
         {
             urlencoded = json(parameters);
         } else
@@ -5198,13 +5198,13 @@ public partial class digifinex : Exchange
             {
                 nonce = this.milliseconds().ToString();
                 auth = add(add(nonce, method), payload);
-                if (isEqual(method, "GET"))
+                if ((method == "GET"))
                 {
                     if (((urlencoded != null)) && (urlencoded != ""))
                     {
                         auth = add(auth, ("?" + urlencoded));
                     }
-                } else if (isEqual(method, "POST"))
+                } else if ((method == "POST"))
                 {
                     auth = add(auth, urlencoded);
                 }
@@ -5214,13 +5214,13 @@ public partial class digifinex : Exchange
                 auth = urlencoded;
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if (((urlencoded != null)) && (urlencoded != ""))
                 {
                     url = add(url, ("?" + urlencoded));
                 }
-            } else if (isEqual(method, "POST"))
+            } else if ((method == "POST"))
             {
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/x-www-form-urlencoded" },

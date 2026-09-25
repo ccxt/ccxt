@@ -2965,14 +2965,14 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "symbol"));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
-        bool getOrDelete = (isEqual(method, "GET")) || (isEqual(method, "DELETE"));
+        bool getOrDelete = ((method == "GET")) || ((method == "DELETE"));
         if (getOrDelete)
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2993,7 +2993,7 @@ public partial class bitvavo : Exchange
                 }
             }
             string timestamp = this.milliseconds().ToString();
-            object auth = (((timestamp + (method)) + (url)) + (payload));
+            object auth = (((timestamp + method) + (url)) + (payload));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {

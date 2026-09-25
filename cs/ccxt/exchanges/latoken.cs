@@ -2060,7 +2060,7 @@ public partial class latoken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2069,7 +2069,7 @@ public partial class latoken : Exchange
         string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
         string urlencodedQuery = this.urlencode(query);
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2079,14 +2079,14 @@ public partial class latoken : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            object auth = add(add(method, request), urlencodedQuery);
+            string auth = ((method + request) + urlencodedQuery);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },
                 { "X-LA-DIGEST", "HMAC-SHA512" },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(query);

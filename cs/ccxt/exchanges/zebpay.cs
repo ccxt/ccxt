@@ -2186,7 +2186,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2208,7 +2208,7 @@ public partial class zebpay : Exchange
         string? access = this.safeString(api, 0, "public");
         if (access == "public")
         {
-            if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+            if ((method == "GET") || (method == "DELETE"))
             {
                 if ((queryLength != 0))
                 {
@@ -2235,7 +2235,7 @@ public partial class zebpay : Exchange
             this.checkRequiredCredentials();
             bool isSpot = marketType == "spot";
             ((IDictionary<string,object>)parameters)["timestamp"] = timestamp;
-            if (isEqual(method, "GET") || (isEqual(method, "DELETE") && isSpot))
+            if ((method == "GET") || ((method == "DELETE") && isSpot))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(parameters);

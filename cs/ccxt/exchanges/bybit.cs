@@ -11772,7 +11772,7 @@ public partial class bybit : Exchange
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -11827,7 +11827,7 @@ public partial class bybit : Exchange
                 string queryEncoded = this.rawencode(query);
                 object auth_base = ((timestamp.ToString() + this.apiKey) + ((object)(this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)).ToString());
                 object authFull = null;
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     body = this.json(query);
                     authFull = add(auth_base, body);
@@ -11862,7 +11862,7 @@ public partial class bybit : Exchange
                 {
                     signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 }
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     bool isSpot = url.IndexOf("spot", StringComparison.Ordinal) >= 0;
                     Dictionary<string, object> extendedQuery = this.extend(query, new Dictionary<string, object>() {
@@ -11888,7 +11888,7 @@ public partial class bybit : Exchange
                 }
             }
         }
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
             headers = ((headers == null)) ? new Dictionary<string, object>() {} : headers;

@@ -15566,7 +15566,7 @@ public partial class binance : Exchange
         return (((scheme + "//") + domain) + "/");
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -15600,7 +15600,7 @@ public partial class binance : Exchange
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                if (!isEqual(method, "GET"))
+                if ((method != "GET"))
                 {
                     body = this.urlencode(parameters);
                 }
@@ -15615,7 +15615,7 @@ public partial class binance : Exchange
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            if (isEqual(method, "POST") && ((isEqual(path, "order")) || (isEqual(path, "sor/order"))))
+            if ((method == "POST") && ((isEqual(path, "order")) || (isEqual(path, "sor/order"))))
             {
                 // inject in implicit API calls
                 string? newClientOrderId = this.safeString(parameters, "newClientOrderId");
@@ -15639,11 +15639,11 @@ public partial class binance : Exchange
             }
             object query = null;
             // handle batchOrders
-            if ((isEqual(path, "batchOrders")) && ((isEqual(method, "POST")) || (isEqual(method, "PUT"))))
+            if ((isEqual(path, "batchOrders")) && (((method == "POST")) || ((method == "PUT"))))
             {
                 List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
                 List<object> checkedBatchOrders = batchOrders;
-                if (isEqual(method, "POST") && isEqual(api, "fapiPrivate"))
+                if ((method == "POST") && isEqual(api, "fapiPrivate"))
                 {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
                     checkedBatchOrders = new List<object>() {};
@@ -15683,7 +15683,7 @@ public partial class binance : Exchange
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if ((isEqual(path, "batchOrders")) || (getIndexOf(path, "sub-account") >= 0) || (isEqual(path, "capital/withdraw/apply")) || (getIndexOf(path, "staking") >= 0) || (getIndexOf(path, "simple-earn") >= 0))
             {
-                if ((isEqual(method, "DELETE")) && (isEqual(path, "batchOrders")))
+                if (((method == "DELETE")) && (isEqual(path, "batchOrders")))
                 {
                     List<object> orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
                     List<object> origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
@@ -15735,7 +15735,7 @@ public partial class binance : Exchange
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+            if (((method == "GET")) || ((method == "DELETE")))
             {
                 url = add(url, ("?" + (query)));
             } else
@@ -15794,7 +15794,7 @@ public partial class binance : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + (reason)) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property

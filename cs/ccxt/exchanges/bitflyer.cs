@@ -1391,7 +1391,7 @@ public partial class bitflyer : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1402,7 +1402,7 @@ public partial class bitflyer : Exchange
             request = add(request, "me/");
         }
         request = add(request, path);
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
@@ -1419,7 +1419,7 @@ public partial class bitflyer : Exchange
             object auth = String.Join("", content.ToArray());
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                if (!isEqual(method, "GET"))
+                if ((method != "GET"))
                 {
                     body = this.json(parameters);
                     auth = add(auth, body);

@@ -3381,7 +3381,7 @@ public partial class bydfi : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3390,7 +3390,7 @@ public partial class bydfi : Exchange
         string endpoint = ("/" + (path));
         string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             query = this.urlencode(sortedParams);
             if ((query.Length != 0))
@@ -3402,7 +3402,7 @@ public partial class bydfi : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 string payload = ((this.apiKey + timestamp) + query);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");

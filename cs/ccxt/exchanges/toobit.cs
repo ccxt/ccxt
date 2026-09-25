@@ -3438,14 +3438,14 @@ public partial class toobit : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.implodeParams(path, parameters));
-        bool isPost = isEqual(method, "POST");
-        bool isDelete = isEqual(method, "DELETE");
+        bool isPost = (method == "POST");
+        bool isDelete = (method == "DELETE");
         Dictionary<string, object> extraQuery = new Dictionary<string, object>() {};
         object query = this.omit(parameters, this.extractParams(path));
         if (!isEqual(api, "private"))

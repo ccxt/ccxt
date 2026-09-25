@@ -5675,13 +5675,13 @@ public partial class hyperliquid : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string url = ((this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/") + (path));
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

@@ -3508,7 +3508,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3541,7 +3541,7 @@ public partial class bitrue : Exchange
                 headers = new Dictionary<string, object>() {
                     { "X-MBX-APIKEY", this.apiKey },
                 };
-                if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+                if (((method == "GET")) || ((method == "DELETE")))
                 {
                     url = add(url, ("?" + query));
                 } else
@@ -3561,8 +3561,8 @@ public partial class bitrue : Exchange
                     signPath = "/dapi";
                 }
                 signPath = add(add(add(add(signPath, "/"), version), "/"), path);
-                object signMessage = ((timestamp + (method)) + (signPath));
-                if (isEqual(method, "GET"))
+                object signMessage = ((timestamp + method) + (signPath));
+                if ((method == "GET"))
                 {
                     List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
                     int keysLength = keys.Count;
@@ -3612,7 +3612,7 @@ public partial class bitrue : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + (reason)) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property

@@ -3351,7 +3351,7 @@ public partial class bullish : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3364,19 +3364,19 @@ public partial class bullish : Exchange
             this.checkRequiredCredentials();
             string nonce = this.microseconds().ToString();
             string timestamp = this.getTimestamp().ToString();
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
-                string payload = ((((timestamp + nonce) + (method)) + "/trading-api/") + (path));
+                string payload = ((((timestamp + nonce) + method) + "/trading-api/") + (path));
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },
                     { "BX-SIGNATURE", signature },
                 };
-            } else if (isEqual(method, "POST"))
+            } else if ((method == "POST"))
             {
                 body = this.json(parameters);
-                string payload = (((((timestamp + nonce) + (method)) + "/trading-api/") + (path)) + (body));
+                string payload = (((((timestamp + nonce) + method) + "/trading-api/") + (path)) + (body));
                 string digest = ((string)this.hash(this.encode(payload), sha256, "hex"));
                 string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
@@ -3407,7 +3407,7 @@ public partial class bullish : Exchange
                 ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + (token));
             }
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             string query = this.urlencode(request);
             if (query.Length > 0)

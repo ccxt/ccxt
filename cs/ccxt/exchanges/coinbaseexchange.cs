@@ -2497,14 +2497,14 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "currency", code },             { "address", this.checkAddress(address) },             { "network", null },             { "tag", tag },             { "info", response },         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string request = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2517,7 +2517,7 @@ public partial class coinbaseexchange : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             object payload = "";
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -2525,7 +2525,7 @@ public partial class coinbaseexchange : Exchange
                     payload = body;
                 }
             }
-            object what = (((nonce + (method)) + request) + (payload));
+            object what = (((nonce + method) + request) + (payload));
             byte[]? secret = null;
             try
             {

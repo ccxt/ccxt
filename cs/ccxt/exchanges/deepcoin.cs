@@ -3556,13 +3556,13 @@ public partial class deepcoin : Exchange
         return ((IDictionary<string, object>)((object)(this.parseOrder(data, market))));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object requestPath = path;
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             string query = this.urlencode(parameters);
             if (query.Length > 0)
@@ -3583,7 +3583,7 @@ public partial class deepcoin : Exchange
                 { "DC-ACCESS-PASSPHRASE", this.password },
                 { "appid", "200103" },
             };
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 body = this.json(parameters);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";

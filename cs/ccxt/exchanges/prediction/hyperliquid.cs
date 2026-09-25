@@ -2600,7 +2600,7 @@ public partial class hyperliquid : PredictionExchange
         return ((string)normalized).ToLower();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "POST";
@@ -2618,7 +2618,7 @@ public partial class hyperliquid : PredictionExchange
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
         object url = add(add(baseUrl, "/"), path);
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

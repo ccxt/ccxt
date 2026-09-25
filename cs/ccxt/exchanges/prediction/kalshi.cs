@@ -3136,7 +3136,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "kalshi";
         method ??= "GET";
@@ -3149,7 +3149,7 @@ public partial class kalshi : PredictionExchange
         object url = add(add(baseUrl, "/"), implodedPath);
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencode(query);
-        if (isEqual(method, "GET") && (querystring != ""))
+        if ((method == "GET") && (querystring != ""))
         {
             url = add(url, ("?" + querystring));
         }
@@ -3168,7 +3168,7 @@ public partial class kalshi : PredictionExchange
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
             object versionPrefix = slice(baseUrl, tradeApiIndex, null);
             string? pathForSigning = ((string)add(add(versionPrefix, "/"), implodedPath));
-            object payload = ((timestamp + (method)) + pathForSigning);
+            object payload = ((timestamp + method) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", keyParts.ToArray());
@@ -3178,7 +3178,7 @@ public partial class kalshi : PredictionExchange
                 { "KALSHI-ACCESS-SIGNATURE", signature },
                 { "KALSHI-ACCESS-TIMESTAMP", timestamp },
             });
-            if (!isEqual(method, "GET") && (querystring != ""))
+            if ((method != "GET") && (querystring != ""))
             {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = this.json(query);

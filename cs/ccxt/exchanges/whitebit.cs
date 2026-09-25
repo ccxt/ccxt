@@ -4888,7 +4888,7 @@ public partial class whitebit : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4946,7 +4946,7 @@ public partial class whitebit : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + (reason)) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
         if (isEqual(code, 404))
         {

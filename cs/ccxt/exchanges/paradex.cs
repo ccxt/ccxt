@@ -4017,7 +4017,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4063,7 +4063,7 @@ public partial class paradex : Exchange
             {
                 object token = (this.options.ContainsKey("authToken") ? this.options["authToken"] : null);
                 ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + (token));
-                if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || ((isEqual(method, "DELETE")) && (isEqual(path, "orders/batch"))))
+                if (((method == "POST")) || ((method == "PUT")) || (((method == "DELETE")) && (isEqual(path, "orders/batch"))))
                 {
                     ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                     body = this.json(query);

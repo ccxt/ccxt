@@ -7243,7 +7243,7 @@ public partial class bingx : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -7296,7 +7296,7 @@ public partial class bingx : Exchange
         } else if (isEqual(access, "private"))
         {
             this.checkRequiredCredentials();
-            bool isJsonContentType = (((isEqual(type, "subAccount")) || (isEqual(type, "account/transfer"))) && (isEqual(method, "POST")));
+            bool isJsonContentType = (((isEqual(type, "subAccount")) || (isEqual(type, "account/transfer"))) && ((method == "POST")));
             object parsedParams = null;
             string? encodeRequest = null;
             if (isJsonContentType)

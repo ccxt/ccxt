@@ -2715,7 +2715,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2725,7 +2725,7 @@ public partial class coinbaseinternational : Exchange
         string fullPath = ((("/" + (version)) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string savedPath = ("/api" + fullPath);
-        if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+        if ((method == "GET") || (method == "DELETE"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2738,7 +2738,7 @@ public partial class coinbaseinternational : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             object payload = "";
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -2746,7 +2746,7 @@ public partial class coinbaseinternational : Exchange
                     payload = body;
                 }
             }
-            object auth = (((nonce + (method)) + savedPath) + (payload));
+            object auth = (((nonce + method) + savedPath) + (payload));
             string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-TIMESTAMP", nonce },

@@ -2246,7 +2246,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2264,7 +2264,7 @@ public partial class foxbit : Exchange
         Int64 timestamp = this.milliseconds();
         string query = "";
         object signatureQuery = "";
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             List<object> paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             int paramKeysLength = paramKeys.Count;
@@ -2287,7 +2287,7 @@ public partial class foxbit : Exchange
                 }
             }
         }
-        if (isEqual(method, "POST") || isEqual(method, "PUT"))
+        if ((method == "POST") || (method == "PUT"))
         {
             body = this.json(parameters);
         }
@@ -2304,7 +2304,7 @@ public partial class foxbit : Exchange
         if (isEqual(urlPath, "private"))
         {
             this.checkRequiredCredentials();
-            string preHash = ((((this.numberToString(timestamp) + (method)) + fullPath) + (signatureQuery)) + (bodyToSignature));
+            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + (bodyToSignature));
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);

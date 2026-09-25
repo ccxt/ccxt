@@ -2381,7 +2381,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2420,7 +2420,7 @@ public partial class gemini : Exchange
             }
         }
         url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
-        if ((isEqual(method, "POST")) || (isEqual(method, "DELETE")))
+        if (((method == "POST")) || ((method == "DELETE")))
         {
             body = this.json(query);
         }

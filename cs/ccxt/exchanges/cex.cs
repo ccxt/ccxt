@@ -2031,7 +2031,7 @@ public partial class cex : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2040,7 +2040,7 @@ public partial class cex : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

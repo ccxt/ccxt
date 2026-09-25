@@ -4387,7 +4387,7 @@ public partial class delta : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4410,8 +4410,8 @@ public partial class delta : Exchange
                 { "api-key", this.apiKey },
                 { "timestamp", timestamp },
             };
-            object auth = add(add(method, timestamp), requestPath);
-            if (isEqual(method, "GET"))
+            object auth = ((method + timestamp) + requestPath);
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

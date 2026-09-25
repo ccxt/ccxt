@@ -1194,7 +1194,7 @@ public partial class bitbank : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1229,7 +1229,7 @@ public partial class bitbank : Exchange
                 auth = nonce;
             }
             url = url + ((this.version + "/") + this.implodeParams(path, parameters));
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 body = this.json(query);
                 auth = add(auth, body);

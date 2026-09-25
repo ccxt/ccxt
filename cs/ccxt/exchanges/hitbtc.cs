@@ -4311,7 +4311,7 @@ public partial class hitbtc : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4325,7 +4325,7 @@ public partial class hitbtc : Exchange
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((queryLength != 0))
             {
@@ -4341,7 +4341,7 @@ public partial class hitbtc : Exchange
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
             List<object> payload = new List<object>() {method, ("/api/3/" + implodedPath)};
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((getRequest != null))
                 {

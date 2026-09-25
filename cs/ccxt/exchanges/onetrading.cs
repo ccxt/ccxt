@@ -2016,7 +2016,7 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradeHistory, market, since, limit));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2036,7 +2036,7 @@ public partial class onetrading : Exchange
                 { "Accept", "application/json" },
                 { "Authorization", ("Bearer " + this.apiKey) },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 body = this.json(query);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";

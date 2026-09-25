@@ -4667,7 +4667,7 @@ public partial class hashkey : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4691,7 +4691,7 @@ public partial class hashkey : Exchange
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
             string? signature = null;
-            if ((isEqual(method, "POST")) && ((isEqual(path, "api/v1/spot/batchOrders")) || (isEqual(path, "api/v1/futures/batchOrders"))))
+            if (((method == "POST")) && ((isEqual(path, "api/v1/spot/batchOrders")) || (isEqual(path, "api/v1/futures/batchOrders"))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(this.safeList(parameters, "orders"));
@@ -4706,7 +4706,7 @@ public partial class hashkey : Exchange
                 signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256);
                 totalParams["signature"] = signature;
                 query = this.customUrlencode(totalParams);
-                if (isEqual(method, "GET"))
+                if ((method == "GET"))
                 {
                     url = add(url, ("?" + query));
                 } else

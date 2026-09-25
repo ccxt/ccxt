@@ -1185,7 +1185,7 @@ public partial class bit2c : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1203,7 +1203,7 @@ public partial class bit2c : Exchange
                 { "nonce", nonce },
             }, parameters);
             string auth = this.urlencode(query);
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

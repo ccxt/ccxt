@@ -1170,7 +1170,7 @@ public partial class btcturk : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1180,7 +1180,7 @@ public partial class btcturk : Exchange
             throw new ExchangeError ((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
         object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
-        if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+        if (((method == "GET")) || ((method == "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {

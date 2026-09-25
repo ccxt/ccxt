@@ -2160,14 +2160,14 @@ public partial class bitso : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+        if ((method == "GET") || (method == "DELETE"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2183,7 +2183,7 @@ public partial class bitso : Exchange
             endpoint = ("/api" + endpoint);
             List<object> content = new List<object>() {nonce, method, endpoint};
             object request = String.Join("", content.ToArray());
-            if (!isEqual(method, "GET") && !isEqual(method, "DELETE"))
+            if ((method != "GET") && (method != "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

@@ -3861,7 +3861,7 @@ public partial class woo : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -3890,7 +3890,7 @@ public partial class woo : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            if (isEqual(method, "POST") && (isEqual(path, "trade/algoOrder") || isEqual(path, "trade/order")))
+            if ((method == "POST") && (isEqual(path, "trade/algoOrder") || isEqual(path, "trade/order")))
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if ((isSandboxMode != true))
@@ -3917,8 +3917,8 @@ public partial class woo : Exchange
             };
             if (isEqual(version, "v3"))
             {
-                auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
-                if (isEqual(method, "POST") || isEqual(method, "PUT"))
+                auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
+                if ((method == "POST") || (method == "PUT"))
                 {
                     body = this.json(parameters);
                     auth = add(auth, body);
@@ -3935,7 +3935,7 @@ public partial class woo : Exchange
             } else
             {
                 auth = this.urlencode(parameters);
-                if (isEqual(method, "POST") || isEqual(method, "PUT") || isEqual(method, "DELETE"))
+                if ((method == "POST") || (method == "PUT") || (method == "DELETE"))
                 {
                     body = auth;
                 } else

@@ -13244,7 +13244,7 @@ public partial class kucoin : Exchange
         return ((bool)((object)(uta))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -13289,7 +13289,7 @@ public partial class kucoin : Exchange
         string? tradeType = this.safeString(query, "tradeType");
         if (!this.isEmpty(query))
         {
-            if (((isEqual(method, "GET")) || (isEqual(method, "DELETE"))) && (!isEqual(path, "orders/multi-cancel")))
+            if ((((method == "GET")) || ((method == "DELETE"))) && (!isEqual(path, "orders/multi-cancel")))
             {
                 endpoint = endpoint + ("?" + this.rawencode(query));
             } else
@@ -13327,7 +13327,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)headers)["KC-API-PASSPHRASE"] = this.password;
             }
-            object payload = (((timestamp + (method)) + endpoint) + (endpart));
+            object payload = (((timestamp + method) + endpoint) + (endpart));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             ((IDictionary<string,object>)headers)["KC-API-SIGN"] = signature;
             object partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});

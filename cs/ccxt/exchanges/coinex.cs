@@ -6025,7 +6025,7 @@ public partial class coinex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -6036,7 +6036,7 @@ public partial class coinex : Exchange
         object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), requestUrl), "/"), version), "/"), path);
         object query = this.omit(parameters, this.extractParams(path));
         string nonce = this.nonce().ToString();
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             List<object> parts = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
             string? firstPart = this.safeString(parts, 0, "");
@@ -6079,7 +6079,7 @@ public partial class coinex : Exchange
                 { "Authorization", signature.ToLower() },
                 { "AccessId", this.apiKey },
             };
-            if ((isEqual(method, "GET")) || (isEqual(method, "PUT")))
+            if (((method == "GET")) || ((method == "PUT")))
             {
                 url = add(url, ("?" + urlencoded));
             } else
@@ -6109,7 +6109,7 @@ public partial class coinex : Exchange
                     { "Authorization", signature.ToUpper() },
                     { "Content-Type", "application/json" },
                 };
-                if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(method, "PUT")))
+                if (((method == "GET")) || ((method == "DELETE")) || ((method == "PUT")))
                 {
                     url = add(url, ("?" + urlencoded));
                 } else
@@ -6121,8 +6121,8 @@ public partial class coinex : Exchange
                 this.checkRequiredCredentials();
                 query = this.keysort(query);
                 string urlencoded = this.rawencode(query);
-                object preparedString = add(add(add(add(method, "/"), version), "/"), path);
-                if (isEqual(method, "POST"))
+                object preparedString = ((((method + "/") + (version)) + "/") + (path));
+                if ((method == "POST"))
                 {
                     body = this.json(query);
                     preparedString = add(preparedString, body);
@@ -6139,7 +6139,7 @@ public partial class coinex : Exchange
                     { "X-COINEX-SIGN", signature },
                     { "X-COINEX-TIMESTAMP", nonce },
                 };
-                if (!isEqual(method, "POST"))
+                if ((method != "POST"))
                 {
                     if ((urlencoded != ""))
                     {

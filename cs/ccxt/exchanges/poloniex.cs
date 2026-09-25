@@ -4170,7 +4170,7 @@ public partial class poloniex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4180,7 +4180,7 @@ public partial class poloniex : Exchange
         {
             url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "swap");
         }
-        if (isEqual(method, "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
+        if ((method == "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
         {
             ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(((IDictionary<string,object>)parameters)["symbol"]); // handle symbols like 索拉拉/USDT'
         }
@@ -4197,25 +4197,25 @@ public partial class poloniex : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
-            object auth = add(method, "\n"); // eslint-disable-line quotes
+            string auth = (method + "\n"); // eslint-disable-line quotes
             url = add(url, ("/" + implodedPath));
-            auth = add(auth, ("/" + implodedPath));
-            if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE")))
+            auth = auth + ("/" + implodedPath);
+            if (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE")))
             {
-                auth = add(auth, "\n"); // eslint-disable-line quotes
+                auth = auth + "\n"; // eslint-disable-line quotes
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     body = this.json(query);
-                    auth = add(auth, (("requestBody=" + (body)) + "&"));
+                    auth = auth + (("requestBody=" + (body)) + "&");
                 }
-                auth = add(auth, ("signTimestamp=" + timestamp));
+                auth = auth + ("signTimestamp=" + timestamp);
             } else
             {
                 Dictionary<string, object> sortedQuery = this.extend(new Dictionary<string, object>() {
                     { "signTimestamp", timestamp },
                 }, query);
                 sortedQuery = this.keysort(sortedQuery);
-                auth = add(auth, ("\n" + this.urlencode(sortedQuery))); // eslint-disable-line quotes
+                auth = auth + ("\n" + this.urlencode(sortedQuery)); // eslint-disable-line quotes
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     url = add(url, ("?" + this.urlencode(query)));

@@ -2836,7 +2836,7 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2861,7 +2861,7 @@ public partial class tokocrypto : Exchange
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                if (!isEqual(method, "GET"))
+                if ((method != "GET"))
                 {
                     body = this.urlencode(parameters);
                 }
@@ -2901,7 +2901,7 @@ public partial class tokocrypto : Exchange
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(api, "wapi")))
+            if (((method == "GET")) || ((method == "DELETE")) || (isEqual(api, "wapi")))
             {
                 url = add(url, ("?" + (query)));
             } else
@@ -2928,7 +2928,7 @@ public partial class tokocrypto : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + (reason)) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property

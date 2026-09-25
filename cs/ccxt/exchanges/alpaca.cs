@@ -2564,7 +2564,7 @@ public partial class alpaca : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2581,7 +2581,7 @@ public partial class alpaca : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
         {
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+            if (((method == "GET")) || ((method == "DELETE")))
             {
                 endpoint = endpoint + ("?" + this.urlencode(query));
             } else

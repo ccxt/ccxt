@@ -2134,7 +2134,7 @@ public partial class binance : PredictionExchange
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "sapi";
         method ??= "GET";
@@ -2161,7 +2161,7 @@ public partial class binance : PredictionExchange
         headers = new Dictionary<string, object>() {
             { "X-MBX-APIKEY", this.apiKey },
         };
-        if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+        if (((method == "GET")) || ((method == "DELETE")))
         {
             url = ((url + "?") + querystring);
         } else

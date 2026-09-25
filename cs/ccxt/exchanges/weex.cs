@@ -5030,7 +5030,7 @@ public partial class weex : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -5038,7 +5038,7 @@ public partial class weex : Exchange
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         bool isBatch = (getIndexOf(path, "batch") >= 0);
-        if (!isBatch && ((isEqual(method, "GET")) || (isEqual(method, "DELETE"))))
+        if (!isBatch && (((method == "GET")) || ((method == "DELETE"))))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -5055,7 +5055,7 @@ public partial class weex : Exchange
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
             object payload = add(add(add(timestamp, method), "/"), endpoint);
-            if ((isEqual(method, "POST")) || isBatch)
+            if (((method == "POST")) || isBatch)
             {
                 body = this.json(query);
                 payload = add(payload, body);
@@ -5067,7 +5067,7 @@ public partial class weex : Exchange
                 { "ACCESS-PASSPHRASE", this.password },
                 { "ACCESS-TIMESTAMP", timestamp },
             };
-            if ((isEqual(method, "POST")) || (isEqual(method, "DELETE")))
+            if (((method == "POST")) || ((method == "DELETE")))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

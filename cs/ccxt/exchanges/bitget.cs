@@ -14449,7 +14449,7 @@ public partial class bitget : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -14461,7 +14461,7 @@ public partial class bitget : Exchange
         string payload = (pathPart + request);
         string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint)) + payload);
         object query = this.omit(parameters, this.extractParams(path));
-        if (!signed && (isEqual(method, "GET")))
+        if (!signed && ((method == "GET")))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
             int keysLength = keys.Count;
@@ -14474,8 +14474,8 @@ public partial class bitget : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
-            object auth = ((timestamp + (method)) + payload);
-            if (isEqual(method, "POST"))
+            object auth = ((timestamp + method) + payload);
+            if ((method == "POST"))
             {
                 body = this.json(parameters);
                 auth = add(auth, body);
@@ -14507,7 +14507,7 @@ public partial class bitget : Exchange
                 { "ACCESS-PASSPHRASE", this.password },
                 { "X-CHANNEL-API-CODE", broker },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

@@ -2456,7 +2456,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2484,7 +2484,7 @@ public partial class bittrade : Exchange
                 { "AccessKeyId", this.apiKey },
                 { "Timestamp", timestamp },
             };
-            if (!isEqual(method, "POST"))
+            if ((method != "POST"))
             {
                 request = this.extend(request, query);
             }
@@ -2499,7 +2499,7 @@ public partial class bittrade : Exchange
     { "Signature", signature },
 }));
             url = add(url, ("?" + auth));
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 body = this.json(query);
                 headers = new Dictionary<string, object>() {

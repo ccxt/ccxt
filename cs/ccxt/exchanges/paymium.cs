@@ -718,7 +718,7 @@ public partial class paymium : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -741,7 +741,7 @@ public partial class paymium : Exchange
                 { "Api-Key", this.apiKey },
                 { "Api-Nonce", nonce },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

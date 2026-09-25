@@ -3956,7 +3956,7 @@ public partial class extended : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3977,14 +3977,14 @@ public partial class extended : Exchange
             headers = new Dictionary<string, object>() {
                 { "X-Api-Key", this.apiKey },
             };
-            if (((isEqual(method, "POST")) || (isEqual(method, "PATCH"))) && !queryPost)
+            if ((((method == "POST")) || ((method == "PATCH"))) && !queryPost)
             {
                 body = this.json(query);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
         url = add(add(add(url, "/api/"), version), endpoint);
-        if ((isEqual(method, "GET") || isEqual(method, "DELETE") || queryPost) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
+        if (((method == "GET") || (method == "DELETE") || queryPost) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
         {
             url = add(url, ("?" + this.urlencodeWithArrayRepeat(query)));
         }

@@ -3916,7 +3916,7 @@ public partial class lighter : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3937,7 +3937,7 @@ public partial class lighter : Exchange
         }
         if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
         {
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "multipart/form-data" },

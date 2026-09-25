@@ -1026,7 +1026,7 @@ public partial class BaseExchange
         this.options["enableDemoTrading"] = enable;
     }
 
-    public virtual Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public virtual Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4502,7 +4502,7 @@ public partial class BaseExchange
             try
             {
                 this.setLastRestRequestTimestamp();
-                Dictionary<string, object> request = this.sign(path, api,((string)method), parameters,((Dictionary<string, object>)headers), body);
+                Dictionary<string, object> request = this.sign(path, api,((string)method), parameters, headers, body);
                 if ((fetchData != null))
                 {
                     fetchData["request"] = request;

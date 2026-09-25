@@ -3029,7 +3029,7 @@ public partial class ndax : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3081,7 +3081,7 @@ public partial class ndax : Exchange
                     { "APToken", sessionToken },
                 };
             }
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(query);

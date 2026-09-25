@@ -8092,7 +8092,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit, parameters));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -8112,7 +8112,7 @@ public partial class okx : Exchange
         {
             this.checkRequiredCredentials();
             // inject id in implicit api call
-            if (isEqual(method, "POST") && (isEqual(path, "trade/batch-orders") || isEqual(path, "trade/order-algo") || isEqual(path, "trade/order")))
+            if ((method == "POST") && (isEqual(path, "trade/batch-orders") || isEqual(path, "trade/order-algo") || isEqual(path, "trade/order")))
             {
                 string brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
                 if (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -8145,7 +8145,7 @@ public partial class okx : Exchange
                 { "OK-ACCESS-TIMESTAMP", timestamp },
             };
             object auth = add(add(timestamp, method), request);
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

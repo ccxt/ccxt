@@ -1363,7 +1363,7 @@ public partial class blockchaincom : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1383,7 +1383,7 @@ public partial class blockchaincom : Exchange
             headers = new Dictionary<string, object>() {
                 { "X-API-Token", this.secret },
             };
-            if ((isEqual(method, "GET")))
+            if (((method == "GET")))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

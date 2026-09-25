@@ -8613,7 +8613,7 @@ public partial class gate : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -8679,13 +8679,13 @@ public partial class gate : Exchange
             string queryString = "";
             string rawQueryString = "";
             bool requiresURLEncoding = false;
-            if (((isEqual(type, "futures")) || (isEqual(type, "delivery"))) && isEqual(method, "POST"))
+            if (((isEqual(type, "futures")) || (isEqual(type, "delivery"))) && (method == "POST"))
             {
                 List<object> pathParts = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
                 string secondPart = this.safeString(pathParts, 1, "");
                 requiresURLEncoding = (secondPart.IndexOf("dual", StringComparison.Ordinal) >= 0) || (secondPart.IndexOf("positions", StringComparison.Ordinal) >= 0);
             }
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || requiresURLEncoding || (isEqual(method, "PATCH")))
+            if (((method == "GET")) || ((method == "DELETE")) || requiresURLEncoding || ((method == "PATCH")))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -8701,7 +8701,7 @@ public partial class gate : Exchange
                     }
                     url = add(url, ("?" + queryString));
                 }
-                if (isEqual(method, "PATCH"))
+                if ((method == "PATCH"))
                 {
                     body = this.json(query);
                 }
@@ -8722,7 +8722,7 @@ public partial class gate : Exchange
             Int64? timestamp = this.parseToInt((nonce / 1000));
             string timestampString = ((object)timestamp).ToString();
             string signaturePath = (("/api/" + this.version) + entirePath);
-            List<object> payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
+            List<object> payloadArray = new List<object> {method.ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
             string payload = String.Join("\n", payloadArray.ToArray());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);

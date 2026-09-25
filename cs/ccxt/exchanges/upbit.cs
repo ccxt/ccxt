@@ -2682,7 +2682,7 @@ public partial class upbit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2692,7 +2692,7 @@ public partial class upbit : Exchange
         });
         url = add(url, ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         object query = this.omit(parameters, this.extractParams(path));
-        if (!isEqual(method, "POST"))
+        if ((method != "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2710,7 +2710,7 @@ public partial class upbit : Exchange
             };
             int hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
             string? auth = null;
-            if ((!isEqual(method, "GET")) && (!isEqual(method, "DELETE")))
+            if (((method != "GET")) && ((method != "DELETE")))
             {
                 body = this.json(parameters);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";

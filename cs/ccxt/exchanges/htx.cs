@@ -8980,7 +8980,7 @@ public partial class htx : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -9017,7 +9017,7 @@ public partial class htx : Exchange
                     { "AccessKeyId", this.apiKey },
                     { "Timestamp", timestamp },
                 };
-                if (!isEqual(method, "POST"))
+                if ((method != "POST"))
                 {
                     request = this.extend(request, query);
                 }
@@ -9031,7 +9031,7 @@ public partial class htx : Exchange
     { "Signature", signature },
 }));
                 url = add(url, ("?" + auth));
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     object bodyRequest = null;
                     if (isArrayParams)
@@ -9090,7 +9090,7 @@ public partial class htx : Exchange
             } else if (access == "private")
             {
                 this.checkRequiredCredentials();
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     IDictionary<string, object> options = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
                     string id = this.safeString(options, "id", "AA03022abc");
@@ -9124,7 +9124,7 @@ public partial class htx : Exchange
                 };
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort(request);
-                if (!isEqual(method, "POST"))
+                if ((method != "POST"))
                 {
                     Dictionary<string, object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
@@ -9138,7 +9138,7 @@ public partial class htx : Exchange
     { "Signature", signature },
 }));
                 url = add(url, ("?" + auth));
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     object bodyRequest = null;
                     if (isArrayParams)

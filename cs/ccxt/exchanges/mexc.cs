@@ -6825,7 +6825,7 @@ public partial class mexc : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -6848,7 +6848,7 @@ public partial class mexc : Exchange
             object urlParams = parameters;
             if (access == "private")
             {
-                if (section == "broker" && ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE"))))
+                if (section == "broker" && (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE"))))
                 {
                     urlParams = new Dictionary<string, object>() {
                         { "timestamp", this.nonce() },
@@ -6877,7 +6877,7 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE")))
+            if (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE")))
             {
                 headers = ((headers == null)) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
@@ -6903,7 +6903,7 @@ public partial class mexc : Exchange
                     { "Content-Type", "application/json" },
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     auth = this.json(parameters);
                     body = auth;

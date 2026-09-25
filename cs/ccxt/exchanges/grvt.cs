@@ -3788,7 +3788,7 @@ public partial class grvt : Exchange
         return requestId;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3796,14 +3796,14 @@ public partial class grvt : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), path);
         string queryString = "";
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 queryString = this.urlencode(query);
                 url = add(url, ("?" + queryString));
             }
-        } else if (isEqual(method, "POST"))
+        } else if ((method == "POST"))
         {
             // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
             // the private branch below sets its own headers, this covers the public market-data endpoints

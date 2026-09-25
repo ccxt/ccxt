@@ -2058,7 +2058,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "currency"));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2073,7 +2073,7 @@ public partial class bitopro : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            if ((method == "POST") || (method == "PUT"))
             {
                 body = this.json(parameters);
                 string payload = this.stringToBase64(body);
@@ -2081,7 +2081,7 @@ public partial class bitopro : Exchange
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
-            } else if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+            } else if ((method == "GET") || (method == "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -2098,7 +2098,7 @@ public partial class bitopro : Exchange
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
             }
-        } else if (isEqual(api, "public") && isEqual(method, "GET"))
+        } else if (isEqual(api, "public") && (method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

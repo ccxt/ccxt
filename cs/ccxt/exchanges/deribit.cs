@@ -4530,7 +4530,7 @@ public partial class deribit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4553,8 +4553,8 @@ public partial class deribit : Exchange
             {
                 request = request + ("?" + this.urlencode(parameters));
             }
-            object requestData = add(add(add(add(add(method, "\n"), request), "\n"), requestBody), "\n"); // eslint-disable-line quotes
-            string auth = ((((timestamp + "\n") + nonce) + "\n") + (requestData)); // eslint-disable-line quotes
+            string requestData = (((((method + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
+            string auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },

@@ -3682,7 +3682,7 @@ public partial class bithumb : Exchange
         return ((string?)((object)(result)));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3718,7 +3718,7 @@ public partial class bithumb : Exchange
                     { "timestamp", this.milliseconds() },
                 };
                 string? auth = null;
-                if ((!isEqual(method, "GET")) && (!isEqual(method, "DELETE")))
+                if (((method != "GET")) && ((method != "DELETE")))
                 {
                     ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                     if (hasQuery)
