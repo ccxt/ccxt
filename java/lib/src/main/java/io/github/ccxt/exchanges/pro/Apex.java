@@ -939,7 +939,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Client client = this.client(url);
             (this.authenticate(url)).join();
             this.setPositionsCache(client, symbols);
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             if (java.util.Objects.equals(cache, null))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
@@ -1154,14 +1154,14 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<Object> fetchFunctions = new ArrayList<Object>(Arrays.asList(this.fetchPositions(new Object[0])));
             Object promises = (Helpers.promiseAll(fetchFunctions)).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
                 Object positions = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
                 for (var ii = 0; ii < ((List<?>)positions).size(); ii++)
                 {
                     Object position = (positions == null || ii < 0 || ii >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(ii));
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -1204,7 +1204,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
@@ -1219,14 +1219,14 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
                 position.put("side", "long");
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                cache.append(position);
                 position.put("side", "short");
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                cache.append(position);
                 Helpers.addElementToObject(position, "side", null);
             } else
             {
                 // regular update
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                cache.append(position);
             }
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");

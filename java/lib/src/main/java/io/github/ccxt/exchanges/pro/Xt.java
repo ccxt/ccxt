@@ -1097,7 +1097,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             this.setPositionsCache(client);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && this.isEmpty(cache))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
@@ -1278,14 +1278,14 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object messageHash = messageHash3;
             List<Position> positions = (this.fetchPositions(new Object[0])).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
                 {
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -1336,10 +1336,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (data));
-        Helpers.callDynamically(cache, "append", new Object[]{position});
+        cache.append(position);
         Object messageHashes = this.findMessageHashes(client, "position::contract");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {

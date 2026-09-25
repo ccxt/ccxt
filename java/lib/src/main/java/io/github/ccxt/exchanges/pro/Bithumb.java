@@ -633,7 +633,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
+        orderbook.reset(new HashMap<String, Object>() {{}});
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");

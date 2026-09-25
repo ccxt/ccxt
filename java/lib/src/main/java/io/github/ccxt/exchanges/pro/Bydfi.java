@@ -1269,12 +1269,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
         Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
-        Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
+        cache.append(parsedPosition);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolMessageHash);
     }

@@ -995,13 +995,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object positions = this.positions;
+        io.github.ccxt.ws.ArrayCache positions = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
-            Helpers.callDynamically(positions, "append", new Object[]{position});
+            positions.append(position);
             ((List<Object>)newPositions).add(position);
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");

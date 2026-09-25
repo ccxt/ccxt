@@ -1934,13 +1934,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (data));
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
-        Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
+        cache.append(parsedPosition);
         String symbolSpecificMessageHash = ((messageHash + ":") + ((Map<String, Object>)parsedPosition).get("symbol"));
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolSpecificMessageHash);
