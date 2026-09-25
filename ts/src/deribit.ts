@@ -4029,7 +4029,11 @@ export default class deribit extends Exchange {
             const signedHeaders: Dict = {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };
-            const signedUrl = this.urls['api']['rest'] + request;
+            const baseApiUrl = this.safeString (this.urls['api'], 'rest');
+            if (baseApiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            const signedUrl = baseApiUrl + request;
             return { 'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders };
         }
         const apiUrl = this.safeString (this.urls['api'], 'rest');

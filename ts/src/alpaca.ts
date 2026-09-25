@@ -2234,7 +2234,11 @@ export default class alpaca extends Exchange {
 
     override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][api[0]]);
+        const baseApiUrl = this.safeString (this.urls['api'], api[0]);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (baseApiUrl);
         let headersValue: NullableDict = {};
         if (headers !== undefined) {
             headersValue = headers;

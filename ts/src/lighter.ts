@@ -3347,9 +3347,17 @@ export default class lighter extends Exchange {
     override sign (path: string, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url: Str = undefined;
         if (api === 'root') {
-            url = this.implodeHostname (this.urls['api']['public']);
+            const baseApiUrl = this.safeString (this.urls['api'], 'public');
+            if (baseApiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = this.implodeHostname (baseApiUrl);
         } else {
-            url = this.implodeHostname (this.urls['api'][api]) + '/api/' + this.version + '/' + path;
+            const baseApiUrl2 = this.safeString (this.urls['api'], api);
+            if (baseApiUrl2 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = this.implodeHostname (baseApiUrl2) + '/api/' + this.version + '/' + path;
         }
         let authHeaders: NullableDict = undefined;
         if (api === 'private') {

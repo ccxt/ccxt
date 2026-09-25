@@ -3503,7 +3503,11 @@ export default class woo extends Exchange {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][access]);
+        const baseApiUrl = this.safeString (this.urls['api'], access);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (baseApiUrl);
         url += '/' + version + '/';
         const paramsSorted: Dict = this.keysort (this.omit (params, this.extractParams (path)));
         if (access === 'public') {
