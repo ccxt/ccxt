@@ -3523,6 +3523,25 @@ function assertedPrintsNoUnsatisfiableCast (asserted, javaType) {
     }
 }
 
+// `n` written by a for-in/of head or a nested / object destructuring pattern (not `[a, n] = f()`)
+function writeOnlyPatternTarget (n) {
+    let child = n;
+    let current = n.parent;
+    let nested = false;
+    while (current !== undefined && (ts.isArrayLiteralExpression (current) || ts.isObjectLiteralExpression (current)
+        || ts.isShorthandPropertyAssignment (current) || ts.isPropertyAssignment (current) || ts.isSpreadElement (current)
+        || ts.isParenthesizedExpression (current))) {
+        nested = nested || child !== n || !ts.isArrayLiteralExpression (current);
+        child = current;
+        current = current.parent;
+    }
+    if (current !== undefined && (ts.isForInStatement (current) || ts.isForOfStatement (current))) {
+        return current.initializer === child;
+    }
+    return nested && current !== undefined && ts.isBinaryExpression (current) && current.left === child
+        && current.operatorToken.kind === ts.SyntaxKind.EqualsToken;
+}
+
 function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
@@ -3598,6 +3617,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isSpreadElement (parent)) {
             return false;
         }
+        if (info?.writeOnly === true && writeOnlyPatternTarget (n)) {
+            return false; // loop-variable / nested destructuring writes are outside writeOk
+        }
         if (ts.isTypeOfExpression (parent)) {
             // `typeof x === 'string'` prints `x instanceof String` — the exact expression
             // the Object declaration printed, and legal on a String box; only the
@@ -3610,6 +3632,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (info?.destructureOk?.(parent.parent, parent.elements.indexOf (n)) === true) {
+                continue; // a typed Pair slot read of the narrowed type
+            }
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isAsExpression (parent) || ts.isTypeAssertion (parent)) {
@@ -3630,7 +3655,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
                 let ok;
-                if (javaType === 'String') {
+                if (info?.writeOnly === true) {
+                    ok = false; // only the family's own writeOk decides
+                } else if (javaType === 'String') {
                     // the narrowed declaration can only take writes whose printed Java is
                     // statically String (isStaticallyStringExpression) or a same-family
                     // helper call the reassignment hook casts
@@ -14967,4 +14994,83 @@ export function installJavaLongSlots (transpiler) {
         }
         return printed.slice (0, at) + 'return ' + inner + printed.slice (printed.lastIndexOf ('));') + 2);
     };
+}
+
+// ===== 50. Map locals joined over Map writes (native core Map arguments) =====
+// `let p = undefined/{}/extend(a, b)/omit(map, k)` whose every write is one of those, a Map copy or
+// a typed Pair slot 1 prints `java.util.Map<String, Object>`; core Map arguments then drop toMapArg.
+function mapLocalValueIsMap (printer, node, declaration) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (value.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (value) && value.text === 'undefined')) {
+        return true;
+    }
+    if (ts.isObjectLiteralExpression (value)) {
+        return true;
+    }
+    if (ts.isIdentifier (value)) {
+        return value.text === declaration.name.text || javaOmitSourceIsMap (printer, value, 0);
+    }
+    const collection = collectionCallInfo (printer, value);
+    if (collection !== undefined) {
+        return collection.type === JAVA_MAP_TYPE && !collection.cast;
+    }
+    return javaOmitMapCall (printer, value) !== undefined || javaOmitSelfCall (printer, value, declaration);
+}
+
+function mapLocalDestructureOk (printer, assignment, index) {
+    const types = index === 1 ? pairCallTypes (printer, assignment.right) : undefined;
+    return types !== undefined && pairSameType (types[1], PAIR_MAP);
+}
+
+function mapLocalIsMap (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.initializer === undefined
+        || !mapLocalValueIsMap (printer, declaration.initializer, declaration)) {
+        return false;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_MAP_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => mapLocalValueIsMap (printer, right, declaration),
+        destructureOk: (assignment, index) => mapLocalDestructureOk (printer, assignment, index),
+    });
+}
+
+export function installJavaMapLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaMapLocalsPatched) {
+        return;
+    }
+    printer._javaMapLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = mapLocalIsMap (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        typed.set (declaration, JAVA_MAP_TYPE);
+        const head = marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `);
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
