@@ -15904,7 +15904,7 @@ function csharpCorpus () {
     if (csharpCorpusCache !== undefined) {
         return csharpCorpusCache;
     }
-    const table = { 'occurrences': new Map (), 'imports': new Map () };
+    const table = { 'occurrences': new Map (), 'imports': new Map (), 'declarations': new Map () };
     csharpCorpusCache = table;
     try {
         const root = process.cwd ();
@@ -15931,6 +15931,12 @@ function csharpCorpus () {
                         table.occurrences.set (match[1], files);
                     }
                     files.set (rel, (files.get (rel) ?? 0) + 1);
+                }
+                const declRe = /^\s+(?:(?:public|protected|private|override|async|static)\s+)*([A-Za-z_$][\w$]*)\s*\(/gm;
+                while ((match = declRe.exec (text)) !== null) {
+                    const owners = table.declarations.get (match[1]) ?? new Set ();
+                    owners.add (rel);
+                    table.declarations.set (match[1], owners);
                 }
                 const imports = new Set ();
                 const importRe = /from\s*['"]([^'"]+)['"]/g;
@@ -16078,10 +16084,21 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
             }
         }
     }
+    // a same-named method in the base tier or a related module (base or subclass) keeps `object`
+    const declared = corpus.declarations.get (name);
+    const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
+        || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false);
+    if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type)
+        && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
+        return false;
+    }
     let resolved = 0;
     for (const site of csharpFileCallSitesByName (csharp, declaringFile, name)) {
-        if (site.declarations.indexOf (parameter) < 0) {
-            continue;
+        if (site.declarations.indexOf (owner) < 0) {
+            continue; // a site binding another class's method
+        }
+        if (target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type) {
+            return false; // a called method's non-Dict parameters are not this rule's
         }
         resolved++;
         const argument = site.call.arguments[position];
@@ -16128,7 +16145,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined;
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
-        || csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword)
+        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict'))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
