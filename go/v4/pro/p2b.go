@@ -218,13 +218,13 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name *string = this.SafeString(watchTickerOptions, "name", "state") // or price
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTickers", "name", name)
 	var messageHashes []any = []any{}
 	var args []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		messageHashes = append(messageHashes, ccxt.Add(*nameOption+"::", market["symbol"]))
 		args = append(args, market["id"])
@@ -301,10 +301,10 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			messageHashes = append(messageHashes, ccxt.Add("deals::", ccxt.GetValue(symbolsNormalized, i)))
 		}
 	}

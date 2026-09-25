@@ -1433,7 +1433,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	// at this stage, to get tickers data, we use fetchMarkets endpoints
 	var response any = []any{}
 	var typeVar *string = this.SafeString(params, "type")
@@ -1615,7 +1615,7 @@ func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) any {
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "markPx")
 	var oraclePx *float64 = this.SafeNumber(info, "oraclePx")
-	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor((this.Milliseconds()/60)/60/1000), 1)), 60), 60), 1000)
+	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor(Divide(Divide(float64(this.Milliseconds())/60, 60), 1000)), 1)), 60), 60), 1000)
 	return map[string]any{
 		"info":                     info,
 		"symbol":                   symbol,
@@ -4743,7 +4743,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchPositions", params)
 	var userAddress *string = SafeStringPtr(GetValue(userAddressparamsPublicAddressVariable, 0))
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"type": "clearinghouseState",
 		"user": userAddress,
@@ -5959,7 +5959,7 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	swapMarkets := (<-this.FetchSwapMarketsAsync())
 	PanicOnError(swapMarkets)

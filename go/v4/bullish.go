@@ -1995,7 +1995,7 @@ func (this *Bullish) HandlePaginationParams(method string, optionalArgs ...any) 
 	_ = since
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var ninetyDays int64 = Multiply(Multiply(Multiply(Multiply(90, 24), 60), 60), 1000).(int64)
+	var ninetyDays int64 = (90 * 24) * 60 * 60 * 1000
 	var now int64 = this.Milliseconds()
 	var allowedSince int64 = now - ninetyDays
 	if (since != nil) && (*since < allowedSince) {
@@ -2029,7 +2029,7 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 		paramsResult = this.Omit(params, "until")
 	}
 	if (since != nil) || (!IsEqual(until, nil)) {
-		var timeDelta int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64) // 7 days
+		var timeDelta int64 = (7 * 24) * 60 * 60 * 1000 // 7 days
 		var sinceResolved any = since
 		if since == nil {
 			sinceResolved = Subtract(until, timeDelta)
@@ -3596,7 +3596,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	var until any = DerefScalar(this.SafeInteger(requestUntil, "createdAtDatetime[lte]"))
 	// current endpoint requires both since and until parameters
 	if IsEqual(startTimestamp, nil) {
-		startTimestamp = Subtract(now, (1000*60)*60*24*90) // Only the last 90 days of data is available for querying
+		startTimestamp = now - (1000*60)*60*24*90 // Only the last 90 days of data is available for querying
 	}
 	if IsEqual(until, nil) {
 		until = now

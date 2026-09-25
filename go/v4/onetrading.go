@@ -427,7 +427,7 @@ func (this *Onetrading) Describe() any {
 					"marginMode":       false,
 					"limit":            100,
 					"daysBack":         100000,
-					"daysBackCanceled": 1 / 12,
+					"daysBackCanceled": float64(1) / 12,
 					"untilDays":        30,
 					"trigger":          false,
 					"trailing":         false,
@@ -1092,7 +1092,7 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTicker(params)).Raw))
 	//

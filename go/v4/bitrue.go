@@ -1733,7 +1733,7 @@ func (this *Bitrue) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var first *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = this.Market(first)
 	var response any = nil
@@ -1818,7 +1818,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var response any = []any{}
 	var data []any = []any{}
 	var request map[string]any = map[string]any{}

@@ -1854,7 +1854,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "fetchPositions", "subaccount", "default")
 	var request map[string]any = map[string]any{
 		"type":       "subaccount_info",
@@ -2301,7 +2301,7 @@ func (this *Nado) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetTickers(params)).Raw))
 	//
@@ -2528,7 +2528,7 @@ func (this *Nado) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetContracts(params)).Raw))
 	//
@@ -2647,7 +2647,7 @@ func (this *Nado) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.ArchiveV2PublicGetContracts(params)).Raw))
 	//

@@ -74,3 +74,44 @@ func (this *BaseExchange) HandleOptionStringAndParams(params any, methodName any
 	return this.CheckOptionString(methodName, optionName, GetValue(values, 0)), MapTyped(GetValue(values, 1))
 }
 
+// MarketSymbols is ts/src/base/Exchange.ts marketSymbols with its string[] result typed:
+// absent input answers a nil slice, every element is the resolved market's symbol.
+func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
+	symbols := GetArgStringSlice(optionalArgs, 0, nil)
+	typeVar := GetArgStringPtr(optionalArgs, 1, nil)
+	allowEmpty := GetArgBool(optionalArgs, 2, true)
+	sameTypeOnly := GetArgBool(optionalArgs, 3, false)
+	sameSubTypeOnly := GetArgBool(optionalArgs, 4, false)
+	if len(symbols) == 0 {
+		if !allowEmpty {
+			panic(ArgumentsRequired(this.Id + " empty list of symbols is not supported"))
+		}
+		return symbols
+	}
+	result := make([]string, 0, len(symbols))
+	var marketType *string = nil
+	var isLinearSubType *bool = nil
+	for _, symbolIn := range symbols {
+		market := this.DerivedExchange.Market(symbolIn)
+		PanicOnError(market)
+		if sameTypeOnly && (marketType != nil) {
+			if !IsEqual(market["type"], marketType) {
+				panic(BadRequest(Add(Add(Add(Add(this.Id+" symbols must be of the same type, either ", marketType), " or "), market["type"]), ".")))
+			}
+		}
+		if sameSubTypeOnly && (isLinearSubType != nil) {
+			if !IsEqual(market["linear"], isLinearSubType) {
+				panic(BadRequest(this.Id + " symbols must be of the same subType, either linear or inverse."))
+			}
+		}
+		if (typeVar != nil) && !IsEqual(GetValue(market, "type"), typeVar) {
+			panic(BadRequest(Add(Add(this.Id+" symbols must be of the same type ", typeVar), ". If the type is incorrect you can change it in options or the params of the request")))
+		}
+		marketType = this.SafeString(market, "type")
+		if GetValue(market, "spot") != true {
+			isLinearSubType = this.SafeBool(market, "linear")
+		}
+		result = append(result, *this.SafeString(market, "symbol", symbolIn))
+	}
+	return result
+}

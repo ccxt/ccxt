@@ -315,7 +315,7 @@ func (this *Deepcoin) Describe() any {
 						"cost": 5,
 					},
 					"deepcoin/trade/cancel-trigger-order": map[string]any{
-						"cost": 1 / 6,
+						"cost": float64(1) / 6,
 					},
 					"deepcoin/trade/swap/cancel-all": map[string]any{
 						"cost": 5,
@@ -1008,7 +1008,7 @@ func (this *Deepcoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var request map[string]any = map[string]any{
@@ -3286,7 +3286,7 @@ func (this *Deepcoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var marketType string = "swap"
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
@@ -3488,7 +3488,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap", true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true, true)
 	var subType string = "linear"
 	var firstMarket map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {

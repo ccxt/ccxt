@@ -1466,7 +1466,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFundingRates(params)).Raw))
 	//
@@ -1625,7 +1625,7 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFutures(params)).Raw))
 	//
@@ -1782,7 +1782,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFutures(params)).Raw))
 	//
@@ -4082,7 +4082,7 @@ func (this *Woofipro) fetchMarginModesBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetClientMarginModes(params)).Raw))
 	//

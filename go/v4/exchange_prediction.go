@@ -2259,7 +2259,7 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 		return ""
 	}
 	// RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-	var byteLength int64 = this.ParseToInt(GetLength(hex) / 2)
+	var byteLength int64 = this.ParseToInt(float64(GetLength(hex)) / 2)
 	if byteLength == 0 {
 		return "80"
 	}
@@ -2271,7 +2271,7 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 	}
 	var lengthHex any = this.IntToBase16(byteLength)
 	lengthHex = this.PadHexToEven(lengthHex)
-	var lengthOfLength int64 = this.ParseToInt(GetLength(lengthHex) / 2)
+	var lengthOfLength int64 = this.ParseToInt(float64(GetLength(lengthHex)) / 2)
 	return Add(Add(this.IntToBase16(183+lengthOfLength), lengthHex), hex)
 }
 func (this *PredictionExchange) RlpEncodeList(items any) any {
@@ -2279,13 +2279,13 @@ func (this *PredictionExchange) RlpEncodeList(items any) any {
 	for i := 0; i < GetArrayLength(items); i++ {
 		concatenated = Add(concatenated, GetValue(items, i))
 	}
-	var byteLength int64 = this.ParseToInt(GetLength(concatenated) / 2)
+	var byteLength int64 = this.ParseToInt(float64(GetLength(concatenated)) / 2)
 	if byteLength < 56 {
 		return Add(this.IntToBase16(192+byteLength), concatenated)
 	}
 	var lengthHex any = this.IntToBase16(byteLength)
 	lengthHex = this.PadHexToEven(lengthHex)
-	var lengthOfLength int64 = this.ParseToInt(GetLength(lengthHex) / 2)
+	var lengthOfLength int64 = this.ParseToInt(float64(GetLength(lengthHex)) / 2)
 	return Add(Add(this.IntToBase16(247+lengthOfLength), lengthHex), concatenated)
 }
 func (this *PredictionExchange) IntToRlpHex(value any) any {

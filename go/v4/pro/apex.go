@@ -125,7 +125,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsLength int = len(symbolsNormalized)
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
@@ -134,16 +134,11 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("recentlyTrade.H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
-		var messageHash string = "trade:" + *symbol
+		var messageHash string = "trade:" + symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
 
@@ -299,7 +294,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols))
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
@@ -310,16 +305,11 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		return limit
 	}()
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderBook"+ccxt.ToString(limitValue)+".H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
-		var messageHash string = "orderbook:" + *symbol
+		var messageHash string = "orderbook:" + symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
 
@@ -515,11 +505,11 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", this.SafeString(market, "id2")))

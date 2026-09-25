@@ -882,7 +882,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan any, builder any, takerFeeRat
 	var nonce *int64 = Int64PtrTyped(PanicOnError((<-this.FetchNonceAsync(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
 		"skipNonce": false,
 	})))))
-	var expiry any = Add(this.Milliseconds(), Multiply(365, 864000))
+	var expiry int64 = this.Milliseconds() + (365 * 864000)
 	var signRaw map[string]any = map[string]any{
 		"integrator_account_index": builder,
 		"integrator_taker_fee":     takerFeeRate,
@@ -2067,7 +2067,7 @@ func (this *Lighter) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookDetails(params)).Raw))
 	var spotTickers []any = SafeListTypedDefault(response, "spot_order_book_details", []any{})

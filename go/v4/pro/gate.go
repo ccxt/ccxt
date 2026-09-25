@@ -1141,7 +1141,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	var callerMethodNameOptionparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
 	callerMethodNameOption := ccxt.GetValue(callerMethodNameOptionparamsCallerMethodNameVariable, 0)
 	var paramsCallerMethodName map[string]any = ccxt.MapTyped(ccxt.GetValue(callerMethodNameOptionparamsCallerMethodNameVariable, 1))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -1157,9 +1157,9 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 		prefix = "ticker"
 	}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
-		messageHashes = append(messageHashes, prefix+":"+*symbol)
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		messageHashes = append(messageHashes, prefix+":"+symbol)
 	}
 
 	var tickerOrBidAsk map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, paramsMethod))))
@@ -1287,15 +1287,15 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
-		messageHashes = append(messageHashes, "trades:"+*symbol)
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		messageHashes = append(messageHashes, "trades:"+symbol)
 	}
 	var url any = this.GetUrlByMarket(market)
 
@@ -1333,17 +1333,17 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
-		subMessageHashes = append(subMessageHashes, "trades:"+*symbol)
-		messageHashes = append(messageHashes, "unsubscribe:trades:"+*symbol)
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		subMessageHashes = append(subMessageHashes, "trades:"+symbol)
+		messageHashes = append(messageHashes, "unsubscribe:trades:"+symbol)
 	}
 	var url any = this.GetUrlByMarket(market)
 
@@ -1821,7 +1821,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var payload []any = []any{"!" + "all"}
 	if !this.IsEmpty(symbolsNormalized) {
 		market = this.GetMarketFromSymbols(symbolsNormalized)
@@ -1844,7 +1844,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		if ccxt.IsEqual(symbolsNormalized, nil) {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
-		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbolsNormalized, ","))
+		messageHash = ccxt.Add(messageHash, "::"+strings.Join(symbolsNormalized, ","))
 	}
 	var channel any = ccxt.Add(typeId, ".positions")
 	var subType *string = nil
@@ -2291,7 +2291,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar any = nil
 	var query any = nil
@@ -2316,7 +2316,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 		messageHash = "myLiquidations"
 		payload = append(payload, "!all")
 	} else {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength != 1 {
 			panic(ccxt.BadRequest(this.Id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times."))
 		}

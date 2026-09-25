@@ -294,7 +294,7 @@ func (this *Krakenfutures) watchTickersBody(ch chan any, optionalArgs ...any) an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 
 	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiHelperAsync("ticker", "ticker", symbolsNormalized, nil, params))))
 	if this.NewUpdates {
@@ -471,9 +471,9 @@ func (this *Krakenfutures) watchPositionsBody(ch chan any, optionalArgs ...any) 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash string = ""
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if (!ccxt.IsEqual(symbolsNormalized, nil)) && !this.IsEmpty(symbolsNormalized) {
-		messageHash = "::" + ccxt.Join(symbolsNormalized, ",")
+		messageHash = "::" + strings.Join(symbolsNormalized, ",")
 	}
 	messageHash = "positions" + messageHash
 
@@ -1882,23 +1882,13 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName string,
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	// symbols are required
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false, true, false))
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
 	var messageHashes []any = []any{}
 	var rawSubs []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var messageHash any = this.GetMessageHash(unifiedName, nil, this.Symbol(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}()))
+		var messageHash any = this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i)))
 		messageHashes = append(messageHashes, messageHash)
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		if !ccxt.EvalTruthy(this.SubscriptionExistsForHash(url, messageHash)) {
 			rawSubs = append(rawSubs, market["id"])
 		}

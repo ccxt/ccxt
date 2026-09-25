@@ -594,7 +594,7 @@ func (this *Woo) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var name string = "tickers"
 	var topic string = name
 	var request map[string]any = map[string]any{
@@ -715,7 +715,7 @@ func (this *Woo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var name string = "bbos"
 	var topic string = name
 	var request map[string]any = map[string]any{
@@ -1653,17 +1653,17 @@ func (this *Woo) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHashes []any = []any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !this.IsEmpty(symbolsNormalized) {
 		if ccxt.IsEqual(symbolsNormalized, nil) {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
-		for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			if ccxt.IsEqual(symbolsNormalized, nil) {
 				panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 			}
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
-			messageHashes = append(messageHashes, "positions::"+*symbol)
+			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			messageHashes = append(messageHashes, "positions::"+symbol)
 		}
 	} else {
 		messageHashes = append(messageHashes, "positions")
