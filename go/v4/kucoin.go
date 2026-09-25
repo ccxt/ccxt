@@ -10617,15 +10617,15 @@ func (this *Kucoin) transferClassicBody(ch chan any, code string, amount any, fr
 	var transferTypeOption *string = SafeStringPtr(transferTypeOptionparamsTransferTypeVariable[0])
 	var paramsTransferType map[string]any = MapTyped(transferTypeOptionparamsTransferTypeVariable[1])
 	if transferTypeOption != nil && *transferTypeOption == "PARENT_TO_SUB" {
-		if !(InOp(paramsTransferType, "toUserId")) {
+		if _, ok := paramsTransferType["toUserId"]; !ok {
 			panic(ExchangeError(this.Id + " transfer() requires a toUserId param for PARENT_TO_SUB transfers"))
 		}
 	} else if transferTypeOption != nil && *transferTypeOption == "SUB_TO_PARENT" {
-		if !(InOp(paramsTransferType, "fromUserId")) {
+		if _, ok := paramsTransferType["fromUserId"]; !ok {
 			panic(ExchangeError(this.Id + " transfer() requires a fromUserId param for SUB_TO_PARENT transfers"))
 		}
 	}
-	if !(InOp(paramsTransferType, "clientOid")) {
+	if _, ok := paramsTransferType["clientOid"]; !ok {
 		request["clientOid"] = this.Uuid()
 	}
 	var fromId any = this.ConvertTypeToAccount(fromAccount)

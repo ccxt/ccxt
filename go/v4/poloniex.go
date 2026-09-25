@@ -4149,7 +4149,7 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage int64, optionalArgs 
 	hedged := GetValue(hedgedparamsHedgedVariable, 0)
 	var paramsHedged map[string]any = MapTyped(hedgedparamsHedgedVariable[1])
 	if IsEqual(hedged, true) {
-		if !(InOp(paramsHedged, "posSide")) {
+		if _, ok := paramsHedged["posSide"]; !ok {
 			panic(ArgumentsRequired(this.Id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\""))
 		}
 	}
