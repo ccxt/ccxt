@@ -8052,4 +8052,108 @@ export function installCsharpParameterDeclarations (transpiler) {
     csharp._parameterDeclarationsPatched = true;
 }
 
+// ===== native `-` on a null-guarded Int64? / double? operand =====
+//
+// nativeArithmeticIsProven keeps subtract(a, b) whenever an operand is nullable: the helper
+// throws on a null box (no null branch) where the lifted `-` answers null. Inside a proven
+// null guard (the printer's csharpNullGuardAdmitsRead: `x !== undefined &&`, the then-branch of
+// `if (x !== undefined)`, a dominating early exit) the operand is non-null, so the helper's
+// Int64 / double branch and the lifted operator compute the same value in the same box.
+// `int?` is out: the helper normalizes that box to Int64 where `int? - int` boxes Int32.
+const NATIVE_GUARDED_SUBTRACT_NULLABLE_KINDS = [ 'Int64?', 'double?' ];
+
+function nativeGuardedSubtractOperandAdmitted (csharp, node, operand) {
+    let value = operand;
+    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        value = value.expression;
+    }
+    if (value?.kind !== ts.SyntaxKind.Identifier || typeof csharp.csharpNullGuardAdmitsRead !== 'function') {
+        return false;
+    }
+    if (!csharp.csharpNullGuardAdmitsRead (node, value)) {
+        return false;
+    }
+    // no write to the binding anywhere in its function: the guard walker only looks upward
+    let checker;
+    let declaration;
+    try {
+        checker = csharp.getChecker ();
+        declaration = checker.getSymbolAtLocation (value)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    const scope = csharp.csharpEnclosingFunction (value);
+    if (declaration === undefined || scope === undefined) {
+        return false;
+    }
+    if (declaration.kind !== ts.SyntaxKind.Parameter && declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return false;
+    }
+    let written = false;
+    const visit = (n) => {
+        if (written) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n !== declaration.name && csharpWriteTarget (n)) {
+            let symbol;
+            try {
+                symbol = checker.getSymbolAtLocation (n);
+            } catch (e) {
+                symbol = undefined;
+            }
+            if (symbol?.valueDeclaration === declaration) {
+                written = true;
+                return;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return !written;
+}
+
+function nativeGuardedSubtractExpression (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.MinusToken) {
+        return undefined;
+    }
+    const left = nativeArithmeticOperandKind (csharp, node.left);
+    const right = nativeArithmeticOperandKind (csharp, node.right);
+    if (left === undefined || right === undefined) {
+        return undefined;
+    }
+    const nullables = [ [ left, node.left ], [ right, node.right ] ].filter (([ kind ]) => nativeArithmeticIsNullableKind (kind));
+    if (nullables.length === 0) {
+        return undefined; // the non-nullable pairs are nativeArithmeticExpression's
+    }
+    if (!nullables.every (([ kind ]) => NATIVE_GUARDED_SUBTRACT_NULLABLE_KINDS.includes (kind))) {
+        return undefined;
+    }
+    if (!nativeArithmeticIsProven (ts.SyntaxKind.MinusToken, nativeArithmeticBaseKind (left), nativeArithmeticBaseKind (right))) {
+        return undefined;
+    }
+    // the printer's hard `(string)` casts read the helper's `object`, not an `Int64?`
+    if (csharp.csharpIsClassThrowArgument (node) || csharp.csharpIsDeleteKey (node)) {
+        return undefined;
+    }
+    if (!nullables.every (([ , operand ]) => nativeGuardedSubtractOperandAdmitted (csharp, node, operand))) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + ' - ' + nativeArithmeticRightText (csharp, node.right, right) + ')';
+}
+
+// wrap printCustomBinaryExpressionIfAny after installCsharpNativeArithmetic: the guarded
+// nullable `-` is tried only where that rule declined
+export function installCsharpGuardedNullableSubtract (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._guardedNullableSubtractPatched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        const native = nativeGuardedSubtractExpression (csharp, node);
+        return (native !== undefined) ? native : upstream (node, identation);
+    };
+    csharp._guardedNullableSubtractPatched = true;
+}
+
 export default installCsharpLocalTypes;

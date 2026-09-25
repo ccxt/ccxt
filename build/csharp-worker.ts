@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpParameterTypes, installCsharpStringReturns } from './csharp-local-types.js';
+import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpGuardedNullableSubtract, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpParameterTypes, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -140,6 +140,9 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // call-site proof sees the same tables, and registers its parameters with
     // csharpDeclaredLocalTypeResolver for the body's own reads
     installCsharpParameterDeclarations (transpiler);
+    // native `-` on a null-guarded Int64? / double? operand (see the guarded-subtract section
+    // of build/csharp-local-types.js); wraps the arithmetic printer chain last
+    installCsharpGuardedNullableSubtract (transpiler);
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread
