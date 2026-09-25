@@ -461,22 +461,13 @@ func Divide(a, b any) any {
 		return nil
 	}
 
-	aValConverted := aVal.Convert(bVal.Type())
-
 	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if bVal.Int() == 0 {
-			return nil // Avoid division by zero
-		}
-		return aValConverted.Int() / bVal.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if bVal.Uint() == 0 {
-			return nil // Avoid division by zero
-		}
-		return aValConverted.Uint() / bVal.Uint()
-	case reflect.Float32, reflect.Float64:
-		aFloat := ToFloat64(a)
-		bFloat := ToFloat64(b)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		// JS number division: always float64, an integral result boxes as int64
+		aFloat := aVal.Convert(reflect.TypeOf(float64(0))).Float()
+		bFloat := bVal.Convert(reflect.TypeOf(float64(0))).Float()
 		if bFloat == 0.0 {
 			return nil // Avoid division by zero
 		}
