@@ -12563,6 +12563,10 @@ function handleTupleElement0ReadType (csharp, initializer) {
             }
         }
         call = declarations[0].initializer;
+        // the awaited venue helpers (handleAccountIndex) hand back the same tuple (see destructuredWriteIsCastable)
+        if (call?.kind === ts.SyntaxKind.AwaitExpression) {
+            call = call.expression;
+        }
     }
     const helper = destructuredAuditedCallName (call);
     if (helper === undefined) {
