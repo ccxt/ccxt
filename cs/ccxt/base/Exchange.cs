@@ -778,7 +778,11 @@ public partial class BaseExchange
     private async Task closeClient(string key, WebSocketClient client)
     {
         await client.Close();
-        this.clients.TryRemove(key, out _);
+        // the slot may hold a replacement installed while closing; never detach it unclosed
+        if (this.clients.TryRemove(key, out var removed) && !ReferenceEquals(removed, client))
+        {
+            await removed.Close();
+        }
     }
 
     public async Task Close(bool cleanInstanceCache = false)
