@@ -566,12 +566,12 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	var nonce any = nil
 	for i := 0; i < len(payload); i++ {
 		var bidask []any = ccxt.SafeListTyped(payload, i)
-		if ccxt.IsEqual(timestamp, nil) {
+		if timestamp == nil {
 			timestamp = ccxt.DerefScalar(this.SafeInteger(bidask, 2))
 		} else {
 			var newTimestamp *int64 = this.SafeInteger(bidask, 2)
 			var currentTimestampValue any = func() any {
-				if ccxt.IsEqual(timestamp, nil) {
+				if timestamp == nil {
 					return 0
 				}
 				return timestamp
@@ -584,12 +584,12 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 			}()
 			timestamp = ccxt.MathMax(currentTimestampValue, newTimestampValue)
 		}
-		if ccxt.IsEqual(nonce, nil) {
+		if nonce == nil {
 			nonce = ccxt.DerefScalar(this.SafeInteger(bidask, 0))
 		} else {
 			var newNonce *int64 = this.SafeInteger(bidask, 0)
 			var currentNonceValue any = func() any {
-				if ccxt.IsEqual(nonce, nil) {
+				if nonce == nil {
 					return 0
 				}
 				return nonce
@@ -684,7 +684,7 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
 		}
 		return this.SafeDict(subscriptionsById, id)
 	}()
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if !ccxt.IsEqual(method, nil) {
 			ccxt.CallDynamically(method, client, message, subscription)

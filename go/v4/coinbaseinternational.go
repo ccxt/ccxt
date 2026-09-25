@@ -731,7 +731,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 	var maxEntriesPerRequest int = 100
 	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
+	paramsMaxEntriesPerRequest := maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 
@@ -1305,7 +1305,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	var maxEntriesPerRequest int = 100
 	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
+	paramsMaxEntriesPerRequest := maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]
 	var pageKey string = "ccxtPageKey"
 	if IsEqual(paginate, true) {
 
@@ -1331,7 +1331,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPortfolios, "fetchDepositsWithdrawals", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["time_to"] = this.Iso8601(until)
 	}
@@ -2768,7 +2768,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 	var maxEntriesPerRequest int = 100
 	var maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
+	paramsMaxEntriesPerRequest := maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]
 	var pageKey string = "ccxtPageKey"
 	if paginate {
 

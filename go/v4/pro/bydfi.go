@@ -177,7 +177,7 @@ func (this *Bydfi) watchPrivateBody(ch chan any, messageHashes any, optionalArgs
 		subscription["id"] = id
 	}
 	var paramsResolved any = func() any {
-		if !ccxt.IsEqual(paramsLogin, nil) {
+		if paramsLogin != nil {
 			return paramsLogin
 		}
 		return params

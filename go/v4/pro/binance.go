@@ -245,7 +245,7 @@ func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...a
 			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "streamBySubscriptionsHash"), subscriptionHash, stream)
 		}
 		var subscriptionsByStreams any = this.SafeDict(this.Options, "numSubscriptionsByStream")
-		if ccxt.IsEqual(subscriptionsByStreams, nil) {
+		if subscriptionsByStreams == nil {
 			this.Options.Store("numSubscriptionsByStream", this.CreateSafeDictionary())
 		}
 		var subscriptionsByStream *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "numSubscriptionsByStream"), stream, 0)
@@ -3401,7 +3401,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 		var tickerMarketId *string = this.SafeString(ticker, "s")
 		var tickerMarketsByIdList any = this.SafeList(this.Markets_by_id, tickerMarketId)
 		var numTickerMarkets int = func() int {
-			if ccxt.IsEqual(tickerMarketsByIdList, nil) {
+			if tickerMarketsByIdList == nil {
 				return 0
 			}
 			return ccxt.GetArrayLength(tickerMarketsByIdList)
@@ -3421,7 +3421,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			tickerFallbackType = "spot"
 		}
 		var tickerMarketType any = func() any {
-			if !ccxt.IsEqual(tickerMarketById, nil) {
+			if tickerMarketById != nil {
 				return ccxt.GetValue(tickerMarketById, "type")
 			}
 			return tickerFallbackType
@@ -6696,12 +6696,12 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 		var tradeFee any = this.SafeDict(trade, "fee", map[string]any{})
 		tradeFee = this.Extend(map[string]any{}, tradeFee)
 		var symbol *string = this.SafeString(trade, "symbol")
-		if (orderId != nil) && !ccxt.IsEqual(tradeFee, nil) && (symbol != nil) {
+		if (orderId != nil) && (tradeFee != nil) && (symbol != nil) {
 			var cachedOrders any = this.Orders
 			if !ccxt.IsEqual(cachedOrders, nil) {
 				var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
 				var order any = this.SafeDict(orders, orderId)
-				if !ccxt.IsEqual(order, nil) {
+				if order != nil {
 					// accumulate order fees
 					var fees any = this.SafeValue(order, "fees")
 					var fee any = this.SafeDict(order, "fee")
@@ -6724,7 +6724,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							retRes554132 := ccxt.GetValue(order, "fees")
 							ccxt.AppendToArray(&retRes554132, tradeFee)
 						}
-					} else if !ccxt.IsEqual(fee, nil) {
+					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
 							var feeCost any = this.Sum(ccxt.GetValue(fee, "cost"), ccxt.GetValue(tradeFee, "cost"))
 							var feeCostString any = this.CurrencyToPrecision(ccxt.GetValue(tradeFee, "currency"), feeCost)
@@ -6778,13 +6778,13 @@ func (this *Binance) HandleOrder(client any, message any) {
 		var cachedOrders any = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order any = this.SafeDict(orders, orderId)
-		if !ccxt.IsEqual(order, nil) {
+		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if !ccxt.IsEqual(fee, nil) {
 				parsed["fee"] = fee
 			}
 			var fees any = this.SafeList(order, "fees")
-			if !ccxt.IsEqual(fees, nil) {
+			if fees != nil {
 				ccxt.AddElementToObject(parsed, "fees", fees)
 			}
 			parsed["trades"] = this.SafeValue(order, "trades")
@@ -6980,7 +6980,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 	// handle WebSocketAPI
 	var eventMsg any = this.SafeDict(messageValue3, "event")
 	var messageValue2 any = func() any {
-		if !ccxt.IsEqual(eventMsg, nil) {
+		if eventMsg != nil {
 			return eventMsg
 		}
 		return messageValue3
@@ -6988,14 +6988,14 @@ func (this *Binance) HandleMessage(client any, message any) {
 	// handle combined stream wrapper payloads
 	var eventData any = this.SafeDict(messageValue2, "data")
 	var messageValue any = func() any {
-		if !ccxt.IsEqual(eventData, nil) {
+		if eventData != nil {
 			return eventData
 		}
 		return messageValue2
 	}()
 	var status *string = this.SafeString(messageValue, "status")
 	var error any = this.SafeDict(messageValue, "error")
-	if (!ccxt.IsEqual(error, nil)) || ((status != nil) && (status == nil || *status != "200")) {
+	if ((error != nil)) || ((status != nil) && (status == nil || *status != "200")) {
 		this.HandleWsError(client, messageValue)
 		return
 	}
@@ -7068,7 +7068,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 		//         "A": "2.52500800"
 		//     }
 		//
-		if ccxt.IsEqual(event, nil) && (ccxt.InOp(messageValue, "a")) && (ccxt.InOp(messageValue, "b")) {
+		if (event == nil) && (ccxt.InOp(messageValue, "a")) && (ccxt.InOp(messageValue, "b")) {
 			this.HandleBidsAsks(client, messageValue)
 		}
 	} else {

@@ -1107,7 +1107,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var isV5Linear bool = (linear && (swap || future))
 	if ccxt.IsEqual(typeVar, "spot") {
 		var mode any = nil
-		if ccxt.IsEqual(mode, nil) {
+		if mode == nil {
 			mode = ccxt.DerefScalar(this.SafeString2(this.Options, "watchMyTrades", "mode", "0"))
 			mode = ccxt.DerefScalar(this.SafeString(paramsRequest, "mode", mode))
 			paramsRequest = this.Omit(paramsRequest, "mode")
@@ -1836,7 +1836,7 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	var timestamp *int64 = this.SafeInteger(trade, "tradeTime")
 	var typeVar any = ccxt.DerefScalar(this.SafeString(trade, "type"))
 	var side any = nil
-	if !ccxt.IsEqual(typeVar, nil) {
+	if typeVar != nil {
 		var typeParts []string = ccxt.Split(typeVar, "-")
 		side = ccxt.GetValue(typeParts, 0)
 		typeVar = ccxt.GetValue(typeParts, 1)
@@ -2065,7 +2065,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 		this.Positions = map[string]any{}
 	}
 	var clientPositions any = this.SafeDict(this.Positions, url)
-	if ccxt.IsEqual(clientPositions, nil) {
+	if clientPositions == nil {
 		ccxt.AddElementToObject(this.Positions, url, map[string]any{})
 	}
 	var rawPositions []any = ccxt.SafeListTypedDefault(message, "data", []any{})
@@ -2440,7 +2440,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 		var splitTopic []string = strings.Split(*topic, ".")
 		var messageHash any = ccxt.DerefScalar(this.SafeString(splitTopic, 0))
 		var subscription any = this.SafeDict2(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, ccxt.Add(messageHash, ".*"))
-		if ccxt.IsEqual(subscription, nil) {
+		if subscription == nil {
 			// if subscription not found means that we subscribed to a specific currency/symbol
 			// and we use the first data entry to find it
 			// Example: topic = 'accounts'
@@ -2549,7 +2549,7 @@ func (this *Htx) HandleSubscriptionStatus(client any, message any) {
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id)
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if !ccxt.IsEqual(method, nil) {
 			ccxt.CallDynamically(method, client, message, subscription)
@@ -2885,7 +2885,7 @@ func (this *Htx) HandleErrorMessage(client any, message any) any {
 		}
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 		var subscription any = this.SafeDict(subscriptionsById, id)
-		if !ccxt.IsEqual(subscription, nil) {
+		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
 
 			{
@@ -3416,12 +3416,12 @@ func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash a
 	}
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
 	var paramsOmitted map[string]any = func() map[string]any {
-		if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
+		if symbolsAndTimeframes != nil {
 			return ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
 		}
 		return params
 	}()
-	if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
+	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
 	}
 

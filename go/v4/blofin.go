@@ -1786,7 +1786,7 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var postOnly bool = false
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "post_only")), query)
 	postOnly = GetValueBool(postOnlyqueryVariable, 0, false)
-	query = GetValue(postOnlyqueryVariable, 1)
+	query = postOnlyqueryVariable[1]
 	if postOnly {
 		request["type"] = "post_only"
 	}

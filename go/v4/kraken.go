@@ -2828,8 +2828,8 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	var isMarket bool = (IsEqual(typeVar, "market"))
 	var postOnly any = nil
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted)
-	postOnly = GetValue(postOnlyparamsOmittedVariable, 0)
-	paramsOmitted = GetValue(postOnlyparamsOmittedVariable, 1)
+	postOnly = postOnlyparamsOmittedVariable[0]
+	paramsOmitted = postOnlyparamsOmittedVariable[1]
 	if postOnly == true {
 		AddElementToObject(request, "post_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}

@@ -2905,7 +2905,7 @@ func (this *Bitrue) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		return mathMin(limit, 1000)
 	}()
-	if !IsEqual(limitResolved, nil) {
+	if limitResolved != nil {
 		request["limit"] = limitResolved
 	}
 	if market["swap"] == true {
@@ -3541,7 +3541,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return mathMin(limit, 200)
 	}()
-	if !IsEqual(limitResolved, nil) {
+	if limitResolved != nil {
 		request["limit"] = limitResolved
 	}
 	var until *int64 = this.SafeInteger(params, "until")

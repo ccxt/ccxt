@@ -2813,7 +2813,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		// 9 Suspending of Trade
 		var created *int64 = nil
 		var createdDate any = DerefScalar(this.SafeString(market, "create_date")) // i.e 20230101
-		if !IsEqual(createdDate, nil) {
+		if createdDate != nil {
 			var createdArray []string = this.StringToCharsArray(createdDate)
 			createdDate = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(GetValue(createdArray, 0), GetValue(createdArray, 1)), GetValue(createdArray, 2)), GetValue(createdArray, 3)), "-"), GetValue(createdArray, 4)), GetValue(createdArray, 5)), "-"), GetValue(createdArray, 6)), GetValue(createdArray, 7)), " 00:00:00")
 			created = this.Parse8601(createdDate)
@@ -3557,7 +3557,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	var order *string = this.SafeString2(trade, "order-id", "order_id")
 	var side any = DerefScalar(this.SafeString2(trade, "direction", "side"))
 	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
-	if (!IsEqual(typeVar, nil)) && (GetIndexOf(typeVar, "-") >= 0) {
+	if ((typeVar != nil)) && (GetIndexOf(typeVar, "-") >= 0) {
 		var typeParts []string = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
 		typeVar = GetValue(typeParts, 1)
@@ -4132,7 +4132,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 				calcualtedEnd = this.Sum(start, Multiply(duration, (Subtract(contractLimit, 1))))
 			}
 			request["to"] = func() any {
-				if !IsEqual(untilSeconds, nil) {
+				if untilSeconds != nil {
 					return untilSeconds
 				}
 				return calcualtedEnd
@@ -4213,7 +4213,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 			if since != nil {
 				request["from"] = this.ParseToInt(float64(*since) / 1000)
 			}
-			if !IsEqual(untilSeconds, nil) {
+			if untilSeconds != nil {
 				request["to"] = untilSeconds
 			}
 			if limit != nil {

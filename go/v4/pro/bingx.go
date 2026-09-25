@@ -149,7 +149,7 @@ func (this *Bingx) unWatchBody(ch chan any, messageHash any, subMessageHash any,
 		"topic":            topic,
 	}
 	var symbolsAndTimeframes any = this.SafeList(query, "symbolsAndTimeframes")
-	if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
+	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
 		query = this.Omit(query, "symbolsAndTimeframes")
 	}

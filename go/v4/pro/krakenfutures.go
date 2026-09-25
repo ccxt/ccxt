@@ -1033,7 +1033,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var previousOrder any = this.SafeDict(previousOrders, orderId)
 		var reason *string = this.SafeString(message, "reason")
-		if (ccxt.IsEqual(previousOrder, nil)) || (reason != nil && *reason == "edited_by_user") {
+		if ((previousOrder == nil)) || (reason != nil && *reason == "edited_by_user") {
 			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
 			orders.(ccxt.Appender).Append(parsed)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)

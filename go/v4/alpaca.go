@@ -2853,7 +2853,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 				baseId = Slice(positionSymbol, 0, baseLength)
 			}
 		}
-		if IsEqual(baseId, nil) {
+		if baseId == nil {
 			continue
 		}
 		var positionCode *string = this.SafeCurrencyCode(baseId)

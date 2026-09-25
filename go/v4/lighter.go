@@ -624,7 +624,7 @@ func (this *Lighter) HandleApiKeyIndex(params any, methodName1 string, optionNam
 	_ = defaultValue
 	var apiKeyIndexOptionparamsApiKeyIndexVariable []any = this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
 	apiKeyIndexOption := GetValue(apiKeyIndexOptionparamsApiKeyIndexVariable, 0)
-	paramsApiKeyIndex := GetValue(apiKeyIndexOptionparamsApiKeyIndexVariable, 1)
+	paramsApiKeyIndex := apiKeyIndexOptionparamsApiKeyIndexVariable[1]
 	var apiKeyIndex any = apiKeyIndexOption
 	if (IsEqual(apiKeyIndex, nil)) || (IsLessThan(apiKeyIndex, 4)) || (IsGreaterThan(apiKeyIndex, 254)) {
 		// apiKeyIndex = this.randNumber (2);
@@ -645,7 +645,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 	_ = defaultValue
 	var accountIndexOptionparamsAccountIndexVariable []any = this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
 	accountIndexOption := GetValue(accountIndexOptionparamsAccountIndexVariable, 0)
-	paramsAccountIndex := GetValue(accountIndexOptionparamsAccountIndexVariable, 1)
+	paramsAccountIndex := accountIndexOptionparamsAccountIndexVariable[1]
 	var accountIndex any = accountIndexOption
 	if IsEqual(accountIndex, nil) {
 		var walletAddress any = this.WalletAddress
@@ -1014,10 +1014,10 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
 	var accountIndexparamsAccountIndexVariable []any = this.HandleOptionAndParams2(paramsApiKeyIndex, "createOrder", "accountIndex", "account_index")
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
-	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
+	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var nonceparamsNonceVariable []any = this.HandleOptionAndParams(paramsAccountIndex, "createOrder", "nonce")
 	nonce := GetValue(nonceparamsNonceVariable, 0)
-	paramsNonce := GetValue(nonceparamsNonceVariable, 1)
+	paramsNonce := nonceparamsNonceVariable[1]
 	orderExpiryOption, paramsOrderExpiry := this.HandleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0)
 	var orderExpiry any = orderExpiryOption
 	if !IsEqual(nonce, nil) {
@@ -1595,7 +1595,7 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			typeVar = SafeStringPtr("swap")
 		}
 		var baseId any = DerefScalar(this.SafeString(market, "symbol"))
-		if !IsEqual(baseId, nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
+		if (baseId != nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
 		var quoteId string = "USDC"
@@ -3168,7 +3168,7 @@ func (this *Lighter) transferBody(ch chan any, code string, amount any, fromAcco
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var toAccountIndexparamsToAccountIndexVariable []any = this.HandleOptionAndParams2(paramsAccountIndex, "transfer", "toAccountIndex", "to_account_index", accountIndex)
 	toAccountIndex := GetValue(toAccountIndexparamsToAccountIndexVariable, 0)
-	paramsToAccountIndex := GetValue(toAccountIndexparamsToAccountIndexVariable, 1)
+	paramsToAccountIndex := toAccountIndexparamsToAccountIndexVariable[1]
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -3743,7 +3743,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(paramsApiKeyIndex, "fetchMyTrades", "until", "from")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["from"] = until
 	}

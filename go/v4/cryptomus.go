@@ -524,7 +524,7 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
 		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		// set ID on first loop
-		if IsEqual(id, nil) {
+		if id == nil {
 			id = DerefScalar(this.SafeString(networkEntry, "currency_code"))
 			code = DerefScalar(this.SafeCurrencyCode(id))
 		}
@@ -679,7 +679,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol string, optionalAr
 	var level int = 0
 	var levelOptionparamsLevelVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrderBook", "level", level)
 	levelOption := GetValue(levelOptionparamsLevelVariable, 0)
-	paramsLevel := GetValue(levelOptionparamsLevelVariable, 1)
+	paramsLevel := levelOptionparamsLevelVariable[1]
 	request["level"] = levelOption
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, paramsLevel))).Raw))

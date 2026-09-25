@@ -2169,7 +2169,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var uta any = false
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(paramsRequest, "fetchMarkets", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	if uta == true {
 
 		var retRes164319 []any = ListTyped(PanicOnError((<-this.FetchUTAMarketsAsync(paramsRequest))))
@@ -2514,7 +2514,7 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) a
 			limitAmountMax = this.SafeNumber(market, "baseMaxSize")
 		}
 		var limitPriceMax any = DerefScalar(this.SafeNumber(market, "maxPrice"))
-		if IsEqual(limitPriceMax, nil) {
+		if limitPriceMax == nil {
 			var baseMinSizeString *string = this.SafeString(market, "baseMinSize")
 			var quoteMaxSizeString *string = this.SafeString(market, "quoteMaxSize")
 			limitPriceMax = this.ParseNumber(Precise.StringDiv(quoteMaxSizeString, baseMinSizeString))
@@ -4014,7 +4014,7 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOHLCV", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var priceType *string = this.SafeString(paramsRequest, "price")
 	if (priceType != nil) && (!(uta == true)) {
 		uta = true // mark, index, premiumIndex price types are only available for UTA
@@ -4440,7 +4440,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	PanicOnError(uta)
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(paramsRequest, "fetchDepositAddress", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	if accountType == "contract" {
 
 		var retRes364619 map[string]any = MapTyped(PanicOnError((<-this.FetchContractDepositAddressAsync(code, paramsRequest))))
@@ -4602,7 +4602,7 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchDepositAddressesByNetwork", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var response map[string]any = nil
 	if uta == true {
 		var networkCode *string = nil
@@ -5125,8 +5125,8 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, am
 	}
 	var postOnly any = nil
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsOmitted)
-	postOnly = GetValue(postOnlyparamsOmittedVariable, 0)
-	paramsOmitted = GetValue(postOnlyparamsOmittedVariable, 1)
+	postOnly = postOnlyparamsOmittedVariable[0]
+	paramsOmitted = postOnlyparamsOmittedVariable[1]
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -5349,8 +5349,8 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	}
 	var postOnly any = nil
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), false, paramsOmitted)
-	postOnly = GetValue(postOnlyparamsOmittedVariable, 0)
-	paramsOmitted = GetValue(postOnlyparamsOmittedVariable, 1)
+	postOnly = postOnlyparamsOmittedVariable[0]
+	paramsOmitted = postOnlyparamsOmittedVariable[1]
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -5528,8 +5528,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar string, side strin
 	}
 	var postOnly any = nil
 	var postOnlyparamsRequestVariable []any = this.HandlePostOnly(isMarketOrder, false, paramsRequest)
-	postOnly = GetValue(postOnlyparamsRequestVariable, 0)
-	paramsRequest = GetValue(postOnlyparamsRequestVariable, 1)
+	postOnly = postOnlyparamsRequestVariable[0]
+	paramsRequest = postOnlyparamsRequestVariable[1]
 	var timeInForce any = this.HandleTimeInForce(paramsRequest)
 	var paramsOmitted any = func() any {
 		if timeInForce != nil {
@@ -6771,7 +6771,7 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOrdersByStatus", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var marketType any = nil
 	if symbol == nil {
 		var typeVar *string = this.SafeString(paramsRequest, "type") // exchange has specific param for order type
@@ -7385,7 +7385,7 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOrder", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var paramsOmitted any = paramsRequest
 	if uta == true {
 		paramsOmitted = this.Omit(paramsRequest, "uta")
@@ -8335,7 +8335,7 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(uta)
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(paramsRequest, "fetchMyTrades", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	if uta == true {
 		paramsRequest = this.Extend(paramsRequest, map[string]any{
 			"marketType": marketType,
@@ -8518,7 +8518,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	// v1 may put a bare list or dict under data; normalize once for parseTrades
 	var tradesList []any = []any{}
-	if !IsEqual(trades, nil) {
+	if trades != nil {
 		tradesList = this.ToArray(trades)
 	}
 
@@ -9468,11 +9468,11 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var address any = DerefScalar(this.SafeString(transaction, "address"))
 	var amount *string = this.SafeString(transaction, "amount")
 	var txid any = DerefScalar(this.SafeString(transaction, "walletTxId"))
-	if !IsEqual(txid, nil) {
+	if txid != nil {
 		var txidParts []string = Split(txid, "@")
 		var numTxidParts int = len(txidParts)
 		if numTxidParts > 1 {
-			if IsEqual(address, nil) {
+			if address == nil {
 				if GetLength(GetValue(txidParts, 1)) > 1 {
 					address = GetValue(txidParts, 1)
 				}
@@ -9481,7 +9481,7 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 		txid = GetValue(txidParts, 0)
 	}
 	var typeVar string = "deposit"
-	if IsEqual(txid, nil) {
+	if txid == nil {
 		typeVar = "withdrawal"
 	}
 	var rawStatus *string = this.SafeString(transaction, "status")
@@ -11065,7 +11065,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchLedger", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var hf any = nil
 	hfparamsRequestVariable := this.HandleHfAndParams(paramsRequest)
 	hf = GetValue(hfparamsRequestVariable, 0)
@@ -12144,7 +12144,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage int64, optionalArgs ..
 	PanicOnError(uta)
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(paramsRequest, "setLeverage", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var response any = map[string]any{}
 	if uta == true {
 		if marginMode != nil && *marginMode == "isolated" {
@@ -12659,7 +12659,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchFundingHistory", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	if symbol != nil {
@@ -12980,7 +12980,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchPositionsHistory", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
@@ -13321,7 +13321,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	var paramsRequest any = nil
 	var utaparamsRequestVariable []any = this.HandleOptionBoolAndParamsNullable(params, "cancelOrders", "uta", uta)
 	uta = GetValue(utaparamsRequestVariable, 0)
-	paramsRequest = GetValue(utaparamsRequestVariable, 1)
+	paramsRequest = utaparamsRequestVariable[1]
 	var market map[string]any = nil
 	var isContractMarket any = true // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
 	if symbol != nil {

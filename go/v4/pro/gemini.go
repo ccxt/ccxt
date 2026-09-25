@@ -418,7 +418,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	var ohlcvsBySymbol any = this.SafeDict(this.Ohlcvs, symbol)
-	if ccxt.IsEqual(ohlcvsBySymbol, nil) {
+	if ohlcvsBySymbol == nil {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)

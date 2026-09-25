@@ -1154,7 +1154,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol string, optionalAr
 		var toTimestamp any = this.Sum(request["from"], Subtract(Multiply(windowLimit, duration), 1))
 		var currentTimestamp int64 = this.Seconds()
 		request["to"] = mathMin(toTimestamp, currentTimestamp)
-	} else if !IsEqual(limitResolved, nil) {
+	} else if limitResolved != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["to"] = this.Seconds()
 		request["from"] = this.ParseToInt(Subtract(request["to"], (Multiply(duration, limitResolved))))

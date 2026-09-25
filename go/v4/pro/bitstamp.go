@@ -996,7 +996,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message any) {
 	}
 	var unsubHash string = "unsubscribe:" + *channel
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash)
-	if ccxt.IsEqual(subscription, nil) {
+	if subscription == nil {
 		return
 	}
 	var subHash *string = this.SafeString(subscription, "subHash")

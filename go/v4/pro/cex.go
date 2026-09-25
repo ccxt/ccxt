@@ -500,7 +500,7 @@ func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) any {
 		symbol = ccxt.SafeStringPtr(*base + "/" + *quote)
 	}
 	var timestamp any = ccxt.DerefScalar(this.SafeInteger(ticker, "timestamp"))
-	if !ccxt.IsEqual(timestamp, nil) {
+	if timestamp != nil {
 		timestamp = ccxt.Multiply(timestamp, 1000)
 	}
 	return this.SafeTicker(map[string]any{

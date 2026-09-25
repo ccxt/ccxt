@@ -2423,7 +2423,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		request["amount"] = quantity
 	}
 	if postOnly {
-		if (!IsEqual(postOnlyParsed, nil)) && (!IsEqual(postOnlyParsed, 0)) {
+		if ((postOnlyParsed != nil)) && (!IsEqual(postOnlyParsed, 0)) {
 			request["post_only"] = postOnlyParsed
 		} else {
 			request["post_only"] = postOnly
@@ -2767,7 +2767,7 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		timestamp = this.SafeTimestamp(order, "created_date")
 		lastTradeTimestamp = this.SafeTimestamp(order, "finished_date")
-		if !IsEqual(side, nil) {
+		if side != nil {
 			var parts []string = Split(side, "_")
 			var numParts int = len(parts)
 			if numParts > 1 {

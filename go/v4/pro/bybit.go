@@ -756,7 +756,7 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = this.ParseTicker(merged)
 	}
-	if (ccxt.IsEqual(parsed, nil)) || (ccxt.IsEqual(symbol, nil)) {
+	if (ccxt.IsEqual(parsed, nil)) || ((symbol == nil)) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
@@ -1076,7 +1076,7 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var ohlcvsByTimeframe any = this.SafeDict(this.Ohlcvs, symbol)
-	if ccxt.IsEqual(ohlcvsByTimeframe, nil) {
+	if ohlcvsByTimeframe == nil {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
 	if ccxt.IsEqual(this.SafeValue(ohlcvsByTimeframe, timeframe), nil) {

@@ -1216,7 +1216,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
 	}
@@ -1876,7 +1876,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchDeposits", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -1932,7 +1932,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchWithdrawals", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["to"] = until
 	}

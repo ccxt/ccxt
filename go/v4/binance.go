@@ -13741,7 +13741,7 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 	var initialMarginPercentageString *string = nil
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
-		if IsEqual(leverage, nil) {
+		if leverage == nil {
 			panic(ExchangeError(this.Id + " method() missing leverage"))
 		}
 		var rational bool = this.IsRoundNumber(Mod(1000, leverage))

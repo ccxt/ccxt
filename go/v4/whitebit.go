@@ -1643,7 +1643,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 			},
 		}
 		// Add fee information if available
-		if !IsEqual(feeData, nil) {
+		if feeData != nil {
 			var depositFee any = GetValue(feeData, "deposit")
 			var withdrawFee any = GetValue(feeData, "withdraw")
 			if !IsEqual(depositFee, nil) {

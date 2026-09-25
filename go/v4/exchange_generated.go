@@ -4869,11 +4869,11 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 	var requestParams any = params
 	var retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable []any = this.HandleOptionIntegerAndParamsNullable(requestParams, path, "maxRetriesOnFailure", retries)
 	retriesMaxRetriesOnFailure := GetValue(retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable, 0)
-	paramsMaxRetriesOnFailure := GetValue(retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable, 1)
+	paramsMaxRetriesOnFailure := retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable[1]
 	var retryDelay int = 0
 	var retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsMaxRetriesOnFailure, path, "maxRetriesOnFailureDelay", retryDelay)
 	retryDelayMaxRetriesOnFailureDelay := GetValue(retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable, 0)
-	paramsMaxRetriesOnFailureDelay := GetValue(retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable, 1)
+	paramsMaxRetriesOnFailureDelay := retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable[1]
 	var fetchDataCacheEnabled bool = IsGreaterThan(this.FetchHistoryCacheSize, 0)
 	for i := 0; IsLessThan(i, Add(retriesMaxRetriesOnFailure, 1)); i++ {
 		var fetchData any = nil
@@ -7701,7 +7701,7 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 	_ = params
 	var newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxEntriesPerRequest")
 	newMaxEntriesPerRequest := GetValue(newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable, 1)
+	paramsMaxEntriesPerRequest := newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]
 	var maxEntriesPerRequestOption any = func() any {
 		if !IsEqual(newMaxEntriesPerRequest, nil) {
 			return newMaxEntriesPerRequest
@@ -7739,11 +7739,11 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
-	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
+	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
-	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
+	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	var paginationDirectionparamsPaginationDirectionVariable []any = this.HandleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward")
 	paginationDirection := GetValue(paginationDirectionparamsPaginationDirectionVariable, 0)
 	paramsPaginationDirection := GetValue(paginationDirectionparamsPaginationDirectionVariable, 1)
@@ -7887,7 +7887,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
-	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
+	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	var errors any = 0
 	for IsLessThanOrEqual(errors, maxRetriesOption) {
 
@@ -7958,7 +7958,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
-	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
+	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
@@ -8052,11 +8052,11 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
-	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
+	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
-	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
+	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
@@ -8206,11 +8206,11 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
 	maxCallsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 0)
-	paramsPaginationCalls := GetValue(maxCallsPaginationCallsparamsPaginationCallsVariable, 1)
+	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
 	maxRetriesOption := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 0)
-	paramsMaxRetries := GetValue(maxRetriesOptionparamsMaxRetriesVariable, 1)
+	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)

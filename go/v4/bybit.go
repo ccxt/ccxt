@@ -5616,8 +5616,8 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var timeInForce *string = this.SafeStringLower(query, "timeInForce") // this is same as exchange specific param
 		var postOnly any = nil
 		var postOnlyqueryVariable []any = this.HandlePostOnly(isMarket, (timeInForce != nil && *timeInForce == "postonly"), query)
-		postOnly = GetValue(postOnlyqueryVariable, 0)
-		query = GetValue(postOnlyqueryVariable, 1)
+		postOnly = postOnlyqueryVariable[0]
+		query = postOnlyqueryVariable[1]
 		if postOnly == true {
 			request["timeInForce"] = "PostOnly"
 		} else if timeInForce != nil && *timeInForce == "gtc" {
@@ -9704,7 +9704,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 	request["startTime"] = sinceResolved
 	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
-	if IsEqual(endTime, nil) {
+	if endTime == nil {
 		endTime = Add(sinceResolved, 86400000*30) // since + 30 days
 	}
 	request["endTime"] = endTime

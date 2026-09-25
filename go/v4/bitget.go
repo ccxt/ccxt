@@ -3626,7 +3626,7 @@ func (this *Bitget) handleUTAAndParamsBody(ch chan any, params any, methodName a
 	_ = defaultValue
 	var utaparamsUtaVariable []any = this.HandleOptionAndParams(params, methodName, "uta")
 	uta := GetValue(utaparamsUtaVariable, 0)
-	paramsUta := GetValue(utaparamsUtaVariable, 1)
+	paramsUta := utaparamsUtaVariable[1]
 	if !IsEqual(uta, nil) {
 
 		ch <- []any{uta, paramsUta}
@@ -7918,8 +7918,8 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		var exchangeSpecificTifParam *string = this.SafeString(paramsProductType, "timeInForce")
 		var postOnly any = nil
 		var postOnlyparamsProductTypeVariable []any = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsProductType)
-		postOnly = GetValue(postOnlyparamsProductTypeVariable, 0)
-		paramsProductType = GetValue(postOnlyparamsProductTypeVariable, 1)
+		postOnly = postOnlyparamsProductTypeVariable[0]
+		paramsProductType = postOnlyparamsProductTypeVariable[1]
 		var timeInForce any = nil
 		timeInForceparamsProductTypeVariable := TupleSlice(this.HandleOptionStringAndParams(paramsProductType, "createOrder", "timeInForce"))
 		timeInForce = GetValue(timeInForceparamsProductTypeVariable, 0)
@@ -8032,8 +8032,8 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var exchangeSpecificTifParam *string = this.SafeString2(paramsMarketType, "force", "timeInForce")
 	var postOnly any = nil
 	var postOnlyparamsMarketTypeVariable []any = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsMarketType)
-	postOnly = GetValue(postOnlyparamsMarketTypeVariable, 0)
-	paramsMarketType = GetValue(postOnlyparamsMarketTypeVariable, 1)
+	postOnly = postOnlyparamsMarketTypeVariable[0]
+	paramsMarketType = postOnlyparamsMarketTypeVariable[1]
 	var timeInForce any = nil
 	timeInForceparamsMarketTypeVariable := TupleSlice(this.HandleOptionStringAndParams(paramsMarketType, "createOrder", "timeInForce"))
 	timeInForce = GetValue(timeInForceparamsMarketTypeVariable, 0)
@@ -11768,7 +11768,7 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) any {
 	var liquidationPrice any = this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidationPrice")))
 	var calcTakerFeeRate string = "0.0006"
 	var calcTakerFeeMult string = "0.9994"
-	if (IsEqual(liquidationPrice, nil)) && (marginMode != nil && *marginMode == "isolated") && Precise.StringGt(baseAmount, "0") {
+	if ((liquidationPrice == nil)) && (marginMode != nil && *marginMode == "isolated") && Precise.StringGt(baseAmount, "0") {
 		var signedMargin *string = Precise.StringDiv(rawCollateral, baseAmount)
 		var signedMmp *string = maintenanceMarginPercentage
 		if side != nil && *side == "short" {

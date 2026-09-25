@@ -1390,7 +1390,7 @@ func (this *Aster) ParseMarket(market any) any {
 	var filterLotSize map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 	var filterMarketLotSize map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
 	var pricePrecision any = DerefScalar(this.SafeNumber(filterPrice, "tickSize"))
-	if IsEqual(pricePrecision, nil) {
+	if pricePrecision == nil {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
 	var amountPrecision *float64 = func() *float64 {
@@ -4858,7 +4858,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var initialMarginPercentageString *string = nil
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
-		if IsEqual(leverage, nil) {
+		if leverage == nil {
 			panic(ExchangeError(this.Id + " parseAccountPosition() missing leverage"))
 		}
 		var rational bool = this.IsRoundNumber(Mod(1000, leverage))

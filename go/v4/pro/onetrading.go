@@ -1217,7 +1217,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId any = this.SafeDict(timeframes, timeframe)
-	if ccxt.IsEqual(timeframeId, nil) {
+	if timeframeId == nil {
 		panic(ccxt.NotSupported(this.Id + " this interval is not supported, please provide one of the supported timeframes"))
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbolValue+".", timeframe))
@@ -1227,7 +1227,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	var subscription any = map[string]any{}
 	if !ccxt.IsEqual(client, nil) {
 		subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
-		if !ccxt.IsEqual(subscription, nil) {
+		if subscription != nil {
 			var ohlcvMarket map[string]any = ccxt.SafeMapTyped(subscription, marketId)
 			var marketSubscribed *bool = this.SafeBool(ohlcvMarket, timeframe, false)
 			if marketSubscribed == nil || *marketSubscribed != true {
@@ -1239,7 +1239,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol string, optionalArgs 
 		}
 	}
 	var subscriptionMarketId any = this.SafeDict(subscription, marketId)
-	if ccxt.IsEqual(subscriptionMarketId, nil) {
+	if subscriptionMarketId == nil {
 		if marketId != nil {
 			ccxt.AddElementToObject(subscription, marketId, map[string]any{})
 		}
@@ -1485,7 +1485,7 @@ func (this *Onetrading) watchManyBody(ch chan any, messageHash string, request a
 	var subscription any = map[string]any{}
 	if !ccxt.IsEqual(client, nil) {
 		subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
-		if !ccxt.IsEqual(subscription, nil) {
+		if subscription != nil {
 			for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 				var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 				var marketSubscribed *bool = this.SafeBool(subscription, marketId, false)
@@ -1523,7 +1523,7 @@ func (this *Onetrading) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsEqual(authenticated, nil) {
+	if authenticated == nil {
 		this.CheckRequiredCredentials()
 		var request map[string]any = map[string]any{
 			"type":      "AUTHENTICATE",

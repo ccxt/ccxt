@@ -303,7 +303,7 @@ func (this *Bithumb) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var content any = this.SafeDict(message, "content")
-	var isGenerationTwo bool = (ccxt.IsEqual(content, nil))
+	var isGenerationTwo bool = ((content == nil))
 	var tickerMessage any = nil
 	if isGenerationTwo {
 		tickerMessage = message
@@ -785,7 +785,7 @@ func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 	//
 	var content map[string]any = ccxt.SafeMapTyped(message, "content")
 	var rawTrades any = this.SafeList(content, "list")
-	if ccxt.IsEqual(rawTrades, nil) {
+	if rawTrades == nil {
 		rawTrades = []any{message}
 	}
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {

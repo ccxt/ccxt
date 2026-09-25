@@ -1538,11 +1538,11 @@ func (this *Bingx) ParseMarket(market any) any {
 	}
 	var settle *string = this.SafeCurrencyCode(currency)
 	var pricePrecision any = DerefScalar(this.SafeNumber(market, "tickSize"))
-	if IsEqual(pricePrecision, nil) {
+	if pricePrecision == nil {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
 	var quantityPrecision any = DerefScalar(this.SafeNumber(market, "stepSize"))
-	if IsEqual(quantityPrecision, nil) {
+	if quantityPrecision == nil {
 		quantityPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
 	var typeVar string = "spot"

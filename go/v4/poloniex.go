@@ -3439,7 +3439,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 		}
 		return this.SafeDict(currency["networks"], networkCode)
 	}()
-	if !IsEqual(networkEntry, nil) {
+	if networkEntry != nil {
 		exchangeNetworkId = GetValue(networkEntry, "id")
 	} else {
 		exchangeNetworkId = networkCode

@@ -211,7 +211,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 		ticker = this.ParseWsTicker(rawTicker, market)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
-	} else if !ccxt.IsEqual(rawTicker, nil) {
+	} else if rawTicker != nil {
 		ticker = this.ParseTicker(rawTicker, market)
 	} else {
 		return
@@ -1238,7 +1238,7 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	}
 	var d any = this.SafeDictN(message, []any{"d", "publicAggreDeals"})
 	var trades any = this.SafeList2(d, "deals", "dealsList", []any{d})
-	if ccxt.IsEqual(d, nil) {
+	if d == nil {
 		trades = this.SafeList(message, "data", []any{})
 	}
 	for j := 0; j < ccxt.GetArrayLength(trades); j++ {
@@ -1366,7 +1366,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	var trade any = nil
 	if market["spot"] == true {
 		trade = this.ParseWsTrade(data, market)
-	} else if !ccxt.IsEqual(data, nil) {
+	} else if data != nil {
 		trade = this.ParseTrade(data, market)
 	} else {
 		return
@@ -1629,7 +1629,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 		if sendTime != nil {
 			ccxt.AddElementToObject(parsed, "lastTradeTimestamp", sendTime)
 		}
-	} else if !ccxt.IsEqual(data, nil) {
+	} else if data != nil {
 		parsed = this.ParseOrder(data, market)
 	} else {
 		return

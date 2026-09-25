@@ -1070,7 +1070,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets := (<-this.base.LoadMarketsAsync(reload, params))
 	ccxt.PanicOnError(markets)
 	var marketsByWsName any = this.SafeDict(this.Options, "marketsByWsName")
-	if (ccxt.IsEqual(marketsByWsName, nil)) || (reload == true) {
+	if ((marketsByWsName == nil)) || (reload == true) {
 		marketsByWsName = map[string]any{}
 		var symbols []string = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
 		if !ccxt.IsEqual(symbols, nil) {
@@ -1701,12 +1701,12 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			var previousOrders map[string]any = ccxt.SafeMapTyped(stored.(*ccxt.ArrayCache).Hashmap, symbol)
 			var previousOrder any = this.SafeDict(previousOrders, id)
 			var newOrder any = parsed
-			if !ccxt.IsEqual(previousOrder, nil) {
+			if previousOrder != nil {
 				var newRawOrder map[string]any = this.Extend(ccxt.GetValue(previousOrder, "info"), ccxt.GetValue(newOrder, "info"))
 				newOrder = this.ParseWsOrder(newRawOrder)
 			}
 			var length int = ccxt.GetArrayLength(stored)
-			if ccxt.IsEqual(length, limit) && (ccxt.IsEqual(previousOrder, nil)) {
+			if ccxt.IsEqual(length, limit) && ((previousOrder == nil)) {
 				var first any = ccxt.GetValue(stored, 0)
 				var symbolsByOrderId any = this.SafeDict(this.Options, "symbolsByOrderId", map[string]any{})
 				if ccxt.InOp(symbolsByOrderId, ccxt.GetValue(first, "id")) {

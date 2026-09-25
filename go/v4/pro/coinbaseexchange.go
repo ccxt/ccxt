@@ -95,7 +95,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name string, optionalAr
 		productIds = append(productIds, market["id"])
 	}
 	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
-	if ccxt.IsEqual(url, nil) {
+	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
 	if _, ok := params["signature"]; ok {
@@ -144,7 +144,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, op
 		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", market["symbol"]))
 	}
 	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
-	if ccxt.IsEqual(url, nil) {
+	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
 	if _, ok := params["signature"]; ok {
@@ -869,10 +869,10 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 		}
 		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var previousOrder any = this.SafeDict(previousOrders, orderId)
-		if ccxt.IsEqual(previousOrder, nil) {
+		if previousOrder == nil {
 			previousOrder = this.SafeDictN(previousOrders, []any{makerOrderId, takerOrderId})
 		}
-		if ccxt.IsEqual(previousOrder, nil) {
+		if previousOrder == nil {
 			var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 			orders.(ccxt.Appender).Append(parsed)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)

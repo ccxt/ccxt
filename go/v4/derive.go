@@ -3443,7 +3443,7 @@ func (this *Derive) ParseTransactionStatus(status *string) *string {
 func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) any {
 	var derivesubAccountIdparamsSubaccountIdVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
 	derivesubAccountId := GetValue(derivesubAccountIdparamsSubaccountIdVariable, 0)
-	paramsSubaccountId := GetValue(derivesubAccountIdparamsSubaccountIdVariable, 1)
+	paramsSubaccountId := derivesubAccountIdparamsSubaccountIdVariable[1]
 	if (!IsEqual(derivesubAccountId, nil)) && ((derivesubAccountId != "")) {
 		this.Options.Store("subaccount_id", derivesubAccountId) // saving in options
 		return []any{derivesubAccountId, paramsSubaccountId}

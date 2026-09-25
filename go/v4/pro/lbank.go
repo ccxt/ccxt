@@ -1225,7 +1225,7 @@ func (this *Lbank) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}()
 			// try block:
 			var authenticated any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
-			if ccxt.IsEqual(authenticated, nil) {
+			if authenticated == nil {
 
 				response := (<-this.SpotPrivatePostSubscribeGetKey(params))
 				ccxt.PanicOnError(response)

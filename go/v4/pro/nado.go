@@ -2359,7 +2359,7 @@ func (this *Nado) HandleExecuteResponse(client any, message any) {
 func (this *Nado) HandleSubscription(client any, message any) {
 	var id *string = this.SafeString(message, "id")
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
 		client.(ccxt.ClientInterface).Resolve(message, subscribeHash)
@@ -2377,7 +2377,7 @@ func (this *Nado) HandleAuthentication(client any, message any) {
 func (this *Nado) HandleUnsubscription(client any, message any) {
 	var id *string = this.SafeString(message, "id")
 	var unsubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", id))
-	if !ccxt.IsEqual(unsubscription, nil) {
+	if unsubscription != nil {
 		var messageHash *string = this.SafeString(unsubscription, "messageHash")
 		var unsubscribeHash *string = this.SafeString(unsubscription, "unsubscribeHash")
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", id))
@@ -2500,7 +2500,7 @@ func (this *Nado) HandleErrorMessage(client any, message any) bool {
 		}
 	}
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
 		client.(ccxt.ClientInterface).Reject(feedback, subscribeHash)
@@ -2536,7 +2536,7 @@ func (this *Nado) HandleMessage(client any, message any) {
 			return
 		}
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), "subscription:"+*id)
-		if !ccxt.IsEqual(subscription, nil) {
+		if subscription != nil {
 			this.HandleSubscription(client, message)
 			return
 		}

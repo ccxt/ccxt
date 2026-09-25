@@ -2814,7 +2814,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	}()
 	var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 	var order any = this.SafeDict(orders, orderId)
-	if !ccxt.IsEqual(order, nil) {
+	if order != nil {
 		if this.SafeString(order, "status") != nil && *this.SafeString(order, "status") == "closed" {
 			parsed["status"] = "closed"
 		}
@@ -2840,7 +2840,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	if (rawType != nil && *rawType == "match") && (matchPrice != nil) && (matchSize != nil) {
 		var matchCost *string = ccxt.Precise.StringMul(matchPrice, matchSize)
 		var previousCost *string = func() *string {
-			if ccxt.IsEqual(order, nil) {
+			if order == nil {
 				return ccxt.SafeStringPtr("0")
 			}
 			return this.NumberToString(this.SafeNumber(order, "cost", 0))

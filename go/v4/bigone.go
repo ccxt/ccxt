@@ -1849,8 +1849,8 @@ func (this *Bigone) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var postOnly any = nil
 	var query any = nil
 	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
-	postOnly = GetValue(postOnlyqueryVariable, 0)
-	query = GetValue(postOnlyqueryVariable, 1)
+	postOnly = postOnlyqueryVariable[0]
+	query = postOnlyqueryVariable[1]
 	var triggerPrice *string = this.SafeStringN(query, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var request map[string]any = map[string]any{
 		"asset_pair_name": market["id"],

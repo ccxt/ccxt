@@ -4036,14 +4036,14 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		return mathMin(200, limit)
 	}()
-	if !IsEqual(limitResolved, nil) {
+	if limitResolved != nil {
 		request["limit"] = limitResolved
 	}
 	var isUSDTSettled bool = (typeVar == nil || *typeVar != "spot") && ((symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT"))
 	if isUSDTSettled {
 		request["currency"] = "USDT"
 		request["offset"] = 0
-		if IsEqual(limitResolved, nil) {
+		if limitResolved == nil {
 			request["limit"] = 200
 		}
 	} else if (symbol != nil) && (market != nil) {

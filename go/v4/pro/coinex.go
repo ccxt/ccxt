@@ -1155,7 +1155,7 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot")
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(typeVar)))
-	if !ccxt.IsEqual(symbolResolved, nil) {
+	if symbolResolved != nil {
 		marketList = []any{ccxt.GetValue(market, "id")}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	} else {
@@ -1670,7 +1670,7 @@ func (this *Coinex) HandleAuthenticationMessage(client any, message map[string]a
 func (this *Coinex) HandleSubscriptionStatus(client any, message any) {
 	var id *int64 = this.SafeInteger(message, "id")
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), id)
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var futureIndex *string = this.SafeString(subscription, "future")
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), futureIndex)
 		if !ccxt.IsEqual(future, nil) {

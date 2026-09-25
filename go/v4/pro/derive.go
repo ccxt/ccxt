@@ -351,7 +351,7 @@ func (this *Derive) unWatchOrderBookBody(ch chan any, symbol string, optionalArg
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var limit any = ccxt.DerefScalar(this.SafeInteger(params, "limit"))
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 10
 	}
 	var market map[string]any = this.Market(symbol)
@@ -761,13 +761,13 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 				}
 				return this.SafeDict(orders, orderId)
 			}()
-			if !ccxt.IsEqual(order, nil) {
+			if order != nil {
 				var fee any = this.SafeValue(order, "fee")
 				if !ccxt.IsEqual(fee, nil) {
 					parsed["fee"] = fee
 				}
 				var fees any = this.SafeList(order, "fees")
-				if !ccxt.IsEqual(fees, nil) {
+				if fees != nil {
 					ccxt.AddElementToObject(parsed, "fees", fees)
 				}
 				parsed["trades"] = this.SafeValue(order, "trades")

@@ -3455,11 +3455,11 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome string, optionalArgs
 	// the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
 	var synthSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber("9999"))
 	var bids []any = []any{}
-	if !ccxt.IsEqual(bid, nil) {
+	if bid != nil {
 		bids = append(bids, []any{bid, synthSize})
 	}
 	var asks []any = []any{}
-	if !ccxt.IsEqual(ask, nil) {
+	if ask != nil {
 		asks = append(asks, []any{ask, synthSize})
 	}
 	var orderbook map[string]any = map[string]any{

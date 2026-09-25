@@ -720,7 +720,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 		},
 	}
 	var message map[string]any = this.Extend(request, paramsValue)
-	if ccxt.IsEqual(userAddress, nil) {
+	if userAddress == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a user address"))
 	}
 	var subscribeHash string = "subscribe:userFills::" + ccxt.ToLower(userAddress)
@@ -1813,7 +1813,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// duplicates on the error channel ("Already subscribed"), which rejects every pending
 	// future on the connection. address lowercased because the server is case-insensitive.
 	// note: orderUpdates payloads carry no user, so resolution/data stays shared across users
-	if ccxt.IsEqual(userAddress, nil) {
+	if userAddress == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a user address"))
 	}
 	var subscribeHash string = "subscribe:orderUpdates::" + ccxt.ToLower(userAddress)

@@ -3134,7 +3134,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 	}
 	var tag any = nil
 	var address any = DerefScalar(this.SafeString(transaction, "address"))
-	if !IsEqual(address, nil) {
+	if address != nil {
 		// dt (destination tag) is embedded into the address field
 		var addressParts []string = Split(address, "?dt=")
 		var numParts int = len(addressParts)

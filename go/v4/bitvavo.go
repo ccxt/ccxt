@@ -1849,7 +1849,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		} else {
 			cost = DerefScalar(this.SafeNumber(paramsOmitted, "cost"))
 		}
-		if !IsEqual(cost, nil) {
+		if cost != nil {
 			var precision any = this.Currency(market["quote"])["precision"]
 			request["amountQuote"] = this.DecimalToPrecision(cost, TRUNCATE, precision, this.PrecisionMode)
 		} else {
@@ -1895,7 +1895,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	paramsOperatorId := GetValue(operatorIdparamsOperatorIdVariable, 1)
+	paramsOperatorId := operatorIdparamsOperatorIdVariable[1]
 	if !IsEqual(operatorId, nil) {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {

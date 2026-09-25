@@ -1180,7 +1180,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				var previousOrder any = this.SafeDict2(previousOrders, orderId, clientOrderId)
 				var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(order))
 				this.HandleMyTrades(client, trade)
-				if ccxt.IsEqual(previousOrder, nil) {
+				if previousOrder == nil {
 					// fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
 					var parsedOrder map[string]any = ccxt.MapTyped(this.ParseWsOrder(order))
 					orders.(ccxt.Appender).Append(parsedOrder)

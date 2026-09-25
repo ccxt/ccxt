@@ -3484,7 +3484,7 @@ func (this *Woo) GetDedicatedNetworkId(currency any, params any) any {
 		}
 		return this.SafeDict(GetValue(currency, "networks"), networkCode)
 	}()
-	if IsEqual(networkEntry, nil) {
+	if networkEntry == nil {
 		var supportedNetworks []string = ObjectKeys(GetValue(currency, "networks"))
 		panic(BadRequest(this.Id + "  can not determine a network code, please provide unified \"network\" param, one from the following: " + this.Json(supportedNetworks)))
 	}

@@ -1978,19 +1978,19 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 				continue
 			}
 			var prevLongPosition any = this.SafeDict(cache, *symbol+"long")
-			if !ccxt.IsEqual(prevLongPosition, nil) {
+			if prevLongPosition != nil {
 				position["side"] = ccxt.GetValue(prevLongPosition, "side")
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
 			var prevShortPosition any = this.SafeDict(cache, *symbol+"short")
-			if !ccxt.IsEqual(prevShortPosition, nil) {
+			if prevShortPosition != nil {
 				position["side"] = ccxt.GetValue(prevShortPosition, "side")
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
 			// if no prev position is found, default to long
-			if ccxt.IsEqual(prevLongPosition, nil) && ccxt.IsEqual(prevShortPosition, nil) {
+			if (prevLongPosition == nil) && (prevShortPosition == nil) {
 				position["side"] = "long"
 				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)

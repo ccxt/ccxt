@@ -1252,7 +1252,7 @@ func (this *Weex) ParseMarket(market any) any {
 	}
 	var amountPrecision any = DerefScalar(this.SafeNumber(market, "stepSize"))
 	var pricePrecision any = DerefScalar(this.SafeNumber(market, "tickSize"))
-	if IsEqual(amountPrecision, nil) {
+	if amountPrecision == nil {
 		var amountPrecisionString any = this.ParsePrecision(this.SafeString(market, "quantityPrecision"))
 		var pricePrecisionString any = this.ParsePrecision(this.SafeString(market, "pricePrecision"))
 		amountPrecision = this.ParseNumber(amountPrecisionString)
@@ -1989,7 +1989,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 			var now int64 = this.Milliseconds()
 			var duration int64 = this.ParseTimeframe(timeframe) * 1000
 			var numberOfCandles any = maxHistoricalLimit
-			if !IsEqual(limitResolved, nil) && (!IsEqual(limitResolved, 0)) {
+			if (limitResolved != nil) && (!IsEqual(limitResolved, 0)) {
 				numberOfCandles = limitResolved
 			}
 			var timeDelta any = Multiply(numberOfCandles, duration)
@@ -2010,7 +2010,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol string, optionalArg
 
 		response = ListTyped(PanicOnError((<-this.ContractGetCapiV3MarketHistoryKlines(this.Extend(request, paramsOmitted))).Raw))
 	} else {
-		if !IsEqual(limitResolved, nil) {
+		if limitResolved != nil {
 			request["limit"] = limitResolved
 		}
 		if priceType != nil && *priceType == "MARK" {

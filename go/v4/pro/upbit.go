@@ -806,13 +806,13 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 		}
 		return this.SafeDict(orders, orderId)
 	}()
-	if !ccxt.IsEqual(order, nil) {
+	if order != nil {
 		var fee any = this.SafeValue(order, "fee")
 		if !ccxt.IsEqual(fee, nil) {
 			parsed["fee"] = fee
 		}
 		var fees any = this.SafeList(order, "fees")
-		if !ccxt.IsEqual(fees, nil) {
+		if fees != nil {
 			ccxt.AddElementToObject(parsed, "fees", fees)
 		}
 		parsed["trades"] = this.SafeValue(order, "trades")

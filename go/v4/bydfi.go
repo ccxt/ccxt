@@ -1081,7 +1081,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var paramsUntil any = nil
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until = GetValue(untilparamsUntilVariable, 0)
-	paramsUntil = GetValue(untilparamsUntilVariable, 1)
+	paramsUntil = untilparamsUntilVariable[1]
 	var now int64 = this.Milliseconds()
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var timeDelta any = Multiply(duration, numberOfCandles)
@@ -1409,7 +1409,7 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchFundingRateHistory", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -1620,7 +1620,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var hedged any = false
 	var hedgedqueryVariable []any = this.HandleOptionBoolAndParamsNullable(query, "createOrder", "hedged", hedged)
 	hedged = GetValue(hedgedqueryVariable, 0)
-	query = GetValue(hedgedqueryVariable, 1)
+	query = hedgedqueryVariable[1]
 	var reduceOnly *bool = this.SafeBool(query, "reduceOnly", false)
 	if hedged == true {
 		query = this.Omit(query, "reduceOnly")
@@ -1651,7 +1651,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var postOnly bool = false
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, (IsEqual(timeInForce, "POST_ONLY")), query)
 	postOnly = GetValueBool(postOnlyqueryVariable, 0, false)
-	query = GetValue(postOnlyqueryVariable, 1)
+	query = postOnlyqueryVariable[1]
 	if postOnly {
 		timeInForce = "POST_ONLY"
 	}
@@ -2216,7 +2216,7 @@ func (this *Bydfi) HandleSinceAndUntil(methodName string, optionalArgs ...any) m
 	var paramsUntil any = nil
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(params, methodName, "until", "endTime")
 	until = GetValue(untilparamsUntilVariable, 0)
-	paramsUntil = GetValue(untilparamsUntilVariable, 1)
+	paramsUntil = untilparamsUntilVariable[1]
 	var now int64 = this.Milliseconds()
 	var sevenDays int64 = (7 * 24) * 60 * 60 * 1000 // the maximum range is 7 days
 	var startTime any = since
@@ -3353,7 +3353,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(params, "fetchTransfers", "until", "endTime")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	// exchange requires endTime, and startTime but allows any value
 	var sinceResolved any = func() any {
 		if since == nil {
@@ -3551,7 +3551,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar string, code
 	var paramsUntil any = nil
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(params, "fetchTransfers", "until", "endTime")
 	until = GetValue(untilparamsUntilVariable, 0)
-	paramsUntil = GetValue(untilparamsUntilVariable, 1)
+	paramsUntil = untilparamsUntilVariable[1]
 	var now int64 = this.Milliseconds()
 	var sevenDays int64 = (7 * 24) * 60 * 60 * 1000 // the maximum range is 7 days
 	var startTime any = since

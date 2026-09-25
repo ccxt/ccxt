@@ -1639,7 +1639,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 	var subaccountId int = 0
 	var subaccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "createOrder", "subAccountId", subaccountId)
 	subaccountIdOption := GetValue(subaccountIdOptionparamsSubAccountIdVariable, 0)
-	paramsSubAccountId := GetValue(subaccountIdOptionparamsSubAccountIdVariable, 1)
+	paramsSubAccountId := subaccountIdOptionparamsSubAccountIdVariable[1]
 	var triggerPrice *string = this.SafeString2(paramsSubAccountId, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeValue(paramsSubAccountId, "stopLossPrice", triggerPrice)
 	var takeProfitPrice any = this.SafeValue(paramsSubAccountId, "takeProfitPrice")
@@ -2090,7 +2090,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var subAccountId int = 0
 	var subAccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "cancelOrders", "subAccountId", subAccountId)
 	subAccountIdOption := GetValue(subAccountIdOptionparamsSubAccountIdVariable, 0)
-	paramsSubAccountId := GetValue(subAccountIdOptionparamsSubAccountIdVariable, 1)
+	paramsSubAccountId := subAccountIdOptionparamsSubAccountIdVariable[1]
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsSubAccountId, "goodTillBlock"))
 	if goodTillBlock == nil {
 

@@ -636,7 +636,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message any) any {
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id)
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if !ccxt.IsEqual(method, nil) {
 			return ccxt.CallDynamically(method, client, message, subscription)
@@ -737,7 +737,7 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 		}
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 		var subscription any = this.SafeDict(subscriptionsById, id)
-		if !ccxt.IsEqual(subscription, nil) {
+		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
 
 			{

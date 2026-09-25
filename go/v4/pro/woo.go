@@ -147,12 +147,12 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic s
 	}
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
 	var paramsOmitted map[string]any = func() map[string]any {
-		if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
+		if symbolsAndTimeframes != nil {
 			return ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
 		}
 		return params
 	}()
-	if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
+	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
 	}
 
@@ -792,7 +792,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var ticker any = this.SafeDict(data, i)
-		if ccxt.IsEqual(ticker, nil) {
+		if ticker == nil {
 			continue
 		}
 		ccxt.AddElementToObject(ticker, "ts", timestamp)
@@ -1558,13 +1558,13 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 		var cachedOrders any = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 		var order any = this.SafeDict(orders, orderId)
-		if !ccxt.IsEqual(order, nil) {
+		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if !ccxt.IsEqual(fee, nil) {
 				parsed["fee"] = fee
 			}
 			var fees any = this.SafeList(order, "fees")
-			if !ccxt.IsEqual(fees, nil) {
+			if fees != nil {
 				ccxt.AddElementToObject(parsed, "fees", fees)
 			}
 			parsed["trades"] = this.SafeValue(order, "trades")

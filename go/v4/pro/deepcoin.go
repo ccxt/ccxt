@@ -176,7 +176,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan any, market any, messageHash any
 	var requestId int64 = this.RequestId()
 	var client ccxt.ClientInterface = this.Client(url)
 	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsEqual(existingSubscription, nil) {
+	if existingSubscription == nil {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id+" no subscription for ", messageHash)))
 	}
 	var subId *int64 = this.SafeInteger(existingSubscription, "id")
@@ -262,7 +262,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			var expired bool = ((time - *listenKeyExpiryTimestamp) > 60000) // 1 minute before expiry
 			listenKey = ccxt.DerefScalar(this.SafeString(this.Options, "listenKey"))
 			var response map[string]any = nil
-			if ccxt.IsEqual(listenKey, nil) {
+			if listenKey == nil {
 
 				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Raw))
 			} else if expired {
@@ -282,7 +282,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			if response != nil {
 				var data map[string]any = ccxt.SafeMapTyped(response, "data")
 				listenKey = ccxt.DerefScalar(this.SafeString(data, "listenkey"))
-				if ccxt.IsEqual(listenKey, nil) {
+				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
 				listenKeyExpiryTimestamp = this.SafeTimestamp(data, "expire_time")

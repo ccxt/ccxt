@@ -1771,7 +1771,7 @@ func (this *Xt) ParseMarket(market any) any {
 			maxPrice = this.SafeNumber(entry, "max")
 		}
 	}
-	if IsEqual(amountPrecision, nil) {
+	if amountPrecision == nil {
 		amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
 	var underlyingType *string = this.SafeString(market, "underlyingType")

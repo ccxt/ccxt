@@ -367,7 +367,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	}
 	var stored any = ccxt.GetValue(this.Trades, symbol)
 	var data any = this.SafeList(message, "data")
-	if !ccxt.IsEqual(data, nil) {
+	if data != nil {
 		data = this.SortBy(data, "t")
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
 			var trade map[string]any = ccxt.SafeMapTyped(data, i)

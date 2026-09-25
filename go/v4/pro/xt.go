@@ -171,7 +171,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 					var result map[string]any = ccxt.SafeMapTyped(response, "result")
 					listenKey = ccxt.DerefScalar(this.SafeString(result, "accessToken"))
 				}
-				if ccxt.IsEqual(listenKey, nil) {
+				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " getListenKey() received an empty listen key"))
 				}
 				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "token", listenKey)
@@ -391,7 +391,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access s
 		"topic":            topic,
 	}
 	var symbolsAndTimeframes any = this.SafeList(subscriptionParams, "symbolsAndTimeframes")
-	if !ccxt.IsEqual(symbolsAndTimeframes, nil) {
+	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
 	}
 	var subscriptionParamsOmitted map[string]any = ccxt.MapTyped(this.Omit(subscriptionParams, "symbolsAndTimeframes"))
@@ -1573,7 +1573,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		var splitEvent []string = strings.Split(*event, ",")
 		event = this.SafeString(splitEvent, 0, "")
 		var tradeType string = "spot"
-		if (!ccxt.IsEqual(data, nil)) && (ccxt.InOp(data, "fu")) {
+		if ((data != nil)) && (ccxt.InOp(data, "fu")) {
 			tradeType = "contract"
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
@@ -1963,7 +1963,7 @@ func (this *Xt) HandleMessage(client any, message any) {
 		}()
 		if topic != nil && *topic == "trade" {
 			var data any = this.SafeDict(message, "data")
-			if (!ccxt.IsEqual(data, nil)) && ((ccxt.InOp(data, "oi")) || (ccxt.InOp(data, "orderId"))) {
+			if ((data != nil)) && ((ccxt.InOp(data, "oi")) || (ccxt.InOp(data, "orderId"))) {
 				method = this.HandleMyTrades
 			} else {
 				method = this.HandleTrade

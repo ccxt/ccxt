@@ -334,7 +334,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	var snapshot map[string]any = ccxt.SafeMapTyped(message, "snapshot")
 	var data map[string]any = ccxt.SafeDict2Typed(message, "snapshot", "update")
 	var typeVar string = "update"
-	if !ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil) {
+	if !ccxt.IsEqual(snapshot, nil) {
 		typeVar = "snapshot"
 	}
 	var marketIds []string = ccxt.ObjectKeys(data)

@@ -1039,7 +1039,7 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	var channel string = "book"
 	var messageHash any = ccxt.Add(channel+":", marketId)
 	var book any = this.SafeDict(this.Orderbooks, symbol)
-	if ccxt.IsEqual(book, nil) {
+	if book == nil {
 		return
 	}
 	var depth int = 25 // covers the first 25 bids and asks
@@ -1058,11 +1058,11 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	for i := 0; i < depth; i++ {
 		var bid any = this.SafeList(bids, i)
 		var ask any = this.SafeList(asks, i)
-		if !ccxt.IsEqual(bid, nil) {
+		if bid != nil {
 			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), idToCheck)))
 			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), 1)))
 		}
-		if !ccxt.IsEqual(ask, nil) {
+		if ask != nil {
 			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(asks, i), idToCheck)))
 			var aski1 any = ccxt.GetValue(ccxt.GetValue(asks, i), 1)
 			stringArray = append(stringArray, this.NumberToString(ccxt.OpNeg(aski1)))

@@ -992,7 +992,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		if since != nil {
 			// check if the requested time range is too large for one request
@@ -1165,7 +1165,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPeriod, "fetchFundingRateHistory", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, paramsUntil))).Raw))
 	//
@@ -1918,7 +1918,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, paramsUntil))).Raw))
 	//
@@ -2378,7 +2378,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	var postOnly any = false
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
-	postOnly = GetValue(postOnlyqueryVariable, 0)
+	postOnly = postOnlyqueryVariable[0]
 	query = GetValue(postOnlyqueryVariable, 1) // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
@@ -2600,7 +2600,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 		var hedged any = false
 		var hedgedqueryVariable []any = this.HandleOptionBoolAndParamsNullable(query, "createOrder", "hedged", hedged)
 		hedged = GetValue(hedgedqueryVariable, 0)
-		query = GetValue(hedgedqueryVariable, 1)
+		query = hedgedqueryVariable[1]
 		var marginMode any = "cross"
 		marginModequeryVariable := TupleSlice(this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode))
 		marginMode = GetValue(marginModequeryVariable, 0)
@@ -2619,7 +2619,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	var postOnly any = false
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
-	postOnly = GetValue(postOnlyqueryVariable, 0)
+	postOnly = postOnlyqueryVariable[0]
 	query = GetValue(postOnlyqueryVariable, 1) // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
@@ -3462,7 +3462,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName string, h
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
@@ -3766,7 +3766,7 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "fetchLedger", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
-	paramsUntil := GetValue(untilparamsUntilVariable, 1)
+	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}

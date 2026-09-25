@@ -213,7 +213,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var interval int = 500
 	var intervalOptionparamsIntervalVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsChannel, "watchTickers", "interval", interval)
 	intervalOption := ccxt.GetValue(intervalOptionparamsIntervalVariable, 0)
-	paramsInterval := ccxt.GetValue(intervalOptionparamsIntervalVariable, 1)
+	paramsInterval := intervalOptionparamsIntervalVariable[1]
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))

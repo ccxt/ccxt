@@ -1358,7 +1358,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var limit any = ccxt.DerefScalar(this.SafeNumber(paramsOmitted, "limit"))
 	var paramsOmitted2 map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, "limit"))
-	if ccxt.IsEqual(limit, nil) || ((!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20))) {
+	if (limit == nil) || ((!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20))) {
 		limit = 20
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -1674,7 +1674,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	var ohlcvsByTimeframe any = this.SafeDict(this.Ohlcvs, symbol)
-	if ccxt.IsEqual(ohlcvsByTimeframe, nil) {
+	if ohlcvsByTimeframe == nil {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
 	if ccxt.IsEqual(this.SafeValue(ohlcvsByTimeframe, timeframe), nil) {
@@ -2422,12 +2422,12 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		var tradeFee any = this.SafeDict(trade, "fee", map[string]any{})
 		tradeFee = this.Extend(map[string]any{}, tradeFee)
 		var symbol *string = this.SafeString(trade, "symbol")
-		if (orderId != nil) && !ccxt.IsEqual(tradeFee, nil) && (symbol != nil) {
+		if (orderId != nil) && (tradeFee != nil) && (symbol != nil) {
 			var cachedOrders any = this.Orders
 			if !ccxt.IsEqual(cachedOrders, nil) {
 				var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
 				var order any = this.SafeDict(orders, orderId)
-				if !ccxt.IsEqual(order, nil) {
+				if order != nil {
 					// accumulate order fees
 					var fees any = this.SafeList(order, "fees", []any{})
 					var fee any = this.SafeDict(order, "fee")
@@ -2452,7 +2452,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							retRes190332 := ccxt.GetValue(order, "fees")
 							ccxt.AppendToArray(&retRes190332, tradeFee)
 						}
-					} else if !ccxt.IsEqual(fee, nil) {
+					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
 							var feeCost any = this.Sum(ccxt.GetValue(fee, "cost"), ccxt.GetValue(tradeFee, "cost"))
 							var feeCostString any = this.CurrencyToPrecision(ccxt.GetValue(tradeFee, "currency"), feeCost)

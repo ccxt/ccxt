@@ -5956,7 +5956,7 @@ func (this *Mexc) fetchDepositAddressBody(ch chan any, code string, optionalArgs
 			result = this.SafeDict(addressStructures, key)
 		}
 	}
-	if IsEqual(result, nil) {
+	if result == nil {
 		panic(InvalidAddress(Add(Add(this.Id+" fetchDepositAddress() cannot find a deposit address for "+code+", and network", network), "consider creating one using .createDepositAddress() method or in MEXC website")))
 	}
 
