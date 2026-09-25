@@ -258,8 +258,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 throw new NotSupported((((((this.id + " ") + callerMethodName) + "() at this moment ") + channelName) + " is not supported, coming soon")) ;
             }
-            Object orderbook = (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, Helpers.toMapArg(paramsChannel))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, Helpers.toMapArg(paramsChannel))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

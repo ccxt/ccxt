@@ -273,8 +273,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", ("order_book/" + market.get("id")) );
             }};
             String messageHash = this.getMessageHash("orderbook", symbolValue, (String) null);
-            Object orderbook = (this.subscribePublic(messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

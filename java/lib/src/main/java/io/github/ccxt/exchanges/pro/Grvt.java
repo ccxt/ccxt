@@ -689,8 +689,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 "stream", channel,
                 "selectors", rawHashes
             );
-            Object orderbook = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, paramsInterval)), rawHashes, true)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, paramsInterval)), rawHashes, true)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

@@ -1053,8 +1053,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 String topic = ("depth." + marketId);
                 ((List<Object>)topics).add(topic);
             }
-            Object orderbook = (this.watchPublic(topics, messageHashes, parameters, false)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});  // todo check if limit is needed
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topics, messageHashes, parameters, false)).join();
+            return orderbook.limit();  // todo check if limit is needed
         }).thenApply(OrderBook::new);
 
     }

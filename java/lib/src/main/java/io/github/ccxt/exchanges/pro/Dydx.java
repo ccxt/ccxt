@@ -295,17 +295,17 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
-        Object orderbook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
             orderbook = this.orderBook();
         }
-        Helpers.addElementToObject(orderbook, "symbol", symbol);
+        orderbook.put("symbol", symbol);
         List<Object> asks = (List<Object>) this.safeList(content, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(content, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "message_id"));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+        orderbook.put("nonce", this.safeInteger(message, "message_id"));
         String messageHash = ("orderbook:" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);

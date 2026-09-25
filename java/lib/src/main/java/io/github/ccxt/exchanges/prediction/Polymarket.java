@@ -3896,10 +3896,10 @@ public class Polymarket extends PolymarketApi
         }
         if (!(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
         {
-            Object seededBook = this.orderBook(new HashMap<String, Object>() {{}});
+            io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
         }
-        Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcome);
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         List<Object> rawBids = (List<Object>) this.safeList(eventVar, "bids", new ArrayList<Object>(Arrays.asList()));
         List<Object> rawAsks = (List<Object>) this.safeList(eventVar, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -3943,23 +3943,23 @@ public class Polymarket extends PolymarketApi
             {
                 continue;
             }
-            Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcome);
             Double price = this.safeNumber(change, "price", (Object) null);
             Double size = this.safeNumber(change, "size", (Object) null);
             Boolean isBuy = java.util.Objects.equals(this.safeStringUpper(change, "side", ""), "BUY");
-            Object side = ((Boolean.TRUE.equals(isBuy))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
+            Object side = ((Boolean.TRUE.equals(isBuy))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks"));
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             Object sideRef = ((Object)side);
             Helpers.callDynamically(sideRef, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size))});
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
             updated.put((String)outcome, true);
         }
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         for (var k = 0; k < ((List<?>)updatedSymbols).size(); k++)
         {
             String outcome = (updatedSymbols == null || k < 0 || k >= updatedSymbols.size() ? null : updatedSymbols.get(k));
-            Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcome);
             client.resolve(orderbook, ("orderbook::" + outcome));
             client.resolve(orderbook, ("ticker::" + outcome));
         }
@@ -3999,14 +3999,14 @@ public class Polymarket extends PolymarketApi
         {
             this.trades = new HashMap<String, Object>() {{}};
         }
-        Object stored = this.safeValue(this.trades, outcome);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, outcome);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, outcome, stored);
         }
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        stored.append(trade);
         client.resolve(stored, ("trades::" + outcome));
     }
 
@@ -4099,7 +4099,7 @@ public class Polymarket extends PolymarketApi
             }
             if (!(((Map<?, ?>)this.orderbooks).containsKey(outcomeValue)))
             {
-                Object seededBook = this.orderBook(new HashMap<String, Object>() {{}});
+                io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(outcomeValue, null))
                 {
                     Helpers.addElementToObject(this.orderbooks, outcomeValue, seededBook);
@@ -4288,9 +4288,9 @@ public class Polymarket extends PolymarketApi
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Object parsed = this.parsePredictionOrder((Map<String, Object>) (eventVar), (Map<String, Object>) null);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, "orders");
         String outcome = this.safeString(parsed, "outcome");
         if (!java.util.Objects.equals(outcome, null))
@@ -4306,9 +4306,9 @@ public class Polymarket extends PolymarketApi
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Object parsed = this.parsePredictionTrade((Map<String, Object>) (eventVar), (Map<String, Object>) null);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        stored.append(parsed);
         client.resolve(stored, "myTrades");
         String outcome = this.safeString(parsed, "outcome");
         if (!java.util.Objects.equals(outcome, null))

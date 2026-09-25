@@ -650,8 +650,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 ((List<Object>)channels).add((((market.get("id") + "@depth") + depthOption) + channelSuffix));
                 messageHashes.add(("orderbook::" + symbol));
             }
-            Object orderbook = (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsFrequency), new HashMap<String, Object>() {{}})).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsFrequency), new HashMap<String, Object>() {{}})).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

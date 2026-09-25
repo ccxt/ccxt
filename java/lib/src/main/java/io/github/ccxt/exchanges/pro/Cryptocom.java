@@ -209,8 +209,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)topics).add(currentTopic);
             }
-            Object orderbook = (this.watchPublicMultiple(messageHashes, topics, Helpers.toMapArg(paramsBookUpdateFrequency2))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(messageHashes, topics, Helpers.toMapArg(paramsBookUpdateFrequency2))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

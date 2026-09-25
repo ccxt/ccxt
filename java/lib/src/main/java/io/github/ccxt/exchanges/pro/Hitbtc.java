@@ -293,8 +293,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     put( "symbols", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
                 }} );
             }};
-            Object orderbook = (this.subscribePublic(name, "orderbooks", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(name, "orderbooks", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

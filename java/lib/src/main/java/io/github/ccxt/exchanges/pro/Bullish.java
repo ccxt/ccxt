@@ -368,8 +368,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "topic", "l2Orderbook" );
                 put( "symbol", market.get("id") );
             }};
-            Object orderbook = (this.watchPublic(url, messageHash, request, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(url, messageHash, request, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

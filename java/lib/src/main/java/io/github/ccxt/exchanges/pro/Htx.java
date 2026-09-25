@@ -584,8 +584,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 method = null;
             }
-            Object orderbook = (this.subscribePublic((String) (url), symbolValue, messageHash, method, Helpers.toMapArg(paramsExtended))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), symbolValue, messageHash, method, Helpers.toMapArg(paramsExtended))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

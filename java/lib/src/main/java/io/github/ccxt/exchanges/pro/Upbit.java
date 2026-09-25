@@ -225,8 +225,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object orderbook = (this.watchPublicMultiple(new ArrayList<Object>(Arrays.asList(symbol)), "orderbook", new HashMap<String, Object>() {{}})).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(new ArrayList<Object>(Arrays.asList(symbol)), "orderbook", new HashMap<String, Object>() {{}})).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

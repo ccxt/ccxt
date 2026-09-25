@@ -537,8 +537,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object orderbook = (this.helperForWatchMultipleConstruct("orderbook", Helpers.toStringListArg(symbols), parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.helperForWatchMultipleConstruct("orderbook", Helpers.toStringListArg(symbols), parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

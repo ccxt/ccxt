@@ -1038,8 +1038,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "limit", limit );
             }};
-            Object orderbook = (this.subscribePublic(messageHashes, channels, isContract, Helpers.toMapArg(paramsDepth), subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(messageHashes, channels, isContract, Helpers.toMapArg(paramsDepth), subscription)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

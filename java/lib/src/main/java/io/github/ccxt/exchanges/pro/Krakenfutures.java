@@ -135,10 +135,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object orderbook = (this.watchMultiHelper("orderbook", "book", symbols, new HashMap<String, Object>() {{
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", symbols, new HashMap<String, Object>() {{
                 put( "limit", limit );
             }}, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

@@ -92,8 +92,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("orderbook" + ":") + market.get("id"));
-            Object orderbook = (this.watchPublic(messageHash, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHash, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -133,19 +133,19 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String timestamp = this.safeString(data, "timestamp");
         Long timestampMs = this.parse8601(timestamp);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
-        Object orderbook = null;
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) null;
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             orderbook = this.orderBook(snapshot);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         } else
         {
-            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
+            orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             if (java.util.Objects.equals(orderbook, null))
             {
                 return;
             }
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         }
         if (!java.util.Objects.equals(channel, null))
         {

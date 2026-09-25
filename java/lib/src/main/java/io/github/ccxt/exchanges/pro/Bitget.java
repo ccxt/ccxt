@@ -1041,10 +1041,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 ((Map<String, Object>)paramsCursor).put("uta", true);
             }
-            Object orderbook = (this.watchPublicMultiple(uta, messageHashes, topics, Helpers.toMapArg(paramsCursor))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(uta, messageHashes, topics, Helpers.toMapArg(paramsCursor))).join();
             if (Boolean.TRUE.equals(incrementalFeed))
             {
-                return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+                return orderbook.limit();
             } else
             {
                 return orderbook;

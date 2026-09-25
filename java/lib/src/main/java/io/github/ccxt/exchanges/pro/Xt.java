@@ -675,8 +675,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 name = ((("depth@" + market.get("id")) + ",") + levels);
             }
-            Object orderbook = (this.subscribe(name, "public", "watchOrderBook", market, (List<String>) null, paramsOmitted)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(name, "public", "watchOrderBook", market, (List<String>) null, paramsOmitted)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

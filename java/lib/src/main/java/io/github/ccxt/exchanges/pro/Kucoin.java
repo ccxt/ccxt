@@ -1703,8 +1703,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Object paramsExtended = this.extend(paramsDepth, Helpers.newMap(
                     "depth", depth
                 ));
-                Object orderbook = (this.subscribePublicUta(messageHash, channel, symbolResolved, Helpers.toMapArg(paramsExtended), subscription)).join();
-                return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublicUta(messageHash, channel, symbolResolved, Helpers.toMapArg(paramsExtended), subscription)).join();
+                return orderbook.limit();
             }
             return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, Helpers.toMapArg(paramsUta))).join();
         }).thenApply(OrderBook::new);
@@ -1851,8 +1851,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     "limit", limit
                 );
             }
-            Object orderbook = (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, Helpers.toMapArg(paramsMethod), subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, Helpers.toMapArg(paramsMethod), subscription)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

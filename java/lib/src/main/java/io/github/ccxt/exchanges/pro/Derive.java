@@ -133,8 +133,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "limit", limitResolved );
                 put( "params", parameters );
             }};
-            Object orderbook = (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

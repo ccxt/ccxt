@@ -3930,7 +3930,7 @@ public class Predictfun extends PredictfunApi
                 {
                     Helpers.addElementToObject(this.orderbooks, outcomeHandle, this.orderBook(new HashMap<String, Object>() {{}}));
                 }
-                Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcomeHandle);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcomeHandle);
                 Object bids = yesBids;
                 Object asks = yesAsks;
                 if (!Boolean.TRUE.equals(isYesOutcome))
@@ -4031,8 +4031,8 @@ public class Predictfun extends PredictfunApi
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
-        Helpers.callDynamically(stored, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
+        stored.append(order);
         client.resolve(stored, "orders");
         String outcomeHandle = this.safeString(order, "outcome");
         if (!java.util.Objects.equals(outcomeHandle, null))
@@ -4058,8 +4058,8 @@ public class Predictfun extends PredictfunApi
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        stored.append(trade);
         client.resolve(stored, "myTrades");
         String outcomeHandle = this.safeString(trade, "outcome");
         if (!java.util.Objects.equals(outcomeHandle, null))

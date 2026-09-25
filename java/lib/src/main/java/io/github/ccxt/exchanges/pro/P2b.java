@@ -329,8 +329,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             String interval = this.safeString(parameters, "interval", "0.001");
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             List<Object> request = new ArrayList<Object>(Arrays.asList(market.get("id"), limitResolved, interval));
-            Object orderbook = (this.subscribe(name, messageHash, request, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(name, messageHash, request, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
