@@ -951,7 +951,10 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'future') {
             throw new BadRequest($this->id . ' fetchOrderBookWs only supports swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$marketType];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchOrderBookWs', 'returnRateLimits', false);
@@ -2033,7 +2036,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'future') {
             throw new BadRequest($this->id . ' fetchTickerWs only supports swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $subscription = array(
@@ -2081,7 +2087,10 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'spot' && $marketType !== 'future') {
             throw new BadRequest($this->id . ' fetchOHLCVWs only supports spot or swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$marketType];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchOHLCVWs', 'returnRateLimits', false);
@@ -2936,7 +2945,10 @@ class binance extends \ccxt\async\binance {
          *
          * @return Promise<number> The $subscription ID for the user data stream
          */
-        $url = $this->urls['api']['ws']['ws-api'][$marketType];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $client = $this->client($url);
         $subscriptions = $client->subscriptions;
         $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
@@ -3018,7 +3030,10 @@ class binance extends \ccxt\async\binance {
          *
          * @return Promise<void>
          */
-        $url = $this->urls['api']['ws']['ws-api']['spot'];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], 'spot');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $options = $this->safe_dict($this->options, $marketType, array());
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
         $listenTokenRefreshRate = $this->safe_integer($this->options, 'listenTokenRefreshRate', 82800000); // 23 hours default
@@ -3421,7 +3436,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
             throw new BadRequest($this->id . ' fetchBalanceWs only supports spot or swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchBalanceWs', 'returnRateLimits', false);
@@ -3562,7 +3580,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'future' && $type !== 'delivery') {
             throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchPositionsWs', 'returnRateLimits', false);
@@ -3876,7 +3897,10 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
             throw new BadRequest($this->id . ' createOrderWs only supports spot or swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$marketType];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
@@ -4047,7 +4071,10 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
             throw new BadRequest($this->id . ' editOrderWs only supports spot or swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$marketType];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         $isSwap = ($marketType === 'future' || $marketType === 'delivery');
@@ -4208,7 +4235,10 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('cancelOrderWs', $market, $params);
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'cancelOrderWs', 'returnRateLimits', false);
@@ -4272,7 +4302,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot') {
             throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'cancelAllOrdersWs', 'returnRateLimits', false);
@@ -4319,7 +4352,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
             throw new BadRequest($this->id . ' fetchOrderWs only supports spot or swap markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchOrderWs', 'returnRateLimits', false);
@@ -4375,7 +4411,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot') {
             throw new BadRequest($this->id . ' fetchOrdersWs only supports spot markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchOrdersWs', 'returnRateLimits', false);
@@ -4446,7 +4485,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot') {
             throw new BadRequest($this->id . ' fetchOpenOrdersWs only supports spot markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
@@ -5446,7 +5488,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'future') {
             throw new BadRequest($this->id . ' fetchMyTradesWs does not support ' . $type . ' markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchMyTradesWs', 'returnRateLimits', false);
@@ -5503,7 +5548,10 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'future') {
             throw new BadRequest($this->id . ' fetchTradesWs does not support ' . $type . ' markets');
         }
-        $url = $this->urls['api']['ws']['ws-api'][$type];
+        $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
         list($returnRateLimits, $paramsReturnRateLimits) = $this->handle_option_bool_and_params($params, 'fetchTradesWs', 'returnRateLimits', false);
