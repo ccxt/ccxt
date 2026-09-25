@@ -2718,10 +2718,9 @@ public class Coinsph extends CoinsphApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = apiUrl;
         Object query = this.omit(parameters, this.extractParams(path));
         String endpoint = (String) this.implodeParams(path, parameters);
-        url = ((url + "/") + endpoint);
+        String url = ((apiUrl + "/") + endpoint);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
             this.checkRequiredCredentials(true);

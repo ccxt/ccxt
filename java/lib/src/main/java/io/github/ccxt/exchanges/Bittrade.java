@@ -2624,7 +2624,7 @@ public class Bittrade extends BittradeApi
         Object url = "/";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "market"))
         {
-            url = Helpers.add(url, java.util.Objects.requireNonNullElse(api, "public"));
+            url = (url + "market");
         } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))
         {
             url = Helpers.add(url, this.version);

@@ -4198,7 +4198,6 @@ public class Extended extends ExtendedApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = (String) this.implodeHostname(baseApiUrl);
         if (java.util.Objects.equals(accessibility, "private"))
         {
             // this.checkRequiredCredentials ();
@@ -4215,7 +4214,7 @@ public class Extended extends ExtendedApi
                 ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
             }
         }
-        url = (((url + "/api/") + version) + endpoint);
+        String url = (((this.implodeHostname(baseApiUrl) + "/api/") + version) + endpoint);
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (Helpers.objectKeys(query).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));

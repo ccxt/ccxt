@@ -3645,25 +3645,17 @@ public class Bitrue extends BitrueApi
         String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
         String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
         String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
-        String url = null;
-        if ((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && ((String)path).indexOf("listenKey") >= 0))
+        String apiUrl = this.safeString(this.urls.get("api"), type);
+        if (java.util.Objects.equals(apiUrl, null))
         {
-            String apiUrl2 = this.safeString(this.urls.get("api"), type);
-            if (java.util.Objects.equals(apiUrl2, null))
-            {
-                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
-            }
-            url = apiUrl2;
-        } else
-        {
-            String apiUrl = this.safeString(this.urls.get("api"), type);
-            if (java.util.Objects.equals(apiUrl, null))
-            {
-                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
-            }
-            url = ((apiUrl + "/") + version);
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = ((url + "/") + this.implodeParams(path, parameters));
+        String url = apiUrl;
+        if (!((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && ((String)path).indexOf("listenKey") >= 0)))
+        {
+            url = (url + ("/" + version));
+        }
+        url = (url + ("/" + this.implodeParams(path, parameters)));
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "private"))
         {

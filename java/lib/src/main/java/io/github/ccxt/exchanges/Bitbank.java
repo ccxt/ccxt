@@ -1309,13 +1309,10 @@ public class Bitbank extends BitbankApi
             String requestTime = String.valueOf(this.milliseconds());
             String timeWindow = this.safeString(this.options, "timeWindow", "5000");
             String nonce = String.valueOf(this.incrementingNonce());
-            Object auth = null;
+            Object auth = nonce;
             if (Boolean.TRUE.equals(isTimeWindow))
             {
                 auth = (requestTime + timeWindow);
-            } else
-            {
-                auth = nonce;
             }
             url = (url + Helpers.add((this.version + "/"), this.implodeParams(path, parameters)));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))

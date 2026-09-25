@@ -2186,7 +2186,7 @@ public class Bitopro extends BitoproApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = ("/" + this.implodeParams(path, parameters));
+        String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object requestHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
         Boolean isSignedBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
@@ -2236,9 +2236,9 @@ public class Bitopro extends BitoproApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = (apiUrl + url);
+        String fullUrl = (apiUrl + url);
         return Helpers.newMap(
-            "url", url,
+            "url", fullUrl,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),
             "body", requestBody,
             "headers", requestHeaders

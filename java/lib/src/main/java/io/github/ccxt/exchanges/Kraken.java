@@ -4281,7 +4281,7 @@ public class Kraken extends KrakenApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = ((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
+        String url = ((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
@@ -4354,9 +4354,8 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = (apiUrl + url);
         return Helpers.newMap(
-            "url", url,
+            "url", (apiUrl + url),
             "method", java.util.Objects.requireNonNullElse(method, "GET"),
             "body", body,
             "headers", headers

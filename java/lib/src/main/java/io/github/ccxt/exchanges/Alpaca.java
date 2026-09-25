@@ -2697,7 +2697,6 @@ public class Alpaca extends AlpacaApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = (String) this.implodeHostname(baseApiUrl);
         Object headersValue = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(headers, null))
         {
@@ -2722,7 +2721,7 @@ public class Alpaca extends AlpacaApi
                 ((Map<String, Object>)headersValue).put("Content-Type", "application/json");
             }
         }
-        url = (url + endpoint);
+        String url = (this.implodeHostname(baseApiUrl) + endpoint);
         String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
         return Helpers.newMap(
             "url", url,

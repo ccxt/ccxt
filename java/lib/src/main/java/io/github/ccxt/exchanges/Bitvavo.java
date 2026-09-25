@@ -3116,7 +3116,7 @@ public class Bitvavo extends BitvavoApi
         Object requestHeaders = headers;
         String requestBody = body;
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
+        String url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Boolean getOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         if (Boolean.TRUE.equals(getOrDelete))
         {
@@ -3157,9 +3157,9 @@ public class Bitvavo extends BitvavoApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = (apiUrl + url);
+        String fullUrl = (apiUrl + url);
         return Helpers.newMap(
-            "url", url,
+            "url", fullUrl,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),
             "body", requestBody,
             "headers", requestHeaders

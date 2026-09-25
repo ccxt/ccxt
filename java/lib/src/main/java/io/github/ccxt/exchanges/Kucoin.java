@@ -13774,7 +13774,6 @@ public class Kucoin extends KucoinApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = apiUrl;
         String tradeType = this.safeString(query, "tradeType");
         if (!this.isEmpty(query))
         {
@@ -13792,7 +13791,7 @@ public class Kucoin extends KucoinApi
                 ((Map<String, Object>)headersBase).put("Content-Type", "application/json");
             }
         }
-        url = (url + endpoint);
+        Object headersResult = headersBase;
         Boolean isFuturePrivate = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "futuresPrivate"));
         Boolean isPrivate = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"));
         Boolean isBroker = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "broker"));
@@ -13840,18 +13839,13 @@ public class Kucoin extends KucoinApi
                     headersSigned.put("KC-BROKER-NAME", brokerName);
                 }
             }
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyJson,
-                "headers", headersSigned
-            );
+            headersResult = headersSigned;
         }
         return Helpers.newMap(
-            "url", url,
+            "url", (apiUrl + endpoint),
             "method", java.util.Objects.requireNonNullElse(method, "GET"),
             "body", bodyJson,
-            "headers", headersBase
+            "headers", headersResult
         );
     }
 

@@ -2536,7 +2536,7 @@ public class Gemini extends GeminiApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = ("/" + this.implodeParams(path, parameters));
+        String url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> headersSigned = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
@@ -2549,7 +2549,7 @@ public class Gemini extends GeminiApi
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
             String nonce = String.valueOf(this.incrementingNonce());
-            Object finalUrl = url;
+            String finalUrl = url;
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "request", finalUrl );
                 put( "nonce", nonce );
@@ -2575,7 +2575,7 @@ public class Gemini extends GeminiApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        url = (apiUrl + url);
+        String fullUrl = (apiUrl + url);
         Object headersResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? headersSigned : headers;
         String bodyResolved = body;
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
@@ -2583,7 +2583,7 @@ public class Gemini extends GeminiApi
             bodyResolved = this.json(query);
         }
         return Helpers.newMap(
-            "url", url,
+            "url", fullUrl,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),
             "body", bodyResolved,
             "headers", headersResolved

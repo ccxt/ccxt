@@ -4066,8 +4066,8 @@ public class Woo extends WooApi
     {
         Map<String, Object> requestHeaders = null;
         Object requestBody = null;
-        Object version = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 0);
-        Object access = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 1);
+        String version = this.safeString(java.util.Objects.requireNonNullElse(section, "public"), 0);
+        String access = this.safeString(java.util.Objects.requireNonNullElse(section, "public"), 1);
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String baseApiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(baseApiUrl, null))
@@ -4079,7 +4079,7 @@ public class Woo extends WooApi
         Map<String,Object> paramsSorted = this.keysort(this.omit(parameters, this.extractParams(path)));
         if (java.util.Objects.equals(access, "public"))
         {
-            url = (url + ((access + "/") + pathWithParams));
+            url = (url + ("public/" + pathWithParams));
             if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
