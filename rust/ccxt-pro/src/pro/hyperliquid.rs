@@ -1753,7 +1753,6 @@ impl HyperliquidCore {
             });
         }
         let mut topic: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".into())).into());
         let mut info: Value = Value::Null;
         let mut rawBalances: Value = Value::from(vec![]);
         let mut account: Value = Value::Null;
@@ -1790,7 +1789,10 @@ impl HyperliquidCore {
         add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("timestamp".into()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp); add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("datetime".into()), __be_tmp); };
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
-        client.resolve(&[get_value(&self.balance, &account), messageHash]);
+        if (topic != Value::Null) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".into())).into());
+            client.resolve(&[get_value(&self.balance, &account), messageHash]);
+        }
 }
 
     pub fn parse_ws_balance(&mut self, mut balance: Value, optional_args: &[Value]) {

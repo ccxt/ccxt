@@ -503,6 +503,9 @@ impl KucoinCore {
             let mut firstInstanceServer: Value = self.safe_dict(instanceServers, Value::Int(0), &[]);
             let mut pingInterval: Value = self.safe_integer_k(firstInstanceServer.clone(), "pingInterval", &[]);
             let mut endpoint: Value = self.safe_string_k(firstInstanceServer, "endpoint", &[]);
+            if (endpoint == Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" negotiate() response has no websocket endpoint".into()))));
+            }
             let mut token: Value = self.safe_string_k(data, "token", &[]);
             let mut result: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, Value::Str("?".into())).into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();

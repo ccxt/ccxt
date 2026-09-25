@@ -1195,8 +1195,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
             let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-            let mut messageHash: Value = Value::Str(format!("{}{}", event, Value::Str("::contract".into())).into());
-            client.resolve(&[fundingRate, messageHash]);
+            if (event != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", event, Value::Str("::contract".into())).into());
+                client.resolve(&[fundingRate, messageHash]);
+            }
         }
         return message;
 
@@ -1384,8 +1386,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if isSpot {
                 messageHashTail = Value::Str("spot".into());
             }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), messageHashTail).into());
-            client.resolve(&[ticker, messageHash]);
+            if (event != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), messageHashTail).into());
+                client.resolve(&[ticker, messageHash]);
+            }
         }
         return message;
 
@@ -1573,8 +1577,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             stored.append(parsed);
             let mut event: Value = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), tradeType).into());
-            client.resolve(&[stored, messageHash]);
+            if (event != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), tradeType).into());
+                client.resolve(&[stored, messageHash]);
+            }
         }
         return message;
 
@@ -1636,8 +1642,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
             }
             tradesArray.append(trade);
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), tradeType).into());
-            client.resolve(&[tradesArray, messageHash]);
+            if (event != Value::Null) {
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), tradeType).into());
+                client.resolve(&[tradesArray, messageHash]);
+            }
         }
         return message;
 

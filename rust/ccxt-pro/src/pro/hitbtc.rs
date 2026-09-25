@@ -1473,7 +1473,9 @@ impl HitbtcCore {
         let mut parsed: Value = self.parse_order(order, &[]);
         orders.append(parsed);
         client.resolve(&[orders.clone(), messageHash.clone()]);
-        client.resolve(&[orders, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into())]);
+        if (messageHash != Value::Null) {
+            client.resolve(&[orders, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into())]);
+        }
 }
 
     pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {

@@ -823,9 +823,11 @@ impl CoinbaseCore {
                     if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
                 }
                 append_to_array(&mut newTickers, result.clone());
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
-                client.resolve(&[result.clone(), messageHash.clone()]);
-                self.try_resolve_usdc(client.clone(), messageHash, result);
+                if (channel != Value::Null) {
+                    let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
+                    client.resolve(&[result.clone(), messageHash.clone()]);
+                    self.try_resolve_usdc(client.clone(), messageHash, result);
+                }
             }
             }
         }

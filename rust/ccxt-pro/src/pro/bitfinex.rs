@@ -788,7 +788,6 @@ impl BitfinexCore {
         let mut channel: Value = self.safe_string_k(subscription.clone(), "channel", &[]);
         let mut marketId: Value = self.safe_string_k(subscription, "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
         let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -821,7 +820,10 @@ impl BitfinexCore {
             let mut parsed: Value = self.parse_ws_trade(trade, &[market]);
             stored.append(parsed);
         }
-        client.resolve(&[stored, messageHash]);
+        if (channel != Value::Null) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
+            client.resolve(&[stored, messageHash]);
+        }
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
