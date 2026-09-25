@@ -230,7 +230,10 @@ class bitget extends \ccxt\async\bitget {
         $tickers = Async\await($this->watch_public_multiple($uta, $messageHashes, $topics, $paramsValue));
         if ($this->newUpdates) {
             $result = array();
-            $result[$tickers['symbol']] = $tickers;
+            $tickersSymbol = $this->safe_string($tickers, 'symbol');
+            if ($tickersSymbol !== null) {
+                $result[$tickersSymbol] = $tickers;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsList);
@@ -485,7 +488,10 @@ class bitget extends \ccxt\async\bitget {
         $tickers = Async\await($this->watch_public_multiple($uta, $messageHashes, $topics, $paramsValue));
         if ($this->newUpdates) {
             $result = array();
-            $result[$tickers['symbol']] = $tickers;
+            $tickersSymbol = $this->safe_string($tickers, 'symbol');
+            if ($tickersSymbol !== null) {
+                $result[$tickersSymbol] = $tickers;
+            }
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsList);

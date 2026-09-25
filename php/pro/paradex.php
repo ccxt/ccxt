@@ -335,7 +335,10 @@ class paradex extends \ccxt\async\paradex {
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newTicker['symbol']] = $newTicker;
+            $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
+            if ($newTickerSymbol !== null) {
+                $result[$newTickerSymbol] = $newTicker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
@@ -548,7 +551,10 @@ class paradex extends \ccxt\async\paradex {
         $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newFundingRates['symbol']] = $newFundingRates;
+            $newFundingRatesSymbol = $this->safe_string($newFundingRates, 'symbol');
+            if ($newFundingRatesSymbol !== null) {
+                $result[$newFundingRatesSymbol] = $newFundingRates;
+            }
             return $result;
         }
         return $this->filter_by_array($this->fundingRates, 'symbol', $symbolsNormalized);

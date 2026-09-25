@@ -415,7 +415,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($this->newUpdates) {
             if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                 $tickers = array();
-                $tickers[$newTickers['symbol']] = $newTickers;
+                $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
+                if ($newTickersSymbol !== null) {
+                    $tickers[$newTickersSymbol] = $newTickers;
+                }
                 return $tickers;
             }
         }
@@ -570,7 +573,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         if ($this->newUpdates) {
             if ((gettype($newTickers) !== 'array' || array_keys($newTickers) !== array_keys(array_keys($newTickers)))) {
                 $tickers = array();
-                $tickers[$newTickers['symbol']] = $newTickers;
+                $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
+                if ($newTickersSymbol !== null) {
+                    $tickers[$newTickersSymbol] = $newTickers;
+                }
                 return $tickers;
             }
         }

@@ -118,7 +118,10 @@ class upbit extends \ccxt\async\upbit {
         $newTickers = Async\await($this->watch_public_multiple($symbols, 'ticker'));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$newTickers['symbol']] = $newTickers;
+            $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
+            if ($newTickersSymbol !== null) {
+                $tickers[$newTickersSymbol] = $newTickers;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);

@@ -727,7 +727,10 @@ class okx extends \ccxt\async\okx {
         $newTickers = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         if ($this->newUpdates) {
             $tickers = array();
-            $tickers[$newTickers['symbol']] = $newTickers;
+            $newTickersSymbol = $this->safe_string($newTickers, 'symbol');
+            if ($newTickersSymbol !== null) {
+                $tickers[$newTickersSymbol] = $newTickers;
+            }
             return $tickers;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);

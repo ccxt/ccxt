@@ -186,7 +186,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $ticker = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);

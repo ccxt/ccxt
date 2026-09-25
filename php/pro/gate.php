@@ -930,7 +930,10 @@ class gate extends \ccxt\async\gate {
         $tickerOrBidAsk = Async\await($this->subscribe_public_multiple($url, $messageHashes, $marketIds, $channel, $paramsMethod));
         if ($this->newUpdates) {
             $items = array();
-            $items[$tickerOrBidAsk['symbol']] = $tickerOrBidAsk;
+            $tickerOrBidAskSymbol = $this->safe_string($tickerOrBidAsk, 'symbol');
+            if ($tickerOrBidAskSymbol !== null) {
+                $items[$tickerOrBidAskSymbol] = $tickerOrBidAsk;
+            }
             return $items;
         }
         $result = $isWatchTickers ? $this->tickers : $this->bidsasks;

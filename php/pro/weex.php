@@ -243,7 +243,10 @@ class weex extends \ccxt\async\weex {
         $newTicker = Async\await($this->subscribe_public($messageHashes, $channels, $isContract, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newTicker['symbol']] = $newTicker;
+            $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
+            if ($newTickerSymbol !== null) {
+                $result[$newTickerSymbol] = $newTicker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
@@ -1074,7 +1077,10 @@ class weex extends \ccxt\async\weex {
         $newTicker = Async\await($this->subscribe_public($messageHashes, $channels, false, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newTicker['symbol']] = $newTicker;
+            $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
+            if ($newTickerSymbol !== null) {
+                $result[$newTickerSymbol] = $newTicker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);

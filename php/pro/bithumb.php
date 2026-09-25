@@ -179,7 +179,10 @@ class bithumb extends \ccxt\async\bithumb {
         $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newTicker['symbol']] = $newTicker;
+            $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
+            if ($newTickerSymbol !== null) {
+                $result[$newTickerSymbol] = $newTicker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsResolved);
