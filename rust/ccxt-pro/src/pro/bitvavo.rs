@@ -2683,6 +2683,9 @@ impl BitvavoCore {
         //    }
         //
         let mut error: Value = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        if (error == Value::Null) {
+            return Value::Null;
+        }
         let mut code: Value = self.safe_integer_k(error.clone(), "errorCode", &[]);
         let mut action: Value = (match __pro_message.get("action").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut buildMessage: Value = self.build_message_hash(action, &[message.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
