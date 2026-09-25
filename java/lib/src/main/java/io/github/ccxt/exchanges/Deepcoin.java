@@ -2396,7 +2396,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Boolean trigger = (Boolean) this.safeBool(paramsPaginate, "trigger", false);
             List<Object> methodNameparamsMethodNameVariable = (List<Object>) this.handleParamString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
@@ -2409,7 +2409,7 @@ public class Deepcoin extends DeepcoinApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("instId", ((Map<String, Object>)market).get("id"));
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(paramsMethodName), "spot");
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, paramsMethodName, "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             request.put("instType", this.convertToInstrumentType(marketType));
@@ -3571,14 +3571,14 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsPaginate), "spot");
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsPaginate, "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{

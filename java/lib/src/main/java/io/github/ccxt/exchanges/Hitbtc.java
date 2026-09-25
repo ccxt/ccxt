@@ -1558,7 +1558,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2160,7 +2160,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 1000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 1000L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2297,7 +2297,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchClosedOrders", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchClosedOrders", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2361,7 +2361,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2446,7 +2446,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrderTrades", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrderTrades", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2547,7 +2547,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2629,7 +2629,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrder", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrder", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2690,7 +2690,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2753,7 +2753,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2811,7 +2811,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("editOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -2873,7 +2873,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             var requestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, Helpers.toStringArg(marginMode), Helpers.toMapArg(paramsMarginMode));
@@ -3438,7 +3438,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), 1000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000L)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -3533,7 +3533,7 @@ public class Hitbtc extends HitbtcApi
             {
                 marketType = "swap";
             }
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchPositions", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchPositions", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -3624,7 +3624,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", (Map<String, Object>) null, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("marginMode", "margin")));
@@ -4025,7 +4025,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("modifyMarginHelper", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("modifyMarginHelper", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("modifyMarginHelper", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Map<String, Object> response = null;

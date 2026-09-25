@@ -2407,15 +2407,15 @@ public class Bitteam extends BitteamApi
         }};
         Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         Map<String, Object> balanceByCurrencies = (Map<String, Object>) this.omit(result, new ArrayList<Object>(Arrays.asList("free", "used", "total")));
-        List<Object> rawCurrencyIds = Helpers.objectKeys(balanceByCurrencies);
+        List<String> rawCurrencyIds = new ArrayList<String>(balanceByCurrencies.keySet());
         for (var i = 0; i < ((List<?>)rawCurrencyIds).size(); i++)
         {
-            Object rawCurrencyId = (rawCurrencyIds == null || i < 0 || i >= rawCurrencyIds.size() ? null : rawCurrencyIds.get(i));
+            String rawCurrencyId = (rawCurrencyIds == null || i < 0 || i >= rawCurrencyIds.size() ? null : rawCurrencyIds.get(i));
             Map<String, Object> currencyBalance = (Map<String, Object>) this.safeDict(result, rawCurrencyId, (Object) null);
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
             String total = this.safeString(currencyBalance, "total");
-            String currencyCode = this.safeCurrencyCode((String) (((String)rawCurrencyId).toLowerCase()), (Map<String, Object>) null);
+            String currencyCode = this.safeCurrencyCode((String) (rawCurrencyId.toLowerCase()), (Map<String, Object>) null);
             if (!java.util.Objects.equals(currencyCode, null))
             {
                 balance.put((String)currencyCode, new HashMap<String, Object>() {{

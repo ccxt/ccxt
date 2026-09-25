@@ -2435,9 +2435,9 @@ public class Okx extends OkxApi
         String type = this.safeString(paramsOmitted, "type");
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
         {
-            ((Map<String, Object>)paramsOmitted).put("type", instType);
+            paramsOmitted.put("type", instType);
         }
-        return super.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(paramsOmitted), defaultValue);
+        return super.handleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue);
     }
 
     public String convertToInstrumentType(Object type)
@@ -3686,7 +3686,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "tradeId", "after", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", (Long) null, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3949,7 +3949,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), 100L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5289,7 +5289,7 @@ public class Okx extends OkxApi
             // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
             // request would otherwise come back as a list under the unified string field
             Map<String, Object> orderParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
-            return this.parseOrders(ordersData, market, (Long) null, (Long) null, Helpers.toMapArg(orderParams));
+            return this.parseOrders(ordersData, market, (Long) null, (Long) null, orderParams);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -5954,7 +5954,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -6329,7 +6329,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -6340,7 +6340,7 @@ public class Okx extends OkxApi
             }
             String type = null;
             Object query = null;
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate, (Object) null);
             type = (String) ((List<Object>) typequeryVariable).get(0);
             query = ((List<Object>) typequeryVariable).get(1);
             request.put("instType", this.convertToInstrumentType(type));
@@ -6523,7 +6523,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -6539,7 +6539,7 @@ public class Okx extends OkxApi
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsUntil), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             ((Map<String, Object>)requestUntil).put("instType", this.convertToInstrumentType(type));
@@ -6652,7 +6652,7 @@ public class Okx extends OkxApi
                     request.put("mgnMode", marginMode);
                 }
             }
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, Helpers.toMapArg(paramsMarginMode), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsMarginMode, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
             if (!java.util.Objects.equals(type, null))
@@ -7001,7 +7001,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
             String codeValue = ((String)this.safeCurrencyCode((String) (code), (Map<String, Object>) null));
             String network = this.networkIdToCode(rawNetwork, codeValue);
-            Object responseRaw = (this.fetchDepositAddressesByNetwork(codeValue, Helpers.toMapArg(paramsOmitted))).join();
+            Object responseRaw = (this.fetchDepositAddressesByNetwork(codeValue, paramsOmitted)).join();
             Object response = responseRaw;
             if (!java.util.Objects.equals(network, null))
             {
@@ -7138,7 +7138,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -7198,7 +7198,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTransactions(data, currency, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -7266,7 +7266,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -7318,7 +7318,7 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTransactions(data, currency, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -11444,7 +11444,7 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePositions(data, symbols, Helpers.toMapArg(paramsOmitted));
+            Object positions = this.parsePositions(data, symbols, paramsOmitted);
             return this.filterBySinceLimit(positions, since, Helpers.toLongOrNull(limitResolved), "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 

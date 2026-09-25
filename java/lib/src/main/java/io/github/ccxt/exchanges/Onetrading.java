@@ -717,10 +717,10 @@ public class Onetrading extends OnetradingApi
             }
             if (java.util.Objects.equals(method, "fetchPrivateTradingFees"))
             {
-                return (this.fetchPrivateTradingFees(Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchPrivateTradingFees(paramsOmitted)).join();
             } else if (java.util.Objects.equals(method, "fetchPublicTradingFees"))
             {
-                return (this.fetchPublicTradingFees(Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchPublicTradingFees(paramsOmitted)).join();
             } else
             {
                 throw new NotSupported((((this.id + " fetchTradingFees() does not support ") + method) + ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;

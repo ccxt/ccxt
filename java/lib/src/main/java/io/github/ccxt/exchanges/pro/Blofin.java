@@ -897,7 +897,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 firstMarket = (Map<String, Object>) this.market(firstSymbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, Helpers.toMapArg(paramsCallerMethodName), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if (!java.util.Objects.equals(marketType, "swap"))

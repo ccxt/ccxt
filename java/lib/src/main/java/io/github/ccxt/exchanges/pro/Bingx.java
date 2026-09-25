@@ -200,7 +200,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchTicker", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchTicker", market, Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchTicker", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
@@ -466,7 +466,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchTrades", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchTrades", market, Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchTrades", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
@@ -684,7 +684,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrderBook", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchOrderBook", market, Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchOrderBook", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
@@ -1072,7 +1072,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOHLCV", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchOHLCV", market, Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchOHLCV", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
@@ -1186,7 +1186,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            String subType = (String) ((List<Object>)this.handleSubTypeAndParams("watchOrders", market, Helpers.toMapArg(paramsMarketType), "linear")).get(0);
+            String subType = (String) ((List<Object>)this.handleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear")).get(0);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             String spotHash = "spot:private";
             String swapHash = "swap:private";
@@ -1278,7 +1278,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            String subType = (String) ((List<Object>)this.handleSubTypeAndParams("watchMyTrades", market, Helpers.toMapArg(paramsMarketType), "linear")).get(0);
+            String subType = (String) ((List<Object>)this.handleSubTypeAndParams("watchMyTrades", market, paramsMarketType, "linear")).get(0);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             String spotHash = "spot:private";
             String swapHash = "swap:private";
@@ -1361,7 +1361,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -1411,7 +1411,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Boolean fetchBalanceSnapshot = (Boolean) ((List<Object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable).get(0);
             Map<String, Object> paramsFetchBalanceSnapshot = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable).get(1);
             Boolean awaitBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)).get(0);
-            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot))
+            if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -1431,7 +1431,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             return;
         }
         Boolean fetchBalanceSnapshot = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true)).get(0);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
@@ -1499,7 +1499,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchPositions", market, parameters, "swap");
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchPositions", market, Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchPositions", market, paramsMarketType, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
@@ -1530,7 +1530,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
-            if (Boolean.TRUE.equals(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot) && java.util.Objects.equals(this.positions, null))
+            if (Boolean.TRUE.equals(fetchPositionsSnapshot) && Boolean.TRUE.equals(awaitPositionsSnapshot) && java.util.Objects.equals(this.positions, null))
             {
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);

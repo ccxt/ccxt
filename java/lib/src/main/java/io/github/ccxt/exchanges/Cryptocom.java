@@ -1298,7 +1298,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1395,7 +1395,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1471,7 +1471,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 300L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 300L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1772,7 +1772,7 @@ public class Cryptocom extends CryptocomApi
         List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters, (Object) null);
         String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
         Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-        List<Object> marginModeparamsValueVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsMarketType));
+        List<Object> marginModeparamsValueVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", paramsMarketType);
         String marginMode = (String) ((List<Object>) marginModeparamsValueVariable).get(0);
         var paramsValue = ((List<Object>) marginModeparamsValueVariable).get(1);
         if ((java.util.Objects.equals(marketType, "margin")) || (!java.util.Objects.equals(marginMode, null)))
@@ -2512,7 +2512,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 100L, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, 100L, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2750,7 +2750,7 @@ public class Cryptocom extends CryptocomApi
 
             String network = this.safeStringUpper(parameters, "network");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
-            Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, Helpers.toMapArg(paramsOmitted))).join();
+            Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
             Object depositAddresses = depositAddressesRaw;
             if (((Map<?, ?>)depositAddresses).containsKey(network))
             {
@@ -3310,7 +3310,7 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "margin");
         String marginMode = null;
         Object paramsMarginMode = null;
-        List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams(methodName, Helpers.toMapArg(paramsOmitted), (String) null);
+        List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams(methodName, paramsOmitted, (String) null);
         marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
         paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
         if (!java.util.Objects.equals(marginMode, null))
@@ -3902,7 +3902,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))

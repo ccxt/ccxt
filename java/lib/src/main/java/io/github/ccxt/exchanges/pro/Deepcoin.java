@@ -959,7 +959,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         List<Object> cachedMessages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
         {
-            Object cachedMessage = (cachedMessages == null || j < 0 || j >= ((List<?>)cachedMessages).size() ? null : ((List<?>)cachedMessages).get(j));
+            Object cachedMessage = (cachedMessages == null || j < 0 || j >= cachedMessages.size() ? null : cachedMessages.get(j));
             this.handleOrderBookMessage(client, (Map<String, Object>) (cachedMessage), orderbook);
         }
         Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));

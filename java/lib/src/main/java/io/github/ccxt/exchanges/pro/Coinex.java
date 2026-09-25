@@ -877,7 +877,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 messageHashes.add("trades");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, Helpers.toMapArg(paramsCallerMethodName), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, paramsCallerMethodName, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
@@ -1115,7 +1115,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 market = (Map<String, Object>) this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, Helpers.toMapArg(paramsOmitted), "spot");
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot");
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             (this.authenticate(type)).join();

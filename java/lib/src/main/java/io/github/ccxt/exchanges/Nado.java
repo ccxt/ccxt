@@ -570,7 +570,7 @@ public class Nado extends NadoApi
             String appendix = this.safeString(paramsRecvWindow, "appendix");
             if (java.util.Objects.equals(appendix, null))
             {
-                appendix = this.createOrderAppendix(isTriggerOrder, Helpers.toMapArg(paramsRecvWindow));
+                appendix = this.createOrderAppendix(isTriggerOrder, paramsRecvWindow);
             }
             order.put("appendix", appendix);
             Map<String, Object> contracts = (this.queryContracts(new HashMap<String, Object>() {{}})).join();
@@ -701,7 +701,7 @@ public class Nado extends NadoApi
             String appendix = this.safeString(paramsRecvWindow, "appendix");
             if (java.util.Objects.equals(appendix, null))
             {
-                appendix = this.createOrderAppendix(false, Helpers.toMapArg(paramsRecvWindow));
+                appendix = this.createOrderAppendix(false, paramsRecvWindow);
             }
             Long requestId = this.safeInteger(paramsRecvWindow, "id");
             Boolean spotLeverage = (Boolean) this.safeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage", (Object) null);
@@ -808,7 +808,7 @@ public class Nado extends NadoApi
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, Helpers.toMapArg(paramsOmitted))).join();
+            Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, paramsOmitted)).join();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
@@ -918,7 +918,7 @@ public class Nado extends NadoApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, Helpers.toMapArg(paramsOmitted))).join();
+            Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, paramsOmitted)).join();
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {

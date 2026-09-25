@@ -1253,10 +1253,10 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsPublicAddress), (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", paramsMarketType, (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
-            var isUnifiedEnabledparamsValueVariable = (this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, Helpers.toMapArg(paramsMarginMode))).join();
+            var isUnifiedEnabledparamsValueVariable = (this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, paramsMarginMode)).join();
             var isUnifiedEnabled = ((List<Object>) isUnifiedEnabledparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) isUnifiedEnabledparamsValueVariable).get(1);
             String dex = this.safeString(paramsValue, "dex");
@@ -3157,7 +3157,7 @@ public class Hyperliquid extends HyperliquidApi
             cancelAction.put("type", ((Boolean.TRUE.equals(cancelByCloid))) ? "cancelByCloid" : "cancel");
             cancelAction.put("cancels", cancelReq);
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams2(parameters, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress", (String) null)).get(0);
-            Object vaultAddress = this.formatVaultAddress(Helpers.toStringArg(vaultAddressOption));
+            Object vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Object signature = this.signL1Action(cancelAction, nonce, Helpers.toStringArg(vaultAddress), (Long) null);
             request.put("action", cancelAction);
             request.put("signature", signature);
@@ -4779,7 +4779,7 @@ public class Hyperliquid extends HyperliquidApi
                 "ntli", sz
             );
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams2(parameters, "modifyMargin", "vaultAddress", "subAccountAddress", (String) null)).get(0);
-            Object vaultAddress = this.formatVaultAddress(Helpers.toStringArg(vaultAddressOption));
+            Object vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Object signature = this.signL1Action(updateAction, nonce, Helpers.toStringArg(vaultAddress), (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", updateAction );
@@ -5021,7 +5021,7 @@ public class Hyperliquid extends HyperliquidApi
                 }
             }
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "withdraw", "vaultAddress", (String) null)).get(0);
-            Object vaultAddress = this.formatVaultAddress(Helpers.toStringArg(vaultAddressOption));
+            Object vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Object nonce = this.incrementingNonce();
             Map<String, Object> action = new HashMap<String, Object>() {{}};
             Object sig = null;

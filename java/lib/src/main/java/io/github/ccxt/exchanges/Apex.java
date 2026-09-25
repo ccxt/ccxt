@@ -1627,7 +1627,7 @@ public class Apex extends ApexApi
                 }
             }
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "timeInForce");
-            Object paramsOmitted2 = this.omit(paramsOmitted, "postOnly");
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, "postOnly");
             Object clientOrderId = this.safeStringN(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object accountId = (this.getAccountId()).join();
             if (java.util.Objects.equals(clientOrderId, null))
@@ -1635,7 +1635,7 @@ public class Apex extends ApexApi
                 clientOrderId = this.generateRandomClientIdOmni((String) (accountId));
             }
             Object finalClientOrderId = clientOrderId; // java req
-            Object paramsOmitted3 = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
+            Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
             String finalOrderPrice = orderPrice; // java req
             Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                 put( "accountId", accountId );

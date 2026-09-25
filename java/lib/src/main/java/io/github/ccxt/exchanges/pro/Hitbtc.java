@@ -1311,7 +1311,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, Helpers.toStringArg(marginMode), Helpers.toMapArg(paramsMarginMode));
@@ -1366,7 +1366,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrderWs", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrderWs", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrderWs", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModequeryVariable).get(0);
             var query = ((List<Object>) marginModequeryVariable).get(1);
             request = this.extend(request, query);
@@ -1413,7 +1413,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersWs", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrdersWs", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (java.util.Objects.equals(marketType, "swap"))
@@ -1464,7 +1464,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrdersWs", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            Object marginMode = ((List<Object>)this.handleMarginModeAndParams("fetchOpenOrdersWs", Helpers.toMapArg(paramsMarketType), (String) null)).get(0);
+            Object marginMode = ((List<Object>)this.handleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType, (String) null)).get(0);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 return (this.tradeRequest("futures_get_orders", request)).join();

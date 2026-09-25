@@ -1194,14 +1194,14 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTrades", since, Helpers.toMapArg(paramsPaginate));
+                Object paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsPaginate), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
@@ -1270,10 +1270,10 @@ public class Bullish extends BullishApi
                 Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
                 if (Boolean.TRUE.equals(paginate))
                 {
-                    Object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, Helpers.toMapArg(paramsPaginate));
+                    Object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
                     return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), 100L, true)).join();
                 }
-                Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsPaginate), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+                Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
                 if (!java.util.Objects.equals(limit, null))
                 {
                     request.put("_pageSize", this.getClosestLimit(limit));
@@ -1648,7 +1648,7 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -1732,7 +1732,7 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, Helpers.toMapArg(paramsPaginate));
+                Object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -1747,7 +1747,7 @@ public class Bullish extends BullishApi
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsPaginate), "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
+            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
             List<Object> response = (this.publicGetV1HistoryMarketsSymbolFundingRate(this.extend(request, paramsSinceAndUntil))).join();
             //
             //     [
@@ -3147,7 +3147,7 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTransfers", since, Helpers.toMapArg(paramsPaginate));
+                Object paramsPagination = this.handlePaginationParams("fetchTransfers", since, paramsPaginate);
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

@@ -621,10 +621,10 @@ public class Polymarket extends PolymarketApi
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
             if ((queriesLength != null && queriesLength > 0))
             {
-                rawEvents = (this.fetchRawEventsBySearch(queries, Helpers.toMapArg(rest))).join();
+                rawEvents = (this.fetchRawEventsBySearch(queries, rest)).join();
             } else
             {
-                rawEvents = (this.fetchRawEventsList(Helpers.toMapArg(rest))).join();
+                rawEvents = (this.fetchRawEventsList(rest)).join();
             }
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};

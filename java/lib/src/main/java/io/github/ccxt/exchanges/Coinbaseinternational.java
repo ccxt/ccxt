@@ -731,7 +731,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, Helpers.toLongOrNull(maxEntriesPerRequestOption))).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
@@ -1033,7 +1033,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
-            List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("createDepositAddress", Helpers.toMapArg(paramsMethod))).join();
+            List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("createDepositAddress", paramsMethod)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
             var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Object requestParams = paramsPortfolio;
@@ -1260,7 +1260,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String pageKey = "ccxtPageKey";
             if (java.util.Objects.equals(paginate, true))
             {
-                return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, Helpers.toLongOrNull(maxEntriesPerRequestOption))).join();
+                return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequestOption));
@@ -2603,7 +2603,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String pageKey = "ccxtPageKey";
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, Helpers.toLongOrNull(maxEntriesPerRequestOption))).join();
+                return (this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequestOption));
@@ -2701,7 +2701,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsMaxEntriesPerRequest), pageKey, Helpers.toLongOrNull(maxEntriesPerRequest))).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -2807,13 +2807,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("withdraw", Helpers.toMapArg(paramsWithdrawTag))).join();
+            List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("withdraw", paramsWithdrawTag)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
             var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPortfolio, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
-            List<Object> networkIdparamsNetworkIdVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "withdraw", Helpers.toMapArg(paramsMethod))).join();
+            List<Object> networkIdparamsNetworkIdVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "withdraw", paramsMethod)).join();
             var networkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(0);
             var paramsNetworkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{

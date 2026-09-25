@@ -2227,7 +2227,7 @@ public class Derive extends DeriveApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", 500L)).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsPaginate, "trigger", "stop", false);
             Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
@@ -2676,7 +2676,7 @@ public class Derive extends DeriveApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500L)).join();
             }
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
@@ -2930,7 +2930,7 @@ public class Derive extends DeriveApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500L)).join();
             }
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);

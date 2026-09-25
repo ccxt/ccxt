@@ -1426,7 +1426,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 25L)).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "page", 25L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object symbolResolved = null;
@@ -1545,7 +1545,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
+                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2297,7 +2297,7 @@ public class Modetrade extends ModetradeApi
                 String orderType = ((String)type).toUpperCase();
                 String timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
                 Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-                Boolean postOnly = this.isPostOnly(isMarket, null, Helpers.toMapArg(paramsOmitted));
+                Boolean postOnly = this.isPostOnly(isMarket, null, paramsOmitted);
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("order_type", "POST_ONLY");
@@ -2312,7 +2312,7 @@ public class Modetrade extends ModetradeApi
                     request.put("order_type", orderType);
                 }
                 String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
-                Object paramsOrder = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
+                Map<String, Object> paramsOrder = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce")));
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
                     request.put("client_order_id", clientOrderId);
@@ -2378,7 +2378,7 @@ public class Modetrade extends ModetradeApi
             String clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
-            Object paramsClientOrder = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
+            Map<String, Object> paramsClientOrder = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(trigger, true))
             {
@@ -2669,7 +2669,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, paramsPaginate, "page", Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2899,7 +2899,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "page", 500L)).join();
+                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2951,7 +2951,7 @@ public class Modetrade extends ModetradeApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTrades(trades, market, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3324,7 +3324,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "side"); // request-side filter, not a unified transaction field
-            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, Helpers.toMapArg(paramsOmitted));
+            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, paramsOmitted);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

@@ -953,7 +953,7 @@ public class Zebpay extends ZebpayApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
                 }
-                Object paramsSpot = this.omit(paramsOmitted, "priceType");
+                Map<String, Object> paramsSpot = (Map<String, Object>) this.omit(paramsOmitted, "priceType");
                 response = (this.publicSpotGetV2MarketKlines(this.extend(request, paramsSpot))).join();
             } else
             {

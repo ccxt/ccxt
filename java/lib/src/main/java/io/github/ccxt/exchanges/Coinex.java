@@ -2449,7 +2449,7 @@ public class Coinex extends CoinexApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", Helpers.toMapArg(paramsMarketType), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", paramsMarketType, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
@@ -2909,7 +2909,7 @@ public class Coinex extends CoinexApi
             if (Boolean.TRUE.equals(isMarketBuy))
             {
                 Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>)requiresPriceAndParams).get(0);
-                if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                     {
@@ -3284,7 +3284,7 @@ public class Coinex extends CoinexApi
             {
                 request.put("order_id", this.parseToNumeric(id));
             }
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", Helpers.toMapArg(paramsOmitted), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("editOrder", paramsOmitted, (String) null);
             var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -3671,7 +3671,7 @@ public class Coinex extends CoinexApi
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, paramsOmitted, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -3701,7 +3701,7 @@ public class Coinex extends CoinexApi
                 }
             } else
             {
-                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", Helpers.toMapArg(paramsMarketType), (String) null);
+                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", paramsMarketType, (String) null);
                 var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
                 var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
                 if (!java.util.Objects.equals(marginMode, null))
@@ -3968,7 +3968,7 @@ public class Coinex extends CoinexApi
                 response = (this.v2PrivateGetFuturesUserDeals(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", Helpers.toMapArg(paramsUntil), (String) null);
+                List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", paramsUntil, (String) null);
                 var marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
                 var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
                 if (!java.util.Objects.equals(marginMode, null))
@@ -5014,7 +5014,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), 1000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{

@@ -903,7 +903,7 @@ public class Bydfi extends BydfiApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object paramsSinceUntil = this.handleSinceAndUntil("fetchMyTrades", since, Helpers.toMapArg(paramsContractType));
+            Object paramsSinceUntil = this.handleSinceAndUntil("fetchMyTrades", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -1048,7 +1048,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit));
+                return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit));
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -2076,7 +2076,7 @@ public class Bydfi extends BydfiApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object paramsSinceUntil = this.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, Helpers.toMapArg(paramsContractType));
+            Object paramsSinceUntil = this.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -2679,7 +2679,7 @@ public class Bydfi extends BydfiApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "contractType", contractTypeOption );
             }};
-            Object paramsSinceAndUntil = this.handleSinceAndUntil("fetchPositionsHistory", since, Helpers.toMapArg(paramsContractType));
+            Object paramsSinceAndUntil = this.handleSinceAndUntil("fetchPositionsHistory", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -2724,7 +2724,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "contractType", contractTypeOption );
             }};
-            Object paramsSinceAndUntil = this.handleSinceAndUntil("fetchPositionsHistory", since, Helpers.toMapArg(paramsContractType));
+            Object paramsSinceAndUntil = this.handleSinceAndUntil("fetchPositionsHistory", since, paramsContractType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);

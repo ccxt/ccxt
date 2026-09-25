@@ -1696,7 +1696,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
             String orderType = this.safeString(paramsOmitted, "type", type);
             orderType = this.encodeOrderType(orderType);
-            Object paramsType = this.omit(paramsOmitted, "type");
+            Map<String, Object> paramsType = (Map<String, Object>) this.omit(paramsOmitted, "type");
             Object paramsQuote = null;
             String orderSide = this.encodeOrderSide((String) (side));
             Map<String, Object> request = Helpers.newMap(

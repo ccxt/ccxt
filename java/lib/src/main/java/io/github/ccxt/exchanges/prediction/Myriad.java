@@ -315,10 +315,10 @@ public class Myriad extends MyriadApi
             Object rawMarkets = new ArrayList<Object>(Arrays.asList());
             if ((queriesLength != null && queriesLength > 0))
             {
-                rawMarkets = (this.fetchRawMarketsBySearch(queries, Helpers.toMapArg(rest))).join();
+                rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
             } else
             {
-                rawMarkets = (this.fetchRawMarketsList(Helpers.toMapArg(rest))).join();
+                rawMarkets = (this.fetchRawMarketsList(rest)).join();
             }
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
@@ -1041,7 +1041,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel")));
             if (java.util.Objects.equals(tradingModel, "ob"))
             {
-                return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, Helpers.toMapArg(rest))).join();
+                return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, rest)).join();
             }
             // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
             // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
@@ -1344,7 +1344,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> quote = (Map<String, Object>) this.safeDict(parameters, "quote", (Object) null);
             if (java.util.Objects.equals(quote, null))
             {
-                quote = (this.fetchTradeQuote((String) (outcome), (String) (sideStr), amount, Helpers.toMapArg(quoteParams))).join();
+                quote = (this.fetchTradeQuote((String) (outcome), (String) (sideStr), amount, quoteParams)).join();
             }
             String calldata = this.safeString(this.safeDict(quote, "info", new HashMap<String, Object>() {{}}), "calldata");
             if (java.util.Objects.equals(calldata, null))
@@ -2214,7 +2214,7 @@ public class Myriad extends MyriadApi
             }
             if (java.util.Objects.equals(requestedTradingModel, "amm"))
             {
-                return (this.fetchAmmOrders(outcome, since, limit, Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchAmmOrders(outcome, since, limit, paramsOmitted)).join();
             }
             Map<String, Object> response = (this.myriadPublicGetOrders(this.extend(request, paramsOmitted))).join();
             //

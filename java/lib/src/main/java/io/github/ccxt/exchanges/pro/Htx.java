@@ -711,7 +711,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 orderbook.reset(snapshot);
                 // unroll the accumulated deltas
-                for (var i = 0; i < Helpers.getArrayLength(messages); i++)
+                for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
                 {
                     this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i))));
                 }
@@ -2075,7 +2075,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsMarketType), "linear");
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, "linear");
             var subType = ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isUnifiedAccount = (Boolean) this.safeBool2(paramsSubType, "isUnifiedAccount", "unified", false);

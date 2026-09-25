@@ -1852,7 +1852,7 @@ public class Aster extends AsterApi
             //     "positionSide": "BOTH",      // only in SPOT
             // }
             //
-            return this.parseTrades(response, market, since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTrades(response, market, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -3143,7 +3143,7 @@ public class Aster extends AsterApi
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             List<Object> response = null;
@@ -4551,10 +4551,10 @@ public class Aster extends AsterApi
             }
             if (java.util.Objects.equals(defaultMethod, "positionRisk"))
             {
-                return (this.fetchPositionsRisk(symbols, Helpers.toMapArg(paramsMethod))).join();
+                return (this.fetchPositionsRisk(symbols, paramsMethod)).join();
             } else if (java.util.Objects.equals(defaultMethod, "account"))
             {
-                return (this.fetchAccountPositions(symbols, Helpers.toMapArg(paramsMethod))).join();
+                return (this.fetchAccountPositions(symbols, paramsMethod)).join();
             } else
             {
                 throw new NotSupported((((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + defaultMethod) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
@@ -5003,7 +5003,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " withdraw require fee parameter")) ;
             }
             request.put("fee", fee);
-            Object paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
             request.put("amount", this.currencyToPrecision((String) (code), amount, network));
             request.put("userSignature", this.signWithdrawPayload(request, network));
             Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, paramsOmitted))).join();

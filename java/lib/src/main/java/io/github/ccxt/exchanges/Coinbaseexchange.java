@@ -1404,7 +1404,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 100L, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, 100L, true)).join();
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1567,7 +1567,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 300L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 300L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long parsedTimeframe = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1855,7 +1855,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), 100L, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, 100L, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;

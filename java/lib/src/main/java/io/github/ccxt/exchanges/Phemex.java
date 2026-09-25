@@ -2019,7 +2019,7 @@ public class Phemex extends PhemexApi
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchTickers", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object query = this.omit(paramsSubType, "type");
@@ -3515,7 +3515,7 @@ public class Phemex extends PhemexApi
             }
             // Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
             String finalQty = this.safeString(paramsOmitted, "baseQtyEv");
-            Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("baseQtyEv")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("baseQtyEv")));
             if (!java.util.Objects.equals(finalQty, null))
             {
                 request.put("baseQtyEV", finalQty);
@@ -3540,7 +3540,7 @@ public class Phemex extends PhemexApi
                     request.put("stopPxEp", this.toEp(triggerPrice, market));
                 }
             }
-            Object paramsOmitted3 = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
+            Map<String, Object> paramsOmitted3 = (Map<String, Object>) this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isStableSettled))
             {
@@ -5866,7 +5866,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), 100L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100L)).join();
             }
             String customSymbol = null;
             if (Boolean.TRUE.equals(isUsdtSettled))

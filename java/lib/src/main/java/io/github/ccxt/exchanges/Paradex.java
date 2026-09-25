@@ -1613,7 +1613,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2832,7 +2832,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 50L)).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3052,7 +3052,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -3351,7 +3351,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3430,7 +3430,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3509,7 +3509,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -4080,7 +4080,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next", "cursor", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{

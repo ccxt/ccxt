@@ -1604,7 +1604,7 @@ public class Dydx extends DydxApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null);
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringUpper(paramsSubAccountId, "timeInForce", "GTT");
-        Boolean postOnly = this.isPostOnly(isMarket, null, Helpers.toMapArg(paramsSubAccountId));
+        Boolean postOnly = this.isPostOnly(isMarket, null, paramsSubAccountId);
         String amountStr = this.amountToPrecision(symbol, amount);
         String priceStr = this.priceToPrecision(symbol, price);
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});

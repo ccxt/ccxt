@@ -2269,7 +2269,7 @@ public class Digifinex extends DigifinexApi
         List<Object> marketTypeRawparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("createOrderRequest", market, parameters, (Object) null);
         String marketTypeRaw = (String) ((List<Object>) marketTypeRawparamsMarketTypeVariable).get(0);
         Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeRawparamsMarketTypeVariable).get(1);
-        List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrderRequest", Helpers.toMapArg(paramsMarketType), (String) null);
+        List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrderRequest", paramsMarketType, (String) null);
         String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
         var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
         String marketType = (((!java.util.Objects.equals(marginMode, null)))) ? "margin" : marketTypeRaw;

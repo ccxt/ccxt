@@ -2140,7 +2140,7 @@ public class Kucoin extends KucoinApi
             List<Object> utaOptionparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchStatus", "uta", uta);
             Boolean utaOption = (Boolean) ((List<Object>) utaOptionparamsUtaVariable).get(0);
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, paramsUta, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -3598,7 +3598,7 @@ public class Kucoin extends KucoinApi
                     firstMarket = (Map<String, Object>) this.market(firstSymbol);
                 }
             }
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", firstMarket, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", firstMarket, paramsUta, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -3611,7 +3611,7 @@ public class Kucoin extends KucoinApi
                 response = (this.utaGetMarketTicker(this.extend(request, paramsMarketType))).join();
             } else if ((!java.util.Objects.equals(type, "spot")) && (!java.util.Objects.equals(type, "margin")))
             {
-                return (this.fetchContractTickers(symbolsNormalized, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.fetchContractTickers(symbolsNormalized, paramsMarketType)).join();
             } else
             {
                 response = (this.publicGetMarketAllTickers(paramsMarketType)).join();
@@ -3777,7 +3777,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             Map<String, Object> response = null;
             Map<String, Object> result = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, paramsUta, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
@@ -4014,7 +4014,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4042,7 +4042,7 @@ public class Kucoin extends KucoinApi
                 request.put("startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(endAt, (limit * duration))), denominator)))))));
             }
             request.put("endAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(endAt, denominator)))))));
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOHLCV", market, Helpers.toMapArg(paramsPaginate), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOHLCV", market, paramsPaginate, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin")))
@@ -4120,7 +4120,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4193,7 +4193,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4579,7 +4579,7 @@ public class Kucoin extends KucoinApi
             Boolean utaOption = (Boolean) ((List<Object>) utaOptionparamsUtaVariable).get(0);
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             Map<String, Object> response = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, paramsUta, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
@@ -4767,13 +4767,13 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.createUtaOrder(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsUta))).join();
+                return (this.createUtaOrder(symbol, (String) (type), (String) (side), amount, price, paramsUta)).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsUta))).join();
+                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, paramsUta)).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
-                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsUta))).join();
+                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, paramsUta)).join();
             } else
             {
                 throw new NotSupported(((this.id + " createOrder() does not support market ") + ((Map<String, Object>)market).get("type"))) ;
@@ -4838,7 +4838,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
-            List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(Helpers.toMapArg(paramsOmitted));
+            List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(paramsOmitted);
             Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
             var paramsHf = ((List<Object>) hfparamsHfVariable).get(1);
             List<Object> useSyncparamsSyncVariable = (List<Object>) this.handleOptionBoolAndParams(paramsHf, "createOrder", "sync", false);
@@ -4850,11 +4850,11 @@ public class Kucoin extends KucoinApi
             var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
             String tradeType = this.safeString(paramsSync, "tradeType"); // keep it for backward compatibility
             Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
-            Object marginResult = this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsSync), (String) null);
+            Object marginResult = this.handleMarginModeAndParams("createOrder", paramsSync, (String) null);
             String marginMode = this.safeString(marginResult, 0);
             Boolean isMarginOrder = java.util.Objects.equals(tradeType, "MARGIN_TRADE") || !java.util.Objects.equals(marginMode, null);
             // don't omit anything before calling createOrderRequest
-            Map<String, Object> orderRequest = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsSync));
+            Map<String, Object> orderRequest = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsSync);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(testOrder, true))
             {
@@ -5073,7 +5073,7 @@ public class Kucoin extends KucoinApi
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
             Boolean hasTpOrSlOrder = (!java.util.Objects.equals(this.safeValue(paramsOmitted, "stopLoss"), null)) || (!java.util.Objects.equals(this.safeValue(paramsOmitted, "takeProfit"), null));
-            Object orderRequest = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsOmitted));
+            Object orderRequest = this.createContractOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(testOrder, true))
             {
@@ -5942,22 +5942,22 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.cancelUtaOrder(id, symbol, Helpers.toMapArg(paramsUta))).join();
+                return (this.cancelUtaOrder(id, symbol, paramsUta)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, paramsUta, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.cancelSpotOrder(id, symbol, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.cancelSpotOrder(id, symbol, paramsMarketType)).join();
             } else
             {
-                return (this.cancelContractOrder(id, symbol, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.cancelContractOrder(id, symbol, paramsMarketType)).join();
             }
         }).thenApply(Order::new);
 
@@ -6004,7 +6004,7 @@ public class Kucoin extends KucoinApi
             List<Object> useSyncparamsSyncVariable = (List<Object>) this.handleOptionBoolAndParams(paramsHf, "cancelOrder", "sync", false);
             Boolean useSync = (Boolean) ((List<Object>) useSyncparamsSyncVariable).get(0);
             Map<String, Object> paramsSync = (Map<String, Object>) ((List<Object>) useSyncparamsSyncVariable).get(1);
-            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", Helpers.toMapArg(paramsSync), (String) null);
+            List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", paramsSync, (String) null);
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             String tradeType = this.safeString(paramsMarginMode, "tradeType"); // keep it for backward compatibility
@@ -6288,22 +6288,22 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.cancelAllUtaOrders(symbol, Helpers.toMapArg(paramsUta))).join();
+                return (this.cancelAllUtaOrders(symbol, paramsUta)).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, paramsUta, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
-                return (this.cancelAllSpotOrders(symbol, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.cancelAllSpotOrders(symbol, paramsMarketType)).join();
             } else
             {
-                return (this.cancelAllContractOrders(symbol, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.cancelAllContractOrders(symbol, paramsMarketType)).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -6755,7 +6755,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", (Object) null);
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -6886,7 +6886,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, Helpers.toLongOrNull(maxLimit), true)).join();
             }
             String accountMode = "unified";
             List<Object> accountModeOptionparamsAccountModeVariable = (List<Object>) this.handleOptionStringAndParams(paramsPaginate, "fetchUtaOrdersByStatus", "accountMode", accountMode);
@@ -6916,7 +6916,7 @@ public class Kucoin extends KucoinApi
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             Boolean isUnified = (java.util.Objects.equals(accountModeOption, "unified"));
-            Object tradeType = this.handleTradeType(isContract, marginMode, isUnified, Helpers.toMapArg(paramsMarginMode));
+            Object tradeType = this.handleTradeType(isContract, marginMode, isUnified, paramsMarginMode);
             Helpers.addElementToObject(paramsMarginMode, "tradeType", tradeType);
             if (!java.util.Objects.equals(since, null))
             {
@@ -7038,9 +7038,9 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
-            return (this.fetchOrdersByStatus("done", symbol, since, limit, Helpers.toMapArg(paramsPaginate))).join();
+            return (this.fetchOrdersByStatus("done", symbol, since, limit, paramsPaginate)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -7086,9 +7086,9 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
-            return (this.fetchOrdersByStatus("active", symbol, since, limit, Helpers.toMapArg(paramsPaginate))).join();
+            return (this.fetchOrdersByStatus("active", symbol, since, limit, paramsPaginate)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -8275,7 +8275,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -8493,7 +8493,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             Map<String, Object> response = null;
             List<Object> trades = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTrades", market, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTrades", market, paramsUta, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
@@ -9678,7 +9678,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.fetchUtaBalance(Helpers.toMapArg(paramsUta))).join();
+                return (this.fetchUtaBalance(paramsUta)).join();
             }
             Map<String, Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -9688,7 +9688,7 @@ public class Kucoin extends KucoinApi
             {
                 currency = (Map<String, Object>) this.currency(code);
             }
-            List<Object> requestedTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> requestedTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsUta, (Object) null);
             String requestedType = (String) ((List<Object>) requestedTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) requestedTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
@@ -10126,9 +10126,9 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
             {
-                return (this.transferUta(code, amount, fromAccount, toAccount, Helpers.toMapArg(paramsUta))).join();
+                return (this.transferUta(code, amount, fromAccount, toAccount, paramsUta)).join();
             }
-            return (this.transferClassic(code, amount, fromAccount, toAccount, Helpers.toMapArg(paramsUta))).join();
+            return (this.transferClassic(code, amount, fromAccount, toAccount, paramsUta)).join();
         }).thenApply(TransferEntry::new);
 
     }
@@ -13385,7 +13385,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaOptionparamsUtaVariable).get(1);
             if (Boolean.TRUE.equals(utaOption))
             {
-                LeverageTiers result = (this.fetchLeverageTiers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(paramsUta))).join();
+                LeverageTiers result = (this.fetchLeverageTiers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), paramsUta)).join();
                 return this.safeList(result, symbol, new ArrayList<Object>(Arrays.asList()));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -13678,7 +13678,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateOptionparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginateOption))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "5m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
             Map<String, Object> request = Helpers.newMap(
                 "symbol", ((Map<String, Object>)market).get("id"),

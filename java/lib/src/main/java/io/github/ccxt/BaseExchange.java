@@ -9853,7 +9853,7 @@ public Object describe()
             {
                 String network = this.safeString(parameters, "network");
                 Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
-                Object addressStructures = (this.fetchDepositAddressesByNetwork(code, Helpers.toMapArg(paramsOmitted))).join();
+                Object addressStructures = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
                 if (!java.util.Objects.equals(network, null))
                 {
                     return this.safeDict(addressStructures, network, (Object) null);
@@ -11258,7 +11258,7 @@ public Object describe()
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object errors = 0;
             Long until = this.safeIntegerN(paramsRemoveRepeated, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, Helpers.toMapArg(paramsRemoveRepeated));
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             if ((java.util.Objects.equals(paginationDirection, "forward")))
@@ -11411,7 +11411,7 @@ public Object describe()
             List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", Helpers.toLongOrNull(maxCalls));
             Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
             Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, Helpers.toMapArg(paramsPaginationCalls));
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             var paramsMaxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
@@ -11495,7 +11495,7 @@ public Object describe()
             List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", Helpers.toLongOrNull(maxRetries));
             Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
             Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, Helpers.toMapArg(paramsMaxRetries));
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             var paramsMaxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             Object cursorValue = null;
@@ -11617,7 +11617,7 @@ public Object describe()
             List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", Helpers.toLongOrNull(maxRetries));
             Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
             Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, Helpers.toMapArg(paramsMaxRetries));
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             Object i = 0;

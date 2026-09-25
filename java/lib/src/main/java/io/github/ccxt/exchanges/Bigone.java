@@ -1029,7 +1029,7 @@ public class Bigone extends BigoneApi
                 return this.parseTicker(ticker, market);
             } else
             {
-                Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(paramsMarketType))).join();
+                Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), paramsMarketType)).join();
                 return this.safeValue(tickers, symbol);
             }
         }).thenApply(Ticker::new);

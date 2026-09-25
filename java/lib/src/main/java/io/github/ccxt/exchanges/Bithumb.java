@@ -2054,7 +2054,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> response = null;
             if (Helpers.isEqual(generation, 2))
             {
-                request = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsGeneration));
+                request = this.createOrderRequest(symbol, (String) (type), (String) (side), amount, price, paramsGeneration);
                 response = (this.privatePostV2Orders(request)).join();
             } else
             {
@@ -2126,7 +2126,7 @@ public class Bithumb extends BithumbApi
                 throw new BadRequest((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
             }
             ((Map<String, Object>)paramsGeneration).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, Helpers.toMapArg(paramsGeneration))).join();
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, paramsGeneration)).join();
         }).thenApply(Order::new);
 
     }
@@ -2656,7 +2656,7 @@ public class Bithumb extends BithumbApi
                 {
                     ((Map<String, Object>)paramsGeneration).put("state", "wait");
                 }
-                List<Order> orders = (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(paramsGeneration))).join();
+                List<Order> orders = (this.fetchOrders(symbol, since, limit, paramsGeneration)).join();
                 return this.filterBySinceLimit(orders, since, limit, "timestamp", false);
             } else
             {

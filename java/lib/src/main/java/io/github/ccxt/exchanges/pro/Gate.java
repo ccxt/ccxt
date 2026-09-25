@@ -298,7 +298,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, Helpers.toMapArg(paramsOmitted), (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, Helpers.toMapArg(query)) : this.prepareRequest(market, type, Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -339,10 +339,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
-            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsOmitted), (Object) null);
+            List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) typequeryVariable).get(1);
-            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, Helpers.toMapArg(query)) : this.prepareRequest(market, type, Helpers.toMapArg(query));
+            var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
@@ -1463,7 +1463,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Object messageType = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
@@ -1575,7 +1575,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsMarketType), (Object) null);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));

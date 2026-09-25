@@ -377,7 +377,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
                 orderbook.reset(snapshot);
                 List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
-                for (var i = 0; i < Helpers.getArrayLength(messages); i++)
+                for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
                 {
                     Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
                     Long ts = this.safeInteger(messageItem, "ts");

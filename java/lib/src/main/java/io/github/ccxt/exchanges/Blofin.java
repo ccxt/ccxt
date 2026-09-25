@@ -1268,7 +1268,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "tradeId", "after", (Long) null, 100L)).join();
+                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", (Long) null, 100L)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1973,15 +1973,15 @@ public class Blofin extends BlofinApi
             }
             if (Boolean.TRUE.equals(isCombinedSlTp))
             {
-                Object tpslRequest = this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsTpsl));
+                Object tpslRequest = this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsTpsl);
                 response = (this.privatePostTradeOrderTpsl(tpslRequest)).join();
             } else if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isSlOrTp))
             {
-                Map<String, Object> triggerRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsTpsl));
+                Map<String, Object> triggerRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsTpsl);
                 response = (this.privatePostTradeOrderAlgo(triggerRequest)).join();
             } else
             {
-                Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsTpsl));
+                Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsTpsl);
                 response = (this.privatePostTradeOrder(request)).join();
             }
             if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
@@ -2209,7 +2209,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2275,7 +2275,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2292,7 +2292,7 @@ public class Blofin extends BlofinApi
                 ((Map<String, Object>)requestUntil).put("limit", limit); // default 100, max 100
             }
             String type = "swap";
-            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsUntil), type);
+            List<Object> typeMarketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, type);
             String typeMarketType = (String) ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
             Map<String, Object> response = null;
@@ -2358,7 +2358,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2380,7 +2380,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(requestUntil, paramsUntil))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTransactions(data, currency, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2412,7 +2412,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -2434,7 +2434,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(requestUntil, paramsUntil))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(paramsUntil));
+            return this.parseTransactions(data, currency, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2616,7 +2616,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
@@ -3104,7 +3104,7 @@ public class Blofin extends BlofinApi
             //    }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePositions(data, symbols, Helpers.toMapArg(paramsUntil));
+            Object positions = this.parsePositions(data, symbols, paramsUntil);
             return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3527,7 +3527,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;

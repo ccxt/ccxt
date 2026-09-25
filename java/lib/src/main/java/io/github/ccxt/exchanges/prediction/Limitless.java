@@ -350,7 +350,7 @@ public class Limitless extends LimitlessApi
                 // the search endpoint rejects limit > 50 - cap the per-query request and let
                 // maxMarkets bound the overall collection
                 Object limit = Math.min(requestedLimit, 50);
-                Object searchRest = this.omit(rest, new ArrayList<Object>(Arrays.asList("limit")));
+                Map<String, Object> searchRest = (Map<String, Object>) this.omit(rest, new ArrayList<Object>(Arrays.asList("limit")));
                 Map<String, Object> seen = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
                 {
@@ -3569,7 +3569,7 @@ public class Limitless extends LimitlessApi
                 put( "searchIn", "both" );
             }}, parameters);
             Map<String, Object> postParams = (Map<String, Object>) this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
-            return this.applyEventFetchParams(result, Helpers.toMapArg(postParams), queries);
+            return this.applyEventFetchParams(result, postParams, queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }

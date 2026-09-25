@@ -749,7 +749,7 @@ public class Blockchaincom extends BlockchaincomApi
                 "clOrdId", clientOrderId
             );
             Object triggerPrice = this.safeValueN(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
-            Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             if (java.util.Objects.equals(uppercaseOrderType, "STOP") || java.util.Objects.equals(uppercaseOrderType, "STOPLIMIT"))
             {
                 if (java.util.Objects.equals(triggerPrice, null))

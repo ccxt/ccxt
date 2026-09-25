@@ -1047,7 +1047,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
-        for (var i = 0; i < Helpers.getArrayLength(messages); i++)
+        for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
         {
             Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
             this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
@@ -1631,7 +1631,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Object request = this.withdrawRequest((String) (code), amount, address, Helpers.toStringArg(tagWithdrawTag), Helpers.toMapArg(paramsWithdrawTag));
+            Object request = this.withdrawRequest((String) (code), amount, address, Helpers.toStringArg(tagWithdrawTag), paramsWithdrawTag);
             return (this.watchRequest("privateWithdrawAssets", (Map<String, Object>) (request))).join();
         }).thenApply(Transaction::new);
 

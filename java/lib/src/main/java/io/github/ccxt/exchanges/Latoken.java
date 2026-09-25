@@ -1195,10 +1195,10 @@ public class Latoken extends LatokenApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
             if (java.util.Objects.equals(method, "fetchPrivateTradingFee"))
             {
-                return (this.fetchPrivateTradingFee(symbol, Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchPrivateTradingFee(symbol, paramsOmitted)).join();
             } else if (java.util.Objects.equals(method, "fetchPublicTradingFee"))
             {
-                return (this.fetchPublicTradingFee(symbol, Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchPublicTradingFee(symbol, paramsOmitted)).join();
             } else
             {
                 throw new NotSupported((this.id + " not support this method")) ;
