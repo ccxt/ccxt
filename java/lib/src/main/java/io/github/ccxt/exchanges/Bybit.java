@@ -2577,10 +2577,10 @@ public class Bybit extends BybitApi
     {
         List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (Object) null);
         String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-        var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
-        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(method, Helpers.toMapArg(market), Helpers.toMapArg(paramsMarketType), (Object) null);
+        Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+        List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams(method, Helpers.toMapArg(market), paramsMarketType, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-        var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+        Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
         if (java.util.Objects.equals(type, "option") || java.util.Objects.equals(type, "spot"))
         {
             return new ArrayList<Object>(Arrays.asList(type, paramsSubType));
@@ -3620,7 +3620,7 @@ public class Bybit extends BybitApi
             }};
             var categoryparamsValueVariable = this.getBybitType("fetchTicker", market, parameters);
             String category = (String) ((List<Object>) categoryparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) categoryparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) categoryparamsValueVariable).get(1);
             request.put("category", category);
             Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, paramsValue))).join();
             //
@@ -3742,7 +3742,7 @@ public class Bybit extends BybitApi
             }
             var categoryparamsCategoryVariable = this.getBybitType("fetchTickers", market, Helpers.toMapArg(paramsOmitted));
             String category = (String) ((List<Object>) categoryparamsCategoryVariable).get(0);
-            var paramsCategory = ((List<Object>) categoryparamsCategoryVariable).get(1);
+            Map<String, Object> paramsCategory = (Map<String, Object>) ((List<Object>) categoryparamsCategoryVariable).get(1);
             request.put("category", category);
             if (java.util.Objects.equals(category, "option"))
             {
@@ -3897,10 +3897,10 @@ public class Bybit extends BybitApi
                 request.put("start", Helpers.multiply(this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))), duration));
             }
             request.put("limit", limitResolved); // max 1000, default 1000
-            Object paramsUntil = null;
+            Map<String, Object> paramsUntil = null;
             List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             request = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(0);
-            paramsUntil = ((List<Object>) requestparamsUntilVariable).get(1);
+            paramsUntil = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(1);
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
@@ -3910,7 +3910,7 @@ public class Bybit extends BybitApi
             } else
             {
                 String price = this.safeString(paramsUntil, "price");
-                Object paramsOmitted = this.omit(paramsUntil, "price");
+                Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "price");
                 if (java.util.Objects.equals(market.get("linear"), true))
                 {
                     request.put("category", "linear");
@@ -4181,7 +4181,7 @@ public class Bybit extends BybitApi
             request.put("symbol", market.get("id"));
             var typeparamsValueVariable = this.getBybitType("fetchFundingRateHistory", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "option"))
             {
                 throw new NotSupported((this.id + " fetchFundingRateHistory() only support linear and inverse market")) ;
@@ -4193,7 +4193,7 @@ public class Bybit extends BybitApi
             }
             Long until = this.safeInteger(paramsValue, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsValue, "endTime", until); // exchange-specific in milliseconds
-            Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -4550,7 +4550,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchTrades", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             Map<String, Object> response = (this.publicGetV5MarketRecentTrade(this.extend(request, paramsValue))).join();
             //
@@ -4876,12 +4876,12 @@ public class Bybit extends BybitApi
             var enableUnifiedAccount = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
             Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
             Object type = null;
-            Object paramsMarketType = null;
+            Map<String, Object> paramsMarketType = null;
             // don't use getBybitType here
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (Object) null);
             type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsMarketType), (Object) null);
+            paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
@@ -5893,7 +5893,7 @@ public class Bybit extends BybitApi
             Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             var categoryparamsValueVariable = this.getBybitType("createOrders", market, parameters);
             String category = (String) ((List<Object>) categoryparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) categoryparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) categoryparamsValueVariable).get(1);
             if ((java.util.Objects.equals(category, "inverse")) && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
             {
                 throw new NotSupported((this.id + " createOrders does not allow inverse orders for non UTA2.0 account")) ;
@@ -5983,7 +5983,7 @@ public class Bybit extends BybitApi
         }
         var categoryparamsValueVariable = this.getBybitType("editOrderRequest", market, parameters);
         String category = (String) ((List<Object>) categoryparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) categoryparamsValueVariable).get(1);
+        Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) categoryparamsValueVariable).get(1);
         request.put("category", category);
         if (!java.util.Objects.equals(amount, null))
         {
@@ -6143,7 +6143,7 @@ public class Bybit extends BybitApi
             Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             var categoryparamsValueVariable = this.getBybitType("editOrders", market, parameters);
             String category = (String) ((List<Object>) categoryparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) categoryparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) categoryparamsValueVariable).get(1);
             if ((java.util.Objects.equals(category, "inverse")) && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
             {
                 throw new NotSupported((this.id + " editOrders does not allow inverse orders for non UTA2.0 account")) ;
@@ -6311,14 +6311,14 @@ public class Bybit extends BybitApi
             }
             var categoryparamsValueVariable = this.getBybitType("cancelOrders", market, parameters);
             String category = (String) ((List<Object>) categoryparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) categoryparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) categoryparamsValueVariable).get(1);
             if (java.util.Objects.equals(category, "inverse"))
             {
                 throw new NotSupported((this.id + " cancelOrders does not allow inverse orders")) ;
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsValue, "clientOrderIds", "clientOids", new ArrayList<Object>(Arrays.asList()));
-            Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
             for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
             {
                 ((List<Object>)ordersRequests).add(Helpers.newMap(
@@ -6571,7 +6571,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("cancelAllOrders", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             if ((java.util.Objects.equals(type, "option")) && !Boolean.TRUE.equals(isUnifiedAccount))
             {
@@ -6587,7 +6587,7 @@ public class Bybit extends BybitApi
                 }
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
-            Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -6720,7 +6720,7 @@ public class Bybit extends BybitApi
             Map<String, Object> market = this.market(symbol);
             var marketTypeparamsValueVariable = this.getBybitType("fetchOrder", market, paramsAcknowledged);
             String marketType = (String) ((List<Object>) marketTypeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) marketTypeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) marketTypeparamsValueVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "orderId", id );
@@ -6846,14 +6846,14 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchOrdersClassic", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((this.id + " fetchOrdersClassic() is not supported for spot markets")) ;
             }
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
-            Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -6868,7 +6868,7 @@ public class Bybit extends BybitApi
             }
             Long until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsOmitted, "endTime", until); // exchange-specific in milliseconds
-            Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -7063,10 +7063,10 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchCanceledAndClosedOrders", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
-            Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -7081,7 +7081,7 @@ public class Bybit extends BybitApi
             }
             Long until = this.safeInteger(paramsOmitted, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(paramsOmitted, "endTime", until); // exchange-specific in milliseconds
-            Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             if (!java.util.Objects.equals(endTime, null))
             {
                 request.put("endTime", endTime);
@@ -7271,7 +7271,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchOpenOrders", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             if (java.util.Objects.equals(type, "linear") || java.util.Objects.equals(type, "inverse"))
             {
                 String baseCoin = this.safeString(paramsValue, "baseCoin");
@@ -7284,7 +7284,7 @@ public class Bybit extends BybitApi
             }
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
-            Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (java.util.Objects.equals(isTrigger, true))
             {
                 request.put("orderFilter", "StopOrder");
@@ -7437,7 +7437,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchMyTrades", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             if (!java.util.Objects.equals(limit, null))
             {
@@ -8220,7 +8220,7 @@ public class Bybit extends BybitApi
             Object isUta = (accounts == null || 1 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(1));
             List<Object> accountTypeOptionparamsAccountTypeVariable = (List<Object>) this.handleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType", (String) null);
             String accountTypeOption = (String) ((List<Object>) accountTypeOptionparamsAccountTypeVariable).get(0);
-            var paramsAccountType = ((List<Object>) accountTypeOptionparamsAccountTypeVariable).get(1);
+            Map<String, Object> paramsAccountType = (Map<String, Object>) ((List<Object>) accountTypeOptionparamsAccountTypeVariable).get(1);
             String defaultAccountType = (((java.util.Objects.equals(isUta, true)))) ? "UTA" : "SPOT";
             String accountType = (((java.util.Objects.equals(accountTypeOption, null)))) ? defaultAccountType : accountTypeOption;
             if (java.util.Objects.equals(this.markets, null))
@@ -8242,7 +8242,7 @@ public class Bybit extends BybitApi
             }
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsAccountType);
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
-            var query = ((List<Object>) networkCodequeryVariable).get(1);
+            Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
@@ -8295,7 +8295,7 @@ public class Bybit extends BybitApi
             Map<String, Object> response = null;
             var typeparamsValueVariable = this.getBybitType("fetchPosition", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             response = (this.privateGetV5PositionList(this.extend(request, paramsValue))).join();
             //
@@ -8408,7 +8408,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchPositions", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             if (java.util.Objects.equals(type, "linear") || java.util.Objects.equals(type, "inverse"))
             {
                 String baseCoin = this.safeString(paramsValue, "baseCoin");
@@ -8433,7 +8433,7 @@ public class Bybit extends BybitApi
             {
                 request.put("limit", 200); // max limit
             }
-            Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("type")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("type")));
             request.put("category", type);
             Map<String, Object> response = (this.privateGetV5PositionList(this.extend(request, paramsOmitted))).join();
             //
@@ -8859,7 +8859,7 @@ public class Bybit extends BybitApi
                 {
                     var typeparamsTypeVariable = this.getBybitType("setPositionMode", market, parameters);
                     String type = (String) ((List<Object>) typeparamsTypeVariable).get(0);
-                    var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
+                    Map<String, Object> paramsType = (Map<String, Object>) ((List<Object>) typeparamsTypeVariable).get(1);
                     Object tradeMode = null;
                     if (java.util.Objects.equals(marginMode, "cross"))
                     {
@@ -9949,7 +9949,7 @@ public class Bybit extends BybitApi
             }};
             var categoryparamsValueVariable = this.getBybitType("fetchTradingFee", market, parameters);
             String category = (String) ((List<Object>) categoryparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) categoryparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) categoryparamsValueVariable).get(1);
             request.put("category", category);
             Map<String, Object> response = (this.privateGetV5AccountFeeRate(this.extend(request, paramsValue))).join();
             //
@@ -10192,7 +10192,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchSettlementHistory", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((this.id + " fetchSettlementHistory() is not supported for spot market")) ;
@@ -10262,7 +10262,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchMySettlementHistory", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             if (java.util.Objects.equals(type, "spot"))
             {
                 throw new NotSupported((this.id + " fetchMySettlementHistory() is not supported for spot market")) ;
@@ -10702,7 +10702,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchMyLiquidations", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             if (!java.util.Objects.equals(limit, null))
             {
@@ -11012,7 +11012,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchFundingHistory", market, paramsPaginate);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -11327,8 +11327,8 @@ public class Bybit extends BybitApi
             Long until = this.safeInteger(parameters, "until");
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
-            Object paramsOmitted = this.omit(paramsSubType, "until");
+            Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsSubType, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", subType );
             }};
@@ -11389,7 +11389,7 @@ public class Bybit extends BybitApi
             {
                 rawPositionsList = rawPositions;
             }
-            Object positions = this.parsePositions(rawPositionsList, symbols, Helpers.toMapArg(paramsOmitted));
+            Object positions = this.parsePositions(rawPositionsList, symbols, paramsOmitted);
             return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -11852,7 +11852,7 @@ public class Bybit extends BybitApi
             Map<String, Object> market = this.market(symbol);
             var typeparamsValueVariable = this.getBybitType("fetchLongShortRatioHistory", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "option"))
             {
                 throw new NotSupported((this.id + " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
@@ -11947,7 +11947,7 @@ public class Bybit extends BybitApi
             }
             var typeparamsValueVariable = this.getBybitType("fetchPositionsADLRank", market, parameters);
             String type = (String) ((List<Object>) typeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) typeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) typeparamsValueVariable).get(1);
             request.put("category", type);
             Map<String, Object> response = (this.privateGetV5PositionList(this.extend(request, paramsValue))).join();
             //

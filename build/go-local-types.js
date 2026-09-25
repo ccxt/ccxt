@@ -6430,7 +6430,10 @@ function installCcxtGoStringParamNilGuards (goTranspiler) {
     }
     const upstreamKeeps = goTranspiler.goParameterKeepsNilCompareNative;
     goTranspiler.goParameterKeepsNilCompareNative = function (body, param, goType) {
-        return upstreamKeeps.call (this, body, param, goType) || ((goType === 'string') && ccxtGoNilComparesAreThrowGuards (body, param));
+        // a unified-table param is `string` in every public Go signature, so any nil compare on it is a constant
+        const fn = param.parent;
+        const tabled = (goType === 'string') && (fn?.name?.kind === ts.SyntaxKind.Identifier) && this.goIsUnifiedStringParameter?.(fn.name.text, fn.parameters.indexOf (param));
+        return upstreamKeeps.call (this, body, param, goType) || ((goType === 'string') && (tabled || ccxtGoNilComparesAreThrowGuards (body, param)));
     };
     const upstreamEquality = goTranspiler.printInlineEquality;
     goTranspiler.printInlineEquality = function (left, right, leftText, rightText, isEq) {

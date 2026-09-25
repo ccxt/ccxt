@@ -1507,7 +1507,7 @@ class dydx(Exchange, ImplicitAPI):
         if clientOrderId is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.')
         idString = str(id)
-        if id is not None and idString.find('-') > -1:
+        if idString.find('-') > -1:
             raise NotSupported(self.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.')
         goodTillBlock = self.safe_integer(paramsOmitted, 'goodTillBlock')
         goodTillBlockTimeInSeconds = 2592000

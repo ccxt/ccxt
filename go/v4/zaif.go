@@ -968,12 +968,12 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Zaif) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Zaif) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Zaif) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	tag := GetArg(optionalArgs, 0, nil)
@@ -989,8 +989,8 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	if IsEqual(code, "JPY") {
-		panic(ExchangeError(Add(Add(this.Id+" withdraw() does not allow ", code), " withdrawals")))
+	if code == "JPY" {
+		panic(ExchangeError(this.Id + " withdraw() does not allow " + code + " withdrawals"))
 	}
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],

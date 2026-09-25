@@ -630,7 +630,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
             var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), uta, paramsUta);
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
-            var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
+            Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
             Object paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
@@ -695,7 +695,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Boolean uta = (Boolean) ((List<Object>)values).get(0);
             var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", (Map<String, Object>) (market), uta, parameters);
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
-            var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
+            Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
             Object paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
@@ -949,7 +949,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
             var instTypeparamsInstTypeVariable = this.getInstType((String) (methodName), (Map<String, Object>) (market), uta, paramsUta);
             String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
-            var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
+            Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
             Object paramsRequest = paramsInstType;
             if (Boolean.TRUE.equals(uta))
             {
@@ -1017,7 +1017,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Map<String, Object> market = this.market(symbol);
                 var instTypeparamsInstTypeVariable = this.getInstType("watchOrderBookForSymbols", (Map<String, Object>) (market), uta, Helpers.toMapArg(paramsCursor));
                 String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
-                var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
+                Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
                 paramsCursor = paramsInstType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", instType );
@@ -1289,7 +1289,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Map<String, Object> market = this.market(symbol);
                 var instTypeparamsInstTypeVariable = this.getInstType("watchTradesForSymbols", (Map<String, Object>) (market), uta, Helpers.toMapArg(paramsCursor));
                 String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
-                var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
+                Map<String, Object> paramsInstType = (Map<String, Object>) ((List<Object>) instTypeparamsInstTypeVariable).get(1);
                 paramsCursor = paramsInstType;
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", instType );
@@ -1925,9 +1925,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             List<Object> utaparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(paramsTrigger, "watchOrders", "uta", false);
             var uta = ((List<Object>) utaparamsUtaVariable).get(0);
-            var paramsUta = ((List<Object>) utaparamsUtaVariable).get(1);
+            Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
             String productType = this.safeString(paramsUta, "productType");
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, Helpers.toMapArg(paramsUta), (Object) null);
+            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, paramsUta, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear");

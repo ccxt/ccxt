@@ -32,6 +32,8 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'fetchCrossBorrowRate': [ 0 ], 'fetchBorrowRate': [ 0 ], 'fetchDepositWithdrawFee': [ 0 ],
     'fetchTransactionFee': [ 0 ], 'fetchOptionChain': [ 0 ], 'createSubAccount': [ 0 ], 'fetchTransfer': [ 0 ],
     'fetchLedgerEntry': [ 0 ], 'withdrawWs': [ 0, 2 ], 'fetchOrdersByStatusWs': [ 0 ],
+    'editOrder': [ 0 ], 'fetchOrderTrades': [ 0 ], 'withdraw': [ 0 ],
+    'transfer': [ 0, 3 ], 'setMarginMode': [ 0 ],
 };
 
 const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {

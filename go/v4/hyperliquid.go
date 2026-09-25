@@ -3602,12 +3602,12 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hyperliquid) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -3620,7 +3620,7 @@ func (this *Hyperliquid) editOrderBody(ch chan any, id any, symbol any, typeVar 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(id, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an id argument"))
 	}
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
@@ -4912,12 +4912,12 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} response from the exchange
  */
-func (this *Hyperliquid) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4937,7 +4937,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode any, optional
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
 	}
 	var asset int64 = this.ParseToInt(market["baseId"])
-	var isCross bool = (IsEqual(marginMode, "cross"))
+	var isCross bool = (marginMode == "cross")
 	var nonce any = this.IncrementingNonce()
 	var params2 map[string]any = MapTyped(this.Omit(params, []any{"leverage"}))
 	var updateAction map[string]any = map[string]any{
@@ -5196,12 +5196,12 @@ func (this *Hyperliquid) ParseMarginModification(data any, optionalArgs ...any) 
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Hyperliquid) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Hyperliquid) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5225,7 +5225,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 			strAmount = Add(Add(strAmount, " subaccount:"), vaultAddress)
 		}
 		var strAmountFinal any = strAmount // java req
-		var toPerp bool = (IsEqual(toAccount, "perp")) || (IsEqual(toAccount, "swap"))
+		var toPerp bool = (toAccount == "perp") || (toAccount == "swap")
 		var transferPayload map[string]any = map[string]any{
 			"hyperliquidChain": func() string {
 				if isSandboxMode != nil && *isSandboxMode == true {
@@ -5268,7 +5268,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 	if IsEqual(fromAccount, "main") {
 		subAccountAddress = toAccount
 		isDeposit = true
-	} else if IsEqual(toAccount, "main") {
+	} else if toAccount == "main" {
 		subAccountAddress = fromAccount
 	} else {
 		panic(NotSupported(this.Id + " transfer() only support main <> subaccount transfer"))
@@ -5278,7 +5278,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 	// moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
 	// params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
 	var transferType *string = this.SafeString(params, "type")
-	var isUsdc bool = (IsEqual(code, nil)) || (ToUpper(code) == "USDC")
+	var isUsdc bool = (strings.ToUpper(code) == "USDC")
 	if isUsdc && (transferType == nil || *transferType != "spot") {
 		// Transfer USDC with subAccountTransfer
 		var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
@@ -5306,7 +5306,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 	} else {
 		// Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
 		// expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
-		if IsEqual(code, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " transfer() requires a currency code for spot sub-account transfers"))
 		}
 		var currency map[string]any = this.Currency(code)
@@ -5368,12 +5368,12 @@ func (this *Hyperliquid) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @param {string} [params.vaultAddress] vault address withdraw from
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hyperliquid) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Hyperliquid) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5386,10 +5386,8 @@ func (this *Hyperliquid) withdrawBody(ch chan any, code any, amount any, address
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	this.CheckAddress(address)
-	if !IsEqual(code, nil) {
-		if ToUpper(code) != "USDC" {
-			panic(NotSupported(this.Id + " withdraw() only support USDC"))
-		}
+	if strings.ToUpper(code) != "USDC" {
+		panic(NotSupported(this.Id + " withdraw() only support USDC"))
 	}
 	var vaultAddressOption *string = SafeStringPtr(GetValue(TupleSlice(this.HandleOptionStringAndParams(params, "withdraw", "vaultAddress")), 0))
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)

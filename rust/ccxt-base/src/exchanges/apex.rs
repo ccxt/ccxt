@@ -2057,7 +2057,7 @@ impl ApexCore {
             m
         });
         let mut assets: Value = Value::from(vec![]);
-        if (fromAccount != Value::Null) && (to_lower(&fromAccount).as_str() == Some("contract")) {
+        if (to_lower(&fromAccount).as_str() == Some("contract")) {
             assets = contractAssets;
         }  else {
             assets = spotAssets;
@@ -2083,7 +2083,7 @@ impl ApexCore {
         }
         let mut finalClientOrderId: Value = clientOrderId; // java req
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
-        if (fromAccount != Value::Null) && (to_lower(&fromAccount).as_str() == Some("contract")) {
+        if (to_lower(&fromAccount).as_str() == Some("contract")) {
             let mut formattedUint32: Value = Value::Str("4294967295".into());
             let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&accountId, &formattedUint32);
             let mut expireTime: Value = (match (&(timestampSeconds), &((match (&((match (&(Value::Int(3600)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(28))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });

@@ -2507,12 +2507,12 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol string, typeVar string
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitstamp) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitstamp) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3610,14 +3610,14 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	})
 	return nil
 }
-func (this *Bitstamp) GetCurrencyName(code any) any {
+func (this *Bitstamp) GetCurrencyName(code string) any {
 	/**
 	 * @ignore
 	 * @method
 	 * @param {string} code Unified currency code
 	 * @returns {string} lowercase version of code
 	 */
-	return ToLower(code)
+	return strings.ToLower(code)
 }
 func (this *Bitstamp) IsFiat(code any) any {
 	return (IsEqual(code, "USD")) || (IsEqual(code, "EUR")) || (IsEqual(code, "GBP"))
@@ -3678,12 +3678,12 @@ func (this *Bitstamp) fetchDepositAddressBody(ch chan any, code string, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitstamp) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bitstamp) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// For fiat withdrawals please provide all required additional parameters in the 'params'
@@ -3707,11 +3707,11 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	var response any = nil
 	if !EvalTruthy(this.IsFiat(code)) {
 		var name any = this.GetCurrencyName(code)
-		if IsEqual(code, "XRP") {
+		if code == "XRP" {
 			if !IsEqual(tagWithdrawTag, nil) {
 				request["destination_tag"] = tagWithdrawTag
 			}
-		} else if (IsEqual(code, "XLM")) || (IsEqual(code, "HBAR")) {
+		} else if (code == "XLM") || (code == "HBAR") {
 			if !IsEqual(tagWithdrawTag, nil) {
 				request["memo_id"] = tagWithdrawTag
 			}
@@ -3748,12 +3748,12 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitstamp) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Bitstamp) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Bitstamp) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3772,7 +3772,7 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 		request["subAccount"] = toAccount
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostTransferFromMain(this.Extend(request, params))).Raw))
-	} else if IsEqual(toAccount, "main") {
+	} else if toAccount == "main" {
 		request["subAccount"] = fromAccount
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostTransferToMain(this.Extend(request, params))).Raw))

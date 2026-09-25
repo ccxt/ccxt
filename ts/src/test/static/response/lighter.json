@@ -554,7 +554,7 @@
                 "description": "cancelOrder",
                 "method": "cancelOrder",
                 "input": [
-                    562948516578403,
+                    "562948516578403",
                     "ETH/USDC:USDC"
                 ],
                 "httpResponse": {

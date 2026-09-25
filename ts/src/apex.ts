@@ -1495,7 +1495,7 @@ export default class apex extends Exchange {
         const accountId = this.safeString (accountData, 'id', '');
         let currency = {};
         let assets: Dict[] = [];
-        if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
+        if (fromAccount.toLowerCase () === 'contract') {
             assets = contractAssets;
         } else {
             assets = spotAssets;
@@ -1517,7 +1517,7 @@ export default class apex extends Exchange {
         }
         const finalClientOrderId = clientOrderId; // java req
         const paramsOmitted: Dict = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
-        if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
+        if (fromAccount.toLowerCase () === 'contract') {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise.stringMod (accountId, formattedUint32);
             const expireTime = timestampSeconds + 3600 * 24 * 28;

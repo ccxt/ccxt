@@ -2816,14 +2816,14 @@ public class Lbank extends LbankApi
 
             List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            var paramsWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String fee = this.safeString(paramsWithdrawTag, "fee");
-            Object paramsOmitted = this.omit(paramsWithdrawTag, "fee");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsWithdrawTag, "fee");
             // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
             this.checkRequiredArgument("withdraw", fee, "fee", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> currency = this.currency((String) (code));
@@ -2838,7 +2838,7 @@ public class Lbank extends LbankApi
                 request.put("memo", tagWithdrawTag);
             }
             String network = this.safeStringUpper2(paramsOmitted, "network", "networkName");
-            Object paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("network", "networkName")));
+            Map<String, Object> paramsOmitted2 = (Map<String, Object>) this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("network", "networkName")));
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
             String networkId = this.safeString(networks, network, network);
             if (!java.util.Objects.equals(networkId, null))

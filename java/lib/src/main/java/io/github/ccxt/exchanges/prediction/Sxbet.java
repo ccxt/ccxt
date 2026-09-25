@@ -1034,7 +1034,7 @@ public class Sxbet extends SxbetApi
                 "deadline", this.numberToString(deadline),
                 "signature", signature
             );
-            Object rest = this.omit(paramsSpender, new ArrayList<Object>(Arrays.asList("amount", "tokenAddress", "deadline", "rpcUrl")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(paramsSpender, new ArrayList<Object>(Arrays.asList("amount", "tokenAddress", "deadline", "rpcUrl")));
             Map<String, Object> response = (this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
@@ -1206,7 +1206,7 @@ public class Sxbet extends SxbetApi
                 orderItem.put("externalUserId", externalUserId);
             }
             Boolean waitForOutcome = (Boolean) this.safeBool(paramsTimeInForce, "waitForOutcome", true);
-            Object rest = this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId")));
+            Map<String, Object> rest = (Map<String, Object>) this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", new ArrayList<Object>(Arrays.asList(orderItem)) );
                 put( "waitForOutcome", waitForOutcome );

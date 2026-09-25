@@ -1337,12 +1337,12 @@ func (this *Bitflyer) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitflyer) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *Bitflyer) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *Bitflyer) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1354,8 +1354,8 @@ func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if (!IsEqual(code, "JPY")) && (!IsEqual(code, "USD")) && (!IsEqual(code, "EUR")) {
-		panic(ExchangeError(Add(Add(this.Id+" allows withdrawing JPY, USD, EUR only, ", code), " is not supported")))
+	if (code != "JPY") && (code != "USD") && (code != "EUR") {
+		panic(ExchangeError(this.Id + " allows withdrawing JPY, USD, EUR only, " + code + " is not supported"))
 	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{

@@ -1533,24 +1533,24 @@ func (this *BaseExchange) watchFundingRatesForSymbolsBody(ch chan any, symbols a
 	ch <- PanicOnError((<-this.WatchFundingRatesAsync(symbols, params)))
 	return nil
 }
-func (this *BaseExchange) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *BaseExchange) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *BaseExchange) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " transfer() is not supported yet"))
 }
-func (this *BaseExchange) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <-chan any {
+func (this *BaseExchange) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+func (this *BaseExchange) withdrawBody(ch chan any, code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1724,12 +1724,12 @@ func (this *BaseExchange) fetchMarginAdjustmentHistoryBody(ch chan any, optional
 	_ = params
 	panic(NotSupported(this.Id + " fetchMarginAdjustmentHistory() is not supported yet"))
 }
-func (this *BaseExchange) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *BaseExchange) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *BaseExchange) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -10397,12 +10397,12 @@ func (this *Exchange) editLimitOrderBody(ch chan any, id string, symbol string, 
 	ch <- PanicOnError(<-this.DerivedExchange.(IEditOrder).EditOrderAsync(id, symbol, "limit", side, amount, price, params))
 	return nil
 }
-func (this *Exchange) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Exchange) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Exchange) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Exchange) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -11147,12 +11147,12 @@ func (this *Exchange) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	panic(NotSupported(this.Id + " fetchOrders() is not supported yet"))
 }
-func (this *Exchange) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Exchange) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Exchange) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

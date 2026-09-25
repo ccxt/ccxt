@@ -1205,7 +1205,7 @@ public class Backpack extends BackpackApi
             }};
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until", (Long) null);
             Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            var paramsUntil = ((List<Object>) untilparamsUntilVariable).get(1);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", this.parseToInt(Helpers.divide(until, 1000))); // convert milliseconds to seconds
@@ -2219,7 +2219,7 @@ public class Backpack extends BackpackApi
         }
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, this.omit(parameters, omitKeys));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         if (Helpers.isTrue(postOnly))
         {
             ((Map<String, Object>)paramsPostOnly).put("postOnly", true);

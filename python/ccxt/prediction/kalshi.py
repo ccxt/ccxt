@@ -1699,7 +1699,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 result.append(order)
         return self.filter_by_since_limit(result, since, limit, 'timestamp')
 
-    async def fetch_order(self, id: Str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
+    async def fetch_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches a single order by id from the kalshi portfolio endpoint
 

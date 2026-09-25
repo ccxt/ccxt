@@ -2123,12 +2123,12 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap' or 'future', default is 'spot'
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Btse) FetchOrderTradesAsync(id any, optionalArgs ...any) <-chan any {
+func (this *Btse) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Btse) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2142,7 +2142,7 @@ func (this *Btse) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	if (clientOrderId == nil) && (IsEqual(id, nil)) {
+	if (clientOrderId == nil) && (false) {
 		panic(ArgumentsRequired(this.Id + " fetchOrderTrades() requires an id argument or a clientOrderId parameter"))
 	}
 	var orderIdParams map[string]any = map[string]any{}
@@ -2871,12 +2871,12 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btse) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Btse) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Btse) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2892,7 +2892,7 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
 		request["clOrderId"] = clientOrderId
-	} else if IsEqual(id, nil) {
+	} else if false {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an id argument or a clientOrderId parameter"))
 	} else {
 		request["orderId"] = id
@@ -4291,12 +4291,12 @@ func (this *Btse) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {bool} [params.hedged] set to true to use dualSidePosition, required for setting marginMode to cross on btse
  * @returns {object} response from the exchange
  */
-func (this *Btse) SetMarginModeAsync(marginMode any, optionalArgs ...any) <-chan any {
+func (this *Btse) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Btse) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+func (this *Btse) setMarginModeBody(ch chan any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// btse do not have specific endpoint for marginMode
@@ -4315,7 +4315,7 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	var marginModeValue string = ToLower(marginMode)
+	var marginModeValue string = strings.ToLower(marginMode)
 	var positionMode string = "ONE_WAY"
 	if (marginModeValue != "cross") && (marginModeValue != "isolated") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be either cross or isolated"))

@@ -1123,10 +1123,10 @@ public class Btse extends BtseApi
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports contract markets only")) ;
             }
             String period = null;
-            Object paramsPeriod = null;
+            Map<String, Object> paramsPeriod = null;
             List<Object> periodparamsPeriodVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period", (String) null);
             period = (String) ((List<Object>) periodparamsPeriodVariable).get(0);
-            paramsPeriod = ((List<Object>) periodparamsPeriodVariable).get(1);
+            paramsPeriod = (Map<String, Object>) ((List<Object>) periodparamsPeriodVariable).get(1);
             if (java.util.Objects.equals(period, null))
             {
                 period = "7D";
@@ -1926,11 +1926,11 @@ public class Btse extends BtseApi
             {
                 ((Map<String, Object>)request).put("count", limit);
             }
-            Object paramsUntil = null;
+            Map<String, Object> paramsUntil = null;
             List<Object> requestparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             request = ((List<Object>) requestparamsUntilVariable).get(0);
-            paramsUntil = ((List<Object>) requestparamsUntilVariable).get(1);
-            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, Helpers.toMapArg(paramsUntil), "spot");
+            paramsUntil = (Map<String, Object>) ((List<Object>) requestparamsUntilVariable).get(1);
+            List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Object response = null;
@@ -2761,7 +2761,7 @@ public class Btse extends BtseApi
             }
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsOmitted), "spot");
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-            Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -4177,7 +4177,7 @@ public class Btse extends BtseApi
             }};
             List<Object> orderTypeparamsOrderTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
             String orderType = (String) ((List<Object>) orderTypeparamsOrderTypeVariable).get(0);
-            var paramsOrderType = ((List<Object>) orderTypeparamsOrderTypeVariable).get(1);
+            Map<String, Object> paramsOrderType = (Map<String, Object>) ((List<Object>) orderTypeparamsOrderTypeVariable).get(1);
             String typeUpper = ((String)orderType).toUpperCase();
             request.put("orderType", typeUpper);
             if (java.util.Objects.equals(typeUpper, "LIMIT"))

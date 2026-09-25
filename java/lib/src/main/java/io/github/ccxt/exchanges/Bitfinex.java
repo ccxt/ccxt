@@ -2262,7 +2262,7 @@ public class Bitfinex extends BitfinexApi
         {
             request.put("cid", clientOrderId);
         }
-        Object paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId")));
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 

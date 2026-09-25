@@ -2173,13 +2173,13 @@ public class Hitbtc extends HitbtcApi
             }
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            var paramsUntil = ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)requestUntil).put("limit", Math.min(limit, 1000));
             }
             String price = this.safeString(paramsUntil, "price");
-            Object paramsOmitted = this.omit(paramsUntil, "price");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsUntil, "price");
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(price, "mark"))
             {
@@ -3291,7 +3291,7 @@ public class Hitbtc extends HitbtcApi
 
             List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            var paramsWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();

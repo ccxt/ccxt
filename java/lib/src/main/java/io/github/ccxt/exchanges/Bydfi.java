@@ -1063,10 +1063,10 @@ public class Bydfi extends BydfiApi
                 numberOfCandles = limit;
             }
             Object until = null;
-            Object paramsUntil = null;
+            Map<String, Object> paramsUntil = null;
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until", (Long) null);
             until = ((List<Object>) untilparamsUntilVariable).get(0);
-            paramsUntil = ((List<Object>) untilparamsUntilVariable).get(1);
+            paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             Long now = this.milliseconds();
             Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
             Object timeDelta = Helpers.multiply(duration, numberOfCandles);
@@ -2136,10 +2136,10 @@ public class Bydfi extends BydfiApi
     public Object handleSinceAndUntil(Object methodName, Long since, Map<String, Object> parameters)
     {
         Object until = null;
-        Object paramsUntil = null;
+        Map<String, Object> paramsUntil = null;
         List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime", (Long) null);
         until = ((List<Object>) untilparamsUntilVariable).get(0);
-        paramsUntil = ((List<Object>) untilparamsUntilVariable).get(1);
+        paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
         Long now = this.milliseconds();
         Long sevenDays = ((((7L * 24L) * 60L) * 60L) * 1000L); // the maximum range is 7 days
         Object startTime = since;

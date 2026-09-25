@@ -4063,11 +4063,9 @@ impl ModetradeCore {
             self.load_markets(&[]).await;
         }
         self.check_address(&[address.clone()]);
-        let mut codeUpper: Value = (if (code != Value::Null) { to_upper(&code) } else { code.clone() });
-        if (codeUpper != Value::Null) {
-            if (codeUpper.as_str() != Some("USDC")) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
-            }
+        let mut codeUpper: Value = to_upper(&code);
+        if (codeUpper.as_str() != Some("USDC")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
         let mut currency: Value = self.currency(codeUpper.clone());
         let mut verifyingContractAddress: Value = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]);

@@ -637,10 +637,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 10000L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 10000L)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1035,7 +1035,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("createDepositAddress", paramsMethod)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Object requestParams = paramsPortfolio;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
@@ -1044,7 +1044,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 Map<String, Object> currency = this.currency((String) (code));
                 request.put("asset", currency.get("id"));
-                List<Object> networkIdparamsNetworkIdVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "createDepositAddress", Helpers.toMapArg(paramsPortfolio))).join();
+                List<Object> networkIdparamsNetworkIdVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "createDepositAddress", paramsPortfolio)).join();
                 var networkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(0);
                 var paramsNetworkId = ((List<Object>) networkIdparamsNetworkIdVariable).get(1);
                 request.put("network_arn_id", networkId);
@@ -1210,7 +1210,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("setMargin", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
             {
                 throw new BadRequest((this.id + " setMargin() only allows setting margin to full portfolio")) ;
@@ -1344,7 +1344,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String symbolValue = this.symbol(symbol);
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("fetchPosition", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
                 put( "instrument", Coinbaseinternational.this.marketId(symbolValue) );
@@ -1443,7 +1443,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("fetchPositions", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
             }};
@@ -2028,7 +2028,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("fetchBalance", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
             }};
@@ -2200,7 +2200,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("createOrder", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             if (!java.util.Objects.equals(portfolio, null))
             {
                 request.put("portfolio", portfolio);
@@ -2227,7 +2227,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("post_only", postOnly);
             }
             request.put("tif", tif);
-            Object paramsOmitted = this.omit(paramsPortfolio, new ArrayList<Object>(Arrays.asList("client_order_id", "user", "postOnly", "timeInForce")));
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPortfolio, new ArrayList<Object>(Arrays.asList("client_order_id", "user", "postOnly", "timeInForce")));
             Map<String, Object> response = (this.v1PrivatePostOrders(this.extend(request, paramsOmitted))).join();
             //
             //    {
@@ -2371,7 +2371,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("cancelOrder", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
                 put( "id", id );
@@ -2429,7 +2429,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("cancelAllOrders", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
             }};
@@ -2475,7 +2475,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }};
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("editOrder", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             if (!java.util.Objects.equals(portfolio, null))
             {
                 request.put("portfolio", portfolio);
@@ -2531,7 +2531,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("fetchOrder", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "portfolio", portfolio );
@@ -2592,7 +2592,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("fetchOpenOrders", parameters)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPortfolio, "fetchOpenOrders", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -2809,7 +2809,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> currency = this.currency((String) (code));
             List<Object> portfolioparamsPortfolioVariable = (List<Object>) (this.handlePortfolioAndParams("withdraw", paramsWithdrawTag)).join();
             String portfolio = (String) ((List<Object>) portfolioparamsPortfolioVariable).get(0);
-            var paramsPortfolio = ((List<Object>) portfolioparamsPortfolioVariable).get(1);
+            Map<String, Object> paramsPortfolio = (Map<String, Object>) ((List<Object>) portfolioparamsPortfolioVariable).get(1);
             List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsPortfolio, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
             String method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodparamsMethodVariable).get(1);

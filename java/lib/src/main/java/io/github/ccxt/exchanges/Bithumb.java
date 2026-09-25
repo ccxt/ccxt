@@ -2220,14 +2220,14 @@ public class Bithumb extends BithumbApi
             }
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrder", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
             Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Object paramsOmitted = this.omit(paramsGeneration, "twap");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "twap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Map<String, Object> data = null;
@@ -2707,14 +2707,14 @@ public class Bithumb extends BithumbApi
             }
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrders", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchOrders is only supported for the generation 2 API")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Object paramsOmitted = this.omit(paramsGeneration, "twap");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "twap");
             List<Object> clientOrderIds = null;
             if (Boolean.TRUE.equals(twap))
             {
@@ -2881,7 +2881,7 @@ public class Bithumb extends BithumbApi
             }
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "cancelOrder", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2890,7 +2890,7 @@ public class Bithumb extends BithumbApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
-            Object paramsOmitted = this.omit(paramsGeneration, "twap");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "twap");
             String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
             Boolean useClientOrderId = !Boolean.TRUE.equals(twap) && (Helpers.isEqual(generation, 2)) && (!java.util.Objects.equals(clientOrderId, null));
             Object paramsRequest = paramsOmitted;
@@ -3074,10 +3074,10 @@ public class Bithumb extends BithumbApi
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, paramsGeneration);
             var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            var paramsWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
             String network = this.safeString2(paramsWithdrawTag, "network", "net_type");
-            Object paramsNetwork = this.omit(paramsWithdrawTag, "network");
+            Map<String, Object> paramsNetwork = (Map<String, Object>) this.omit(paramsWithdrawTag, "network");
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -3605,7 +3605,7 @@ public class Bithumb extends BithumbApi
             }
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "createDepositAddress", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " createDepositAddress() is only supported for the generation 2 API")) ;
@@ -3615,7 +3615,7 @@ public class Bithumb extends BithumbApi
                 put( "currency", currency.get("id") );
             }};
             String network = this.safeString2(paramsGeneration, "network", "net_type");
-            Object paramsOmitted = this.omit(paramsGeneration, "network");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "network");
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
@@ -3657,7 +3657,7 @@ public class Bithumb extends BithumbApi
             }
             List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchDepositAddress", "generation", 2L);
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
+            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             if (!Helpers.isEqual(generation, 2))
             {
                 throw new BadRequest((this.id + " fetchDepositAddress() is only supported for the generation 2 API")) ;
@@ -3667,7 +3667,7 @@ public class Bithumb extends BithumbApi
                 put( "currency", currency.get("id") );
             }};
             String network = this.safeString2(paramsGeneration, "network", "net_type");
-            Object paramsOmitted = this.omit(paramsGeneration, "network");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsGeneration, "network");
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;

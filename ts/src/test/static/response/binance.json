@@ -4736,7 +4736,7 @@
                 "description": "Fetch spot closed order",
                 "method": "fetchOrder",
                 "input": [
-                    3397148653,
+                    "3397148653",
                     "LTC/USDT"
                 ],
                 "httpResponse": {

@@ -4190,7 +4190,7 @@ class hyperliquid extends Exchange {
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
         $transferType = $this->safe_string($params, 'type');
-        $isUsdc = ($code === null) || (strtoupper($code) === 'USDC');
+        $isUsdc = (strtoupper($code) === 'USDC');
         if ($isUsdc && ($transferType !== 'spot')) {
             // Transfer USDC with subAccountTransfer
             $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
@@ -4277,10 +4277,8 @@ class hyperliquid extends Exchange {
             $this->load_markets();
         }
         $this->check_address($address);
-        if ($code !== null) {
-            if (strtoupper($code) !== 'USDC') {
-                throw new NotSupported($this->id . ' withdraw() only support USDC');
-            }
+        if (strtoupper($code) !== 'USDC') {
+            throw new NotSupported($this->id . ' withdraw() only support USDC');
         }
         $vaultAddressOption = $this->handle_option_string_and_params($params, 'withdraw', 'vaultAddress')[0];
         $vaultAddress = $this->format_vault_address($vaultAddressOption);

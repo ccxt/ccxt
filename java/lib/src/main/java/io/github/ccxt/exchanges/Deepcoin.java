@@ -900,7 +900,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Boolean calculateUntil = (Boolean) this.safeBool(paramsPaginate, "calculateUntil", false);
             List<Object> keysToOmit = (((java.util.Objects.equals(calculateUntil, true)))) ? new ArrayList<Object>(Arrays.asList("price", "until", "calculateUntil")) : new ArrayList<Object>(Arrays.asList("price", "until"));
-            Object paramsOmitted = this.omit(paramsPaginate, keysToOmit);
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, keysToOmit);
             if (java.util.Objects.equals(calculateUntil, true))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -1277,10 +1277,10 @@ public class Deepcoin extends DeepcoinApi
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, Helpers.toMapArg(paramsPaginate), "code", (String) null, 1L, 50L)).join();
+                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "code", (String) null, 1L, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -1302,7 +1302,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("endTime", until);
             }
-            Object paramsOmitted = this.omit(paramsPaginate, "until");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "until");
             Map<String, Object> response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1338,10 +1338,10 @@ public class Deepcoin extends DeepcoinApi
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            var paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, Helpers.toMapArg(paramsPaginate), "code", (String) null, 1L, 50L)).join();
+                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "code", (String) null, 1L, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
@@ -1363,7 +1363,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 request.put("endTime", until);
             }
-            Object paramsOmitted = this.omit(paramsPaginate, "until");
+            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPaginate, "until");
             Map<String, Object> response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2027,11 +2027,11 @@ public class Deepcoin extends DeepcoinApi
             Object paramsOmitted = this.omit(paramsOrderType, keysToOmit);
             List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsOmitted), "cross");
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-            Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
             request.put("tdMode", marginMode);
             List<Object> mrgPositionparamsMrgPositionVariable = (List<Object>) this.handleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge");
             String mrgPosition = (String) ((List<Object>) mrgPositionparamsMrgPositionVariable).get(0);
-            Map<String, Object> paramsMrgPosition = (Map<String, Object>) ((List<Object>) mrgPositionparamsMrgPositionVariable).get(1);
+            var paramsMrgPosition = ((List<Object>) mrgPositionparamsMrgPositionVariable).get(1);
             paramsRequest = paramsMrgPosition;
             request.put("mrgPosition", mrgPosition);
             String posSide = null;
@@ -2115,14 +2115,14 @@ public class Deepcoin extends DeepcoinApi
         String marginMode = "cross";
         List<Object> marginModeOptionparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
         String marginModeOption = (String) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(0);
-        var paramsMarginMode = ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
+        Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeOptionparamsMarginModeVariable).get(1);
         Integer isCrossMargin = 1;
         if (java.util.Objects.equals(marginModeOption, "isolated"))
         {
             isCrossMargin = 0;
         }
         Boolean reduceOnly = (Boolean) this.safeBool(paramsMarginMode, "reduceOnly", false);
-        Object paramsOmitted = this.omit(paramsMarginMode, "reduceOnly");
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsMarginMode, "reduceOnly");
         request.put("isCrossMargin", isCrossMargin);
         request.put("tdMode", marginModeOption);
         if (java.util.Objects.equals(market.get("swap"), true))
@@ -2159,14 +2159,14 @@ public class Deepcoin extends DeepcoinApi
     {
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         String typePostOnly = type;
         if (Helpers.isTrue(postOnly))
         {
             typePostOnly = "post_only";
         }
-        String timeInForce = this.handleTimeInForce(Helpers.toMapArg(paramsPostOnly));
-        Object paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
+        String timeInForce = this.handleTimeInForce(paramsPostOnly);
+        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(paramsPostOnly, "timeInForce");
         String typeValue = typePostOnly;
         if ((!java.util.Objects.equals(timeInForce, null)) && (java.util.Objects.equals(timeInForce, "IOC")))
         {
