@@ -5827,10 +5827,9 @@ class mexc(Exchange, ImplicitAPI):
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
-        marginModeValue, paramsMarginMode = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        marginMode = marginModeValue
+        marginMode, paramsMarginMode = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if (defaultType == 'margin') or (isMargin is True):
-            marginMode = 'isolated'
+            return ['isolated', paramsMarginMode]
         return [marginMode, paramsMarginMode]
 
     async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:

@@ -1519,7 +1519,7 @@ class okx(Exchange, ImplicitAPI):
             'rollingWindowSize': 0.0,  # okx always receives rateLimitExceeded with rolling window
         })
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params: dict = {}, defaultValue: object = None) -> list:
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params: dict = {}, defaultValue: Str = None) -> list:
         instType = self.safe_string(params, 'instType')
         paramsOmitted = self.omit(params, 'instType')
         type = self.safe_string(paramsOmitted, 'type')

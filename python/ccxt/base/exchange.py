@@ -6121,21 +6121,21 @@ class BaseExchange(object):
         # if still undefined, try optionName2
         return self.handle_option_and_params(paramsOption1, methodName1, optionName2, defaultValue)
 
-    def handle_option_string_and_params(self, params: object, methodName: Str, optionName: str, defaultValue: Str = None):
+    def handle_option_string_and_params(self, params: dict, methodName: Str, optionName: str, defaultValue: Str = None):
         # handleOptionAndParams read as a string; the statically typed ports throw on another type
         value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
         return [self.check_option_string(methodName, optionName, value), newParams]
 
-    def handle_option_string_and_params_2(self, params: object, methodName: str, optionName1: str, optionName2: str, defaultValue: Str = None):
+    def handle_option_string_and_params_2(self, params: dict, methodName: str, optionName1: str, optionName2: str, defaultValue: Str = None):
         value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
         return [self.check_option_string(methodName, optionName1, value), newParams]
 
-    def handle_option_bool_and_params(self, params: object, methodName: Str, optionName: str, defaultValue: Bool = None):
+    def handle_option_bool_and_params(self, params: dict, methodName: Str, optionName: str, defaultValue: Bool = None):
         # handleOptionAndParams read as a boolean; the statically typed ports throw on another type
         value, newParams = self.handle_option_and_params(params, methodName, optionName, defaultValue)
         return [self.check_option_bool(methodName, optionName, value), newParams]
 
-    def handle_option_bool_and_params_2(self, params: object, methodName: str, optionName1: str, optionName2: str, defaultValue: Bool = None):
+    def handle_option_bool_and_params_2(self, params: dict, methodName: str, optionName1: str, optionName2: str, defaultValue: Bool = None):
         value, newParams = self.handle_option_and_params_2(params, methodName, optionName1, optionName2, defaultValue)
         return [self.check_option_bool(methodName, optionName1, value), newParams]
 
@@ -6152,7 +6152,7 @@ class BaseExchange(object):
         res = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return self.safe_value(res, 0)
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params: dict = {}, defaultValue: object = None):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params: dict = {}, defaultValue: Str = None):
         """
  @ignore
  @param methodName the method calling handleMarketTypeAndParams
