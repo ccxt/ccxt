@@ -1348,7 +1348,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 String symbolResolved = (String) market.get("symbol");
                 String messageHash = ("uta:trades:" + symbolResolved);
                 String channel = "trade";
-                Object trades = (this.subscribePublicUta(messageHash, channel, symbolResolved, Helpers.toMapArg(paramsUta), (Object) null)).join();
+                List<Object> trades = (List<Object>) (this.subscribePublicUta(messageHash, channel, symbolResolved, Helpers.toMapArg(paramsUta), (Object) null)).join();
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
                 String tradeSymbol = this.safeString(first, "symbol");
                 Long limitResolved = limit;
@@ -1409,7 +1409,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)subscriptionHashes).add((channelName + marketId));
             }
-            Object trades = (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters, (Object) null)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters, (Object) null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -3431,7 +3431,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object paramsExtended = this.extend(paramsUta, Helpers.newMap(
                 "tradeType", tradeType
             ));
-            Object newPositions = (this.subscribePrivateUta(messageHashes, channel, channel, (String) null, Helpers.toMapArg(paramsExtended), (Object) null)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivateUta(messageHashes, channel, channel, (String) null, Helpers.toMapArg(paramsExtended), (Object) null)).join();
             if (this.newUpdates)
             {
                 return newPositions;

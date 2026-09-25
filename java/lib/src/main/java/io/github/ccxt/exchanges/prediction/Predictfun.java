@@ -3529,7 +3529,7 @@ public class Predictfun extends PredictfunApi
                 // without a request once the cache is warm
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
             }
-            Object orders = (this.watchWalletEvents(messageHash, parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -3570,7 +3570,7 @@ public class Predictfun extends PredictfunApi
                 // a synchronous handler, so the cache is warmed here rather than on the first event
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
             }
-            Object trades = (this.watchWalletEvents(messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

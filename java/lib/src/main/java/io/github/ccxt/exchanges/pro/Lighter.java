@@ -779,7 +779,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", ("trade/" + market.get("id")) );
             }};
             String messageHash = this.getMessageHash("trade", Helpers.toStringArg(market.get("symbol")), (String) null);
-            Object trades = (this.subscribePublic(messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic(messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1024,7 +1024,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
             }};
-            Object trades = (this.subscribePublic(messageHash, Helpers.toMapArg(this.extend(request, paramsAccountIndex)))).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic(messageHash, Helpers.toMapArg(this.extend(request, paramsAccountIndex)))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1392,7 +1392,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 messageHash = this.getMessageHash("orders", (String) null, (String) null);
                 request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
             }
-            Object orders = (this.subscribePrivate(messageHash, Helpers.toMapArg(this.extend(request, paramsAccountIndex)))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, Helpers.toMapArg(this.extend(request, paramsAccountIndex)))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

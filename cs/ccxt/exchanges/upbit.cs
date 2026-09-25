@@ -1119,7 +1119,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 200 : limit;
+        Int64? limitResolved = ((limit == null)) ? 200 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "count", limitResolved },
@@ -1294,7 +1294,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int timeframePeriod = this.parseTimeframe(timeframeVar);
         string? timeframeValue = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object limitResolved = ((limit == null)) ? 200 : limit;
+        Int64? limitResolved = ((limit == null)) ? 200 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", timeframeValue },
@@ -1304,7 +1304,7 @@ public partial class upbit : Exchange
         if ((since != null))
         {
             // convert `since` to `to` value
-            request["to"] = this.iso8601(this.sum(since, multiply(multiply(timeframePeriod, limitResolved), 1000)));
+            request["to"] = this.iso8601(this.sum(since, ((timeframePeriod * limitResolved) * 1000)));
         }
         if (timeframeValue == "minutes")
         {

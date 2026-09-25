@@ -2472,7 +2472,7 @@ public partial class okx : Exchange
             // on the missing expiry.
             isOption = (partsLength > 3) && (((string)marketId).EndsWith("-C") || ((string)marketId).EndsWith("-P"));
         }
-        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
+        if (isOption && ((marketId != null)) && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -3132,11 +3132,11 @@ public partial class okx : Exchange
         string? method = (string)methodparamsMethodVariable[0];
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         int defaultLimit = ((method == "publicGetMarketBooksFull")) ? 5000 : 100;
-        object requestedLimit = ((limit == null)) ? defaultLimit : limit;
+        Int64? requestedLimit = ((limit == null)) ? defaultLimit : limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
         object limitResolved = requestedLimit;
-        if ((rpi == true) && (isGreaterThan(requestedLimit, 400)))
+        if ((rpi == true) && ((requestedLimit > 400)))
         {
             limitResolved = 400;
         }
@@ -3741,7 +3741,7 @@ public partial class okx : Exchange
         if ((since != null))
         {
             Int64 now = this.milliseconds();
-            Int64 durationInMilliseconds = multiply(duration, 1000);
+            Int64 durationInMilliseconds = (duration * 1000L);
             // switch to history candles if since is past the cutoff for current candles
             Int64 historyBorder = (now - ((((1440 - 1)) * durationInMilliseconds)));
             if (((since == null || since < historyBorder)))
@@ -11009,7 +11009,7 @@ public partial class okx : Exchange
         string? marginMode = this.safeString(parameters, "marginMode");
         string? instType = this.safeStringUpper(parameters, "instType");
         object paramsOmitted = this.omit(parameters, new List<object>() {"until", "marginMode", "instType"});
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "limit", limitResolved },
         };

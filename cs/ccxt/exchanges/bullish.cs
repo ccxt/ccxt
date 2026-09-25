@@ -1591,7 +1591,7 @@ public partial class bullish : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         object until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
         int duration = this.parseTimeframe(timeframeVar);
-        Int64 maxDelta = multiply(multiply(1000, duration), maxLimit);
+        Int64 maxDelta = ((1000L * duration) * maxLimit);
         object startTime = since;
         // both of since and until are required
         if ((startTime == null) && (until == null))

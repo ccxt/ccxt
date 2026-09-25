@@ -354,7 +354,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object trades = (this.subscribe("trades", symbol, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe("trades", symbol, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -412,7 +412,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("id")));
             }
-            Object trades = (this.subscribePrivate(messageHash)).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1293,7 +1293,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("id")));
             }
-            Object orders = (this.subscribePrivate(messageHash)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

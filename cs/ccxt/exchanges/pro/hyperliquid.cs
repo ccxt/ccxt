@@ -1234,7 +1234,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         List<object> rawBalances = new List<object>() {};
         string? account = null;
         Int64? timestamp = null;
-        object data = this.safeValue(message, "data", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         if (topic == "spotState")
         {
             IDictionary<string, object> spotState = this.safeDict(data, "spotState");

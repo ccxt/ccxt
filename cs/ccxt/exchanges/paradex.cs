@@ -1139,7 +1139,7 @@ public partial class paradex : Exchange
                 request["start_at"] = add(subtract(until, ((duration * ((limit + 1))) * 1000)), 1);
             } else
             {
-                request["start_at"] = add(subtract(until, multiply(multiply(duration, 101), 1000)), 1);
+                request["start_at"] = add(subtract(until, ((duration * 101L) * 1000)), 1);
             }
         }
         Dictionary<string, object> response = await this.publicGetMarketsKlines(this.extend(request, paramsOmitted));

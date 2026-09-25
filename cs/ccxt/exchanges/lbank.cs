@@ -1066,7 +1066,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 60 : limit;
+        Int64? limitResolved = ((limit == null)) ? 60 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -1361,7 +1361,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object limitResolved = ((limit == null)) ? 100 : mathMin(limit, 2000);
         int duration = this.parseTimeframe(timeframeVar);
-        object sinceResolved = ((since == null)) ? (subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limitResolved)))) : since;
+        object sinceResolved = ((since == null)) ? (subtract(this.milliseconds(), (multiply((duration * 1000L), limitResolved)))) : since;
         Int64? parsedSince = this.parseToInt(divide(sinceResolved, 1000));
         object parsedLimit = mathMin(add(limitResolved, 1), 2000); // max 2000;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2321,7 +2321,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "current_page", 1 },
@@ -2383,7 +2383,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "current_page", 1 },

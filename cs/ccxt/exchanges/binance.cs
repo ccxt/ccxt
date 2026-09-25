@@ -4355,7 +4355,7 @@ public partial class binance : Exchange
         bool isLegacy = isLegacyLinear || isLegacyInverse;
         if ((symbol is string))
         {
-            if (((this.markets != null)) && (inOp(this.markets, symbol)))
+            if (((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
             {
                 object market = getValue(this.markets, symbol);
                 // begin diff
@@ -4363,7 +4363,7 @@ public partial class binance : Exchange
                 {
                     object settle = isLegacyLinear ? getValue(market, "quote") : getValue(market, "base");
                     object futuresSymbol = add(add(symbol, ":"), settle);
-                    if (((this.markets != null)) && (inOp(this.markets, futuresSymbol)))
+                    if (((this.markets != null)) && ((this.markets != null && futuresSymbol is string inOpKey1 && this.markets.ContainsKey(inOpKey1))))
                     {
                         return ccxt.BaseExchange.ToDict(getValue(this.markets, futuresSymbol));
                     }
@@ -4371,7 +4371,7 @@ public partial class binance : Exchange
                 {
                     return ccxt.BaseExchange.ToDict(market);
                 }
-            } else if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, symbol)))
+            } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && symbol is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
             {
                 object markets = getValue(this.markets_by_id, symbol);
                 // begin diff
@@ -4409,7 +4409,7 @@ public partial class binance : Exchange
                         settle = bs;
                     }
                     object futuresSymbol = add(add(symbol, ":"), settle);
-                    if (((this.markets != null)) && (inOp(this.markets, futuresSymbol)))
+                    if (((this.markets != null)) && ((this.markets != null && futuresSymbol is string inOpKey3 && this.markets.ContainsKey(inOpKey3))))
                     {
                         return ccxt.BaseExchange.ToDict(getValue(this.markets, futuresSymbol));
                     }
@@ -4425,7 +4425,7 @@ public partial class binance : Exchange
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
-        if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
+        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey4 && this.markets_by_id.ContainsKey(inOpKey4)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -11536,7 +11536,7 @@ public partial class binance : Exchange
         object earnedCurrency = (bnb != null && ((IDictionary<string, object>)bnb).ContainsKey("code") ? ((IDictionary<string, object>)bnb)["code"] : null);
         object applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
         bool tradedCurrencyIsQuote = false;
-        if (((this.markets != null)) && (inOp(this.markets, applicantSymbol)))
+        if (((this.markets != null)) && ((this.markets != null && applicantSymbol is string inOpKey5 && this.markets.ContainsKey(inOpKey5))))
         {
             tradedCurrencyIsQuote = true;
         }
@@ -13376,7 +13376,7 @@ public partial class binance : Exchange
             if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
-                if (inOp(balances, code))
+                if ((code is string inOpKey6 && balances.ContainsKey(inOpKey6)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
                         { "crossMargin", getValue(getValue(balances, code), "crossMargin") },
@@ -16202,7 +16202,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object limitResolved = ((limit == null)) ? 93 : limit;
+        Int64? limitResolved = ((limit == null)) ? 93 : limit;
         if ((limit != null) && (limit > 93))
         {
             throw new BadRequest ((this.id + " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
@@ -16215,7 +16215,7 @@ public partial class binance : Exchange
         if ((since != null))
         {
             request["startTime"] = since;
-            object endTime = subtract(this.sum(since, multiply(limitResolved, 86400000)), 1); // required when startTime is further than 93 days in the past
+            object endTime = subtract(this.sum(since, (limitResolved * 86400000)), 1); // required when startTime is further than 93 days in the past
             Int64 now = this.milliseconds();
             request["endTime"] = mathMin(endTime, now); // cannot have an endTime later than current time
         }
@@ -16779,9 +16779,9 @@ public partial class binance : Exchange
         } else if (((since != null)) && ((since != 0)))
         {
             // exchange default
-            object limitDefault = ((limit == null)) ? 30 : limit;
+            Int64? limitDefault = ((limit == null)) ? 30 : limit;
             int duration = this.parseTimeframe(timeframeVar);
-            request["endTime"] = this.sum(since, multiply(multiply(duration, limitDefault), 1000));
+            request["endTime"] = this.sum(since, ((duration * limitDefault) * 1000));
         }
         List<object> response = null;
         if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))

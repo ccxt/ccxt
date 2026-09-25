@@ -979,7 +979,7 @@ public partial class bitopro : Exchange
             request["from"] = subtract((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), (multiply(limitResolved, timeframeInSeconds)));
         } else
         {
-            Int64 timeframeInMilliseconds = multiply(timeframeInSeconds, 1000);
+            Int64 timeframeInMilliseconds = (timeframeInSeconds * 1000L);
             alignedSince = multiply((Math.Floor(Double.Parse((((double?)since / timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
             request["from"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
             request["to"] = this.sum((request != null && ((IDictionary<string, object>)request).ContainsKey("from") ? ((IDictionary<string, object>)request)["from"] : null), multiply(limitResolved, timeframeInSeconds));

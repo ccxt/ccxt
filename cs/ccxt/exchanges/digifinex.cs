@@ -1880,8 +1880,8 @@ public partial class digifinex : Exchange
                 if (((limit != null)) || ((until != null)))
                 {
                     Int64? endTime = ((until != null)) ? until : this.milliseconds();
-                    object startLimit = ((limit != null)) ? limit : 200;
-                    startTime = subtract(endTime, (multiply(multiply(startLimit, duration), 1000)));
+                    Int64? startLimit = ((limit != null)) ? limit : 200;
+                    startTime = subtract(endTime, (((startLimit * duration) * 1000)));
                 }
             }
             if (!(startTime == null))

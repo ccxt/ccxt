@@ -1484,7 +1484,7 @@ public partial class testMainClass
             } catch(Exception e)
             {
                 exceptionMessageString = exceptionMessage(e);
-                await exchange.sleep(multiply(j, 1000));
+                await exchange.sleep((j * 1000L));
             }
         }
         // if exception was set, then throw it

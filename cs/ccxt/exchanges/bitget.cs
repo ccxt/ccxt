@@ -6545,7 +6545,7 @@ public partial class bitget : Exchange
         }
         int msInDay = 86400000;
         Int64 now = this.milliseconds();
-        Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         Int64? until = this.safeInteger(paramsUTA, "until");
         bool limitDefined = (limit != null);
         bool sinceDefined = (since != null);
@@ -9400,7 +9400,7 @@ public partial class bitget : Exchange
                 response = await this.privateMixGetV2MixOrderOrdersPending(this.extend(request, paramsMarginMode));
             }
         }
-        object sinceResolved = ((sinceDefault == null)) ? since : sinceDefault;
+        Int64? sinceResolved = ((sinceDefault == null)) ? since : sinceDefault;
         //
         // spot
         //
@@ -9910,7 +9910,7 @@ public partial class bitget : Exchange
                 response = await this.privateMixGetV2MixOrderOrdersHistory(this.extend(request, paramsUTA));
             }
         }
-        object sinceResolved = ((sinceDefault == null)) ? since : sinceDefault;
+        Int64? sinceResolved = ((sinceDefault == null)) ? since : sinceDefault;
         //
         // spot
         //

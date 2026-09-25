@@ -140,7 +140,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Map<String, Object> market = this.market(symbol);
             List<Object> request = new ArrayList<Object>(Arrays.asList(market.get("id"), channel));
             String messageHash = ("kline::" + market.get("symbol"));
-            Object ohlcv = (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

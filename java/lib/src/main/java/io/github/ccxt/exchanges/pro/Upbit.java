@@ -197,7 +197,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object trades = (this.watchPublicMultiple(symbols, "trade", new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.watchPublicMultiple(symbols, "trade", new HashMap<String, Object>() {{}})).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -540,7 +540,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             }
             String channel = "myOrder";
             String messageHash = "myOrder";
-            Object orders = (this.watchPrivate((String) (symbol), channel, messageHash, new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate((String) (symbol), channel, messageHash, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -573,7 +573,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             }
             String channel = "myOrder";
             String messageHash = "myTrades";
-            Object trades = (this.watchPrivate((String) (symbol), channel, messageHash, new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate((String) (symbol), channel, messageHash, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

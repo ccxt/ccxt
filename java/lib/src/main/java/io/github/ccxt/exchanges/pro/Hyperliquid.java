@@ -1333,7 +1333,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = null;
         Long timestamp = null;
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(topic, "spotState"))
         {
             Map<String, Object> spotState = (Map<String, Object>) this.safeDict(data, "spotState", (Object) null);
@@ -1490,7 +1490,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Client client = this.client(url);
             this.setPositionsCache(client, symbolsNormalized);
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            Object newPositions = (this.watch(url, messageHash, message, topic, null)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, message, topic, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;

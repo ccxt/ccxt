@@ -69,7 +69,7 @@ public partial class testMainClass : BaseTest
             string? key = ((string)keys[i]);
             object currency = getValue(currencyValues, key);
             object code = getValue(currency, "code");
-            if (!(inOp(ids, code)))
+            if (!((code is string inOpKey0 && ids.ContainsKey(inOpKey0))))
             {
                 ids[(string)code] = getValue(currency, "id");
             } else

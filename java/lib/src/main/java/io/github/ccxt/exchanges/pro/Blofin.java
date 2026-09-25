@@ -145,7 +145,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object trades = (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
             Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String firstSymbol = this.safeString(firstMarket, "symbol");
             Long limitResolved = limit;
@@ -709,7 +709,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 channel = "orders-algo";
             }
-            Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted)).join();
+            List<Object> orders = (List<Object>) (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -782,7 +782,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object newPositions = (this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;

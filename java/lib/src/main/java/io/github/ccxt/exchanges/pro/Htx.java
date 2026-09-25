@@ -320,7 +320,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("market." + market.get("id")) + ".trade.detail");
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            Object trades = (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -440,7 +440,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("market." + market.get("id")) + ".kline.") + interval);
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            Object ohlcv = (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1246,7 +1246,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
             }};
-            Object orders = (this.subscribePrivate((String) (channel), messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (channel), messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1895,7 +1895,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 "isV5", isV5Linear,
                 "margin", marginMode
             );
-            Object newPositions = (this.subscribePrivate(channel, (String) (messageHash), (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, (String) (messageHash), (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
             if (this.newUpdates)
             {
                 return newPositions;

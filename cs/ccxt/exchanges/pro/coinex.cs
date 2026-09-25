@@ -891,7 +891,7 @@ public partial class coinex : ccxt.coinex
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)callerMethodNameparamsCallerMethodNameVariable[1]);
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         List<object> limits = this.safeList(options, "limits", new List<object>() {});
-        object limitResolved = ((limit == null)) ? this.safeInteger(options, "defaultLimit", 50) : limit;
+        Int64? limitResolved = ((limit == null)) ? this.safeInteger(options, "defaultLimit", 50) : limit;
         if (!this.inArray(limitResolved, limits))
         {
             throw new NotSupported (((this.id + " watchOrderBookForSymbols() limit must be one of ") + String.Join(", ", limits.ToArray()))) ;

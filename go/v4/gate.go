@@ -4622,13 +4622,13 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var data any = response
 	if InOp(data, "balances") {
 		var flatBalances []any = []any{}
-		var balances any = this.SafeValue(data, "balances", []any{})
+		var balances map[string]any = SafeMapTyped(data, "balances")
 		// inject currency and create an artificial balance object
 		// so it can follow the existent flow
 		var keys []string = ObjectKeys(balances)
 		for i := 0; i < len(keys); i++ {
 			var currencyId string = GetValue(keys, i).(string)
-			var content any = GetValue(balances, currencyId)
+			var content any = balances[currencyId]
 			AddElementToObject(content, "currency", currencyId)
 			flatBalances = append(flatBalances, content)
 		}

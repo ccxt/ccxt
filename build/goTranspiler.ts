@@ -1746,6 +1746,181 @@ function rewriteMarketRowReads (lines: string[], masked: string[], start: number
     }
 }
 
+// `GetValue(ob, "asks"|"bids")` -> `ob.GetAsks()`/`ob.GetBids()` on a never-written, proven non-nil
+// OrderBookInterface local; a cached book read right after its create-if-absent guard is typed first.
+const GO_OB_CTOR = /^this\.(?:Indexed|Counted)?OrderBook\(.*\)$/;
+
+function nativeOrderBookSideReads (content: string): string {
+    if (!/GetValue\(\w+, "(?:asks|bids)"\)/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+        } else if ((start >= 0) && (lines[k] === '}')) {
+            rewriteOrderBookSideReads (lines, masked, start, k);
+            start = -1;
+        }
+    }
+    return lines.join ('\n');
+}
+
+// a stored book is present at line k: an `if !(InOp(this.Orderbooks, key))` block right above that ends by
+// storing a new book (key proven non-nil) or by leaving, or an enclosing `if InOp(this.Orderbooks, key)`
+const GO_OB_STORE_WRITE = /\b(?:AddElementToObject|Remove)\(this\.Orderbooks\b|this\.Orderbooks\.(?:Store|Delete)\(/;
+
+function orderBookKeyPresent (lines: string[], start: number, k: number, ind: string, key: string, keyNonNil: (at: number) => boolean): boolean {
+    const pkg = '(?:ccxt\\.)?';
+    const negGuard = new RegExp ('^' + ind + 'if !\\(' + pkg + 'InOp\\(this\\.Orderbooks, ' + key + '\\)\\) \\{$');
+    if (lines[k - 1] === ind + '}') {
+        let open = k - 2;
+        while ((open > start) && !(lines[open].startsWith (ind) && !lines[open].startsWith (ind + '\t'))) {
+            open--;
+        }
+        if ((open <= start) || !negGuard.test (lines[open])) {
+            return false;
+        }
+        let last = k - 2;
+        while ((last > open) && /^\s*(?:\/\/.*)?$/.test (lines[last])) {
+            last--;
+        }
+        const tail = lines[last];
+        if (!tail.startsWith (ind + '\t') || tail.startsWith (ind + '\t\t')) {
+            return false;
+        }
+        const body = tail.trim ();
+        if ((body === 'return') || (body === 'continue')) {
+            return true;
+        }
+        const stored = new RegExp ('^(?:' + pkg + 'AddElementToObject\\(this\\.Orderbooks, ' + key + ', |this\\.Orderbooks\\.Store\\(' + key + ', )(.*)\\)$').exec (body);
+        if ((stored === null) || !keyNonNil (k)) {
+            return false;
+        }
+        if (GO_OB_CTOR.test (stored[1])) {
+            return true;
+        }
+        // a local declared from a book constructor in the same block
+        const local = stored[1];
+        const declRx = new RegExp ('^' + ind + '\\tvar ' + local + ' ' + pkg + 'OrderBookInterface = (.*)$');
+        for (let j = open + 1; j < last; j++) {
+            const d = declRx.exec (lines[j]);
+            if (d !== null) {
+                return GO_OB_CTOR.test (d[1]);
+            }
+        }
+        return false;
+    }
+    if (ind.length < 2) {
+        return false;
+    }
+    const outer = ind.substring (1);
+    const posGuard = new RegExp ('^' + outer + 'if ' + pkg + 'InOp\\(this\\.Orderbooks, ' + key + '\\) \\{$');
+    for (let j = k - 1; j > start; j--) {
+        if (lines[j].startsWith (ind) || /^\s*$/.test (lines[j])) {
+            if (GO_OB_STORE_WRITE.test (lines[j])) {
+                return false;
+            }
+            continue;
+        }
+        return posGuard.test (lines[j]);
+    }
+    return false;
+}
+
+function rewriteOrderBookSideReads (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const written = (name: string, declLine: number): boolean => {
+        const w = new RegExp ('(?<![\\w.])' + name + '\\b[^\\n=(]*(?<![=!<>:])=(?!=)|&\\s*' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:\\+\\+|--)');
+        for (let k = start + 1; k < end; k++) {
+            if ((k !== declLine) && w.test (masked[k])) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const declLineOf = (name: string): number => {
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl === undefined) || (decl.index === undefined)) {
+            return -1;
+        }
+        return start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
+    };
+    // the key is a string, or a *string dereferenced earlier on a line whose block encloses the read
+    const { 'blocks': blocks } = goTextBlocks (masked);
+    const keyNonNil = (key: string, at: number): boolean => {
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
+        if ((decl === undefined) || written (key, (decl.index === undefined) ? -1 : declLineOf (key))) {
+            return false;
+        }
+        if (decl.type === 'string') {
+            return true;
+        }
+        if (decl.type !== '*string') {
+            return false;
+        }
+        const deref = new RegExp ('(?<![\\w.)\\]])\\*' + key + '\\b');
+        for (let k = start + 1; k < at; k++) {
+            if (!deref.test (masked[k]) || /^\s*(?:if|else|for|switch|case|\})/.test (masked[k]) || /&&|\|\|/.test (masked[k])) {
+                continue;
+            }
+            const block = goTextEnclosingBlock (blocks, k);
+            if ((block !== undefined) && (block.open <= at) && (at <= block.close)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const books = new Set<string> ();
+    for (let k = start + 3; k < end; k++) {
+        const m = /^(\s*)var (\w+) any = ((?:ccxt\.)?)GetValue\(this\.Orderbooks, (\w+)\)$/.exec (lines[k]);
+        if ((m === null) || (masked[k] !== lines[k])) {
+            continue;
+        }
+        const [ , ind, name, pkg, key ] = m;
+        if (!orderBookKeyPresent (lines, start, k, ind, key, (at: number) => keyNonNil (key, at)) || (declLineOf (name) !== k) || written (name, k)
+            || written (key, declLineOf (key))) {
+            continue;
+        }
+        lines[k] = ind + 'var ' + name + ' ' + pkg + 'OrderBookInterface = ' + pkg + 'OrderBookTyped(' + pkg + 'GetValue(this.Orderbooks, ' + key + '))';
+        books.add (name);
+    }
+    const isBook = (name: string, at: number): boolean => {
+        const k = declLineOf (name);
+        if ((k < 0) || (k >= at) || written (name, k)) {
+            return false;
+        }
+        if (books.has (name)) {
+            return true;
+        }
+        const m = /^\s*var \w+ (?:ccxt\.)?OrderBookInterface = (.*)$/.exec (lines[k]);
+        return (m !== null) && (GO_OB_CTOR.test (m[1]) || /\.\((?:ccxt\.)?OrderBookInterface\)$/.test (m[1]));
+    };
+    for (let k = start + 1; k < end; k++) {
+        if (masked[k].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const m = masked[k];
+        lines[k] = lines[k].replace (/(?<![\w.])(?:ccxt\.)?GetValue\((\w+), "(asks|bids)"\)/g, (all: string, name: string, side: string, at: number) => {
+            const head = all.substring (0, all.indexOf ('(') + 1 + name.length);
+            if ((m.substr (at, head.length) !== head) || !isBook (name, k)) {
+                return all;
+            }
+            return name + '.Get' + side[0].toUpperCase () + side.slice (1) + '()';
+        });
+        const side = /^(\s*)var (\w+) any = (\w+\.Get(?:Asks|Bids)\(\))$/.exec (lines[k]);
+        if ((side !== null) && (declLineOf (side[2]) === k) && !written (side[2], k)) {
+            const pkg = /(?:^|\n)import ccxt "/.test (lines.slice (0, start).join ('\n')) ? 'ccxt.' : '';
+            lines[k] = side[1] + 'var ' + side[2] + ' ' + pkg + 'IOrderBookSide = ' + side[3];
+        }
+    }
+}
+
 function retagLoopBoundedElementReads (content: string): string {
     if (content.indexOf ('GetValue(') < 0) {
         return content; // no candidate line anywhere in this file
@@ -1881,6 +2056,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
     content = nativeTypedContainerAccess (content);
+    content = nativeOrderBookSideReads (content);
     return goGofmtSplicedText (content);
 }
 

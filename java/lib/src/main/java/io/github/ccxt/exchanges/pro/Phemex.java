@@ -968,7 +968,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 String settle = this.safeString(paramsType, "settle");
                 messageHash = (((java.util.Objects.equals(settle, "USDT")))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
             }
-            Object trades = (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1160,7 +1160,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 messageHash = ((Boolean.TRUE.equals(isUSDTSettled))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
             }
-            Object orders = (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

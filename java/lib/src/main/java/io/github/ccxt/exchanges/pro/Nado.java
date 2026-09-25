@@ -124,7 +124,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + market.get("symbol"));
-            Object trades = (this.watchPublic("trade", market, messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPublic("trade", market, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -186,7 +186,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((List<Object>)markets).add(market);
                 messageHashes.add(("trade:" + market.get("symbol")));
             }
-            Object trades = (this.watchPublicMultiple("trade", markets, messageHashes, parameters, (Object) null)).join();
+            List<Object> trades = (List<Object>) (this.watchPublicMultiple("trade", markets, messageHashes, parameters, (Object) null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -748,7 +748,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 "subaccount", sender,
                 "product_id", productId
             );
-            Object orders = (this.watchPrivate("order_update", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate("order_update", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -843,7 +843,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 "subaccount", sender,
                 "product_id", productId
             );
-            Object trades = (this.watchPrivate("fill", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate("fill", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

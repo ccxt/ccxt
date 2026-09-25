@@ -4065,7 +4065,7 @@ public class Polymarket extends PolymarketApi
                 put( "type", "market" );
             }};
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Object trades = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -4200,7 +4200,7 @@ public class Polymarket extends PolymarketApi
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
                 messageHash = ("orders::" + outcomeResolved);
             }
-            Object orders = (this.subscribeUserChannel(messageHash, parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribeUserChannel(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -4236,7 +4236,7 @@ public class Polymarket extends PolymarketApi
                 outcomeResolved = this.safeString(outcomeObj, "outcome");
                 messageHash = ("myTrades::" + outcomeResolved);
             }
-            Object trades = (this.subscribeUserChannel(messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeUserChannel(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
