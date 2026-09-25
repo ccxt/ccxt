@@ -417,6 +417,9 @@ class coinone extends Exchange {
             $quoteId = $this->safe_string_upper($entry, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -1238,7 +1241,7 @@ class coinone extends Exchange {
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $walletAddress[$key];
+            $value = $this->safe_string($walletAddress, $key);
             if (($value === null) || ($value === null) || ($value === '') || ($value === '-1')) {
                 continue;
             }
@@ -1274,14 +1277,30 @@ class coinone extends Exchange {
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api']['rest'] . '/';
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/';
         if ($api === 'v2Public') {
-            $url = $this->urls['api']['v2Public'] . '/';
+            $apiUrl2 = $this->safe_string($this->urls['api'], 'v2Public');
+            if ($apiUrl2 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl2 . '/';
             $api = 'public';
         } elseif ($api === 'v2Private') {
-            $url = $this->urls['api']['v2Private'] . '/';
+            $apiUrl3 = $this->safe_string($this->urls['api'], 'v2Private');
+            if ($apiUrl3 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl3 . '/';
         } elseif ($api === 'v2_1Private') {
-            $url = $this->urls['api']['v2_1Private'] . '/';
+            $apiUrl4 = $this->safe_string($this->urls['api'], 'v2_1Private');
+            if ($apiUrl4 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl4 . '/';
         }
         if ($api === 'public') {
             $url .= $request;

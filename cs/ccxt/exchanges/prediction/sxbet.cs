@@ -809,7 +809,7 @@ public partial class sxbet : PredictionExchange
 }, "latest"});
         string hex = this.remove0xPrefix(result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
-        string? lengthHex = slice(hex, 64, 128);
+        string? lengthHex = ((hex == null) ? null : hex.Substring(Math.Min(64, hex.Length), Math.Min(128, hex.Length) - Math.Min(64, hex.Length)));
         object length = this.hexToInt(lengthHex);
         object dataEnd = this.sum(128, multiply(length, 2));
         string? dataHex = slice(hex, 128, dataEnd);
@@ -1994,7 +1994,7 @@ public partial class sxbet : PredictionExchange
         bool? won = null;
         if (((winner != null)) && !isVoid)
         {
-            won = (isEqual(winner, heldNumber));
+            won = ((winner == heldNumber));
         }
         string usdcDecimals = "1000000";
         string? stake = Precise.stringDiv(this.safeString(trade, "totalStake", "0"), usdcDecimals, 6);
@@ -3154,7 +3154,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "sxbet";
         method ??= "GET";
@@ -3180,8 +3180,8 @@ public partial class sxbet : PredictionExchange
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
-        bool sendAsQuery = (isEqual(method, "GET"));
-        if (isEqual(method, "DELETE"))
+        bool sendAsQuery = ((method == "GET"));
+        if ((method == "DELETE"))
         {
             bool hasOrdersList = (inOp(query, "orders"));
             sendAsQuery = !hasOrdersList;

@@ -651,8 +651,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         sideUpper = side.upper()
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -728,7 +727,10 @@ class coinspot(Exchange, ImplicitAPI):
         fullPath = endpoint
         if version is not None:
             fullPath = '/' + version + endpoint
-        url = self.urls['api'][accessType] + fullPath
+        apiUrl = self.safe_string(self.urls['api'], accessType)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + fullPath
         if accessType == 'private':
             self.check_required_credentials()
             # coinspot requires an increasing nonce

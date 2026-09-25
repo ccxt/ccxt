@@ -528,7 +528,7 @@ export default class coinspot extends Exchange {
         //         ],
         //     }
         //
-        const trades = this.safeList (response, 'orders', []);
+        const trades: Dict[] = this.safeList (response, 'orders', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -582,11 +582,11 @@ export default class coinspot extends Exchange {
         //          },
         //      ]
         // }
-        const buyTrades = this.safeList (response, 'buyorders', []);
+        const buyTrades: Dict[] = this.safeList (response, 'buyorders', []);
         for (let i = 0; i < buyTrades.length; i++) {
             buyTrades[i]['side'] = 'buy';
         }
-        const sellTrades = this.safeList (response, 'sellorders', []);
+        const sellTrades: Dict[] = this.safeList (response, 'sellorders', []);
         for (let i = 0; i < sellTrades.length; i++) {
             sellTrades[i]['side'] = 'sell';
         }
@@ -681,9 +681,7 @@ export default class coinspot extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const sideUpper = side.toUpperCase ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
@@ -772,7 +770,11 @@ export default class coinspot extends Exchange {
         if (version !== undefined) {
             fullPath = '/' + version + endpoint;
         }
-        const url = this.urls['api'][accessType] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], accessType);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         if (accessType === 'private') {
             this.checkRequiredCredentials ();
             // coinspot requires an increasing nonce

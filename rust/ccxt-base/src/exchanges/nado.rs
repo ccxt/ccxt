@@ -2290,6 +2290,9 @@ impl NadoCore {
             let mut rawQuoteId: Value = self.safe_string_k(pair.clone(), "quote", &[Value::Str("USDT0".into())]);
             let mut base: Value = self.safe_currency_code(self.remove_market_suffix(rawBaseId.clone()), &[]);
             let mut quote: Value = self.safe_currency_code(rawQuoteId.clone(), &[]);
+            if (base == Value::Null) || (quote == Value::Null) {
+                continue;
+            }
             let mut baseAsset: Value = self.safe_dict(assetsByCode.clone(), base.clone(), &[asset.clone()]);
             let mut quoteAsset: Value = self.safe_dict(assetsByCode.clone(), quote.clone(), &[]);
             let mut baseId: Value = self.safe_string_k(baseAsset, "product_id", &[rawBaseId]);
@@ -3829,14 +3832,14 @@ impl NadoCore {
             subaccount = Value::Str("default".into());
         }
         let mut address: Value = to_lower(&self.remove0x_prefix(walletAddress));
-        if !is_equal(&get_array_length(&address), &Value::Int(40)) {
+        if (Value::Int(address.len() as i64).as_f64() != Some(40.0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a 20-byte walletAddress".into()))));
         }
         let mut encoded: Value = self.remove0x_prefix(self.string_to_base16(subaccount));
-        if get_array_length(&encoded).as_f64().unwrap_or(f64::NAN) > ((24i64) as f64) {
+        if ((encoded.len() as i64) as f64) > ((24i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() subaccount must fit in 12 bytes".into()))));
         }
-        return Value::Str(format!("{}{}", add(&Value::Str("0x".into()), &address), self.pad_hex(encoded, Value::Int(24), &[Value::Bool(false)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), address).into()), self.pad_hex(encoded, Value::Int(24), &[Value::Bool(false)]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)).into());
 
     Value::Null
 }
@@ -3937,7 +3940,7 @@ impl NadoCore {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, order);
-        let mut hash: Value = add(&Value::Str("0x".into()), &self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut hash: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
         return self.sign_hash(hash, self.privateKey.clone()).as_str().map(str::to_owned);
 }
 
@@ -3976,7 +3979,7 @@ impl NadoCore {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, cancellation);
-        let mut hash: Value = add(&Value::Str("0x".into()), &self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut hash: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
         return self.sign_hash(hash, self.privateKey.clone()).as_str().map(str::to_owned);
 }
 
@@ -4010,7 +4013,7 @@ impl NadoCore {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, cancellation);
-        let mut hash: Value = add(&Value::Str("0x".into()), &self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut hash: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
         return self.sign_hash(hash, self.privateKey.clone()).as_str().map(str::to_owned);
 }
 
@@ -4039,7 +4042,7 @@ impl NadoCore {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(domain, messageTypes, tx);
-        let mut hash: Value = add(&Value::Str("0x".into()), &self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut hash: Value = Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
         return self.sign_hash(hash, self.privateKey.clone()).as_str().map(str::to_owned);
 }
 

@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '..
 import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -94,7 +95,11 @@ export default class bullish extends bullishRest {
             'params': request,
             'id': id,
         };
-        const fullUrl = this.urls['api']['ws']['public'] + url;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPublic() has no public websocket url');
+        }
+        const fullUrl = wsUrl + url;
         return await this.watch (fullUrl, messageHash, this.deepExtend (message, params), messageHash);
     }
 
@@ -207,7 +212,11 @@ export default class bullish extends bullishRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const url = this.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id'];
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchTicker() has no public websocket url');
+        }
+        const url = wsUrl + '/trading-api/v1/market-data/tick/' + market['id'];
         const messageHash = 'ticker::' + symbolValue;
         return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
@@ -295,7 +304,7 @@ export default class bullish extends bullishRest {
             'topic': 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
         };
-        const orderbook = await this.watchPublic (url, messageHash, request, params);
+        const orderbook: Ob = await this.watchPublic (url, messageHash, request, params);
         return orderbook.limit ();
     }
 
@@ -449,7 +458,7 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawOrders: List = [];
+        let rawOrders: Dict[] = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawOrders.push (data); // update is a single order
@@ -562,7 +571,7 @@ export default class bullish extends bullishRest {
         //     }
         //
         const type = this.safeString (message, 'type');
-        let rawTrades: List = [];
+        let rawTrades: Dict[] = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawTrades.push (data); // update is a single trade
@@ -741,7 +750,7 @@ export default class bullish extends bullishRest {
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
         const messageType = this.safeString (message, 'type');
-        let rawPositions: List = [];
+        let rawPositions: Dict[] = [];
         if (messageType === 'update') {
             const data = this.safeDict (message, 'data', {});
             rawPositions.push (data);
@@ -751,7 +760,7 @@ export default class bullish extends bullishRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const positions = this.positions;
+        const positions: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

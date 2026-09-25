@@ -606,6 +606,9 @@ class woofipro extends Exchange {
         $quoteId = $this->safe_string($parts, 2);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -2185,9 +2188,7 @@ class woofipro extends Exchange {
         }
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
         $response = null;
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
-        }
+        $this->check_required_argument('editOrder', $side, 'side');
         if ($isConditional) {
             $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $params)));
         } else {
@@ -3092,7 +3093,8 @@ class woofipro extends Exchange {
     }
 
     public function hash_message(mixed $message) {
-        return '0x' . $this->hash($message, 'keccak', 'hex');
+        $hashed = $this->hash($message, 'keccak', 'hex');
+        return '0x' . $hashed;
     }
 
     public function sign_hash(string $hash, string $privateKey): string {
@@ -3689,7 +3691,11 @@ class woofipro extends Exchange {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->urls['api'][$access] . '/' . $version . '/';
+        $apiUrl = $this->safe_string($this->urls['api'], $access);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $version . '/';
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {

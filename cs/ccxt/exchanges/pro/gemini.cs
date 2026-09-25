@@ -69,7 +69,12 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string subscribeHash = ("l2:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata"));
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchTrades() has no websocket url")) ;
+        }
+        string url = (wsUrl + "/v2/marketdata");
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscribeHash));
         if (this.newUpdates)
         {
@@ -322,7 +327,12 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string messageHash = ((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId);
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata"));
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchOHLCV() has no websocket url")) ;
+        }
+        string url = (wsUrl + "/v2/marketdata");
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         if (this.newUpdates)
         {
@@ -360,7 +370,7 @@ public partial class gemini : ccxt.gemini
         //
         string? type = this.safeString(message, "type", "");
         string? timeframeId = ((type == null) ? null : type.Substring(Math.Min(8, type.Length)));
-        int timeframeEndIndex = getIndexOf(timeframeId, "_");
+        int timeframeEndIndex = (timeframeId?.IndexOf("_", StringComparison.Ordinal) ?? -1);
         timeframeId = slice(timeframeId, 0, timeframeEndIndex);
         string marketId = this.safeString(message, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -427,7 +437,12 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string subscribeHash = ("l2:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v2/marketdata"));
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchOrderBook() has no websocket url")) ;
+        }
+        string url = (wsUrl + "/v2/marketdata");
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, subscribeHash));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -459,7 +474,7 @@ public partial class gemini : ccxt.gemini
             object delta = changes[i];
             double? price = this.safeNumber(delta, 1);
             double? size = this.safeNumber(delta, 2);
-            string side = (isEqual(getValue(delta, 0), "buy")) ? "bids" : "asks";
+            string side = ((this.safeString(delta, 0) == "buy")) ? "bids" : "asks";
             object bookside = getValue(orderbook, side);
             (bookside as IOrderBookSide).store(price, size);
             orderbook[side] = bookside;
@@ -599,16 +614,21 @@ public partial class gemini : ccxt.gemini
             marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
         }
         string queryStr = String.Join(",", marketIds.ToArray());
-        object url = add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&");
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " helperForWatchMultipleConstruct() has no websocket url")) ;
+        }
+        string url = (((wsUrl + "/v1/multimarketdata?symbols=") + queryStr) + "&heartbeat=true&");
         if (isEqual(itemHashName, "orderbook"))
         {
-            url = add(url, "trades=false&bids=true&offers=true");
+            url = url + "trades=false&bids=true&offers=true";
         } else if (isEqual(itemHashName, "bidsasks"))
         {
-            url = add(url, "trades=false&bids=true&offers=true&top_of_book=true");
+            url = url + "trades=false&bids=true&offers=true&top_of_book=true";
         } else if (isEqual(itemHashName, "trades"))
         {
-            url = add(url, "trades=true&bids=false&offers=false");
+            url = url + "trades=true&bids=false&offers=false";
         }
         return await this.watchMultiple(url, messageHashes, null);
     }
@@ -725,7 +745,12 @@ public partial class gemini : ccxt.gemini
         string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked"));
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchOrders() has no websocket url")) ;
+        }
+        string url = (wsUrl + "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -967,7 +992,7 @@ public partial class gemini : ccxt.gemini
             { "heartbeat", this.handleHeartbeat },
         };
         string? type = this.safeString(message, "type", "");
-        if (getIndexOf(type, "candles") >= 0)
+        if ((type?.IndexOf("candles", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOHLCV(client, message);
             return;

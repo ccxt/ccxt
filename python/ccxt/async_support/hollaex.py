@@ -1990,7 +1990,10 @@ class hollaex(Exchange, ImplicitAPI):
         if (method == 'GET') or (method == 'DELETE'):
             if len(query) > 0:
                 path += '?' + self.urlencode(query)
-        url = self.urls['api']['rest'] + path
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + path
         if api == 'private':
             self.check_required_credentials()
             defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))

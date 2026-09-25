@@ -317,9 +317,12 @@ func (this *Bitflyer) ParseExpiryDate(expiry any) any {
 		"DEC": "12",
 	}
 	var month *string = this.SafeString(months, monthName)
-	return this.Parse8601(Add(Add(Add(Add(year+"-", month), "-"), day), "T00:00:00Z"))
+	if month == nil {
+		return nil
+	}
+	return this.Parse8601(year + "-" + *month + "-" + day + "T00:00:00Z")
 }
-func (this *Bitflyer) SafeMarket(optionalArgs ...any) any {
+func (this *Bitflyer) SafeMarket(optionalArgs ...any) map[string]any {
 	// Bitflyer has a different type of conflict in markets, because
 	// some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
 	// Since they're the same we just need to return one
@@ -403,7 +406,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var future bool = (marketType != nil && *marketType == "Futures")
 		var spot bool = !swap && !future
 		var typeVar string = "spot"
-		var settle any = nil
+		var settle *string = nil
 		var baseId any = nil
 		var quoteId any = nil
 		var expiry any = nil
@@ -462,20 +465,29 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				}()
 				var splitId []string = Split(id, currencyIds)
 				var expiryDate *string = this.SafeString(splitId, 1)
+				if expiryDate == nil {
+					continue
+				}
 				expiry = this.ParseExpiryDate(expiryDate)
+			}
+			if IsEqual(expiry, nil) {
+				continue
 			}
 			typeVar = "future"
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var symbol any = Add(Add(base, "/"), quote)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
+		var symbol any = *base + "/" + *quote
 		var taker any = GetValue(this.Fees["trading"], "taker")
 		var maker any = GetValue(this.Fees["trading"], "maker")
 		var contract bool = swap || future
 		if contract {
 			maker = 0
 			taker = 0
-			settle = "JPY"
+			settle = SafeStringPtr("JPY")
 			symbol = Add(Add(symbol, ":"), settle)
 			if future {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
@@ -639,7 +651,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -702,7 +714,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -761,7 +773,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var id *string = this.SafeString(trade, "id")
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
@@ -808,7 +820,7 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -858,7 +870,7 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -1069,7 +1081,7 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 		"count":        limit,
@@ -1116,8 +1128,8 @@ func (this *Bitflyer) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		"child_order_state": "ACTIVE",
 	}
 
-	var retRes83815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes83815)
+	var retRes85015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes85015)
 	return nil
 }
 
@@ -1152,8 +1164,8 @@ func (this *Bitflyer) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"child_order_state": "COMPLETED",
 	}
 
-	var retRes85615 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes85615)
+	var retRes86815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes86815)
 	return nil
 }
 
@@ -1228,7 +1240,7 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -1345,7 +1357,7 @@ func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address an
 	if (!IsEqual(code, "JPY")) && (!IsEqual(code, "USD")) && (!IsEqual(code, "EUR")) {
 		panic(ExchangeError(Add(Add(this.Id+" allows withdrawing JPY, USD, EUR only, ", code), " is not supported")))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency_code": currency["id"],
 		"amount":        amount,
@@ -1396,7 +1408,7 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	if limit != nil {
 		request["count"] = limit // default 100
@@ -1456,7 +1468,7 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	if limit != nil {
 		request["count"] = limit // default 100
@@ -1606,7 +1618,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -1675,7 +1687,11 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 			request = Add(request, "?"+this.Urlencode(params))
 		}
 	}
-	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest"))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var baseUrl any = this.ImplodeHostname(apiUrl)
 	var url any = Add(baseUrl, request)
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -1706,7 +1722,7 @@ func (this *Bitflyer) HandleErrors(code any, reason any, url any, method any, he
 	if IsEqual(response, nil) {
 		return nil // fallback to the default error handler
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 	// i.e. {"status":-2,"error_message":"Under maintenance","data":null}
 	var errorMessage *string = this.SafeString(response, "error_message")
 	var statusCode *int64 = this.SafeInteger(response, "status")

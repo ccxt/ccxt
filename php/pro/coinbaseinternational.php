@@ -115,7 +115,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $messageHash = $name . '::' . $market['symbol'];
             $productIds = array( ($market['id']) );
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
             throw new NotSupported($this->id . ' is not supported in sandbox environment');
         }
@@ -173,7 +173,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $productIds[] = $marketId;
             $messageHashes[] = $name . '::' . $symbol;
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
             throw new NotSupported($this->id . ' is not supported in sandbox environment');
         }
@@ -258,7 +258,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($this->subscribe($channel, array( $symbol ), $params));
     }
 
-    public function get_active_symbols() {
+    public function get_active_symbols(): array {
         $symbols = $this->symbols;
         $output = array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -332,7 +332,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
     }
 
-    public function parse_ws_instrument(array $ticker, ?array $market = null) {
+    public function parse_ws_instrument(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "sequence": 1,
@@ -791,7 +791,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $message;
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         // snapshot
         //    {

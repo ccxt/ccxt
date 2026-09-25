@@ -323,6 +323,9 @@ export default class btcbox extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quoteId = this.safeString (market, 'quote');
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
             'id': this.safeString (market, 'symbol'),
@@ -667,7 +670,7 @@ export default class btcbox extends Exchange {
         const datetimeString = this.safeString (order, 'datetime');
         let timestamp: Int = undefined;
         if (datetimeString !== undefined) {
-            timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+            timestamp = this.parse8601 (datetimeString + '+09:00'); // Tokyo time
         }
         const amount = this.safeString (order, 'amount_original');
         const remaining = this.safeString (order, 'amount_outstanding');
@@ -815,7 +818,11 @@ export default class btcbox extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);

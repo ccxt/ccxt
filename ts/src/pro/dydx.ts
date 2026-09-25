@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Trade, Dict, OrderBook, OHLCV , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -185,7 +186,7 @@ export default class dydx extends dydxRest {
             'channel': 'v4_orderbook',
             'id': market['id'],
         };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         return orderbook.limit ();
     }
 

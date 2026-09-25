@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -63,7 +64,11 @@ class luno extends \ccxt\async\luno {
         $symbol = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
         $subscription = array( 'symbol' => $symbol );
-        $url = $this->urls['api']['ws'] . $subscriptionHash;
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
+        }
+        $url = $wsUrl . $subscriptionHash;
         $messageHash = 'trades:' . $symbol;
         $subscribe = array(
             'api_key_id' => $this->apiKey,
@@ -176,7 +181,11 @@ class luno extends \ccxt\async\luno {
         $symbol = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
         $subscription = array( 'symbol' => $symbol );
-        $url = $this->urls['api']['ws'] . $subscriptionHash;
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
+        }
+        $url = $wsUrl . $subscriptionHash;
         $messageHash = 'orderbook:' . $symbol;
         $subscribe = array(
             'api_key_id' => $this->apiKey,

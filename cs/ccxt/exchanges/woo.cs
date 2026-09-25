@@ -978,7 +978,7 @@ public partial class woo : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -1039,11 +1039,15 @@ public partial class woo : Exchange
         }
         string? baseId = this.safeString(parts, 1);
         string? quoteId = this.safeString(parts, 2);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settleId = null;
         string? settle = null;
-        object symbol = add(add(bs, "/"), quote);
+        string symbol = ((bs + "/") + quote);
         double? contractSize = null;
         bool? linear = null;
         bool? inverse = null;
@@ -1054,7 +1058,7 @@ public partial class woo : Exchange
             margin = false;
             settleId = this.safeString(parts, 2);
             settle = this.safeCurrencyCode(settleId);
-            symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            symbol = ((((bs + "/") + quote) + ":") + settle);
             contractSize = this.parseNumber("1");
             linear = true;
             inverse = false;
@@ -3858,10 +3862,10 @@ public partial class woo : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -3890,7 +3894,7 @@ public partial class woo : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            if (isEqual(method, "POST") && (isEqual(path, "trade/algoOrder") || isEqual(path, "trade/order")))
+            if ((method == "POST") && (isEqual(path, "trade/algoOrder") || isEqual(path, "trade/order")))
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if ((isSandboxMode != true))
@@ -3917,8 +3921,8 @@ public partial class woo : Exchange
             };
             if (isEqual(version, "v3"))
             {
-                auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
-                if (isEqual(method, "POST") || isEqual(method, "PUT"))
+                auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
+                if ((method == "POST") || (method == "PUT"))
                 {
                     body = this.json(parameters);
                     auth = add(auth, body);
@@ -3935,7 +3939,7 @@ public partial class woo : Exchange
             } else
             {
                 auth = this.urlencode(parameters);
-                if (isEqual(method, "POST") || isEqual(method, "PUT") || isEqual(method, "DELETE"))
+                if ((method == "POST") || (method == "PUT") || (method == "DELETE"))
                 {
                     body = auth;
                 } else

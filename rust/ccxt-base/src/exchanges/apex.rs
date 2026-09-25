@@ -1896,9 +1896,7 @@ impl ApexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = to_upper(&type_var);
-        if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
-        }
+        self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut orderSide: Value = to_upper(&side);
         let mut orderSize: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut orderPrice: Value = Value::Str("0".into());

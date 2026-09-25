@@ -521,6 +521,9 @@ export default class dydx extends Exchange {
         const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -844,7 +847,7 @@ export default class dydx extends Exchange {
         // }
         //
         const rates: List = [];
-        const rows = this.safeList (response, 'historicalFunding', []);
+        const rows: Dict[] = this.safeList (response, 'historicalFunding', []);
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
             const timestamp = this.parse8601 (this.safeString (entry, 'effectiveAt'));
@@ -1228,7 +1231,7 @@ export default class dydx extends Exchange {
 
     signOnboardingAction (): object {
         const message: Dict = { 'action': 'dYdX Chain Onboarding' };
-        const chainId = this.options['chainId'];
+        const chainId = this.safeInteger (this.options, 'chainId');
         const domain: Dict = {
             'chainId': chainId,
             'name': 'dYdX Chain',
@@ -1269,7 +1272,7 @@ export default class dydx extends Exchange {
         return credentials;
     }
 
-    async fetchDydxAccount () {
+    async fetchDydxAccount (): Promise<Dict> {
         // required in js
         await this.loadDydxProtos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
@@ -1524,7 +1527,7 @@ export default class dydx extends Exchange {
         const orderRequestRes = this.createOrderRequest (symbol, type, side, amount, price, newParams);
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
@@ -1630,7 +1633,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
@@ -1701,7 +1704,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
             'value': cancelPayload,
         };
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
@@ -1855,7 +1858,7 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: Str, account: any): Promise<any> {
+    async estimateTxFee (message: any, memo: Str, account: any): Promise<Dict> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request: Dict = {
             'txBytes': txBytes,
@@ -1981,7 +1984,7 @@ export default class dydx extends Exchange {
             };
         }
         const txFee = await this.estimateTxFee (signingPayload, '', account);
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
@@ -2169,7 +2172,7 @@ export default class dydx extends Exchange {
             'value': payload,
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
-        const chainName = this.options['chainName'];
+        const chainName = this.safeString (this.options, 'chainName');
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
@@ -2368,7 +2371,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'subaccounts', []);
+        const rows: Dict[] = this.safeList (response, 'subaccounts', []);
         const result: List = [];
         for (let i = 0; i < rows.length; i++) {
             const account = rows[i];
@@ -2478,7 +2481,11 @@ export default class dydx extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     getWalletAddress () {
@@ -2500,7 +2507,11 @@ export default class dydx extends Exchange {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.urls['api'][section];
+        const apiUrl = this.safeString (this.urls['api'], section);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = apiUrl;
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const paramsSorted: Dict = this.keysort (paramsOmitted);
         url += '/' + pathWithParams;

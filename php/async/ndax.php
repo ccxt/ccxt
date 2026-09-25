@@ -646,6 +646,9 @@ class ndax extends Exchange {
         $quoteId = $this->safe_string($market, 'Product2');
         $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
         $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $sessionStatus = $this->safe_string($market, 'SessionStatus');
         $isDisable = $this->safe_bool($market, 'IsDisable');
         $sessionRunning = ($sessionStatus === 'Running');
@@ -1386,7 +1389,7 @@ class ndax extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ledger_entry_type(?string $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'Trade' => 'trade',
             'Deposit' => 'transaction',
@@ -2814,7 +2817,11 @@ class ndax extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($path === 'Authenticate') {

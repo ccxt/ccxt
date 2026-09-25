@@ -556,7 +556,7 @@ class pacifica extends Exchange {
         ));
     }
 
-    public function initialize_client() {
+    public function initialize_client(): bool {
         try {
             $this->handle_builder_fee_approval();
         } catch (Exception $e) {
@@ -565,7 +565,7 @@ class pacifica extends Exchange {
         return true;
     }
 
-    public function handle_builder_fee_approval() {
+    public function handle_builder_fee_approval(): bool {
         if ($this->isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             return false;
         }
@@ -723,6 +723,9 @@ class pacifica extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
         if ($isSwap) {
@@ -1653,11 +1656,7 @@ class pacifica extends Exchange {
         } else {
             $operationType = 'create_order';
             $sigPayload['reduce_only'] = $reduceOnly;
-            if ($timeInForce === null) {
-                $sigPayload['tif'] = 'GTC';
-            } else {
-                $sigPayload['tif'] = $timeInForce;
-            }
+            $sigPayload['tif'] = $timeInForce;
         }
         if ($isTakeProfitOrder) {
             $tpPayload = array(
@@ -1730,7 +1729,7 @@ class pacifica extends Exchange {
         $maxLen = $this->handle_option('batchOrdersRequest', 'batchOrdersMax');
         if ($maxLen !== null) {
             if ($lenActions > $maxLen) {
-                throw new ExchangeError($this->id . ' batchOrdersRequest() too many orders to create/cancel. Limit is ' . $maxLen);
+                throw new ExchangeError($this->id . ' batchOrdersRequest() too many orders to create/cancel. Limit is ' . $this->number_to_string($maxLen));
             }
         }
         return array(
@@ -2538,7 +2537,7 @@ class pacifica extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function map_time_in_force(?string $tifRaw) {
+    public function map_time_in_force(?string $tifRaw): string {
         $tifMap = array(
             'GTC' => 'GTC',
             'IOC' => 'IOC',
@@ -2552,7 +2551,7 @@ class pacifica extends Exchange {
         if ($tifRaw !== null) {
             $tif = strtoupper($tifRaw);
         }
-        return $this->safe_string($tifMap, $tif);
+        return $this->safe_string($tifMap, $tif, 'GTC');
     }
 
     public function map_side(?string $sideRaw) {
@@ -3463,7 +3462,7 @@ class pacifica extends Exchange {
         return $this->privatePostAccountBuilderCodesApprove($this->extend($request, $params));
     }
 
-    public function fetch_builder_approvals(string $address) {
+    public function fetch_builder_approvals(string $address): array {
         $request = array(
             'account' => $address,
         );

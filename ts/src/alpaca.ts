@@ -572,6 +572,9 @@ export default class alpaca extends Exchange {
         if (quote === undefined && assetClass === 'us_equity') {
             quote = 'USD';
         }
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const status = this.safeString (asset, 'status');
         const active = (status === 'active');
@@ -1827,7 +1830,7 @@ export default class alpaca extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: string, code: Str, since: any, limit: any, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2186,7 +2189,7 @@ export default class alpaca extends Exchange {
         //     ]
         //
         const account = this.safeDict (response, 'account', {});
-        const positions = this.safeList (response, 'positions', []);
+        const positions: Dict[] = this.safeList (response, 'positions', []);
         const result: Dict = { 'info': response };
         const currencyId = this.safeString (account, 'currency');
         const code = this.safeCurrencyCode (currencyId);

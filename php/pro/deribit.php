@@ -102,7 +102,7 @@ class deribit extends \ccxt\async\deribit {
         $currencies = $this->safe_list($this->options, 'currencies', array());
         $channels = array();
         for ($i = 0; $i < count($currencies); $i++) {
-            $currencyCode = $currencies[$i];
+            $currencyCode = $this->safe_string($currencies, $i);
             $channels[] = 'user.portfolio.' . $currencyCode;
         }
         $subscribe = array(
@@ -736,9 +736,10 @@ class deribit extends \ccxt\async\deribit {
     public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $delta[1];
         $amount = $delta[2];
-        if ($delta[0] === 'new' || $delta[0] === 'change') {
+        $action = $this->safe_string($delta, 0);
+        if ($action === 'new' || $action === 'change') {
             $bookside->storeArray(array( $price, $amount, 1 ));
-        } elseif ($delta[0] === 'delete') {
+        } elseif ($action === 'delete') {
             $bookside->storeArray(array( $price, $amount, 0 ));
         }
     }

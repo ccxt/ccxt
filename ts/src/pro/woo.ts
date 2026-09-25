@@ -7,6 +7,7 @@ import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBy
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -89,7 +90,7 @@ export default class woo extends wooRest {
         if (this.uid !== '') {
             urlUid = '/' + this.uid;
         }
-        const url = this.urls['api']['ws']['public'] + urlUid;
+        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -103,7 +104,7 @@ export default class woo extends wooRest {
         if (this.uid !== '') {
             urlUid = '/' + this.uid;
         }
-        const url = this.urls['api']['ws']['public'] + urlUid;
+        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
         const requestId = this.requestId (url);
         const unsubHash = 'unsubscribe::' + subHash;
         const message: Dict = {
@@ -150,7 +151,7 @@ export default class woo extends wooRest {
         if (this.uid !== '') {
             urlUid = '/' + this.uid;
         }
-        const url = this.urls['api']['ws']['public'] + urlUid;
+        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
         const requestId = this.requestId (url);
         const request: Dict = {
             'event': 'subscribe',
@@ -167,7 +168,7 @@ export default class woo extends wooRest {
         if (method === 'orderbookupdate') {
             subscription['method'] = this.handleOrderBookSubscription;
         }
-        const orderbook = await this.watch (url, topic, this.extend (request, paramsMethod), topic, subscription);
+        const orderbook: Ob = await this.watch (url, topic, this.extend (request, paramsMethod), topic, subscription);
         return orderbook.limit ();
     }
 
@@ -253,7 +254,7 @@ export default class woo extends wooRest {
         } else {
             if (!(symbol in this.orderbooks)) {
                 const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-                const subscription = this.safeValue (client.subscriptions, topic);
+                const subscription = this.safeDict (client.subscriptions, topic);
                 const limit = this.safeInteger (subscription, 'limit', defaultLimit);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
@@ -285,7 +286,7 @@ export default class woo extends wooRest {
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-            const params = this.safeValue (subscription, 'params');
+            const params = this.safeDict (subscription, 'params');
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (this.safeDict (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -382,7 +383,7 @@ export default class woo extends wooRest {
         return await this.unwatchPublic (subHash, market['symbol'], topic, paramsMethod);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -923,7 +924,7 @@ export default class woo extends wooRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -949,7 +950,7 @@ export default class woo extends wooRest {
 
     async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -960,7 +961,7 @@ export default class woo extends wooRest {
 
     async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -1239,7 +1240,7 @@ export default class woo extends wooRest {
                 if (fee !== undefined) {
                     parsed['fee'] = fee;
                 }
-                const fees = this.safeValue (order, 'fees');
+                const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
                     (parsed as Dict)['fees'] = fees;
                 }
@@ -1329,7 +1330,7 @@ export default class woo extends wooRest {
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
         const client = this.client (url);
         this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1365,7 +1366,7 @@ export default class woo extends wooRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1413,7 +1414,7 @@ export default class woo extends wooRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < postitionsIds.length; i++) {
             const marketId = postitionsIds[i];
@@ -1597,8 +1598,8 @@ export default class woo extends wooRest {
         const subscribeHash = this.safeString (message, 'data');
         const unsubscribeHash = 'unsubscribe::' + subscribeHash;
         const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-        const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
+        const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
+        const unsubMessageHashes: string[] = this.safeList (subscription, 'unsubMessageHashes', []);
         for (let i = 0; i < subMessageHashes.length; i++) {
             const subHash = subMessageHashes[i];
             const unsubHash = unsubMessageHashes[i];

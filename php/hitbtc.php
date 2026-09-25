@@ -835,6 +835,9 @@ class hitbtc extends Exchange {
             $feeCurrencyId = $this->safe_string($market, 'fee_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             $settleId = null;
             $settle = null;
@@ -3886,7 +3889,11 @@ class hitbtc extends Exchange {
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . '/' . $implodedPath;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $implodedPath;
         $getRequest = null;
         $keys = is_array($query) ? array_keys($query) : array();
         $queryLength = count($keys);

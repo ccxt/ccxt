@@ -42,7 +42,7 @@ public class TestOrderBook extends BaseTest {
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         Object bids = ((Map<String, Object>)orderbook).get("bids");
         Integer bidsLength = ((List<?>)bids).size();
-        for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
+        for (var i = 0; (bidsLength != null && i < bidsLength); i++)
         {
             String currentBidString = exchange.safeString((bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0);
             if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
@@ -63,7 +63,7 @@ public class TestOrderBook extends BaseTest {
         }
         Object asks = ((Map<String, Object>)orderbook).get("asks");
         Integer asksLength = ((List<?>)asks).size();
-        for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
+        for (var i = 0; (asksLength != null && i < asksLength); i++)
         {
             String currentAskString = exchange.safeString((asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0);
             if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
@@ -84,7 +84,7 @@ public class TestOrderBook extends BaseTest {
         }
         if (!(Helpers.inOp(skippedProperties, "spread")))
         {
-            if ((Helpers.isGreaterThan(bidsLength, 0)) && (Helpers.isGreaterThan(asksLength, 0)))
+            if (((bidsLength != null && bidsLength > 0)) && ((asksLength != null && asksLength > 0)))
             {
                 String firstBid = exchange.safeString((bids == null || 0 >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(0)), 0);
                 String firstAsk = exchange.safeString((asks == null || 0 >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(0)), 0);

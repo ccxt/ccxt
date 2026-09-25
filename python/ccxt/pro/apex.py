@@ -99,7 +99,7 @@ class apex(ccxt.async_support.apex):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            topic = 'recentlyTrade.H.' + market['id2']
+            topic = 'recentlyTrade.H.' + self.safe_string(market, 'id2')
             topics.append(topic)
             messageHash = 'trade:' + symbol
             messageHashes.append(messageHash)
@@ -227,7 +227,7 @@ class apex(ccxt.async_support.apex):
             market = self.market(symbol)
             if limit is None:
                 limit = 25
-            topic = 'orderBook' + str(limit) + '.H.' + market['id2']
+            topic = 'orderBook' + str(limit) + '.H.' + self.safe_string(market, 'id2')
             topics.append(topic)
             messageHash = 'orderbook:' + symbol
             messageHashes.append(messageHash)
@@ -256,7 +256,7 @@ class apex(ccxt.async_support.apex):
             message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    def get_ws_public_url(self):
+    def get_ws_public_url(self) -> str:
         # apex appends a millisecond timestamp to the WS URL for connection-time
         # signing. CCXT's client manager keys clients by URL, so recomputing the
         # timestamp on every watch* call would open a new connection each time.
@@ -264,15 +264,15 @@ class apex(ccxt.async_support.apex):
         url = self.safe_string(self.options, 'wsPublicUrl')
         if url is None:
             timeStamp = str(self.milliseconds())
-            url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+            url = self.safe_string(self.urls['api']['ws'], 'public') + '&timestamp=' + timeStamp
             self.options['wsPublicUrl'] = url
         return url
 
-    def get_ws_private_url(self):
+    def get_ws_private_url(self) -> str:
         url = self.safe_string(self.options, 'wsPrivateUrl')
         if url is None:
             timeStamp = str(self.milliseconds())
-            url = self.urls['api']['ws']['private'] + '&timestamp=' + timeStamp
+            url = self.safe_string(self.urls['api']['ws'], 'private') + '&timestamp=' + timeStamp
             self.options['wsPrivateUrl'] = url
         return url
 
@@ -358,7 +358,7 @@ class apex(ccxt.async_support.apex):
         symbol = market['symbol']
         url = self.get_ws_public_url()
         messageHash = 'ticker:' + symbol
-        topic = 'instrumentInfo' + '.H.' + market['id2']
+        topic = 'instrumentInfo' + '.H.' + self.safe_string(market, 'id2')
         topics = [topic]
         return await self.watch_topics(url, [messageHash], topics, params)
 
@@ -381,7 +381,7 @@ class apex(ccxt.async_support.apex):
         for i in range(0, len((symbols))):
             symbol = (symbols)[i]
             market = self.market(symbol)
-            topic = 'instrumentInfo' + '.H.' + market['id2']
+            topic = 'instrumentInfo' + '.H.' + self.safe_string(market, 'id2')
             topics.append(topic)
             messageHash = 'ticker:' + symbol
             messageHashes.append(messageHash)

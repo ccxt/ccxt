@@ -1203,32 +1203,35 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var market any = GetValue(response, i)
 		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settleId any = nil
 		var marketTypeRaw *string = this.SafeString(market, "market_type")
-		var symbol any = Add(Add(base, "/"), quote)
-		var typeVar any = nil
-		var subType any = nil
+		var symbol any = *base + "/" + *quote
+		var typeVar *string = nil
+		var subType *string = nil
 		if marketTypeRaw != nil && *marketTypeRaw == "SPOT" {
-			typeVar = "spot"
+			typeVar = SafeStringPtr("spot")
 		} else if marketTypeRaw != nil && *marketTypeRaw == "PERPETUAL" {
-			typeVar = "swap"
+			typeVar = SafeStringPtr("swap")
 			settleId = quoteId
-			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settleId)
+			symbol = Add(*base+"/"+*quote+":", settleId)
 			var payoffType *string = this.SafeString(market, "payoff_type")
 			if payoffType != nil && *payoffType == "Linear" {
-				subType = "linear"
+				subType = SafeStringPtr("linear")
 			} else if payoffType != nil && *payoffType == "Inverse" {
-				subType = "inverse"
+				subType = SafeStringPtr("inverse")
 			}
 		}
-		var isSpot bool = (IsEqual(typeVar, "spot"))
+		var isSpot bool = (typeVar != nil && *typeVar == "spot")
 		var settle *string = func() *string {
 			if (settleId != nil) && (!IsEqual(settleId, "")) {
 				return this.SafeCurrencyCode(settleId)
@@ -1507,7 +1510,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1613,7 +1616,7 @@ func (this *Bitstamp) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1792,7 +1795,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 		for i := 0; i < len(keys); i++ {
 			var currentKey string = GetValue(keys, i).(string)
 			if (currentKey != "order_id") && (strings.Index(currentKey, "_") >= 0) {
-				rawMarketId = currentKey
+				rawMarketId = DerefScalar(currentKey)
 				market = this.SafeMarket(rawMarketId, market, "_")
 			}
 		}
@@ -1816,7 +1819,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	// this endpoint is not aligned with "markets" endpoint
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
-	var dashedIdLower any = Add(Add(baseIdLower, "_"), quoteIdLower)
+	var dashedIdLower *string = SafeStringPtr(Add(Add(baseIdLower, "_"), quoteIdLower))
 	if priceString == nil {
 		priceString = this.SafeString(trade, dashedIdLower)
 	}
@@ -1921,7 +1924,7 @@ func (this *Bitstamp) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 		"time": "hour",
@@ -1999,7 +2002,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2151,7 +2154,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}
@@ -2423,7 +2426,7 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair":   market["id"],
 		"amount": this.AmountToPrecision(symbol, amount),
@@ -2509,7 +2512,7 @@ func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"amount": this.AmountToPrecision(symbol, amount),
 		"price":  this.PriceToPrecision(symbol, price),
@@ -2828,8 +2831,8 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes196219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
-		ch <- BoxAbsent(retRes196219)
+		var retRes196519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))))
+		ch <- BoxAbsent(retRes196519)
 		return nil
 	}
 	if this.Markets == nil {
@@ -2953,7 +2956,7 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	//
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var transactions any = this.FilterByArray(response, "type", []any{"0", "1"}, false)
 
@@ -3093,18 +3096,18 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 	if InOp(transaction, "status") {
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	if InOp(transaction, "type") {
 		// from fetchDepositsWithdrawals
 		var rawType *string = this.SafeString(transaction, "type")
 		if rawType != nil && *rawType == "0" {
-			typeVar = "deposit"
+			typeVar = SafeStringPtr("deposit")
 		} else if rawType != nil && *rawType == "1" {
-			typeVar = "withdrawal"
+			typeVar = SafeStringPtr("withdrawal")
 		}
 	} else {
 		// from fetchWithdrawals
-		typeVar = "withdrawal"
+		typeVar = SafeStringPtr("withdrawal")
 	}
 	var tag any = nil
 	var address any = DerefScalar(this.SafeString(transaction, "address"))
@@ -3311,7 +3314,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         },
 	//     ]
 	//
-	currency := GetArg(optionalArgs, 0, nil)
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	if typeVar != nil && *typeVar == "trade" {
@@ -3433,7 +3436,7 @@ func (this *Bitstamp) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response []any = ListTyped(PanicOnError((<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	ch <- this.ParseLedger(response, currency, since, limit)
@@ -3463,7 +3466,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}
@@ -3690,7 +3693,7 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 		response = (<-this.RequestAsync(Add(name, "_withdrawal/"), "private", "POST", this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["iban"] = address
 		request["account_currency"] = GetValue(currency, "id")
 
@@ -3729,22 +3732,20 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
 		"currency": ToUpper(currency["id"]),
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if IsEqual(fromAccount, "main") {
 		request["subAccount"] = toAccount
 
-		response = (<-this.PrivatePostTransferFromMain(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostTransferFromMain(this.Extend(request, params))).Raw))
 	} else if IsEqual(toAccount, "main") {
 		request["subAccount"] = fromAccount
 
-		response = (<-this.PrivatePostTransferToMain(this.Extend(request, params))).Raw
-		PanicOnError(response)
+		response = MapTyped(PanicOnError((<-this.PrivatePostTransferToMain(this.Extend(request, params))).Raw))
 	} else {
 		panic(BadRequest(this.Id + " transfer() only supports from or to main"))
 	}
@@ -3803,7 +3804,11 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), "/")
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = *apiUrl + "/"
 	url = Add(url, this.Version+"/")
 	url = Add(url, this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -3901,7 +3906,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		if code != nil && *code == "API0005" {
 			panic(AuthenticationError(this.Id + " invalid signature, use the uid for the main account if you have subaccounts"))
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		for i := 0; i < len(errors); i++ {
 			var value *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(errors) {

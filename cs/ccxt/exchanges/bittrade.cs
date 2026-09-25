@@ -789,13 +789,17 @@ public partial class bittrade : Exchange
             object market = markets[i];
             string? baseId = this.safeString(market, "base-currency");
             string? quoteId = this.safeString(market, "quote-currency");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? state = this.safeString(market, "state");
             string? leverageRatio = this.safeString(market, "leverage-ratio", "1");
             string? superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
             bool margin = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
-            double? fee = (isEqual(bs, "OMG")) ? this.parseNumber("0") : this.parseNumber("0.002");
+            double? fee = (bs == "OMG") ? this.parseNumber("0") : this.parseNumber("0.002");
             if ((baseId == null))
             {
                 throw new ExchangeError ((this.id + " fetchMarkets() missing baseId")) ;
@@ -806,7 +810,7 @@ public partial class bittrade : Exchange
             }
             result.Add(new Dictionary<string, object>() {
                 { "id", (baseId + quoteId) },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -1267,7 +1271,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limitVar, null))
+        if (!(limitVar == null))
         {
             request["size"] = mathMin(limitVar, 2000);
         }
@@ -1355,7 +1359,7 @@ public partial class bittrade : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(limitVar, null))
+        if (!(limitVar == null))
         {
             request["size"] = mathMin(limitVar, 2000);
         }
@@ -1501,7 +1505,7 @@ public partial class bittrade : Exchange
         };
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = balances[i];
+            IDictionary<string, object> balance = ((IDictionary<string, object>)balances[i]);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             object account = null;
@@ -1516,7 +1520,7 @@ public partial class bittrade : Exchange
             {
                 throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (isEqual(getValue(balance, "type"), "trade"))
+            if ((this.safeString(balance, "type") == "trade"))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
             }
@@ -1524,7 +1528,7 @@ public partial class bittrade : Exchange
             {
                 throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
-            if (isEqual(getValue(balance, "type"), "frozen"))
+            if ((this.safeString(balance, "type") == "frozen"))
             {
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "balance");
             }
@@ -2216,7 +2220,7 @@ public partial class bittrade : Exchange
     {
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }
@@ -2261,7 +2265,7 @@ public partial class bittrade : Exchange
     {
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }
@@ -2456,7 +2460,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2484,7 +2488,7 @@ public partial class bittrade : Exchange
                 { "AccessKeyId", this.apiKey },
                 { "Timestamp", timestamp },
             };
-            if (!isEqual(method, "POST"))
+            if ((method != "POST"))
             {
                 request = this.extend(request, query);
             }
@@ -2499,7 +2503,7 @@ public partial class bittrade : Exchange
     { "Signature", signature },
 }));
             url = add(url, ("?" + auth));
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 body = this.json(query);
                 headers = new Dictionary<string, object>() {

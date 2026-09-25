@@ -1674,7 +1674,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Dictionary<string, object> tradeSymbols = new Dictionary<string, object>() {};
         for (int i = 0; i < trades.Count; i++)
         {
-            object trade = trades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             Dictionary<string, object> parsedTrade = this.parseWsMyTrade(trade);
             if (!isEqual((parsedTrade != null && ((IDictionary<string, object>)parsedTrade).ContainsKey("symbol") ? ((IDictionary<string, object>)parsedTrade)["symbol"] : null), null))
             {

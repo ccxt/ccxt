@@ -1451,7 +1451,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, (String) (this.privateKey));
     }
 
@@ -1705,8 +1705,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trades = this.myTrades;
-        Helpers.callDynamically(trades, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        trades.append(trade);
         String symbol = (String) ((Map<String, Object>)trade).get("symbol");
         client.resolve(trades, "myTrades");
         client.resolve(trades, ("myTrades:" + symbol));
@@ -1831,8 +1831,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(order);
         String symbol = (String) ((Map<String, Object>)order).get("symbol");
         client.resolve(orders, "orders");
         client.resolve(orders, ("orders:" + symbol));
@@ -1917,19 +1917,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object positions = this.positions;
+        io.github.ccxt.ws.ArrayCache positions = (io.github.ccxt.ws.ArrayCache) this.positions;
         String side = this.safeString(position, "side");
         if (java.util.Objects.equals(side, null))
         {
             Map<String, Object> longPosition = this.extend(new HashMap<String, Object>() {{}}, position);
             longPosition.put("side", "long");
-            Helpers.callDynamically(positions, "append", new Object[]{longPosition});
+            positions.append(longPosition);
             Map<String, Object> shortPosition = this.extend(new HashMap<String, Object>() {{}}, position);
             shortPosition.put("side", "short");
-            Helpers.callDynamically(positions, "append", new Object[]{shortPosition});
+            positions.append(shortPosition);
         } else
         {
-            Helpers.callDynamically(positions, "append", new Object[]{position});
+            positions.append(position);
         }
         String symbol = (String) ((Map<String, Object>)position).get("symbol");
         client.resolve(positions, "positions");

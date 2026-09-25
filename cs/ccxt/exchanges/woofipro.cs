@@ -877,11 +877,15 @@ public partial class woofipro : Exchange
         string marketType = "swap";
         string? baseId = this.safeString(parts, 1);
         string? quoteId = this.safeString(parts, 2);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settleId = this.safeString(parts, 2);
         string? settle = this.safeCurrencyCode(settleId);
-        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
+        string symbol = ((((bs + "/") + quote) + ":") + settle);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1056,7 +1060,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object networkEntry = networks[j];
+            IDictionary<string, object> networkEntry = ((IDictionary<string, object>)networks[j]);
             string? networkId = this.safeString(networkEntry, "chain_id");
             IDictionary<string, object> networkRow = this.safeDict(indexedChains, networkId);
             string? networkName = this.safeString(networkRow, "name", networkId);
@@ -2493,10 +2497,7 @@ public partial class woofipro : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
         Dictionary<string, object> response = null;
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " editOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("editOrder", side, "side");
         if (isConditional)
         {
             response = await this.v1PrivatePutAlgoOrder(this.extend(request, parameters));
@@ -3446,7 +3447,8 @@ public partial class woofipro : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        string hashed = ((string)this.hash(message, keccak, "hex"));
+        return ("0x" + hashed);
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -3487,7 +3489,7 @@ public partial class woofipro : Exchange
         if ((codeVar != null))
         {
             codeVar = codeVar.ToUpper();
-            if (!isEqual(codeVar, "USDC"))
+            if (!(codeVar == "USDC"))
             {
                 throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
             }
@@ -3667,7 +3669,7 @@ public partial class woofipro : Exchange
             await this.loadMarkets();
         }
         marginModeVar = marginModeVar.ToLower();
-        if (!isEqual(marginModeVar, "cross") && !isEqual(marginModeVar, "isolated"))
+        if (!(marginModeVar == "cross") && !(marginModeVar == "isolated"))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
@@ -3742,7 +3744,7 @@ public partial class woofipro : Exchange
         // }
         //
         Dictionary<string, object> modification = this.parseMarginModification(response, market);
-        modification["type"] = (isEqual(type, "ADD")) ? "add" : "reduce";
+        modification["type"] = ((type == "ADD")) ? "add" : "reduce";
         modification["amount"] = this.parseNumber(this.numberToString(amount));
         return modification;
     }
@@ -4057,7 +4059,7 @@ public partial class woofipro : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         section ??= "public";
         method ??= "GET";
@@ -4065,20 +4067,25 @@ public partial class woofipro : Exchange
         object version = getValue(section, 0);
         object access = getValue(section, 1);
         string? pathWithParams = this.implodeParams(path, parameters);
-        object url = add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access), "/"), version), "/");
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (((apiUrl + "/") + (version)) + "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (isEqual(access, "public"))
         {
-            url = add(url, pathWithParams);
+            url = url + pathWithParams;
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = url + ("?" + this.urlencode(parameters));
             }
         } else
         {
             this.checkRequiredCredentials();
-            if ((isEqual(method, "POST") || isEqual(method, "PUT")) && (isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order")))
+            if (((method == "POST") || (method == "PUT")) && (isEqual(path, "algo/order") || isEqual(path, "order") || isEqual(path, "batch-order")))
             {
                 bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if ((isSandboxMode != true))
@@ -4100,7 +4107,7 @@ public partial class woofipro : Exchange
             }
             object auth = "";
             string ts = this.nonce().ToString();
-            url = add(url, pathWithParams);
+            url = url + pathWithParams;
             object apiKey = this.apiKey;
             if (getIndexOf(apiKey, "ed25519:") < 0)
             {
@@ -4111,8 +4118,8 @@ public partial class woofipro : Exchange
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = (((((ts + (method)) + "/") + (version)) + "/") + pathWithParams);
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
+            if ((method == "POST") || (method == "PUT"))
             {
                 body = this.json(parameters);
                 auth = add(auth, body);
@@ -4121,11 +4128,11 @@ public partial class woofipro : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(parameters)));
+                    url = url + ("?" + this.urlencode(parameters));
                     auth = add(auth, ("?" + this.rawencode(parameters)));
                 }
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
-                if (isEqual(method, "DELETE"))
+                if ((method == "DELETE"))
                 {
                     body = "";
                 }

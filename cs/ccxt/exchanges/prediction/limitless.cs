@@ -592,7 +592,7 @@ public partial class limitless : PredictionExchange
             int? settleFractionRaw = null;
             if (marketResolved)
             {
-                winnerRaw = (isEqual(legIndex, winningOutcomeIndex));
+                winnerRaw = ((legIndex == winningOutcomeIndex));
                 settleFractionRaw = winnerRaw == true ? 1 : 0;
                 if ((winnerRaw == true))
                 {
@@ -2390,10 +2390,7 @@ public partial class limitless : PredictionExchange
             { "buy", 0 },
             { "sell", 1 },
         };
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Int64? sideValue = this.safeInteger(sides, side.ToLower());
         IDictionary<string, object> rank = this.safeDict(accountInfo, "rank");
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
@@ -3608,7 +3605,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "limitless";
         method ??= "GET";
@@ -3620,7 +3617,7 @@ public partial class limitless : PredictionExchange
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencodeWithArrayRepeat(query);
-        if (isEqual(method, "GET") && (querystring != ""))
+        if ((method == "GET") && (querystring != ""))
         {
             url = add(url, ("?" + querystring));
         }
@@ -3631,7 +3628,7 @@ public partial class limitless : PredictionExchange
             {
                 headers = new Dictionary<string, object>() {};
             }
-            if (isEqual(method, "POST") && (querystring != ""))
+            if ((method == "POST") && (querystring != ""))
             {
                 bodyString = this.json(query);
                 body = bodyString;
@@ -3644,7 +3641,7 @@ public partial class limitless : PredictionExchange
             this.checkRequiredCredentials();
             object timestamp = this.iso8601(this.milliseconds());
             string newline = "\n"; // eslint-disable-line quotes
-            object payload = add(add(add(add(add(add(timestamp, newline), method), newline), url), newline), bodyString);
+            string? payload = ((string)add(add(add(add(add(add(timestamp, newline), method), newline), url), newline), bodyString));
             string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
             headers = this.extend(headers, new Dictionary<string, object>() {
                 { "lmts-timestamp", timestamp },

@@ -3622,7 +3622,10 @@ class BaseExchange(object):
     def parse_markets(self, markets: object):
         result = []
         for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
+            market = self.parse_market(markets[i])
+            # parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
+            if market is not None:
+                result.append(market)
         return result
 
     def parse_ticker(self, ticker: dict, market: Market = None):
@@ -3999,6 +4002,8 @@ class BaseExchange(object):
             return methodDict[parentKey][subKey]
 
     def orderbook_checksum_message(self, symbol: Str):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' orderbookChecksumMessage() requires a symbol argument')
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = False'
 
     def create_networks_by_id_object(self):
@@ -4311,10 +4316,15 @@ class BaseExchange(object):
                 highestPrecisionCurrency = self.safe_value(groupedCurrenciesCode, 0)
                 for j in range(1, len(groupedCurrenciesCode)):
                     currentCurrency = groupedCurrenciesCode[j]
+                    currentPrecision = self.safe_number(currentCurrency, 'precision')
+                    highestPrecision = self.safe_number(highestPrecisionCurrency, 'precision')
+                    if (currentPrecision is None) or (highestPrecision is None):
+                        continue
                     if self.precisionMode == TICK_SIZE:
-                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] < highestPrecisionCurrency['precision']) else highestPrecisionCurrency
-                    else:
-                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] > highestPrecisionCurrency['precision']) else highestPrecisionCurrency
+                        if currentPrecision < highestPrecision:
+                            highestPrecisionCurrency = currentCurrency
+                    elif currentPrecision > highestPrecision:
+                        highestPrecisionCurrency = currentCurrency
                 resultingCurrencies.append(highestPrecisionCurrency)
             sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code')))
@@ -4751,7 +4761,7 @@ class BaseExchange(object):
         trade['cost'] = self.parse_number(cost)
         return trade
 
-    def create_ccxt_trade_id(self, timestamp: Int = None, side: OrderSide = None, amount: Str = None, price: Str = None, takerOrMaker: Str = None):
+    def create_ccxt_trade_id(self, timestamp: Int = None, side: Str = None, amount: Str = None, price: Str = None, takerOrMaker: Str = None):
         # this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         id = None
         if timestamp is not None:
@@ -5084,7 +5094,7 @@ class BaseExchange(object):
             resultVolume.append(ohlcvs[i][5])
         return result
 
-    def fetch_web_endpoint(self, method: object, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
+    def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
         errorMessage = ''
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
@@ -5092,7 +5102,7 @@ class BaseExchange(object):
             # if it was not explicitly disabled, then don't fetch
             if not self.safe_bool(options, 'webApiEnable', True):
                 return None
-            maxRetries = self.safe_value(options, 'webApiRetries', 10)
+            maxRetries = self.safe_integer(options, 'webApiRetries', 10)
             response = None
             retry = 0
             shouldBreak = False
@@ -5198,9 +5208,9 @@ class BaseExchange(object):
                     raise BadRequest(self.id + ' symbols must be of the same subType, either linear or inverse.')
             if type is not None and market['type'] != type:
                 raise BadRequest(self.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
             if market['spot'] is not True:
-                isLinearSubType = market['linear']
+                isLinearSubType = self.safe_bool(market, 'linear')
             symbol = self.safe_string(market, 'symbol', symbols[i])
             result.append(symbol)
         return result
@@ -5397,13 +5407,13 @@ class BaseExchange(object):
                 defaultNetworkCode = defaultNetwork
         return defaultNetworkCode
 
-    def select_network_code_from_unified_networks(self, currencyCode: object, networkCode: object, indexedNetworkEntries: object):
+    def select_network_code_from_unified_networks(self, currencyCode: str, networkCode: object, indexedNetworkEntries: object):
         return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, True)
 
-    def select_network_id_from_raw_networks(self, currencyCode: object, networkCode: object, indexedNetworkEntries: object):
+    def select_network_id_from_raw_networks(self, currencyCode: str, networkCode: object, indexedNetworkEntries: object):
         return self.select_network_key_from_networks(currencyCode, networkCode, indexedNetworkEntries, False)
 
-    def select_network_key_from_networks(self, currencyCode: object, networkCode: object, indexedNetworkEntries: object, isIndexedByUnifiedNetworkCode=False):
+    def select_network_key_from_networks(self, currencyCode: str, networkCode: Str, indexedNetworkEntries: object, isIndexedByUnifiedNetworkCode=False):
         # this method is used against raw & unparse network entries, which are just indexed by network id
         chosenNetworkId = None
         availableNetworkIds = list(indexedNetworkEntries.keys())
@@ -5414,6 +5424,8 @@ class BaseExchange(object):
             else:
                 # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 networkIdOrCode = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
+                if networkIdOrCode is None:
+                    raise NotSupported(self.id + ' - ' + networkCode + ' network was not found for ' + currencyCode)
                 if networkIdOrCode in indexedNetworkEntries:
                     chosenNetworkId = networkIdOrCode
                 else:
@@ -5862,8 +5874,13 @@ class BaseExchange(object):
                 raise ArgumentsRequired(self.id + ' buildOHLCVC() requires a price argument')
             if (skipZeroPrices is True) and not (price > 0) and not (price < 0):
                 continue
-            isFirstCandle = candle == -1
-            if isFirstCandle or openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms):
+            isNewCandle = candle == -1
+            if not isNewCandle:
+                candleTimestamp = ohlcvs[candle][i_timestamp]
+                if candleTimestamp is None:
+                    raise ExchangeError(self.id + ' buildOHLCVC() missing candle timestamp')
+                isNewCandle = openingTime >= candleTimestamp + ms
+            if isNewCandle:
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([
                     openingTime,  # timestamp
@@ -6044,7 +6061,9 @@ class BaseExchange(object):
         fees = self.fetch_deposit_withdraw_fees([code], params)
         return self.safe_value(fees, code)
 
-    def get_supported_mapping(self, key: object, mapping: dict = {}):
+    def get_supported_mapping(self, key: Str, mapping: dict = {}):
+        if key is None:
+            raise ArgumentsRequired(self.id + ' getSupportedMapping() requires a key argument')
         if key in mapping:
             return mapping[key]
         else:
@@ -6219,7 +6238,7 @@ class BaseExchange(object):
         if broadKey is not None:
             raise broad[broadKey](message)
 
-    def find_broadly_matched_key(self, broad: object, string: object):
+    def find_broadly_matched_key(self, broad: object, string: Str):
         # a helper for matching error strings exactly vs broadly
         keys = list(broad.keys())
         for i in range(0, len(keys)):
@@ -6542,7 +6561,10 @@ class BaseExchange(object):
         market = self.market(symbol)
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
-            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
+            pricePrecision = self.number_to_string(market['precision']['price'])
+            if pricePrecision is None:
+                raise BadSymbol(self.id + ' priceToPrecision() market ' + market['symbol'] + ' has no price precision')
+            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + pricePrecision)
         return result
 
     def amount_to_precision(self, symbol: Str, amount: object):
@@ -6551,7 +6573,10 @@ class BaseExchange(object):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
-            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+            amountPrecision = self.number_to_string(market['precision']['amount'])
+            if amountPrecision is None:
+                raise BadSymbol(self.id + ' amountToPrecision() market ' + market['symbol'] + ' has no amount precision')
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + amountPrecision)
         return result
 
     def fee_to_precision(self, symbol: Str, fee: object):
@@ -7093,7 +7118,7 @@ class BaseExchange(object):
         else:
             return account
 
-    def check_required_argument(self, methodName: str, argument: object, argumentName: object, options: list[str] = []):
+    def check_required_argument(self, methodName: str, argument: object, argumentName: str, options: list[str] = []):
         """
  @ignore
         :param str methodName: the name of the method that the argument is being checked for
@@ -7413,7 +7438,7 @@ class BaseExchange(object):
             if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
-            currentSince = self.sum(currentSince, step) - 1
+            currentSince = currentSince + step - 1
         results = tasks
         result = []
         for i in range(0, len(results)):
@@ -7561,7 +7586,16 @@ class BaseExchange(object):
                 # unique trade identifier
                 if timestamp is None:
                     raise ExchangeError(self.id + ' removeRepeatedTradesFromArray() missing timestamp')
-                id = 't_' + str(timestamp) + '_' + side + '_' + price + '_' + amount
+                # optional parts are appended only when present, separators keep positions distinct
+                id = 't_' + str(timestamp) + '_'
+                if side is not None:
+                    id = id + side
+                id = id + '_'
+                if price is not None:
+                    id = id + price
+                id = id + '_'
+                if amount is not None:
+                    id = id + amount
             if id is not None and not (id in uniqueResult):
                 uniqueResult[id] = entry
         values = list(uniqueResult.values())
@@ -7576,7 +7610,7 @@ class BaseExchange(object):
                 newDict[key] = dict[key]
         return newDict
 
-    def handle_until_option(self, key: str, request: dict, params: dict, multiplier=1):
+    def handle_until_option(self, key: str, request: dict, params: dict, multiplier: float = 1):
         until = self.safe_integer_2(params, 'until', 'till')
         if until is not None:
             request[key] = self.parse_to_int(until * multiplier)
@@ -7766,6 +7800,8 @@ class BaseExchange(object):
             month = 'NOV'
         elif monthRaw == '12':
             month = 'DEC'
+        if month is None:
+            raise BadSymbol(self.id + ' invalid expiry date ' + date)
         reconstructedDate = day + month + year
         return reconstructedDate
 
@@ -7794,6 +7830,8 @@ class BaseExchange(object):
         monthName = date[2:5]
         month = self.safe_string(monthMappping, monthName)
         day = date[5:7]
+        if month is None:
+            raise BadSymbol(self.id + ' invalid expiry date ' + date)
         reconstructedDate = day + month + year
         return reconstructedDate
 
@@ -7995,7 +8033,7 @@ class BaseExchange(object):
 
 class Exchange(BaseExchange):
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}):
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}):
         raise NotSupported(self.id + ' closePosition() is not supported yet')
 
     def close_all_positions(self, params: dict = {}):

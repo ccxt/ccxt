@@ -101,7 +101,7 @@ class woo extends \ccxt\async\woo {
         if ($this->uid !== '') {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -119,7 +119,7 @@ class woo extends \ccxt\async\woo {
         if ($this->uid !== '') {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $unsubHash = 'unsubscribe::' . $subHash;
         $message = array(
@@ -171,7 +171,7 @@ class woo extends \ccxt\async\woo {
         if ($this->uid !== '') {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $request = array(
             'event' => 'subscribe',
@@ -279,7 +279,7 @@ class woo extends \ccxt\async\woo {
         } else {
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-                $subscription = $this->safe_value($client->subscriptions, $topic);
+                $subscription = $this->safe_dict($client->subscriptions, $topic);
                 $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
@@ -315,7 +315,7 @@ class woo extends \ccxt\async\woo {
         try {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
-            $params = $this->safe_value($subscription, 'params');
+            $params = $this->safe_dict($subscription, 'params');
             $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
             if ($this->safe_dict($this->orderbooks, $symbol) === null) {
                 // if the orderbook is dropped before the snapshot is received
@@ -418,7 +418,7 @@ class woo extends \ccxt\async\woo {
         return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -993,7 +993,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $event = 'auth';
@@ -1023,7 +1023,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1038,7 +1038,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1325,7 +1325,7 @@ class woo extends \ccxt\async\woo {
                 if ($fee !== null) {
                     $parsed['fee'] = $fee;
                 }
-                $fees = $this->safe_value($order, 'fees');
+                $fees = $this->safe_list($order, 'fees');
                 if ($fees !== null) {
                     $parsed['fees'] = $fees;
                 }
@@ -1419,7 +1419,7 @@ class woo extends \ccxt\async\woo {
         } else {
             $messageHashes[] = 'positions';
         }
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);

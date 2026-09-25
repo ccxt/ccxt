@@ -831,20 +831,21 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             // this endpoint requires authentication
             if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
             {
                 return new HashMap<String, Object>() {{}};
             }
-            List<Object> skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
-            Boolean skipFetchCurrencies = (Boolean) ((List<Object>) skipFetchCurrenciesparamsSkipFetchCurrenciesVariable).get(0);
-            Map<String, Object> paramsSkipFetchCurrencies = (Map<String, Object>) ((List<Object>) skipFetchCurrenciesparamsSkipFetchCurrenciesVariable).get(1);
-            if (Helpers.isTrue(skipFetchCurrencies))
+            Boolean skipFetchCurrencies = false;
+            List<Object> skipFetchCurrenciesparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+            skipFetchCurrencies = (Boolean) ((List<Object>) skipFetchCurrenciesparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) skipFetchCurrenciesparametersVariable).get(1);
+            if (Boolean.TRUE.equals(skipFetchCurrencies))
             {
                 // sub-accounts can't access this endpoint
                 return new HashMap<String, Object>() {{}};
@@ -852,10 +853,10 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             try
             {
-                response = (this.v1PrivatePostPrivateGetCurrencyNetworks(paramsSkipFetchCurrencies)).join();
+                response = (this.v1PrivatePostPrivateGetCurrencyNetworks(parameters)).join();
             } catch(Exception e)
             {
-                Object erString = this.exceptionMessage(e, true);
+                Object erString = this.exceptionMessage(e);
                 if (((String)erString).indexOf("SYS_ERROR") >= 0)
                 {
                     // sub-accounts can't access this endpoint
@@ -913,11 +914,23 @@ public class Cryptocom extends CryptocomApi
         });
 
     }
+    /**
+     * @method
+     * @name cryptocom#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseCurrency(Object currency)
     {
         String id = this.safeString(currency, "_coin_id");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(currency, "network_list", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)chains).size(); j++)
@@ -927,22 +940,23 @@ public class Cryptocom extends CryptocomApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put((String)network, Helpers.newMap(
-    "info", chain,
-    "id", networkId,
-    "network", network,
-    "active", null,
-    "deposit", this.safeBool(chain, "deposit_enabled", false),
-    "withdraw", this.safeBool(chain, "withdraw_enabled", false),
-    "fee", this.safeNumber(chain, "withdrawal_fee", (Object) null),
-    "precision", null,
-    "limits", new HashMap<String, Object>() {{
+                final String finalNetwork = network;
+                networks.put((String)network, new HashMap<String, Object>() {{
+    put( "info", chain );
+    put( "id", networkId );
+    put( "network", finalNetwork );
+    put( "active", null );
+    put( "deposit", Cryptocom.this.safeBool(chain, "deposit_enabled", false) );
+    put( "withdraw", Cryptocom.this.safeBool(chain, "withdraw_enabled", false) );
+    put( "fee", Cryptocom.this.safeNumber(chain, "withdrawal_fee") );
+    put( "precision", null );
+    put( "limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Cryptocom.this.safeNumber(chain, "min_withdrawal_amount", (Object) null) );
+            put( "min", Cryptocom.this.safeNumber(chain, "min_withdrawal_amount") );
             put( "max", null );
         }} );
-    }}
-));
+    }} );
+}});
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1081,13 +1095,17 @@ public class Cryptocom extends CryptocomApi
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
                 String settleId = ((Boolean.TRUE.equals(spot))) ? null : quoteId;
-                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                String settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+                String base = this.safeCurrencyCode(baseId);
+                String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
+                String settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId);
                 String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
-                Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled", (Object) null);
-                Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled", (Object) null);
+                Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled");
+                Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled");
                 String expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
                 Object expiry = (((!java.util.Objects.equals(expiryString, null)))) ? Helpers.parseInt(expiryString) : null;
                 String symbol = ((base + "/") + quote);
@@ -1116,38 +1134,46 @@ public class Cryptocom extends CryptocomApi
                 }
                 Boolean isLinear = (((java.util.Objects.equals(contract, true)))) ? true : null;
                 Boolean isInverse = (((java.util.Objects.equals(contract, true)))) ? false : null;
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", this.safeString(market, "symbol"),
-                    "symbol", symbol,
-                    "base", base,
-                    "quote", quote,
-                    "settle", settle,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", settleId,
-                    "type", type,
-                    "spot", spot,
-                    "margin", ((java.util.Objects.equals(marginBuyEnabled, true)) || (java.util.Objects.equals(marginSellEnabled, true))),
-                    "swap", swap,
-                    "future", future,
-                    "option", option,
-                    "active", this.safeBool(market, "tradable", (Object) null),
-                    "contract", contract,
-                    "linear", isLinear,
-                    "inverse", isInverse,
-                    "contractSize", this.safeNumber(market, "contract_size", (Object) null),
-                    "expiry", expiry,
-                    "expiryDatetime", this.iso8601(expiry),
-                    "strike", this.parseNumber(strike),
-                    "optionType", optionType,
-                    "precision", new HashMap<String, Object>() {{
+    final String finalSymbol = symbol;
+                final String finalBase = base;
+                final String finalQuote = quote;
+                final String finalType = type;
+                final Boolean finalMarginBuyEnabled = marginBuyEnabled;
+                final Boolean finalMarginSellEnabled = marginSellEnabled;
+                final Boolean finalContract = contract;
+                final String finalOptionType = optionType;
+                            ((List<Object>)result).add(new HashMap<String, Object>() {{
+                    put( "id", Cryptocom.this.safeString(market, "symbol") );
+                    put( "symbol", finalSymbol );
+                    put( "base", finalBase );
+                    put( "quote", finalQuote );
+                    put( "settle", settle );
+                    put( "baseId", baseId );
+                    put( "quoteId", quoteId );
+                    put( "settleId", settleId );
+                    put( "type", finalType );
+                    put( "spot", spot );
+                    put( "margin", ((java.util.Objects.equals(finalMarginBuyEnabled, true)) || (java.util.Objects.equals(finalMarginSellEnabled, true))) );
+                    put( "swap", swap );
+                    put( "future", future );
+                    put( "option", option );
+                    put( "active", Cryptocom.this.safeBool(market, "tradable") );
+                    put( "contract", finalContract );
+                    put( "linear", isLinear );
+                    put( "inverse", isInverse );
+                    put( "contractSize", Cryptocom.this.safeNumber(market, "contract_size") );
+                    put( "expiry", expiry );
+                    put( "expiryDatetime", Cryptocom.this.iso8601(expiry) );
+                    put( "strike", Cryptocom.this.parseNumber(strike) );
+                    put( "optionType", finalOptionType );
+                    put( "precision", new HashMap<String, Object>() {{
                         put( "price", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "price_tick_size")) );
                         put( "amount", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "qty_tick_size")) );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }} );
+                    put( "limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Cryptocom.this.parseNumber("1") );
-                            put( "max", Cryptocom.this.safeNumber(market, "max_leverage", (Object) null) );
+                            put( "max", Cryptocom.this.safeNumber(market, "max_leverage") );
                         }} );
                         put( "amount", new HashMap<String, Object>() {{
                             put( "min", null );
@@ -1161,14 +1187,26 @@ public class Cryptocom extends CryptocomApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }},
-                    "created", null,
-                    "info", market
-                ));
+                    }} );
+                    put( "created", null );
+                    put( "info", market );
+                }});
             }
             return result;
         });
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchMarkets
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
+     * @description retrieves data on all markets for cryptocom
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1181,14 +1219,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1198,7 +1236,7 @@ public class Cryptocom extends CryptocomApi
                 if ((symbols instanceof List))
                 {
                     Integer symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                     }
@@ -1237,9 +1275,23 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(data, symbols, new HashMap<String, Object>() {{}});
+            return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+     * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1251,20 +1303,33 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Ticker> fetchTicker(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.fetchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
-            return this.safeValue(tickers, symbolValue);
+            symbol = this.symbol(symbol);
+            Tickers tickers = (this.fetchTickers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
+            return this.safeValue(tickers, symbol);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchTicker
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1280,23 +1345,28 @@ public class Cryptocom extends CryptocomApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -1313,13 +1383,13 @@ public class Cryptocom extends CryptocomApi
             {
                 request.put("limit", limit);
             }
-            Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Long until = this.safeInteger(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
             }
-            Map<String, Object> response = (this.v1PrivatePostPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PrivatePostPrivateGetOrderHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": 1686881486183,
@@ -1361,9 +1431,26 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for, max date range is one day
+     * @param {int} [limit] the maximum number of order structures to retrieve, default 100 max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1379,23 +1466,26 @@ public class Cryptocom extends CryptocomApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), (Long) null, true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1409,13 +1499,13 @@ public class Cryptocom extends CryptocomApi
             {
                 request.put("count", limit);
             }
-            Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Long until = this.safeInteger(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
             }
-            Map<String, Object> response = (this.v1PublicGetPublicGetTrades(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PublicGetPublicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": -1,
@@ -1438,9 +1528,26 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchTrades
+     * @description get a list of the most recent trades for a particular symbol
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1457,46 +1564,50 @@ public class Cryptocom extends CryptocomApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            Boolean paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", Helpers.toStringArg(symbol), since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(300))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 300)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
-                put( "timeframe", Cryptocom.this.safeString(Cryptocom.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+                put( "timeframe", Cryptocom.this.safeString(Cryptocom.this.timeframes, timeframe, timeframe) );
             }};
-            Object limitResolved = limit;
-            if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThan(limit, 300)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                limitResolved = 300;
-            }
-            if (!java.util.Objects.equals(limitResolved, null))
-            {
-                request.put("count", limitResolved);
+                if (Helpers.isGreaterThan(limit, 300))
+                {
+                    limit = 300L;
+                }
+                request.put("count", limit);
             }
             Object now = this.microseconds();
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long until = this.safeInteger(paramsPaginate, "until", now);
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            int duration = this.parseTimeframe(timeframe);
+            Long until = this.safeInteger(parameters, "until", now);
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_ts", Helpers.subtract(since, (((long) duration) * 1000L)));
-                if (!java.util.Objects.equals(limitResolved, null))
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("end_ts", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limitResolved), 1000)));
+                    request.put("end_ts", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
                 } else
                 {
                     request.put("end_ts", until);
@@ -1505,7 +1616,7 @@ public class Cryptocom extends CryptocomApi
             {
                 request.put("end_ts", until);
             }
-            Map<String, Object> response = (this.v1PublicGetPublicGetCandlestick(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PublicGetPublicGetCandlestick(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": -1,
@@ -1529,9 +1640,27 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1544,14 +1673,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1582,11 +1711,25 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(data, 0);
             Long timestamp = this.safeInteger(orderBook, "t");
-            return this.parseOrderBook(orderBook, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(orderBook, symbol, timestamp);
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the number of order book entries to return, max 50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBalance(Object response)
@@ -1599,9 +1742,9 @@ public class Cryptocom extends CryptocomApi
         }};
         for (var i = 0; i < ((List<?>)positionBalances).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(positionBalances, i, (Object) null);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(positionBalances, i);
             String currencyId = this.safeString(balance, "instrument_name");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("total", this.safeString(balance, "quantity"));
             account.put("used", this.safeString(balance, "reserved_qty"));
@@ -1628,7 +1771,7 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.v1PrivatePostPrivateUserBalance(parameters)).join();
             //
@@ -1678,6 +1821,18 @@ public class Cryptocom extends CryptocomApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name cryptocom#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1689,14 +1844,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -1741,9 +1896,23 @@ public class Cryptocom extends CryptocomApi
             //     }
             //
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, Helpers.toMapArg(market));
+            return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -1758,23 +1927,26 @@ public class Cryptocom extends CryptocomApi
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "instrument_name", ((Map<String, Object>)market).get("id"),
-            "side", ((String)((String)side)).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount)
-        );
+        final String finalSide = side;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", ((Map<String, Object>)market).get("id") );
+            put( "side", ((String)((String)finalSide)).toUpperCase() );
+            put( "quantity", Cryptocom.this.amountToPrecision(symbol, amount) );
+        }};
         if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
         {
             request.put("price", this.priceToPrecision(symbol, price));
         }
         String broker = this.safeString(this.options, "broker", "CCXT");
         request.put("broker_id", broker);
-        List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", Helpers.toMapArg(market), parameters, (Object) null);
-        String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
-        Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-        List<Object> marginModeparamsValueVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsMarketType));
-        String marginMode = (String) ((List<Object>) marginModeparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) marginModeparamsValueVariable).get(1);
+        String marketType = null;
+        String marginMode = null;
+        List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
+        marketType = (String) ((List<Object>) marketTypeparametersVariable).get(0);
+        parameters = (Map<String, Object>) ((List<Object>) marketTypeparametersVariable).get(1);
+        List<Object> marginModeparametersVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", parameters);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
+        parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         if ((java.util.Objects.equals(marketType, "margin")) || (!java.util.Objects.equals(marginMode, null)))
         {
             request.put("spot_margin", "MARGIN");
@@ -1782,7 +1954,7 @@ public class Cryptocom extends CryptocomApi
         {
             request.put("spot_margin", "SPOT");
         }
-        String timeInForce = this.safeStringUpper2(paramsValue, "timeInForce", "time_in_force");
+        String timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (!java.util.Objects.equals(timeInForce, null))
         {
             if (java.util.Objects.equals(timeInForce, "GTC"))
@@ -1799,15 +1971,15 @@ public class Cryptocom extends CryptocomApi
                 request.put("time_in_force", timeInForce);
             }
         }
-        Boolean postOnly = (Boolean) this.safeBool(paramsValue, "postOnly", false);
+        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
         if ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             request.put("exec_inst", new ArrayList<Object>(Arrays.asList("POST_ONLY")));
             request.put("time_in_force", "GOOD_TILL_CANCEL");
         }
-        String triggerPrice = this.safeStringN(paramsValue, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "ref_price")));
-        Double stopLossPrice = this.safeNumber(paramsValue, "stopLossPrice", (Object) null);
-        Double takeProfitPrice = this.safeNumber(paramsValue, "takeProfitPrice", (Object) null);
+        String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "ref_price")));
+        Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
+        Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         Boolean isTrigger = (!java.util.Objects.equals(triggerPrice, null));
         Boolean isStopLossTrigger = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isTakeProfitTrigger = (!java.util.Objects.equals(takeProfitPrice, null));
@@ -1882,8 +2054,12 @@ public class Cryptocom extends CryptocomApi
         {
             request.put("type", uppercaseType);
         }
-        Object paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
-        return (Map<String, Object>) (this.extend(request, paramsOmitted));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"))));
+        return (Map<String, Object>) (this.extend(request, parameters));
+    }
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1911,7 +2087,7 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
@@ -1928,9 +2104,31 @@ public class Cryptocom extends CryptocomApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#createOrder
+     * @description create a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+     * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+     * @param {float} [params.triggerPrice] price to trigger a trigger order
+     * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
+     * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1950,19 +2148,19 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             String contigency = this.safeString(parameters, "contingency_type", "LIST");
@@ -2016,14 +2214,29 @@ public class Cryptocom extends CryptocomApi
             String listId = this.safeString(result, "list_id");
             if (!java.util.Objects.equals(listId, null))
             {
-                List<Object> ocoOrders = new ArrayList<Object>(Arrays.asList(Helpers.newMap(
-        "order_id", listId
-    )));
-                return this.parseOrders(ocoOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+                final String finalListId = listId;
+                List<Object> ocoOrders = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+        put( "order_id", finalListId );
+    }}));
+                return this.parseOrders(ocoOrders);
             }
-            return this.parseOrders(result, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(result);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#createOrders
+     * @description create a list of trade orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    {
+        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object createAdvancedOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2042,10 +2255,11 @@ public class Cryptocom extends CryptocomApi
         // and market-buy orders need to send notional instead of quantity
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "instrument_name", ((Map<String, Object>)market).get("id"),
-            "side", ((String)((String)side)).toUpperCase()
-        );
+        final String finalSide = side;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", ((Map<String, Object>)market).get("id") );
+            put( "side", ((String)((String)finalSide)).toUpperCase() );
+        }};
         if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -2076,8 +2290,8 @@ public class Cryptocom extends CryptocomApi
             request.put("time_in_force", "GOOD_TILL_CANCEL");
         }
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "ref_price")));
-        Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", (Object) null);
-        Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", (Object) null);
+        Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
+        Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         Boolean isTrigger = (!java.util.Objects.equals(triggerPrice, null));
         Boolean isStopLossTrigger = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isTakeProfitTrigger = (!java.util.Objects.equals(takeProfitPrice, null));
@@ -2149,21 +2363,20 @@ public class Cryptocom extends CryptocomApi
         {
             request.put("type", uppercaseType);
         }
-        Boolean isMarketBuy = (java.util.Objects.equals(side, "buy")) && ((java.util.Objects.equals(uppercaseType, "MARKET")) || (java.util.Objects.equals(uppercaseType, "STOP_LOSS")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT")));
-        Object paramsMarketBuy = parameters;
-        if (Boolean.TRUE.equals(isMarketBuy))
+        if ((java.util.Objects.equals(side, "buy")) && ((java.util.Objects.equals(uppercaseType, "MARKET")) || (java.util.Objects.equals(uppercaseType, "STOP_LOSS")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT"))))
         {
             // use createmarketBuy logic here
             String quoteAmount = null;
-            List<Object> createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable).get(0);
-            var paramsCreateMarketBuy = ((List<Object>) createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable).get(1);
-            Double cost = this.safeNumber2(paramsCreateMarketBuy, "cost", "notional", (Object) null);
-            paramsMarketBuy = this.omit(paramsCreateMarketBuy, "cost");
+            Boolean createMarketBuyOrderRequiresPrice = true;
+            List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
+            Double cost = this.safeNumber2(parameters, "cost", "notional");
+            parameters = (Map<String, Object>) (this.omit(parameters, "cost"));
             if (!java.util.Objects.equals(cost, null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+            } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
             {
                 if (java.util.Objects.equals(price, null))
                 {
@@ -2184,8 +2397,12 @@ public class Cryptocom extends CryptocomApi
         {
             request.put("quantity", this.amountToPrecision(symbol, amount));
         }
-        Object paramsOmitted = this.omit(paramsMarketBuy, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
-        return this.extend(request, paramsOmitted);
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"))));
+        return this.extend(request, parameters);
+    }
+    public Object createAdvancedOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createAdvancedOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2210,14 +2427,33 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
             Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, (Map<String, Object>) null);
+            return this.parseOrder(result);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#editOrder
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> editOrderRequest(Object id, String symbol, Object amount, Object price, Map<String, Object> parameters)
@@ -2235,16 +2471,20 @@ public class Cryptocom extends CryptocomApi
             } else
             {
                 request.put("orig_client_oid", originalClientOrderId);
+                parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("orig_client_oid", "clientOrderId"))));
             }
         }
-        Object paramsOmitted = (((java.util.Objects.equals(id, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("orig_client_oid", "clientOrderId"))) : parameters;
         if ((java.util.Objects.equals(amount, null)) || (java.util.Objects.equals(price, null)))
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
         }
         request.put("new_quantity", this.amountToPrecision(symbol, amount));
         request.put("new_price", this.priceToPrecision(symbol, price));
-        return (Map<String, Object>) (this.extend(request, paramsOmitted));
+        return (Map<String, Object>) (this.extend(request, parameters));
+    }
+    public Map<String, Object> editOrderRequest(Object id, String symbol, Object amount, Object... optionalArgs)
+    {
+        return this.editOrderRequest(id, symbol, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2256,14 +2496,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2275,9 +2515,22 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters))).join();
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}, (Map<String, Object>) null)));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+     * @param {string} [symbol] unified market symbol of the orders to cancel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2290,14 +2543,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -2321,9 +2574,23 @@ public class Cryptocom extends CryptocomApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#cancelOrder
+     * @description cancels an open order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+     * @param {string} id the order id of the order to cancel
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2336,18 +2603,18 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
@@ -2366,9 +2633,23 @@ public class Cryptocom extends CryptocomApi
             }};
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters))).join();
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(result, Helpers.toMapArg(market), (Long) null, (Long) null, parameters);
+            return this.parseOrders(result, market, null, null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#cancelOrders
+     * @description cancel multiple orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2387,12 +2668,12 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i);
                 String id = this.safeString(order, "id");
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -2408,9 +2689,22 @@ public class Cryptocom extends CryptocomApi
             }};
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters))).join();
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(result, (Map<String, Object>) null, (Long) null, (Long) null, parameters);
+            return this.parseOrders(result, null, null, null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+     * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Object... optionalArgs)
+    {
+        return this.cancelOrdersForSymbols(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2424,14 +2718,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2480,9 +2774,24 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2498,23 +2807,28 @@ public class Cryptocom extends CryptocomApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(100), true)).join();
+                return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2531,13 +2845,13 @@ public class Cryptocom extends CryptocomApi
             {
                 request.put("limit", limit);
             }
-            Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Long until = this.safeInteger(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
             }
-            Map<String, Object> response = (this.v1PrivatePostPrivateGetTrades(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PrivatePostPrivateGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": 1686942003520,
@@ -2569,9 +2883,26 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for, maximum date range is one day
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseAddress(Object addressString)
@@ -2585,7 +2916,7 @@ public class Cryptocom extends CryptocomApi
             address = ((List<Object>) addressrawTagVariable).get(0);
             rawTag = ((List<Object>) addressrawTagVariable).get(1);
             List<Object> splitted = new ArrayList<Object>(Arrays.asList(((String)((String)rawTag)).split(java.util.regex.Pattern.quote("="))));
-            tag = Helpers.GetValue(splitted, 1);
+            tag = (splitted == null || 1 >= splitted.size() ? null : splitted.get(1));
         } else
         {
             address = addressString;
@@ -2605,37 +2936,40 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag2, Map<String, Object> parameters2)
     {
-
+        final String tag3 = tag2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            String tag = tag3;
+            Map<String, Object> parameters = parameters3;
+            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
+            tag = (String) ((List<Object>) tagparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tagparametersVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null); // for instance, USDC is not inferred from markets but it's still available
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code)); // for instance, USDC is not inferred from markets but it's still available
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
                 put( "address", address );
             }};
-            if (!java.util.Objects.equals(tagWithdrawTag, null))
+            if (!java.util.Objects.equals(tag, null))
             {
-                request.put("address_tag", tagWithdrawTag);
+                request.put("address_tag", tag);
             }
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
-            String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            String networkCode = null;
+            List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
                 request.put("network_id", networkId);
             }
-            Map<String, Object> response = (this.v1PrivatePostPrivateCreateWithdrawal(this.extend(request, paramsNetworkCode))).join();
+            Map<String, Object> response = (this.v1PrivatePostPrivateCreateWithdrawal(this.extend(request, parameters))).join();
             //
             //    {
             //        "id":-1,
@@ -2652,10 +2986,26 @@ public class Cryptocom extends CryptocomApi
             //        }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            return this.parseTransaction((Map<String, Object>) (result), Helpers.toMapArg(currency));
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
+            return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#withdraw
+     * @description make a withdrawal
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2674,9 +3024,9 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2708,32 +3058,46 @@ public class Cryptocom extends CryptocomApi
                 throw new ExchangeError((this.id + " fetchDepositAddressesByNetwork() generating address...")) ;
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, addressesLength); i++)
+            for (var i = 0; (addressesLength != null && i < addressesLength); i++)
             {
-                Map<String, Object> value = (Map<String, Object>) this.safeDict(addresses, i, (Object) null);
+                Map<String, Object> value = (Map<String, Object>) this.safeDict(addresses, i);
                 String addressString = this.safeString(value, "address");
                 String currencyId = this.safeString(value, "currency");
-                String responseCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                String responseCode = this.safeCurrencyCode(currencyId);
                 var addresstagVariable = this.parseAddress(addressString);
                 var address = ((List<Object>) addresstagVariable).get(0);
                 var tag = ((List<Object>) addresstagVariable).get(1);
-                this.checkAddress(Helpers.toStringArg(address));
+                this.checkAddress(address);
                 String networkId = this.safeString(value, "network");
                 String network = this.networkIdToCode(networkId, responseCode);
                 if (!java.util.Objects.equals(network, null))
                 {
-                    result.put((String)network, Helpers.newMap(
-        "info", value,
-        "currency", responseCode,
-        "network", network,
-        "address", address,
-        "tag", tag
-    ));
+                    final String finalNetwork = network;
+                    result.put((String)network, new HashMap<String, Object>() {{
+        put( "info", value );
+        put( "currency", responseCode );
+        put( "network", finalNetwork );
+        put( "address", address );
+        put( "tag", tag );
+    }});
                 }
             }
             return result;
         });
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+     */
+    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddressesByNetwork(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2745,14 +3109,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             String network = this.safeStringUpper(parameters, "network");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
-            Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, Helpers.toMapArg(paramsOmitted))).join();
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
+            Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object depositAddresses = depositAddressesRaw;
             if (((Map<?, ?>)depositAddresses).containsKey(network))
             {
@@ -2762,6 +3126,19 @@ public class Cryptocom extends CryptocomApi
             return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
         }).thenApply(DepositAddress::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2776,20 +3153,26 @@ public class Cryptocom extends CryptocomApi
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+                currency = (Map<String, Object>) this.safeCurrency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2802,12 +3185,12 @@ public class Cryptocom extends CryptocomApi
                 request.put("page_size", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
             }
-            Map<String, Object> response = (this.v1PrivatePostPrivateGetDepositHistory(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PrivatePostPrivateGetDepositHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": 1688701375714,
@@ -2832,9 +3215,25 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> depositList = (List<Object>) this.safeList(data, "deposit_list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(depositList, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(depositList, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2849,20 +3248,26 @@ public class Cryptocom extends CryptocomApi
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+                currency = (Map<String, Object>) this.safeCurrency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2875,12 +3280,12 @@ public class Cryptocom extends CryptocomApi
                 request.put("page_size", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
             }
-            Map<String, Object> response = (this.v1PrivatePostPrivateGetWithdrawalHistory(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PrivatePostPrivateGetWithdrawalHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": 1688613879534,
@@ -2907,9 +3312,25 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> withdrawalList = (List<Object>) this.safeList(data, "withdrawal_list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(withdrawalList, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(withdrawalList, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -2948,17 +3369,18 @@ public class Cryptocom extends CryptocomApi
         //
         Long timestamp = this.safeInteger(ticker, "t");
         String marketId = this.safeString(ticker, "i");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "_", (String) null);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, "_"));
         String last = this.safeString(ticker, "a");
+        final Map<String, Object> finalMarket = market;
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Cryptocom.this.iso8601(timestamp) );
-            put( "high", Cryptocom.this.safeNumber(ticker, "h", (Object) null) );
-            put( "low", Cryptocom.this.safeNumber(ticker, "l", (Object) null) );
-            put( "bid", Cryptocom.this.safeNumber(ticker, "b", (Object) null) );
+            put( "high", Cryptocom.this.safeNumber(ticker, "h") );
+            put( "low", Cryptocom.this.safeNumber(ticker, "l") );
+            put( "bid", Cryptocom.this.safeNumber(ticker, "b") );
             put( "bidVolume", null );
-            put( "ask", Cryptocom.this.safeNumber(ticker, "k", (Object) null) );
+            put( "ask", Cryptocom.this.safeNumber(ticker, "k") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", null );
@@ -2969,9 +3391,13 @@ public class Cryptocom extends CryptocomApi
             put( "percentage", Cryptocom.this.safeString(ticker, "c") );
             put( "average", null );
             put( "baseVolume", Cryptocom.this.safeString(ticker, "v") );
-            put( "quoteVolume", (((java.util.Objects.equals(((Map<String, Object>)marketResolved).get("quote"), "USD")))) ? Cryptocom.this.safeString(ticker, "vv") : null );
+            put( "quoteVolume", (((java.util.Objects.equals(((Map<String, Object>)finalMarket).get("quote"), "USD")))) ? Cryptocom.this.safeString(ticker, "vv") : null );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, market);
+    }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -3012,27 +3438,32 @@ public class Cryptocom extends CryptocomApi
         //
         Long timestamp = (Long) this.safeInteger2(trade, "t", "create_time");
         String marketId = this.safeString2(trade, "i", "instrument_name");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "_", (String) null);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, "_"));
         String feeCurrency = this.safeString(trade, "fee_instrument_name");
         String feeCostString = this.safeString(trade, "fees");
+        final Map<String, Object> finalMarket = market;
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Cryptocom.this.safeString2(trade, "d", "trade_id") );
             put( "timestamp", timestamp );
             put( "datetime", Cryptocom.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "order", Cryptocom.this.safeString(trade, "order_id") );
             put( "side", Cryptocom.this.safeStringLower2(trade, "s", "side") );
             put( "takerOrMaker", Cryptocom.this.safeStringLower(trade, "taker_side") );
-            put( "price", Cryptocom.this.safeNumber2(trade, "p", "traded_price", (Object) null) );
-            put( "amount", Cryptocom.this.safeNumber2(trade, "q", "traded_quantity", (Object) null) );
+            put( "price", Cryptocom.this.safeNumber2(trade, "p", "traded_price") );
+            put( "amount", Cryptocom.this.safeNumber2(trade, "q", "traded_quantity") );
             put( "cost", null );
             put( "type", null );
             put( "fee", new HashMap<String, Object>() {{
-                put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null) );
+                put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency) );
                 put( "cost", Cryptocom.this.parseNumber(Precise.stringNeg(feeCostString)) );
             }} );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -3047,7 +3478,11 @@ public class Cryptocom extends CryptocomApi
         //         "t": 1687237080000
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseOrderStatus(String status)
@@ -3128,19 +3563,19 @@ public class Cryptocom extends CryptocomApi
                 put( "clientOrderId", Cryptocom.this.safeString(order, "client_oid") );
                 put( "info", order );
                 put( "status", "rejected" );
-            }}, (Map<String, Object>) null);
+            }});
         }
         Long created = this.safeInteger(order, "create_time");
         String marketId = this.safeString(order, "instrument_name");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        List<Object> execInst = (List<Object>) this.safeList(order, "exec_inst", (Object) null);
+        String symbol = this.safeSymbol(marketId, market);
+        List<Object> execInst = (List<Object>) this.safeList(order, "exec_inst");
         Boolean postOnly = null;
         if (!java.util.Objects.equals(execInst, null))
         {
             postOnly = false;
             for (var i = 0; i < ((List<?>)execInst).size(); i++)
             {
-                Object inst = (execInst == null || i < 0 || i >= execInst.size() ? null : execInst.get(i));
+                String inst = this.safeString(execInst, i);
                 if (java.util.Objects.equals(inst, "POST_ONLY"))
                 {
                     postOnly = true;
@@ -3149,31 +3584,36 @@ public class Cryptocom extends CryptocomApi
             }
         }
         String feeCurrency = this.safeString(order, "fee_instrument_name");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "order_id"),
-            "clientOrderId", this.safeString(order, "client_oid"),
-            "timestamp", created,
-            "datetime", this.iso8601(created),
-            "lastTradeTimestamp", this.safeInteger(order, "update_time"),
-            "status", this.parseOrderStatus(this.safeString(order, "status")),
-            "symbol", symbol,
-            "type", this.safeStringLower(order, "order_type"),
-            "timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")),
-            "postOnly", postOnly,
-            "side", this.safeStringLower(order, "side"),
-            "price", this.safeNumber(order, "limit_price", (Object) null),
-            "amount", this.safeNumber(order, "quantity", (Object) null),
-            "filled", this.safeNumber(order, "cumulative_quantity", (Object) null),
-            "remaining", null,
-            "average", this.safeNumber(order, "avg_price", (Object) null),
-            "cost", this.safeNumber(order, "cumulative_value", (Object) null),
-            "fee", new HashMap<String, Object>() {{
-                put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null) );
-                put( "cost", Cryptocom.this.safeNumber(order, "cumulative_fee", (Object) null) );
-            }},
-            "trades", new ArrayList<Object>(Arrays.asList())
-        ), market);
+        final Boolean finalPostOnly = postOnly;
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", order );
+            put( "id", Cryptocom.this.safeString(order, "order_id") );
+            put( "clientOrderId", Cryptocom.this.safeString(order, "client_oid") );
+            put( "timestamp", created );
+            put( "datetime", Cryptocom.this.iso8601(created) );
+            put( "lastTradeTimestamp", Cryptocom.this.safeInteger(order, "update_time") );
+            put( "status", Cryptocom.this.parseOrderStatus(Cryptocom.this.safeString(order, "status")) );
+            put( "symbol", symbol );
+            put( "type", Cryptocom.this.safeStringLower(order, "order_type") );
+            put( "timeInForce", Cryptocom.this.parseTimeInForce(Cryptocom.this.safeString(order, "time_in_force")) );
+            put( "postOnly", finalPostOnly );
+            put( "side", Cryptocom.this.safeStringLower(order, "side") );
+            put( "price", Cryptocom.this.safeNumber(order, "limit_price") );
+            put( "amount", Cryptocom.this.safeNumber(order, "quantity") );
+            put( "filled", Cryptocom.this.safeNumber(order, "cumulative_quantity") );
+            put( "remaining", null );
+            put( "average", Cryptocom.this.safeNumber(order, "avg_price") );
+            put( "cost", Cryptocom.this.safeNumber(order, "cumulative_value") );
+            put( "fee", new HashMap<String, Object>() {{
+                put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency) );
+                put( "cost", Cryptocom.this.safeNumber(order, "cumulative_fee") );
+            }} );
+            put( "trades", new ArrayList<Object>(Arrays.asList()) );
+        }}, market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseDepositStatus(String status)
@@ -3265,37 +3705,45 @@ public class Cryptocom extends CryptocomApi
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transaction, "create_time");
-        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Double feeCost = this.safeNumber(transaction, "fee");
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            final Double finalFeeCost = feeCost;
+            fee = new HashMap<String, Object>() {{
+                put( "currency", code );
+                put( "cost", finalFeeCost );
+            }};
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", status,
-            "updated", this.safeInteger(transaction, "update_time"),
-            "internal", null,
-            "comment", this.safeString(transaction, "client_wid"),
-            "fee", fee
-        );
+        final String finalType = type;
+        final String finalStatus = status;
+        final Map<String, Object> finalFee = fee;
+        return new HashMap<String, Object>() {{
+            put( "info", transaction );
+            put( "id", Cryptocom.this.safeString(transaction, "id") );
+            put( "txid", Cryptocom.this.safeString(transaction, "txid") );
+            put( "timestamp", timestamp );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
+            put( "network", null );
+            put( "address", address );
+            put( "addressTo", address );
+            put( "addressFrom", null );
+            put( "tag", tag );
+            put( "tagTo", tag );
+            put( "tagFrom", null );
+            put( "type", finalType );
+            put( "amount", Cryptocom.this.safeNumber(transaction, "amount") );
+            put( "currency", code );
+            put( "status", finalStatus );
+            put( "updated", Cryptocom.this.safeInteger(transaction, "update_time") );
+            put( "internal", null );
+            put( "comment", Cryptocom.this.safeString(transaction, "client_wid") );
+            put( "fee", finalFee );
+        }};
+    }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object customHandleMarginModeAndParams(Object methodName, Map<String, Object> parameters)
@@ -3309,12 +3757,11 @@ public class Cryptocom extends CryptocomApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "margin");
+        parameters = (Map<String, Object>) (this.omit(parameters, "margin"));
         String marginMode = null;
-        Object paramsMarginMode = null;
-        List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams(methodName, Helpers.toMapArg(paramsOmitted), (String) null);
-        marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-        paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+        List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams(methodName, parameters);
+        marginMode = (String) ((List<Object>) marginModeparametersVariable).get(0);
+        parameters = (Map<String, Object>) ((List<Object>) marginModeparametersVariable).get(1);
         if (!java.util.Objects.equals(marginMode, null))
         {
             if (!java.util.Objects.equals(marginMode, "cross"))
@@ -3328,7 +3775,11 @@ public class Cryptocom extends CryptocomApi
                 marginMode = "cross";
             }
         }
-        return new ArrayList<Object>(Arrays.asList(marginMode, paramsMarginMode));
+        return new ArrayList<Object>(Arrays.asList(marginMode, parameters));
+    }
+    public Object customHandleMarginModeAndParams(Object methodName, Object... optionalArgs)
+    {
+        return this.customHandleMarginModeAndParams(methodName, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
@@ -3365,9 +3816,9 @@ public class Cryptocom extends CryptocomApi
         }};
         if (!java.util.Objects.equals(networkList, null))
         {
-            for (var i = 0; Helpers.isLessThan(i, networkListLength); i++)
+            for (var i = 0; (networkListLength != null && i < networkListLength); i++)
             {
-                Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(networkList, i, (Object) null);
+                Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(networkList, i);
                 String networkId = this.safeString(networkInfo, "network_id");
                 String currencyCode = this.safeString(currency, "code");
                 String networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -3379,19 +3830,23 @@ public class Cryptocom extends CryptocomApi
         put( "percentage", null );
     }} );
     put( "withdraw", new HashMap<String, Object>() {{
-        put( "fee", Cryptocom.this.safeNumber(networkInfo, "withdrawal_fee", (Object) null) );
+        put( "fee", Cryptocom.this.safeNumber(networkInfo, "withdrawal_fee") );
         put( "percentage", false );
     }} );
 }});
                 }
                 if (java.util.Objects.equals(networkListLength, 1))
                 {
-                    Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(networkInfo, "withdrawal_fee", (Object) null));
+                    Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(networkInfo, "withdrawal_fee"));
                     Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
                 }
             }
         }
         return result;
+    }
+    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    {
+        return this.parseDepositWithdrawFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3410,14 +3865,27 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.v1PrivatePostPrivateGetCurrencyNetworks(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            List<Object> currencyMap = (List<Object>) this.safeList(data, "currency_map", (Object) null);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result");
+            List<Object> currencyMap = (List<Object>) this.safeList(data, "currency_map");
             return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
         }).thenApply(DepositWithdrawFees::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    {
+        return this.fetchDepositWithdrawFees(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3432,20 +3900,26 @@ public class Cryptocom extends CryptocomApi
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+                currency = (Map<String, Object>) this.safeCurrency((String) (code));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3456,12 +3930,12 @@ public class Cryptocom extends CryptocomApi
                 request.put("limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_time", until);
             }
-            Map<String, Object> response = (this.v1PrivatePostPrivateGetTransactions(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PrivatePostPrivateGetTransactions(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": 1686813195698,
@@ -3493,9 +3967,25 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> ledger = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(ledger, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(ledger, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
@@ -3523,7 +4013,7 @@ public class Cryptocom extends CryptocomApi
         Long timestamp = this.safeInteger(item, "event_timestamp_ms");
         String currencyId = this.safeString(item, "instrument_name");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        currency = (Map<String, Object>) (this.safeCurrency(currencyId, currency));
         String amount = this.safeString(item, "transaction_qty");
         String direction = null;
         if (Precise.stringLt(amount, "0"))
@@ -3534,26 +4024,32 @@ public class Cryptocom extends CryptocomApi
         {
             direction = "in";
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "order_id"),
-            "direction", direction,
-            "account", this.safeString(item, "account_id"),
-            "referenceId", this.safeString(item, "trade_id"),
-            "referenceAccount", this.safeString(item, "trade_match_id"),
-            "type", this.parseLedgerEntryType(this.safeString(item, "journal_type")),
-            "currency", code,
-            "amount", this.parseNumber(amount),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", null,
-            "fee", new HashMap<String, Object>() {{
+        final String finalDirection = direction;
+        final String finalAmount = amount;
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
+            put( "info", item );
+            put( "id", Cryptocom.this.safeString(item, "order_id") );
+            put( "direction", finalDirection );
+            put( "account", Cryptocom.this.safeString(item, "account_id") );
+            put( "referenceId", Cryptocom.this.safeString(item, "trade_id") );
+            put( "referenceAccount", Cryptocom.this.safeString(item, "trade_match_id") );
+            put( "type", Cryptocom.this.parseLedgerEntryType(Cryptocom.this.safeString(item, "journal_type")) );
+            put( "currency", code );
+            put( "amount", Cryptocom.this.parseNumber(finalAmount) );
+            put( "timestamp", timestamp );
+            put( "datetime", Cryptocom.this.iso8601(timestamp) );
+            put( "before", null );
+            put( "after", null );
+            put( "status", null );
+            put( "fee", new HashMap<String, Object>() {{
                 put( "currency", null );
                 put( "cost", null );
-            }}
-        ), Helpers.toMapArg(currencyResolved));
+            }} );
+        }}, currency);
+    }
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    {
+        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseLedgerEntryType(String type)
@@ -3599,7 +4095,7 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.v1PrivatePostPrivateGetAccounts(parameters)).join();
             //
@@ -3640,6 +4136,18 @@ public class Cryptocom extends CryptocomApi
             return this.parseAccounts(accounts, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+     */
+    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    {
+        return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseAccount(Object account)
@@ -3689,14 +4197,16 @@ public class Cryptocom extends CryptocomApi
      * @param {int} [params.type] 'future', 'option'
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchSettlementHistory(String symbol2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3704,19 +4214,19 @@ public class Cryptocom extends CryptocomApi
                 market = (Map<String, Object>) this.market(symbol);
             }
             String type = null;
-            Object paramsMarketType = null;
-            List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", Helpers.toMapArg(market), parameters, (Object) null);
-            type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
+            type = (String) ((List<Object>) typeparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) typeparametersVariable).get(1);
             this.checkRequiredArgument("fetchSettlementHistory", type, "type", new ArrayList<Object>(Arrays.asList("future", "option", "WARRANT", "FUTURE")));
             if (java.util.Objects.equals(type, "option"))
             {
                 type = "WARRANT";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_type", type.toUpperCase()
-            );
-            Map<String, Object> response = (this.v1PublicGetPublicGetExpiredSettlementPrice(this.extend(request, paramsMarketType))).join();
+            final String finalType = type;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_type", ((String)finalType).toUpperCase() );
+            }};
+            Map<String, Object> response = (this.v1PublicGetPublicGetExpiredSettlementPrice(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": -1,
@@ -3736,11 +4246,27 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(data, Helpers.toMapArg(market));
+            Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+     * @param {string} symbol unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @param {int} [params.type] 'future', 'option'
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    public CompletableFuture<Object> fetchSettlementHistory(Object... optionalArgs)
+    {
+        return this.fetchSettlementHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
@@ -3757,11 +4283,15 @@ public class Cryptocom extends CryptocomApi
         String marketId = this.safeString(settlement, "i");
         return new HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", Cryptocom.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "price", Cryptocom.this.safeNumber(settlement, "v", (Object) null) );
+            put( "symbol", Cryptocom.this.safeSymbol(marketId, market) );
+            put( "price", Cryptocom.this.safeNumber(settlement, "v") );
             put( "timestamp", timestamp );
             put( "datetime", Cryptocom.this.iso8601(timestamp) );
         }};
+    }
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
+    {
+        return this.parseSettlement(settlement, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseSettlements(Object settlements, Map<String, Object> market)
@@ -3783,6 +4313,10 @@ public class Cryptocom extends CryptocomApi
         }
         return result;
     }
+    public Object parseSettlements(Object settlements, Object... optionalArgs)
+    {
+        return this.parseSettlements(settlements, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -3793,14 +4327,14 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -3832,9 +4366,26 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(entry, Helpers.toMapArg(market));
+            return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchFundingRate
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    {
+        return this.fetchFundingRate(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return this.fetchFundingRate(symbol, (Object) (parameters));
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -3851,26 +4402,32 @@ public class Cryptocom extends CryptocomApi
         {
             fundingTimestamp = Helpers.multiply(Math.ceil(Double.parseDouble(String.valueOf((((double) timestamp) / ((double) 3600000))))), 3600000); // end of the next hour
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", this.safeSymbol(null, market, (String) null, (String) null),
-            "markPrice", null,
-            "indexPrice", null,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "v", (Object) null),
-            "fundingTimestamp", fundingTimestamp,
-            "fundingDatetime", this.iso8601(fundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", "1h"
-        );
+        final Long finalTimestamp = timestamp;
+        final Object finalFundingTimestamp = fundingTimestamp;
+        return new HashMap<String, Object>() {{
+            put( "info", contract );
+            put( "symbol", Cryptocom.this.safeSymbol(null, market) );
+            put( "markPrice", null );
+            put( "indexPrice", null );
+            put( "interestRate", null );
+            put( "estimatedSettlePrice", null );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", Cryptocom.this.iso8601(finalTimestamp) );
+            put( "fundingRate", Cryptocom.this.safeNumber(contract, "v") );
+            put( "fundingTimestamp", finalFundingTimestamp );
+            put( "fundingDatetime", Cryptocom.this.iso8601(finalFundingTimestamp) );
+            put( "nextFundingRate", null );
+            put( "nextFundingTimestamp", null );
+            put( "nextFundingDatetime", null );
+            put( "previousFundingRate", null );
+            put( "previousFundingTimestamp", null );
+            put( "previousFundingDatetime", null );
+            put( "interval", "1h" );
+        }};
+    }
+    public Object parseFundingRate(Object contract, Object... optionalArgs)
+    {
+        return this.parseFundingRate(contract, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3886,27 +4443,32 @@ public class Cryptocom extends CryptocomApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(paramsPaginate), (Long) null)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -3925,13 +4487,13 @@ public class Cryptocom extends CryptocomApi
             {
                 request.put("count", limit);
             }
-            Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+            Long until = this.safeInteger(parameters, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("end_ts", until);
             }
-            Map<String, Object> response = (this.v1PublicGetPublicGetValuations(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PublicGetPublicGetValuations(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": -1,
@@ -3958,16 +4520,33 @@ public class Cryptocom extends CryptocomApi
                 Long timestamp = this.safeInteger(entry, "t");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", Cryptocom.this.safeSymbol(marketId, Helpers.toMapArg(market), (String) null, (String) null) );
-                    put( "fundingRate", Cryptocom.this.safeNumber(entry, "v", (Object) null) );
+                    put( "symbol", Cryptocom.this.safeSymbol(marketId, market) );
+                    put( "fundingRate", Cryptocom.this.safeNumber(entry, "v") );
                     put( "timestamp", timestamp );
                     put( "datetime", Cryptocom.this.iso8601(timestamp) );
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, ((Map<String, Object>)market).get("symbol"), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchFundingRateHistory
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3986,7 +4565,7 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4017,9 +4596,22 @@ public class Cryptocom extends CryptocomApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePosition((Map<String, Object>) (this.safeDict(data, 0, (Object) null)), Helpers.toMapArg(market));
+            return this.parsePosition((Map<String, Object>) (this.safeDict(data, 0)), market);
         }).thenApply(Position::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4031,32 +4623,32 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
+            if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if ((symbolsNormalized instanceof List))
+                if ((symbols instanceof List))
                 {
-                    Integer symbolsLength = ((List<?>)symbolsNormalized).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    Integer symbolsLength = ((List<?>)symbols).size();
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 } else
                 {
-                    symbol = symbolsNormalized;
+                    symbol = symbols;
                 }
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
@@ -4091,12 +4683,25 @@ public class Cryptocom extends CryptocomApi
             {
                 Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "instrument_name");
-                Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (entry), Helpers.toMapArg(marketInner)));
+                Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (entry), marketInner));
             }
-            return this.filterByArrayPositions(result, "symbol", (Object) null, false);
+            return this.filterByArrayPositions(result, "symbol", null, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchPositions
+     * @description fetch all open positions
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -4115,10 +4720,11 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         String marketId = this.safeString(position, "instrument_name");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "contract");
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, "contract");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market, null, "contract"));
+        String symbol = this.safeSymbol(marketId, market, null, "contract");
         Long timestamp = this.safeInteger(position, "update_timestamp_ms");
         String amount = this.safeString(position, "quantity");
+        final Map<String, Object> finalMarket = market;
         return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -4128,17 +4734,17 @@ public class Cryptocom extends CryptocomApi
             put( "hedged", null );
             put( "side", ((Precise.stringGt(amount, "0"))) ? "long" : "short" );
             put( "contracts", Cryptocom.this.parseNumber(Precise.stringAbs(amount)) );
-            put( "contractSize", ((Map<String, Object>)marketResolved).get("contractSize") );
+            put( "contractSize", ((Map<String, Object>)finalMarket).get("contractSize") );
             put( "entryPrice", null );
             put( "markPrice", null );
             put( "notional", null );
             put( "leverage", null );
-            put( "collateral", Cryptocom.this.safeNumber(position, "open_pos_cost", (Object) null) );
-            put( "initialMargin", Cryptocom.this.safeNumber(position, "cost", (Object) null) );
+            put( "collateral", Cryptocom.this.safeNumber(position, "open_pos_cost") );
+            put( "initialMargin", Cryptocom.this.safeNumber(position, "cost") );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
-            put( "unrealizedPnl", Cryptocom.this.safeNumber(position, "open_position_pnl", (Object) null) );
+            put( "unrealizedPnl", Cryptocom.this.safeNumber(position, "open_position_pnl") );
             put( "liquidationPrice", null );
             put( "marginMode", null );
             put( "percentage", null );
@@ -4146,6 +4752,10 @@ public class Cryptocom extends CryptocomApi
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
         }});
+    }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Long nonce()
@@ -4217,7 +4827,7 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4246,10 +4856,28 @@ public class Cryptocom extends CryptocomApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            return this.parseOrder(result, Helpers.toMapArg(market));
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
+            return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#closePositions
+     * @description closes open positions for a market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} [side] not used by cryptocom.closePositions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.type] LIMIT or MARKET
+     * @param {number} [params.price] for limit orders only
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
+    {
+        return this.closePosition(symbol, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4268,7 +4896,7 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4291,9 +4919,22 @@ public class Cryptocom extends CryptocomApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -4311,7 +4952,7 @@ public class Cryptocom extends CryptocomApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.v1PrivatePostPrivateGetFeeRate(parameters)).join();
             //
@@ -4333,6 +4974,18 @@ public class Cryptocom extends CryptocomApi
             return this.parseTradingFees((Map<String, Object>) (result));
         }).thenApply(TradingFees::new);
 
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchTradingFees
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    {
+        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTradingFees(Map<String, Object> response)
@@ -4364,14 +5017,16 @@ public class Cryptocom extends CryptocomApi
             {
                 makerFeeKey = "effective_deriv_maker_rate_bps";
             }
-            Map<String, Object> tradingFee = Helpers.newMap(
-                "info", response,
-                "symbol", symbol,
-                "maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")),
-                "taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")),
-                "percentage", null,
-                "tierBased", null
-            );
+            final String finalMakerFeeKey = makerFeeKey;
+            final String finalTakerFeeKey = takerFeeKey;
+            Map<String, Object> tradingFee = new HashMap<String, Object>() {{
+                put( "info", response );
+                put( "symbol", symbol );
+                put( "maker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, finalMakerFeeKey), "10000")) );
+                put( "taker", Cryptocom.this.parseNumber(Precise.stringDiv(Cryptocom.this.safeString(response, finalTakerFeeKey), "10000")) );
+                put( "percentage", null );
+                put( "tierBased", null );
+            }};
             result.put((String)symbol, tradingFee);
         }
         return result;
@@ -4387,7 +5042,7 @@ public class Cryptocom extends CryptocomApi
         // }
         //
         String marketId = this.safeString(fee, "instrument_name");
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, market);
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -4397,14 +5052,21 @@ public class Cryptocom extends CryptocomApi
             put( "tierBased", null );
         }};
     }
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    {
+        return this.parseTradingFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type), "/"), path);
+        String type = this.safeString(api, 0);
+        String access = this.safeString(api, 1);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((apiUrl + "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "public"))
         {
@@ -4414,7 +5076,7 @@ public class Cryptocom extends CryptocomApi
             }
         } else
         {
-            this.checkRequiredCredentials(true);
+            this.checkRequiredCredentials();
             String nonce = String.valueOf(this.nonce());
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
             List<String> paramsKeys = new ArrayList<String>(requestParams.keySet());
@@ -4422,14 +5084,14 @@ public class Cryptocom extends CryptocomApi
             String payload = (Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey) + nonce);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Integer paramsKeysLength = ((List<?>)paramsKeys).size();
-            requestBody = this.json(Helpers.newMap(
-                "id", nonce,
-                "method", path,
-                "params", parameters,
-                "api_key", this.apiKey,
-                "sig", signature,
-                "nonce", nonce
-            ));
+            body = (String) (this.json(new HashMap<String, Object>() {{
+                put( "id", nonce );
+                put( "method", path );
+                put( "params", parameters );
+                put( "api_key", Cryptocom.this.apiKey );
+                put( "sig", signature );
+                put( "nonce", nonce );
+            }}));
             // fix issue https://github.com/ccxt/ccxt/issues/11179
             // php always encodes dictionaries as arrays
             // if an array is empty, php will put it in square brackets
@@ -4439,18 +5101,25 @@ public class Cryptocom extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                requestBody = Helpers.replace(requestBody, (String)arrayString, (String)paramsString);
+                body = (String) (Helpers.replace(((String)body), arrayString, paramsString));
             }
-            requestHeaders = new HashMap<String, Object>() {{
+            headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        final String finalUrl = url;
+        final String finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", method );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -66,10 +66,10 @@ public partial class extended : ccxt.extended
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/orderbooks/"), (market.ContainsKey("id") ? market["id"] : null));
+        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/orderbooks/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
-            url = add(url, ("?" + query));
+            url = url + ("?" + query);
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -155,7 +155,7 @@ public partial class extended : ccxt.extended
     public async virtual Task<object> watchPrivate(object messageHash, object subscription = null)
     {
         this.checkRequiredCredentials();
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/account"));
+        string url = (this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/account");
         if (((this.clients == null)) || !(inOp(this.clients, url)))
         {
             Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
@@ -407,7 +407,7 @@ public partial class extended : ccxt.extended
         for (int i = 0; i < subscriptions.Count; i++)
         {
             string? messageHash = ((string)subscriptions[i]);
-            if ((getIndexOf(messageHash, "myTrades:") == 0))
+            if (((messageHash?.IndexOf("myTrades:", StringComparison.Ordinal) ?? -1) == 0))
             {
                 client.resolve(stored, messageHash);
             }
@@ -489,7 +489,7 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             string? marketId = this.safeString(rawPosition, "market");
             if ((marketId == null))
             {
@@ -579,7 +579,7 @@ public partial class extended : ccxt.extended
         for (int i = 0; i < subscriptions.Count; i++)
         {
             string? messageHash = ((string)subscriptions[i]);
-            if ((getIndexOf(messageHash, "orders:") == 0))
+            if (((messageHash?.IndexOf("orders:", StringComparison.Ordinal) ?? -1) == 0))
             {
                 client.resolve(orders, messageHash);
             }
@@ -607,10 +607,10 @@ public partial class extended : ccxt.extended
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("fundingRate:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/funding/"), (market.ContainsKey("id") ? market["id"] : null));
+        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/funding/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
-            url = add(url, ("?" + query));
+            url = url + ("?" + query);
         }
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {             { "symbol", symbolVar },             { "messageHash", messageHash },         }));
     }
@@ -685,10 +685,10 @@ public partial class extended : ccxt.extended
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("markPrice:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/prices/mark/"), (market.ContainsKey("id") ? market["id"] : null));
+        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/prices/mark/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
-            url = add(url, ("?" + query));
+            url = url + ("?" + query);
         }
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {             { "name", "markPrice" },             { "symbol", symbolVar },             { "messageHash", messageHash },         }));
     }
@@ -752,10 +752,10 @@ public partial class extended : ccxt.extended
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + (symbolVar));
         string query = this.urlencode(parameters);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/publicTrades/"), (market.ContainsKey("id") ? market["id"] : null));
+        string url = ((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/publicTrades/") + ((market.ContainsKey("id") ? market["id"] : null)));
         if (query.Length > 0)
         {
-            url = add(url, ("?" + query));
+            url = url + ("?" + query);
         }
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
@@ -869,7 +869,7 @@ public partial class extended : ccxt.extended
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, parameters));
-        string? url = ((string)add(add(add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query));
+        string url = ((((((this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/candles/") + ((market.ContainsKey("id") ? market["id"] : null))) + "/") + candleType) + "?") + query);
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolVar },

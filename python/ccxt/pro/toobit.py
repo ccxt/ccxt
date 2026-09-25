@@ -196,7 +196,7 @@ class toobit(ccxt.async_support.toobit):
             rawHash = market['id']
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
-        url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
+        url = self.safe_string(self.urls['api']['ws'], 'common') + '/quote/ws/v1'
         request = {
             'symbol': ','.join(marketIds),
             'topic': 'trade',
@@ -285,7 +285,7 @@ class toobit(ccxt.async_support.toobit):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
+        url = self.safe_string(self.urls['api']['ws'], 'common') + '/quote/ws/v1'
         messageHashes = []
         timeframes = self.safe_dict(self.options['ws'], 'timeframes', {})
         marketIds = []
@@ -419,7 +419,7 @@ class toobit(ccxt.async_support.toobit):
             rawHash = market['id']
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
-        url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
+        url = self.safe_string(self.urls['api']['ws'], 'common') + '/quote/ws/v1'
         request = {
             'symbol': ','.join(marketIds),
             'topic': 'realtimes',
@@ -484,7 +484,7 @@ class toobit(ccxt.async_support.toobit):
             client.resolve(parsed, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         return self.parse_ticker(ticker, market)
 
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -531,7 +531,7 @@ class toobit(ccxt.async_support.toobit):
             rawHash = market['id']
             subParams.append(rawHash)
         marketIds = self.market_ids(symbols)
-        url = self.urls['api']['ws']['common'] + '/quote/ws/v1'
+        url = self.safe_string(self.urls['api']['ws'], 'common') + '/quote/ws/v1'
         request = {
             'symbol': ','.join(marketIds),
             'topic': channel,
@@ -1100,7 +1100,7 @@ class toobit(ccxt.async_support.toobit):
         time = self.milliseconds()
         lastAuthenticatedTime = self.safe_integer(self.options['ws'], 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options['ws'], 'listenKeyRefreshRate', 1200000)
-        delay = self.sum(listenKeyRefreshRate, 10000)
+        delay = listenKeyRefreshRate + 10000
         if time - lastAuthenticatedTime > delay:
             self.check_required_credentials()
             # single-flight leader election on a never-dialed client, see
@@ -1164,8 +1164,8 @@ class toobit(ccxt.async_support.toobit):
         listenKeyRefreshRate = self.safe_integer(self.options['ws'], 'listenKeyRefreshRate', 1200000)
         self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
-    def get_user_stream_url(self):
-        return self.urls['api']['ws']['common'] + '/api/v1/ws/' + self.options['ws']['listenKey']
+    def get_user_stream_url(self) -> str:
+        return self.safe_string(self.urls['api']['ws'], 'common') + '/api/v1/ws/' + self.safe_string(self.options['ws'], 'listenKey')
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #

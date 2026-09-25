@@ -397,6 +397,8 @@ class coinmate(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'secondCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -730,7 +732,7 @@ class coinmate(Exchange, ImplicitAPI):
             },
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1228,7 +1230,10 @@ class coinmate(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = (self.urls['api'])['rest'] + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         if api == 'public':
             if len(params) > 0:
                 url += '?' + self.urlencode(params)

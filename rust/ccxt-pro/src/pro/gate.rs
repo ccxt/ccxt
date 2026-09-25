@@ -879,7 +879,7 @@ impl GateCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut url: Value = self.get_url_by_market(market.clone());
-        let mut isEuUrl: bool = get_index_of(&url, &Value::Str("gateeu".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isEuUrl: bool = Value::Int(url.as_str().and_then(|__s| __s.find("gateeu")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut isNonEuSpot: bool = (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && !isEuUrl;
         let mut intervalDefault: Value = Value::Str("100ms".into());
         if isNonEuSpot {
@@ -951,7 +951,7 @@ impl GateCore {
         let mut url: Value = self.get_url_by_market(market.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut isEuUrl: bool = get_index_of(&url, &Value::Str("gateeu".into())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isEuUrl: bool = Value::Int(url.as_str().and_then(|__s| __s.find("gateeu")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut isNonEuSpot: bool = (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && !isEuUrl;
         let mut intervalDefault: Value = Value::Str("100ms".into());
         if isNonEuSpot {
@@ -1152,8 +1152,11 @@ impl GateCore {
                 cacheLength = get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into())));
             }
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(10)]);
-            let mut waitAmount: Value = (if isSpot { snapshotDelay } else { Value::Int(0) });
-            if is_equal(&cacheLength, &waitAmount) {
+            let mut waitAmount: Value = Value::Int(0);
+            if isSpot {
+                waitAmount = snapshotDelay;
+            }
+            if (cacheLength.as_f64() == waitAmount.as_f64()) {
                 // max limit is 100
                 let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
                 let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
@@ -1172,7 +1175,7 @@ impl GateCore {
             remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
             remove(&mut self.orderbooks, &symbol);
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
-            if is_equal(&checksum, &Value::Bool(true)) {
+            if (checksum.as_bool() == Some(true)) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol))));
                 client.reject(&[Value::from(error), messageHash.clone()]);
             }
@@ -1729,7 +1732,7 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
+            let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 stored = ArrayCacheByTimestamp::new(limit);
@@ -1801,7 +1804,7 @@ impl GateCore {
                 m.insert("option".to_string(), Value::Str("options".into()));
             m
         })]);
-        let mut channel: Value = add(&messageType, &Value::Str(".usertrades".into()));
+        let mut channel: Value = Value::Str(format!("{}{}", messageType, Value::Str(".usertrades".into())).into());
         let mut messageHash: Value = Value::Str("myTrades".into());
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbol).into())).into());
@@ -1920,7 +1923,7 @@ impl GateCore {
             m
         })]);
         // todo: add correct margin support
-        let mut channel: Value = add(&channelType, &Value::Str(".balances".into()));
+        let mut channel: Value = Value::Str(format!("{}{}", channelType, Value::Str(".balances".into())).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(".balance".into())).into());
         return self.subscribe_private(url, messageHash, Value::Null, channel, params, &[requiresUid]).await;
 
@@ -2025,7 +2028,7 @@ impl GateCore {
                 m.insert("options".to_string(), Value::Str("option".into()));
             m
         })]);
-        let mut messageHash: Value = add(&channelType, &Value::Str(".balance".into()));
+        let mut messageHash: Value = Value::Str(format!("{}{}", channelType, Value::Str(".balance".into())).into());
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         client.resolve(&[self.balance.clone(), messageHash]);
 }
@@ -2080,7 +2083,7 @@ impl GateCore {
             }
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbols, &Value::Str(",".into()))).into())).into());
         }
-        let mut channel: Value = add(&typeId, &Value::Str(".positions".into()));
+        let mut channel: Value = Value::Str(format!("{}{}", typeId, Value::Str(".positions".into())).into());
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), &[market, query.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isInverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
@@ -2090,7 +2093,7 @@ impl GateCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut cache: Value = self.safe_value(self.positions.clone(), type_var.clone(), &[]);
-        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && (cache == Value::Null) {
+        if (fetchPositionsSnapshot.as_bool() == Some(true)) && (awaitPositionsSnapshot.as_bool() == Some(true)) && (cache == Value::Null) {
             return crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into())])).await;
         }
         let mut positions: Value = self.subscribe_private(url, messageHash, payload, channel, query, &[Value::Bool(true)]).await;
@@ -2114,8 +2117,8 @@ impl GateCore {
             return;
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
-        if is_equal(&fetchPositionsSnapshot, &Value::Bool(true)) {
-            let mut messageHash: Value = add(&type_var, &Value::Str(":fetchPositionsSnapshot".into()));
+        if (fetchPositionsSnapshot.as_bool() == Some(true)) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
@@ -2148,7 +2151,7 @@ impl GateCore {
         if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[cache.clone()]);
-            client.resolve(&[cache, add(&type_var, &Value::Str(":position".into()))]);
+            client.resolve(&[cache, Value::Str(format!("{}{}", type_var, Value::Str(":position".into())).into())]);
         }
 
     Value::Null
@@ -2225,7 +2228,7 @@ impl GateCore {
             }
         }
         }
-        let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&type_var, &Value::Str(":positions::".into())));
+        let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", type_var, Value::Str(":positions::".into())).into()));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_334: bool = true;
@@ -2240,7 +2243,7 @@ impl GateCore {
             }
         }
         }
-        client.resolve(&[newPositions, add(&type_var, &Value::Str(":positions".into()))]);
+        client.resolve(&[newPositions, Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into())]);
 }
 
 /*
@@ -2301,7 +2304,7 @@ impl GateCore {
         if (isTrigger.as_bool() == Some(true)) {
             suffix = (if (typeId.as_str() == Some("spot")) { Value::Str(".priceorders".into()) } else { Value::Str(".autoorders".into()) });
         }
-        let mut channel: Value = add(&typeId, &suffix);
+        let mut channel: Value = Value::Str(format!("{}{}", typeId, suffix).into());
         let mut messageHash: Value = Value::Str("orders".into());
         if (isTrigger.as_bool() == Some(true)) {
             messageHash = Value::Str("triggerOrders".into());
@@ -2509,7 +2512,7 @@ impl GateCore {
             messageHash = Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
             append_to_array(&mut payload, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut channel: Value = add(&typeId, &Value::Str(".liquidates".into()));
+        let mut channel: Value = Value::Str(format!("{}{}", typeId, Value::Str(".liquidates".into())).into());
         let mut newLiquidations: Value = self.subscribe_private(url, messageHash, payload, channel, query, &[Value::Bool(true)]).await;
         if is_true(&self.newUpdates) {
             return newLiquidations;
@@ -2986,8 +2989,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn get_url_by_market(&self, mut market: Value) -> Value {
         let mut baseUrl: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &crate::value::get_value_k(&market, "type"));
-        if is_equal(&crate::value::get_value_k(&market, "contract"), &Value::Bool(true)) {
-            return (if (is_equal(&crate::value::get_value_k(&market, "linear"), &Value::Bool(true))) { crate::value::get_value_k(&baseUrl, "usdt") } else { crate::value::get_value_k(&baseUrl, "btc") });
+        if (self.safe_bool_k(market.clone(), "contract", &[]).as_bool() == Some(true)) {
+            return (if (self.safe_bool_k(market, "linear", &[]).as_bool() == Some(true)) { crate::value::get_value_k(&baseUrl, "usdt") } else { crate::value::get_value_k(&baseUrl, "btc") });
         }  else {
             return baseUrl;
         }

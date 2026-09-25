@@ -745,6 +745,9 @@ class grvt extends Exchange {
         $settleId = $quoteId;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
         $type = null;
@@ -1839,7 +1842,7 @@ class grvt extends Exchange {
         $nonMatchedResults = array();
         for ($i = 0; $i < count($transfers); $i++) {
             $transfer = $transfers[$i];
-            if (($onlyMainAccount && $transfer['fromAccount'] === '0' && $transfer['toAccount'] === '0') || (!$onlyMainAccount && ($transfer['fromAccount'] !== '0' || $transfer['toAccount'] !== '0'))) {
+            if (($onlyMainAccount && $this->safe_string($transfer, 'fromAccount') === '0' && $this->safe_string($transfer, 'toAccount') === '0') || (!$onlyMainAccount && ($this->safe_string($transfer, 'fromAccount') !== '0' || $this->safe_string($transfer, 'toAccount') !== '0'))) {
                 $metadata = $this->safe_string($transfer['info'], 'transfer_metadata');
                 $parsedMetadata = $this->parse_json($metadata);
                 $direction = $this->safe_string($parsedMetadata, 'direction');
@@ -1968,7 +1971,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function load_account_infos() {
+    public function load_account_infos(): PromiseInterface {
         return Async\async(self::do_load_account_infos(...))();
     }
 
@@ -3436,7 +3439,11 @@ class grvt extends Exchange {
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $path;
         $queryString = '';
         if ($method === 'GET') {
             if (count($query) > 0) {
@@ -3492,7 +3499,7 @@ class grvt extends Exchange {
                 $cookieValue = explode(';', $cookie)[0];
                 $this->options['AuthCookieValue'] = $cookieValue;
             }
-            if ($this->options['AuthCookieValue'] === null || $this->options['AuthAccountId'] === null) {
+            if ($this->safe_string($this->options, 'AuthCookieValue') === null || $this->safe_string($this->options, 'AuthAccountId') === null) {
                 throw new AuthenticationError($this->id . ' signIn() failed to receive auth-$cookie or account-id');
             }
         } else {

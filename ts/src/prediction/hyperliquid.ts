@@ -3,7 +3,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/hyperliquid.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type { Int, int, Str, Num, Dict,
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict,
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
@@ -834,8 +834,8 @@ export default class hyperliquid extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'time');
         const levels = this.safeList (response, 'levels', []);
-        const rawBids = this.safeList (levels, 0, []);
-        const rawAsks = this.safeList (levels, 1, []);
+        const rawBids: Dict[] = this.safeList (levels, 0, []);
+        const rawAsks: Dict[] = this.safeList (levels, 1, []);
         const bids: Num[][] = [];
         const asks: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
@@ -979,7 +979,7 @@ export default class hyperliquid extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const coin = this.safeString (balance, 'coin');
@@ -1245,7 +1245,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.initializeClient ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);

@@ -723,8 +723,10 @@ class phemex(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settleCurrency')
         base = self.safe_currency_code(baseId)
-        base = base.replace(' ', '')  # replace space for junction codes, eg. `1000 SHIB`
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
+        base = base.replace(' ', '')  # replace space for junction codes, eg. `1000 SHIB`
         settle = self.safe_currency_code(settleId)
         inverse = False
         if settleId != quoteId:
@@ -851,6 +853,8 @@ class phemex(Exchange, ImplicitAPI):
         baseId = self.safe_string(market, 'baseCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         status = self.safe_string(market, 'status')
         precisionAmount = self.parse_safe_number(self.safe_string(market, 'baseTickSize'))
         precisionPrice = self.parse_safe_number(self.safe_string(market, 'quoteTickSize'))
@@ -1134,7 +1138,8 @@ class phemex(Exchange, ImplicitAPI):
                 valueScale = self.safe_string(currencyValues, 'valueScale', '8')
                 market = self.extend(market, {'valueScale': valueScale})
                 market = self.parse_spot_market(market)
-            result.append(market)
+            if market is not None:
+                result.append(market)
         return result
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
@@ -1291,7 +1296,7 @@ class phemex(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(result, 'sequence')
         return orderbook
 
-    def to_en(self, n: object, scale: object):
+    def to_en(self, n: object, scale: Int):
         if (n is None) or (scale is None):
             return None
         stringN = self.number_to_string(n)
@@ -2664,7 +2669,7 @@ class phemex(Exchange, ImplicitAPI):
             if qtyType == 'ByQuote':
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
-                if self.options['createOrderByQuoteRequiresPrice'] is True:
+                if self.safe_bool(self.options, 'createOrderByQuoteRequiresPrice') is True:
                     if price is not None:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)

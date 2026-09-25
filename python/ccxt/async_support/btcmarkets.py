@@ -513,6 +513,8 @@ class btcmarkets(Exchange, ImplicitAPI):
         id = self.safe_string(market, 'marketId')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         fees = self.safe_dict(self.safe_dict(self.options, 'fees', {}), quote, self.fees)
         pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
@@ -1383,7 +1385,10 @@ class btcmarkets(Exchange, ImplicitAPI):
         elif api == 'public':
             if len(query) > 0:
                 request += '?' + self.urlencode(query)
-        url = self.urls['api'][api] + request
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

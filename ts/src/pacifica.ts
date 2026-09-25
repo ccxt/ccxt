@@ -562,7 +562,7 @@ export default class pacifica extends Exchange {
         });
     }
 
-    async initializeClient () {
+    async initializeClient (): Promise<boolean> {
         try {
             await this.handleBuilderFeeApproval ();
         } catch (e) {
@@ -571,7 +571,7 @@ export default class pacifica extends Exchange {
         return true;
     }
 
-    async handleBuilderFeeApproval () {
+    async handleBuilderFeeApproval (): Promise<boolean> {
         if (this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             return false;
         }
@@ -643,7 +643,7 @@ export default class pacifica extends Exchange {
         //   "error": null,
         //   "code": null
         // }
-        const markets = this.safeList (response, 'data', []);
+        const markets: Dict[] = this.safeList (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
@@ -729,6 +729,9 @@ export default class pacifica extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
@@ -856,7 +859,7 @@ export default class pacifica extends Exchange {
         usdcAccount['total'] = this.safeString (data, 'balance');
         usdcAccount['used'] = this.safeString (data, 'total_margin_used');
         result['USDC'] = usdcAccount;
-        const spotBalances = this.safeList (data, 'spot_balances', []);
+        const spotBalances: Dict[] = this.safeList (data, 'spot_balances', []);
         for (let i = 0; i < spotBalances.length; i++) {
             const balance = this.safeDict (spotBalances, i);
             const currencyId = this.safeString (balance, 'symbol');
@@ -990,7 +993,7 @@ export default class pacifica extends Exchange {
         }
     }
 
-    parseAccountSettings (settings: any[]): Dict {
+    parseAccountSettings (settings: Dict[]): Dict {
         const settingsLen = settings.length;
         if (settingsLen === 0) {
             return {};
@@ -1170,7 +1173,7 @@ export default class pacifica extends Exchange {
         //     "code": null
         //   }
         //
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (result, symbols);
     }
 
@@ -1360,7 +1363,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557404170
         // }
         //
-        const recentTrades = this.safeList (response, 'data', []);
+        const recentTrades: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (recentTrades, market, since, limit);
     }
 
@@ -1652,11 +1655,7 @@ export default class pacifica extends Exchange {
         } else {
             operationType = 'create_order';
             sigPayload['reduce_only'] = reduceOnly;
-            if (timeInForce === undefined) {
-                sigPayload['tif'] = 'GTC';
-            } else {
-                sigPayload['tif'] = timeInForce;
-            }
+            sigPayload['tif'] = timeInForce;
         }
         if (isTakeProfitOrder) {
             const tpPayload: Dict = {
@@ -1727,10 +1726,10 @@ export default class pacifica extends Exchange {
         //  Cancel (Only common (limit) orders)
         //
         const lenActions = actions.length;
-        const maxLen = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
+        const maxLen: Int = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
         if (maxLen !== undefined) {
             if (lenActions > maxLen) {
-                throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen);
+                throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString (maxLen));
             }
         }
         return {
@@ -1800,7 +1799,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
@@ -1861,7 +1860,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
@@ -2198,7 +2197,7 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
@@ -2357,7 +2356,7 @@ export default class pacifica extends Exchange {
         //   "last_order_id": 1557370337
         // }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2429,8 +2428,8 @@ export default class pacifica extends Exchange {
         return orders as Order[];
     }
 
-    addPaginationCursorToResult (response: Dict): any[] {
-        const data = this.safeList (response, 'data', []);
+    addPaginationCursorToResult (response: Dict): Dict[] {
+        const data: Dict[] = this.safeList (response, 'data', []);
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);
         const dataLength = data.length;
@@ -2534,7 +2533,7 @@ export default class pacifica extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    mapTimeInForce (tifRaw: Str) {
+    mapTimeInForce (tifRaw: Str): string {
         const tifMap: Dict = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -2548,7 +2547,7 @@ export default class pacifica extends Exchange {
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase ();
         }
-        return this.safeString (tifMap, tif);
+        return this.safeString (tifMap, tif, 'GTC');
     }
 
     mapSide (sideRaw: Str) {
@@ -3003,7 +3002,7 @@ export default class pacifica extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetInfoPrices (params);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOpenInterests (data, symbolsNormalized) as OpenInterests;
     }
 
@@ -3445,7 +3444,7 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
-    async fetchBuilderApprovals (address: string) {
+    async fetchBuilderApprovals (address: string): Promise<Dict> {
         const request: Dict = {
             'account': address,
         };
@@ -3558,7 +3557,7 @@ export default class pacifica extends Exchange {
         if (this.isDictionary (value)) {
             const result: Dict = {};
             const keys = Object.keys (value);
-            const sortedKeys = this.sort (keys);
+            const sortedKeys: string[] = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
                 const key = sortedKeys[i];
                 result[key] = this.sortJsonKeys (value[key]);
@@ -3601,7 +3600,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
         }
         if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
-            const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
+            const useBuilder: Bool = this.handleOption ('postActionRequest', 'builderFee', true);
             let builderCode: Str = undefined;
             if (useBuilder === true) {
                 builderCode = this.handleOption ('postActionRequest', 'builderCode');

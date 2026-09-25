@@ -565,7 +565,7 @@ export default class bitfinex extends Exchange {
         return (code in this.options['fiat']);
     }
 
-    getCurrencyName (code: any) {
+    getCurrencyName (code: string) {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
@@ -676,6 +676,9 @@ export default class bitfinex extends Exchange {
             const splitQuote = (quote as string).split ('F0');
             base = this.safeString (splitBase, 0);
             quote = this.safeString (splitQuote, 0);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let symbol = base + '/' + quote;
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
@@ -3085,7 +3088,11 @@ export default class bitfinex extends Exchange {
         } else {
             request = this.version + request;
         }
-        let url = this.urls['api'][api] + '/' + request;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + request;
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         if (api === 'public') {

@@ -372,7 +372,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const markets = this.safeList (response, 'result', []);
+        const markets: Dict[] = this.safeList (response, 'result', []);
         return this.parseMarkets (markets);
     }
 
@@ -380,8 +380,11 @@ export default class p2b extends Exchange {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
-        const base = this.safeCurrencyCode (baseId) as string;
-        const quote = this.safeCurrencyCode (quoteId) as string;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const limits = this.safeDict (market, 'limits');
         const maxAmount = this.safeString (limits, 'max_amount');
         const maxPrice = this.safeString (limits, 'max_price');
@@ -690,7 +693,7 @@ export default class p2b extends Exchange {
         //        current_time: '1699255571.413828'
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -1060,7 +1063,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result: Dict[] = this.safeList (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -1115,7 +1118,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result', {});
-        const records = this.safeList (result, 'records', []);
+        const records: Dict[] = this.safeList (result, 'records', []);
         return this.parseTrades (records, market, since, limit);
     }
 
@@ -1193,7 +1196,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result', {});
-        const deals = this.safeList (result, 'deals', []);
+        const deals: Dict[] = this.safeList (result, 'deals', []);
         return this.parseTrades (deals, market, sinceResolved, limit);
     }
 
@@ -1354,7 +1357,8 @@ export default class p2b extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        const baseUrl: string = this.urls['api'][api];
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (paramsOmitted).length > 0) {

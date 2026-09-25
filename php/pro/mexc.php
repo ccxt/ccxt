@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
@@ -371,7 +372,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
@@ -550,7 +551,11 @@ class mexc extends \ccxt\async\mexc {
     private function do_watch_spot_private(string $channel, string $messageHash, $params = array()) {
         $this->check_required_credentials();
         $listenKey = Async\await($this->authenticate($channel));
-        $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'spot');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchSpotPrivate() has no spot websocket url');
+        }
+        $url = $wsUrl . '?$listenKey=' . $listenKey;
         $request = array(
             'method' => 'SUBSCRIPTION',
             'params' => array( $channel ),
@@ -2100,7 +2105,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function authenticate(?string $subscriptionHash, $params = array()) {
+    public function authenticate(?string $subscriptionHash, $params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($subscriptionHash, $params);
     }
 
@@ -2161,7 +2166,11 @@ class mexc extends \ccxt\async\mexc {
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
         } catch (Exception $error) {
-            $url = $this->urls['api']['ws']['spot'] . '?$listenKey=' . $listenKey;
+            $wsUrl = $this->safe_string($this->urls['api']['ws'], 'spot');
+            if ($wsUrl === null) {
+                throw new ExchangeError($this->id . ' keepAliveListenKey() has no spot websocket url');
+            }
+            $url = $wsUrl . '?$listenKey=' . $listenKey;
             $client = $this->client($url);
             $this->options['listenKey'] = null;
             $client->reject($error);

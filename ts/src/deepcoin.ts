@@ -407,7 +407,7 @@ export default class deepcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        let types: List = [ 'spot', 'swap' ];
+        let types: string[] = [ 'spot', 'swap' ];
         const fetchMarketsOption = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOption !== undefined) {
             types = this.safeList (fetchMarketsOption, 'types', types) as List;
@@ -520,6 +520,9 @@ export default class deepcoin extends Exchange {
         let settle: Str = undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         let isLinear: Bool = undefined;
         if (swap) {
@@ -761,7 +764,7 @@ export default class deepcoin extends Exchange {
             'instType': this.convertToInstrumentType (marketType),
         };
         const response = await this.publicGetDeepcoinMarketTickers (this.extend (request, paramsMarketType));
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbolsNormalized);
     }
 
@@ -1199,7 +1202,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
+        const list: Dict[] = this.safeList (data, 'list', []);
         const additionalParams: Dict = {
             'currency': code,
         };
@@ -2792,7 +2795,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rates = this.safeList (data, 'current_fund_rates', []);
+        const rates: Dict[] = this.safeList (data, 'current_fund_rates', []);
         return this.parseFundingRates (rates, symbolsNormalized);
     }
 
@@ -3058,7 +3061,7 @@ export default class deepcoin extends Exchange {
      * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3085,14 +3088,18 @@ export default class deepcoin extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestPath = path;
+        let requestPath: string = path;
         if (method === 'GET') {
             const query = this.urlencode (params);
             if (query.length > 0) {
                 requestPath += '?' + query;
             }
         }
-        const url = this.urls['api'][api] + '/' + requestPath;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + '/' + requestPath;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();

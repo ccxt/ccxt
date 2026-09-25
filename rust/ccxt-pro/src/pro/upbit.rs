@@ -697,7 +697,7 @@ impl UpbitCore {
 })); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), wsOptions); }
         }
-        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/private".into()));
+        let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Str("/private".into())).into());
         let mut client: Value = self.client(&[url]);
         return client;
 
@@ -1025,7 +1025,7 @@ impl UpbitCore {
             if (fee != Value::Null) {
                 add_element_to_object(&mut parsed, &Value::Str("fee".into()), fee);
             }
-            let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
+            let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
             if (fees != Value::Null) {
                 add_element_to_object(&mut parsed, &Value::Str("fees".into()), fees);
             }

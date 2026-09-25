@@ -37,7 +37,7 @@ public class TestFetchTrades extends BaseTest {
         // test if both sides are being returned
         //
         Integer minTradesForBothSidesCheck = 99;
-        if (!(Helpers.inOp(skippedProperties, "requireBothSides")) && Helpers.isGreaterThan(((List<?>)trades).size(), minTradesForBothSidesCheck))
+        if (!(Helpers.inOp(skippedProperties, "requireBothSides")) && ((minTradesForBothSidesCheck == null || ((List<?>)trades).size() > minTradesForBothSidesCheck)))
         {
             //
             //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades

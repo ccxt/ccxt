@@ -3,7 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, OrderSide, OrderType, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -261,7 +261,7 @@ export default class kalshi extends Exchange {
                 request['cursor'] = cursor;
             }
             const response = await this.kalshiPublicGetMarkets (this.extend (request, rest));
-            const rawMarkets = this.safeList (response, 'markets', []);
+            const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             const rawMarketsLength = rawMarkets.length;
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
@@ -1038,7 +1038,7 @@ export default class kalshi extends Exchange {
                 'limit': chunkSize,
             };
             const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
-            const rawMarkets = this.safeList (response, 'markets', []);
+            const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
                 const raw = rawMarkets[i];
                 const marketTicker = this.safeString (raw, 'ticker');
@@ -1330,7 +1330,7 @@ export default class kalshi extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         const response = await this.kalshiPublicGetMarketsTrades (this.extend (request, params));
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         const filteredTrades: any[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -1919,7 +1919,7 @@ export default class kalshi extends Exchange {
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
         const action = this.safeStringLower (order, 'action');
-        let side: OrderSide = undefined;
+        let side: Str = undefined;
         if (action === 'buy') {
             side = 'buy';
         } else if (action === 'sell') {
@@ -2011,7 +2011,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         // kalshi has no market orders — every order is a limit order and the price is required
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }");
@@ -2135,7 +2135,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -2177,7 +2177,7 @@ export default class kalshi extends Exchange {
             request['ticker'] = this.safeString (outcomeObj['info'], 'ticker');
         }
         const restingResponse = await this.kalshiPrivateGetPortfolioOrders (request);
-        const restingOrders = this.safeList (restingResponse, 'orders', []);
+        const restingOrders: Dict[] = this.safeList (restingResponse, 'orders', []);
         const restingOrdersLength = restingOrders.length;
         const canceledOrders: PredictionOrder[] = [];
         for (let i = 0; i < restingOrdersLength; i++) {
@@ -2567,7 +2567,7 @@ export default class kalshi extends Exchange {
         //         "sub_title": "During Trump's term",
         //         "title": "Will Trump balance the budget?"
         // }
-        const rawMarkets = this.safeList (rawEvent, 'markets', []);
+        const rawMarkets: Dict[] = this.safeList (rawEvent, 'markets', []);
         const marketsList: any[] = [];
         // aggregate volume/liquidity from the markets and derive the creation time so sort works;
         // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,

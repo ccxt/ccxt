@@ -365,7 +365,7 @@ func (this *testMainClass) testMethodBody(ch chan any, methodName any, exchange 
 		ch <- true
 		return nil
 	}
-	var argsStringified any = Add(Add("(", exchange.Json(args)), ")") // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+	var argsStringified *string = SafeStringPtr(Add(Add("(", exchange.Json(args)), ")")) // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
 	Dump(this.AddPadding("[INFO] TESTING", 25), name, methodName, argsStringified)
 	if EvalTruthy(IsSync()) {
 		CallMethodSync(this.TestFiles, methodName, exchange, skippedPropertiesForMethod, args)
@@ -731,8 +731,8 @@ func (this *testMainClass) loadExchangeBody(ch chan any, exchange ccxt.ICoreExch
 }
 func (this *testMainClass) GetTestSymbol(exchange ccxt.ICoreExchange, isSpot any, symbols any) any {
 	var symbol any = nil
-	var preferredSpotSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, "preferredSpotSymbol")
-	var preferredSwapSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, "preferredSwapSymbol")
+	var preferredSpotSymbol any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, "preferredSpotSymbol"))
+	var preferredSwapSymbol any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, "preferredSwapSymbol"))
 	if (isSpot == true) && (!IsEqual(preferredSpotSymbol, nil)) && (preferredSpotSymbol != "") {
 		return preferredSpotSymbol
 	} else if (isSpot != true) && (!IsEqual(preferredSwapSymbol, nil)) && (preferredSwapSymbol != "") {
@@ -897,7 +897,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 		}
 		return "preferredSwapSymbol"
 	}()
-	var preferredSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, preferredKey)
+	var preferredSymbol any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, preferredKey))
 	if !IsEqual(preferredSymbol, nil) {
 
 		ch <- defaultSymbols
@@ -940,9 +940,9 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 		ch <- defaultSymbols
 		return nil
 	}
-	var marketType any = exchange.SafeString(defaultMarket, "type")
-	var quote any = exchange.SafeString(defaultMarket, "quote")
-	var settle any = exchange.SafeString(defaultMarket, "settle")
+	var marketType any = ccxt.DerefScalar(exchange.SafeString(defaultMarket, "type"))
+	var quote any = ccxt.DerefScalar(exchange.SafeString(defaultMarket, "quote"))
+	var settle any = ccxt.DerefScalar(exchange.SafeString(defaultMarket, "settle"))
 	var candidates []any = []any{}
 	var tickerSymbols []string = ObjectKeys(tickers)
 	for i := 0; i < len(tickerSymbols); i++ {
@@ -969,7 +969,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	}
 	var ranked []any = exchange.SortBy(candidates, "volume", true)
 	var rankedLength int = len(ranked)
-	if IsEqual(rankedLength, 0) {
+	if rankedLength == 0 {
 
 		ch <- defaultSymbols
 		return nil
@@ -1116,7 +1116,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 	// then fetchEvents for an event id and run every method by that outcome handle
 	// a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
 	// many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
-	var outcomeSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, "preferredPredictionOutcome")
+	var outcomeSymbol any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, "preferredPredictionOutcome"))
 	if !IsEqual(outcomeSymbol, nil) {
 		// validate the pin against the live listing - venues can rotate ids/handles
 		// (hyperliquid re-assigns outcome ids), which would strand a stale pin
@@ -1218,7 +1218,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				}
 				// every venue requires fetchEvents to be scoped; a skip-tests.json
 				// preferredEventQuery supplies a query known to match the venue's markets
-				var eventQuery any = exchange.SafeString(this.SkippedSettingsForExchange, "preferredEventQuery")
+				var eventQuery any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, "preferredEventQuery"))
 				if IsEqual(eventQuery, nil) {
 					// derive one from the selected outcome handle (the market words with
 					// separators as spaces) so the scoped contract holds even without a pin
@@ -1483,11 +1483,11 @@ func (this *testMainClass) testPredictionCreateCancelOrderBody(ch chan any, exch
 	// any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
 	var price any = exchange.ParseToNumeric("0.02")
 	var amount any = exchange.ParseToNumeric("5")
-	var fundedPrice any = exchange.SafeString(this.SkippedSettingsForExchange, "fundedPrice")
+	var fundedPrice any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, "fundedPrice"))
 	if !IsEqual(fundedPrice, nil) {
 		price = exchange.ParseToNumeric(fundedPrice)
 	}
-	var fundedAmount any = exchange.SafeString(this.SkippedSettingsForExchange, "fundedAmount")
+	var fundedAmount any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, "fundedAmount"))
 	if !IsEqual(fundedAmount, nil) {
 		amount = exchange.ParseToNumeric(fundedAmount)
 	}
@@ -1520,7 +1520,7 @@ func (this *testMainClass) testPredictionCreateCancelOrderBody(ch chan any, exch
 			Assert(IsEqual(exchange.IsDictionary(order), true), Add("createOrder did not return an order structure for ", exchange.GetId()))
 			placedId = exchange.SafeString(order, "id")
 			Assert(!IsEqual(placedId, nil), Add("createOrder returned no order id for ", exchange.GetId()))
-			var returnedOutcome any = exchange.SafeString(order, "outcome")
+			var returnedOutcome any = ccxt.DerefScalar(exchange.SafeString(order, "outcome"))
 			Assert((IsEqual(returnedOutcome, nil)) || (IsEqual(returnedOutcome, outcome)), Add(Add(Add(Add(Add("createOrder outcome \"", exchange.Json(returnedOutcome)), "\" should match requested \""), outcome), "\" for "), exchange.GetId()))
 			return nil
 		}(this)
@@ -1877,7 +1877,7 @@ func (this *testMainClass) AssertStaticError(cond any, message any, calculatedOu
 	// That is cheap in JS but O(tree²) in the Rust port (each level
 	// re-serialises its whole subtree) — it made `--responseTests`
 	// take minutes. Bail out before stringifying when the check holds.
-	key := GetArg(optionalArgs, 0, nil)
+	var key *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = key
 	if EvalTruthy(cond) {
 		return
@@ -1885,7 +1885,7 @@ func (this *testMainClass) AssertStaticError(cond any, message any, calculatedOu
 	var calculatedString string = JsonStringify(calculatedOutput)
 	var storedString string = JsonStringify(storedOutput)
 	var errorMessage any = message
-	if !IsEqual(key, nil) {
+	if key != nil {
 		errorMessage = Add(Add("[", key), "]")
 	}
 	errorMessage = Add(errorMessage, " computed: "+storedString+" stored: "+calculatedString)
@@ -2459,7 +2459,7 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan any, exchange ccxt.
 				for i := 0; i < len(storedHeaderKeys); i++ {
 					var headerKey string = GetValue(storedHeaderKeys, i).(string)
 					var storedHeaderValue any = GetValue(storedHeaders, headerKey)
-					var sentHeaderValue any = exchange.SafeString(sentHeaders, headerKey)
+					var sentHeaderValue any = ccxt.DerefScalar(exchange.SafeString(sentHeaders, headerKey))
 					this.AssertStaticError(IsEqual(sentHeaderValue, storedHeaderValue), "header mismatch for "+headerKey, storedHeaderValue, sentHeaderValue)
 				}
 			}
@@ -2647,7 +2647,7 @@ func (this *testMainClass) AssertWsSentMessages(exchange ccxt.ICoreExchange, url
 	var sentMessages any = GetWsSentMessages(exchange, url)
 	var sentLength int = GetArrayLength(sentMessages)
 	var expectedLength int = GetArrayLength(expectedSent)
-	Assert(IsEqual(sentLength, expectedLength), "sent ws messages count mismatch: sent "+ToString(sentLength)+", expected "+ToString(expectedLength)+" "+JsonStringify(sentMessages))
+	Assert((sentLength == expectedLength), "sent ws messages count mismatch: sent "+ToString(sentLength)+", expected "+ToString(expectedLength)+" "+JsonStringify(sentMessages))
 	for i := 0; i < expectedLength; i++ {
 		var unifiedSent any = JsonParse(JsonStringify(GetValue(sentMessages, i)))
 		this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, GetValue(expectedSent, i))
@@ -2661,7 +2661,7 @@ func (this *testMainClass) TestWsStaticallyAsync(exchange ccxt.ICoreExchange, me
 func (this *testMainClass) testWsStaticallyBody(ch chan any, exchange ccxt.ICoreExchange, method any, skipKeys any, data any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var url any = exchange.SafeString(data, "url")
+	var url any = ccxt.DerefScalar(exchange.SafeString(data, "url"))
 	SetupWsMockTransport(exchange, url)
 	var httpResponse any = exchange.SafeValue(data, "httpResponse")
 	if !IsEqual(httpResponse, nil) {
@@ -2764,27 +2764,27 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan any, exchangeNam
 			if isDisabled == true {
 				continue
 			}
-			var disabledString any = exchange.SafeString(result, "disabled", "")
+			var disabledString any = ccxt.DerefScalar(exchange.SafeString(result, "disabled", ""))
 			if disabledString != "" {
 				continue
 			}
-			var isDisabledCSharp any = exchange.SafeString(result, "disabledCS")
+			var isDisabledCSharp any = ccxt.DerefScalar(exchange.SafeString(result, "disabledCS"))
 			if (!IsEqual(isDisabledCSharp, nil)) && (this.Lang == "C#") {
 				continue
 			}
-			var isDisabledGo any = exchange.SafeString(result, "disabledGO")
+			var isDisabledGo any = ccxt.DerefScalar(exchange.SafeString(result, "disabledGO"))
 			if (!IsEqual(isDisabledGo, nil)) && (this.Lang == "GO") {
 				continue
 			}
-			var isDisabledJava any = exchange.SafeString(result, "disabledJava")
+			var isDisabledJava any = ccxt.DerefScalar(exchange.SafeString(result, "disabledJava"))
 			if (!IsEqual(isDisabledJava, nil)) && (this.Lang == "java") {
 				continue
 			}
-			var isDisabledPhp any = exchange.SafeString(result, "disabledPHP")
+			var isDisabledPhp any = ccxt.DerefScalar(exchange.SafeString(result, "disabledPHP"))
 			if (!IsEqual(isDisabledPhp, nil)) && (this.Lang == "PHP") {
 				continue
 			}
-			var isDisabledRust any = exchange.SafeString(result, "disabledRS")
+			var isDisabledRust any = ccxt.DerefScalar(exchange.SafeString(result, "disabledRS"))
 			if (!IsEqual(isDisabledRust, nil)) && (this.Lang == "RUST") {
 				continue
 			}
@@ -2931,22 +2931,22 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan any, exchan
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange(exchangeName)
 	var globalOptions any = exchange.SafeDict(exchangeData, "options", map[string]any{})
 	// read apiKey/secret from the test file
-	var apiKey any = exchange.SafeString(exchangeData, "apiKey")
+	var apiKey any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "apiKey"))
 	if !EvalTruthy(exchange.IsEmptyString(apiKey)) {
 		// c# to string requirement
 		exchange.SetApiKey(ToString(apiKey))
 	}
-	var secret any = exchange.SafeString(exchangeData, "secret")
+	var secret any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "secret"))
 	if !EvalTruthy(exchange.IsEmptyString(secret)) {
 		// c# to string requirement
 		exchange.SetSecret(ToString(secret))
 	}
-	var privateKey any = exchange.SafeString(exchangeData, "privateKey")
+	var privateKey any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "privateKey"))
 	if !EvalTruthy(exchange.IsEmptyString(privateKey)) {
 		// c# to string requirement
 		exchange.SetPrivateKey(ToString(privateKey))
 	}
-	var walletAddress any = exchange.SafeString(exchangeData, "walletAddress")
+	var walletAddress any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "walletAddress"))
 	if !EvalTruthy(exchange.IsEmptyString(walletAddress)) {
 		// c# to string requirement
 		exchange.SetWalletAddress(ToString(walletAddress))
@@ -2976,7 +2976,7 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan any, exchan
 			if isDisabled == true {
 				continue
 			}
-			var disabledString any = exchange.SafeString(result, "disabled", "")
+			var disabledString any = ccxt.DerefScalar(exchange.SafeString(result, "disabled", ""))
 			if disabledString != "" {
 				continue
 			}
@@ -2996,7 +2996,7 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan any, exchan
 			if (isDisabledJava == true) && (this.Lang == "java") {
 				continue
 			}
-			var typeVar any = exchange.SafeString(exchangeData, "outputType")
+			var typeVar any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "outputType"))
 			var skipKeys any = exchange.SafeValue(exchangeData, "skipKeys", []any{})
 
 			PanicOnError((<-this.TestRequestStaticallyAsync(exchange, method, result, typeVar, skipKeys)))
@@ -3024,22 +3024,22 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan any, excha
 	_ = testName
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange(exchangeName)
 	// read apiKey/secret from the test file
-	var apiKey any = exchange.SafeString(exchangeData, "apiKey")
+	var apiKey any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "apiKey"))
 	if !EvalTruthy(exchange.IsEmptyString(apiKey)) {
 		// c# to string requirement
 		exchange.SetApiKey(ToString(apiKey))
 	}
-	var secret any = exchange.SafeString(exchangeData, "secret")
+	var secret any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "secret"))
 	if !EvalTruthy(exchange.IsEmptyString(secret)) {
 		// c# to string requirement
 		exchange.SetSecret(ToString(secret))
 	}
-	var privateKey any = exchange.SafeString(exchangeData, "privateKey")
+	var privateKey any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "privateKey"))
 	if !EvalTruthy(exchange.IsEmptyString(privateKey)) {
 		// c# to string requirement
 		exchange.SetPrivateKey(ToString(privateKey))
 	}
-	var walletAddress any = exchange.SafeString(exchangeData, "walletAddress")
+	var walletAddress any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "walletAddress"))
 	if !EvalTruthy(exchange.IsEmptyString(walletAddress)) {
 		// c# to string requirement
 		exchange.SetWalletAddress(ToString(walletAddress))
@@ -3188,9 +3188,9 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	defer ReturnPanicError(ch)
 	// prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
 	// run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
-	targetExchange := GetArg(optionalArgs, 0, nil)
+	var targetExchange *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = targetExchange
-	testName := GetArg(optionalArgs, 1, nil)
+	var testName *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = testName
 	var folder any = Add(Add(Add(GetRootDir(), "./ts/src/test/static/"), typeVar), "/")
 	if EvalTruthy(this.PredictionTests) {
@@ -3206,10 +3206,10 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	var exchange ccxt.ICoreExchange = InitExchange("Exchange", map[string]any{}) // tmp to do the calculations until we have the ast-transpiler transpiling this code
 	var promises []any = []any{}
 	var sum any = 0
-	if !IsEqual(targetExchange, nil) && (targetExchange != "") {
+	if (targetExchange != nil) && (targetExchange == nil || *targetExchange != "") {
 		Dump(Add("[INFO:MAIN] Exchange to test: ", targetExchange))
 	}
-	if !IsEqual(testName, nil) && (testName != "") {
+	if (testName != nil) && (testName == nil || *testName != "") {
 		Dump(Add("[INFO:MAIN] Testing only: ", testName))
 	}
 	for i := 0; i < len(exchanges); i++ {

@@ -964,6 +964,9 @@ class toobit extends Exchange {
         $baseIdClean = $baseParts[0];
         $base = $this->safe_currency_code($baseIdClean);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settleId = $this->safe_string($market, 'marginToken');
         $settle = $this->safe_currency_code($settleId);
         $status = $this->safe_string($market, 'status');
@@ -1520,7 +1523,7 @@ class toobit extends Exchange {
         return $this->parse_bids_asks_custom($response, $symbols);
     }
 
-    public function parse_bids_asks_custom(mixed $tickers, ?array $symbols = null, $params = array()): array {
+    public function parse_bids_asks_custom(array $tickers, ?array $symbols = null, $params = array()): array {
         $results = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $parsedTicker = $this->parse_bid_ask_custom($tickers[$i]);
@@ -3238,7 +3241,8 @@ class toobit extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $baseUrl = $this->urls['api'][$api];
+        $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';
         $isDelete = $method === 'DELETE';
         $extraQuery = array();

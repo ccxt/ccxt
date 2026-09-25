@@ -2140,7 +2140,7 @@ export default class bitget extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
             await this.loadTimeDifference ();
         }
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
@@ -2279,6 +2279,9 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
             let settleId: Str = undefined;
             if (this.inArray (baseId, supportMarginCoins)) {
@@ -2537,6 +2540,9 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let settleId: Str = undefined;
             let settle: Str = undefined;
             if (category === 'USDT-FUTURES') {
@@ -2723,7 +2729,7 @@ export default class bitget extends Exchange {
         const entry = rawCurrency;
         const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         const code = this.safeCurrencyCode (id);
-        const chains = this.safeList (entry, 'chains', []);
+        const chains: Dict[] = this.safeList (entry, 'chains', []);
         const networks: Dict = {};
         let withdraw: Bool = undefined;
         let deposit: Bool = undefined;
@@ -3106,7 +3112,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeList (response, 'data', []);
+        const rawTransactions: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (rawTransactions, undefined, sinceResolved, limit);
     }
 
@@ -3305,7 +3311,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const rawTransactions = this.safeList (response, 'data', []);
+        const rawTransactions: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (rawTransactions, currency, sinceResolved, limit);
     }
 
@@ -3890,7 +3896,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -3919,7 +3925,7 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, paramsProductType));
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
 
@@ -4087,7 +4093,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
@@ -4386,7 +4392,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -4517,7 +4523,7 @@ export default class bitget extends Exchange {
             //         ]
             //     }
             //
-            const rows = this.safeList (utaResponse, 'data', []);
+            const rows: Dict[] = this.safeList (utaResponse, 'data', []);
             const utaResult: Dict = {};
             for (let i = 0; i < rows.length; i++) {
                 const entry = rows[i];
@@ -4621,7 +4627,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -6117,7 +6123,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market);
     }
 
@@ -6668,7 +6674,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market);
     }
 
@@ -6762,7 +6768,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'successList', []);
+        const orders: Dict[] = this.safeList (data, 'successList', []);
         return this.parseOrders (orders, market);
     }
 
@@ -7472,11 +7478,11 @@ export default class bitget extends Exchange {
             return this.parseOrders (result, market, sinceResolved, limit);
         } else if (type === 'spot') {
             if ((marginMode !== undefined) || (trigger === true)) {
-                const resultList = this.safeList (data, 'orderList', []);
+                const resultList: Dict[] = this.safeList (data, 'orderList', []);
                 return this.parseOrders (resultList, market, sinceResolved, limit);
             }
         } else {
-            const result = this.safeList (data, 'entrustedList', []);
+            const result: Dict[] = this.safeList (data, 'entrustedList', []);
             return this.parseOrders (result, market, sinceResolved, limit);
         }
         return this.parseOrders (data, market, sinceResolved, limit);
@@ -7857,7 +7863,7 @@ export default class bitget extends Exchange {
         if (typeof response === 'string') {
             response = JSON.parse (response);
         }
-        const orders = this.safeList (response, 'data', []);
+        const orders: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, sinceResolved, limit);
     }
 
@@ -7986,7 +7992,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'list', []);
+        const orders: Dict[] = this.safeList (data, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -8129,7 +8135,7 @@ export default class bitget extends Exchange {
                 //
             }
             const utaData = this.safeDict (response, 'data', {});
-            const list = this.safeList (utaData, 'list', []);
+            const list: Dict[] = this.safeList (utaData, 'list', []);
             return this.parseLedger (list, currency, since, limit);
         }
         if (marketType === 'spot') {
@@ -8189,7 +8195,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         if ((marketType === 'swap') || (marketType === 'future')) {
-            const bills = this.safeList (data, 'bills', []);
+            const bills: Dict[] = this.safeList (data, 'bills', []);
             return this.parseLedger (bills, currency, since, limit);
         }
         return this.parseLedger (data, currency, since, limit);
@@ -8708,7 +8714,7 @@ export default class bitget extends Exchange {
             const fills = this.safeList (data, 'fillList', []);
             return this.parseTrades (fills, market, since, limit);
         } else if (marginMode !== undefined) {
-            const fills = this.safeList (data, 'fills', []);
+            const fills: Dict[] = this.safeList (data, 'fills', []);
             return this.parseTrades (fills, market, since, limit);
         }
         return this.parseTrades (data, market, since, limit);
@@ -9001,7 +9007,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        let position: List = [];
+        let position: Dict[] = [];
         if ((uta === true) || isHistory) {
             const data = this.safeDict (response, 'data', {});
             position = this.safeList (data, 'list', []);
@@ -9431,7 +9437,7 @@ export default class bitget extends Exchange {
                 //
             }
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRate (data[0], market);
     }
 
@@ -9517,7 +9523,7 @@ export default class bitget extends Exchange {
             response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, paramsMethod));
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseFundingRates (data, symbolsNormalized);
     }
 
@@ -10315,7 +10321,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limit);
     }
 
@@ -10455,7 +10461,7 @@ export default class bitget extends Exchange {
         //         "transfer": "true""
         //     }
         //
-        const chains = this.safeList (fee, 'chains', []);
+        const chains: Dict[] = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,
@@ -10851,7 +10857,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const liquidations = this.safeList (data, 'resultList', []);
+        const liquidations: Dict[] = this.safeList (data, 'resultList', []);
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
@@ -11242,7 +11248,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'resultList', []);
+        const rows: Dict[] = this.safeList (data, 'resultList', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -11308,7 +11314,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -11603,7 +11609,7 @@ export default class bitget extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data', {});
-        const responseList = this.safeList (data, 'list', []);
+        const responseList: Dict[] = this.safeList (data, 'list', []);
         const positions = this.parsePositions (responseList, symbols, paramsUTA);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -11765,7 +11771,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const dataList = this.safeList (data, 'dataList', []);
+        const dataList: Dict[] = this.safeList (data, 'dataList', []);
         return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
     }
 
@@ -11853,7 +11859,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coin');
@@ -12080,7 +12086,11 @@ export default class bitget extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -12089,7 +12099,11 @@ export default class bitget extends Exchange {
         const pathPart = '/api';
         const request = '/' + this.implodeParams (path, params);
         const payload = pathPart + request;
-        let url = this.implodeHostname (this.urls['api'][endpoint]) + payload;
+        const apiUrl = this.safeString (this.urls['api'], endpoint);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (apiUrl) + payload;
         const query = this.omit (params, this.extractParams (path));
         if (!signed && (method === 'GET')) {
             const keys = Object.keys (query);

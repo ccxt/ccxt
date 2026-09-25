@@ -345,6 +345,9 @@ class cryptomus extends Exchange {
         $quoteId = $parts[1];
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $fees = $this->safe_dict($this->fees, 'trading');
         return $this->safe_market_structure(array(
             'id' => $marketId,
@@ -1223,7 +1226,11 @@ class cryptomus extends Exchange {
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . '/' . $endpoint;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
             $jsonParams = '';

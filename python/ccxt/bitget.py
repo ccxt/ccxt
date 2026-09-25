@@ -2141,7 +2141,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             self.load_time_difference()
         uta = None
         uta, params = self.handle_uta_and_params(params, 'fetchMarkets', False)
@@ -2269,6 +2269,8 @@ class bitget(Exchange, ImplicitAPI):
             baseId = self.safe_string(market, 'baseCoin')
             quote = self.safe_currency_code(quoteId)
             base = self.safe_currency_code(baseId)
+            if (base is None) or (quote is None):
+                continue
             supportMarginCoins = self.safe_list(market, 'supportMarginCoins', [])
             settleId = None
             if self.in_array(baseId, supportMarginCoins):
@@ -2518,6 +2520,8 @@ class bitget(Exchange, ImplicitAPI):
             baseId = self.safe_string(market, 'baseCoin')
             quote = self.safe_currency_code(quoteId)
             base = self.safe_currency_code(baseId)
+            if (base is None) or (quote is None):
+                continue
             settleId = None
             settle = None
             if category == 'USDT-FUTURES':
@@ -10711,7 +10715,7 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes an open position for a market
 
@@ -11456,7 +11460,10 @@ class bitget(Exchange, ImplicitAPI):
         return None
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        timeDifference = self.safe_integer(self.options, 'timeDifference')
+        if timeDifference is None:
+            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
+        return self.milliseconds() - timeDifference
 
     def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         signed = api[0] == 'private'
@@ -11464,7 +11471,10 @@ class bitget(Exchange, ImplicitAPI):
         pathPart = '/api'
         request = '/' + self.implode_params(path, params)
         payload = pathPart + request
-        url = self.implode_hostname(self.urls['api'][endpoint]) + payload
+        apiUrl = self.safe_string(self.urls['api'], endpoint)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(apiUrl) + payload
         query = self.omit(params, self.extract_params(path))
         if not signed and (method == 'GET'):
             keys = list(query.keys())

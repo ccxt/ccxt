@@ -1019,7 +1019,7 @@ export default class nado extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1090,7 +1090,7 @@ export default class nado extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit, { 'status': 'open' });
     }
 
@@ -1164,7 +1164,7 @@ export default class nado extends Exchange {
         //     }
         //
         const closedOrders: Dict[] = [];
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             if (this.isArchiveOrderClosed (order)) {
@@ -1281,7 +1281,7 @@ export default class nado extends Exchange {
         //         ]
         //     }
         //
-        const matches = this.safeList (response, 'matches', []);
+        const matches: Dict[] = this.safeList (response, 'matches', []);
         const txs = this.safeList (response, 'txs', []);
         const txsBySubmission = this.indexBy (txs, 'submission_idx');
         const trades: Trade[] = [];
@@ -1434,8 +1434,8 @@ export default class nado extends Exchange {
         //         ]
         //     }
         //
-        const events = this.safeList (response, 'events', []);
-        const txs = this.safeList (response, 'txs', []);
+        const events: Dict[] = this.safeList (response, 'events', []);
+        const txs: Dict[] = this.safeList (response, 'txs', []);
         const transactions: Transaction[] = [];
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
@@ -1507,8 +1507,8 @@ export default class nado extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const positions = this.safeList (data, 'perp_balances', []);
-        const products = this.safeList (data, 'perp_products', []);
+        const positions: Dict[] = this.safeList (data, 'perp_balances', []);
+        const products: Dict[] = this.safeList (data, 'perp_products', []);
         const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -1601,9 +1601,9 @@ export default class nado extends Exchange {
         const pairsRequest = this.gatewayV2PublicGetPairs (params);
         const assetsRequest = this.gatewayV2PublicGetAssets (params);
         const responses = await Promise.all ([ symbolsRequest, pairsRequest, assetsRequest ]);
-        const symbols = this.safeList (responses, 0, []);
-        const pairs = this.safeList (responses, 1, []);
-        const assets = this.safeList (responses, 2, []);
+        const symbols: Dict[] = this.safeList (responses, 0, []);
+        const pairs: Dict[] = this.safeList (responses, 1, []);
+        const assets: Dict[] = this.safeList (responses, 2, []);
         // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         const pairsById: Dict = {};
@@ -1663,6 +1663,9 @@ export default class nado extends Exchange {
             const rawQuoteId = this.safeString (pair, 'quote', 'USDT0');
             const base = this.safeCurrencyCode (this.removeMarketSuffix (rawBaseId));
             const quote = this.safeCurrencyCode (rawQuoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const baseAsset = this.safeDict (assetsByCode, base, asset);
             const quoteAsset = this.safeDict (assetsByCode, quote);
             const baseId = this.safeString (baseAsset, 'product_id', rawBaseId);
@@ -2519,7 +2522,7 @@ export default class nado extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'spot_balances', []);
+        const balances: Dict[] = this.safeList (response, 'spot_balances', []);
         for (let i = 0; i < balances.length; i++) {
             const rawBalance = this.safeDict (balances, i);
             const currencyId = this.safeString (rawBalance, 'product_id');

@@ -806,6 +806,9 @@ class cryptocom extends Exchange {
             $settleId = $spot ? null : $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $spot ? null : $this->safe_currency_code($settleId);
             $optionType = $this->safe_string_lower($market, 'put_call');
             $strike = $this->safe_string($market, 'strike');
@@ -2627,7 +2630,7 @@ class cryptocom extends Exchange {
         if ($execInst !== null) {
             $postOnly = false;
             for ($i = 0; $i < count($execInst); $i++) {
-                $inst = $execInst[$i];
+                $inst = $this->safe_string($execInst, $i);
                 if ($inst === 'POST_ONLY') {
                     $postOnly = true;
                     break;
@@ -3769,7 +3772,11 @@ class cryptocom extends Exchange {
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
-        $url = $this->urls['api'][$type] . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $type);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
             if (count($query) > 0) {

@@ -711,9 +711,7 @@ class coinspot extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $sideUpper = strtoupper($side);
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
@@ -802,7 +800,11 @@ class coinspot extends Exchange {
         if ($version !== null) {
             $fullPath = '/' . $version . $endpoint;
         }
-        $url = $this->urls['api'][$accessType] . $fullPath;
+        $apiUrl = $this->safe_string($this->urls['api'], $accessType);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
         if ($accessType === 'private') {
             $this->check_required_credentials();
             // coinspot requires an increasing nonce

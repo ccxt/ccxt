@@ -87,9 +87,10 @@ function splitTopLevelArgs(s: string): string[] {
 // `Helpers.callDynamically(x, "<m>", new Object[]{...})` on a local whose declaration (the last one in
 // the same member) names a hand-written ws class binds the method that class declares:
 // ws/ArrayCache.java `void append(Object)`, ws/WsOrderBook.java `void reset(Object)` / `WsOrderBook limit()`.
-const JAVA_WS_NATIVE_METHODS: { [cls: string]: { [method: string]: { argc: number, value: boolean } } } = {
-    'io.github.ccxt.ws.ArrayCache': { 'append': { argc: 1, value: false } },
-    'io.github.ccxt.ws.WsOrderBook': { 'reset': { argc: 1, value: false }, 'limit': { argc: 0, value: true } },
+const JAVA_WS_NATIVE_METHODS: { [cls: string]: { [method: string]: { argc: number[], value: boolean } } } = {
+    'io.github.ccxt.ws.ArrayCache': { 'append': { argc: [1], value: false } },
+    'io.github.ccxt.ws.WsOrderBook': { 'reset': { argc: [1], value: false }, 'limit': { argc: [0], value: true } },
+    'io.github.ccxt.ws.OrderBookSide': { 'store': { argc: [2, 3], value: false }, 'storeArray': { argc: [1], value: false }, 'limit': { argc: [0], value: false } },
 };
 const JAVA_MEMBER_START_RE = /^    (?:public|private|protected)\b/;
 
@@ -138,10 +139,11 @@ export function nativeJavaWsCacheCalls (content: string): string {
                 continue;
             }
             const args = line.slice(argsAt, j - 1).trim();
-            const argc = args === '' ? 0 : splitTopLevelArgs(args).length;
+            // generic type arguments (`new HashMap<String, Object>()`) carry no top-level comma
+            const argc = args === '' ? 0 : splitTopLevelArgs(args.replace(/<[\w.<>?, ]*>/g, '')).length;
             // void methods only in statement position: the helper's Object result is unused there
             const statement = /^\s*$/.test(line.slice(0, m.index)) && /^\s*;/.test(line.slice(j + 1));
-            if (argc !== spec.argc || (!spec.value && !statement)) {
+            if (!spec.argc.includes(argc) || (!spec.value && !statement)) {
                 continue;
             }
             out += line.slice(cursor, m.index) + m[1] + '.' + m[2] + '(' + args + ')';
@@ -150,6 +152,61 @@ export function nativeJavaWsCacheCalls (content: string): string {
         }
         if (cursor > 0) {
             lines[i] = out + line.slice(cursor);
+            changed = true;
+        }
+    }
+    return changed ? lines.join('\n') : content;
+}
+
+// WsOrderBook.containsKey is true for these keys, so the helper's Map branch is exactly `get`
+const JAVA_WS_ORDERBOOK_READ_KEYS = new Set([ 'asks', 'bids', 'timestamp', 'datetime', 'nonce', 'cache' ]);
+const JAVA_INT_COUNTER_RE = (name: string) => new RegExp('\\bfor \\((?:var|int) ' + name + ' = ');
+const JAVA_ANY_DECLARATION_RE = (name: string) => new RegExp('(?:^|[\\s(,])(?:final\\s+)?[A-Za-z_][\\w.<>?]*(?:<[^;()=]*>)?\\s+' + name + '\\s*(?:=|;|:|,|\\))');
+
+// the nearest declaration of `name` in the same member is a `for (var|int name = ..)` counter (prints int)
+function javaIntCounterIndex (lines: string[], lineIndex: number, name: string): boolean {
+    const anyDeclaration = JAVA_ANY_DECLARATION_RE(name);
+    for (let i = lineIndex; i >= 0; i--) {
+        if (anyDeclaration.test(lines[i])) {
+            return JAVA_INT_COUNTER_RE(name).test(lines[i]);
+        }
+        if (JAVA_MEMBER_START_RE.test(lines[i])) {
+            return false;
+        }
+    }
+    return false;
+}
+
+// `Helpers.GetValue(x, k)` on a receiver whose printed declaration is `List<Object>` (int literal or int
+// counter index) or `WsOrderBook` (a key its containsKey always answers) -> the helper's own branch,
+// with its null / out-of-range answers kept explicit; every other receiver keeps the helper
+export function nativeJavaDeclaredElementReads (content: string): string {
+    const lines = content.split('\n');
+    const call = /Helpers\.GetValue\((\w+), (\d+|[A-Za-z_]\w*|"(\w+)")\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) {
+            continue;
+        }
+        const next = line.replace(call, (whole, receiver, key, literal) => {
+            const cls = javaDeclaredClassOf(lines, i, receiver);
+            if (cls === 'List<Object>' || cls === 'java.util.List<Object>') {
+                if (/^\d+$/.test(key)) {
+                    return `(${receiver} == null || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`;
+                }
+                if (literal === undefined && javaIntCounterIndex(lines, i, key)) {
+                    return `(${receiver} == null || ${key} < 0 || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`;
+                }
+                return whole;
+            }
+            if ((cls === 'io.github.ccxt.ws.WsOrderBook' || cls === 'WsOrderBook') && literal !== undefined && JAVA_WS_ORDERBOOK_READ_KEYS.has(literal)) {
+                return `(${receiver} == null ? null : ${receiver}.get(${key}))`;
+            }
+            return whole;
+        });
+        if (next !== line) {
+            lines[i] = next;
             changed = true;
         }
     }
@@ -3391,6 +3448,7 @@ class NewTranspiler {
 
         // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
         content = this.retypeFinalVarDeclarations(content);
+        content = nativeJavaDeclaredElementReads(content);
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }

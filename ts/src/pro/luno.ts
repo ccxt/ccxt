@@ -1,9 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import lunoRest from '../luno.js';
+import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -56,7 +58,11 @@ export default class luno extends lunoRest {
         const symbolValue: string = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
         const subscription: Dict = { 'symbol': symbolValue };
-        const url = this.urls['api']['ws'] + subscriptionHash;
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
         const messageHash = 'trades:' + symbolValue;
         const subscribe: Dict = {
             'api_key_id': this.apiKey,
@@ -87,12 +93,12 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const rawTrades = this.safeList (message, 'trade_updates', []);
+        const rawTrades: Dict[] = this.safeList (message, 'trade_updates', []);
         const length = rawTrades.length;
         if (length === 0) {
             return;
         }
-        const symbol = subscription['symbol'];
+        const symbol: string = subscription['symbol'];
         const market = this.market (symbol);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
@@ -166,14 +172,18 @@ export default class luno extends lunoRest {
         const symbolValue: string = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
         const subscription: Dict = { 'symbol': symbolValue };
-        const url = this.urls['api']['ws'] + subscriptionHash;
+        const wsUrl = this.safeString (this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
         const messageHash = 'orderbook:' + symbolValue;
         const subscribe: Dict = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         return orderbook.limit ();
     }
 
@@ -210,7 +220,7 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const symbol = subscription['symbol'];
+        const symbol: string = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (message, 'timestamp');
         if (!(symbol in this.orderbooks)) {

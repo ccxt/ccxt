@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\paradex as Exchange;
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
@@ -647,6 +648,9 @@ class paradex extends Exchange {
         $baseId = $this->safe_string($market, 'base_currency');
         $quote = $this->safe_currency_code($quoteId);
         $base = $this->safe_currency_code($baseId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settleId = $this->safe_string($market, 'settlement_currency');
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -886,7 +890,7 @@ class paradex extends Exchange {
         if ($since !== null) {
             $request['start_at'] = $since;
             if ($limit !== null) {
-                $request['end_at'] = $this->sum($since, $duration * ($limit + 1) * 1000) - 1;
+                $request['end_at'] = $since . $duration * ($limit + 1) * 1000 - 1;
             } else {
                 $request['end_at'] = $until;
             }
@@ -1467,7 +1471,8 @@ class paradex extends Exchange {
     }
 
     public function hash_message(mixed $message) {
-        return '0x' . $this->hash($message, 'keccak', 'hex');
+        $hashed = $this->hash($message, 'keccak', 'hex');
+        return '0x' . $hashed;
     }
 
     public function sign_hash(string $hash, string $privateKey): string {
@@ -1482,7 +1487,7 @@ class paradex extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function get_system_config() {
+    public function get_system_config(): PromiseInterface {
         return Async\async(self::do_get_system_config(...))();
     }
 
@@ -1546,7 +1551,7 @@ class paradex extends Exchange {
         return $domain;
     }
 
-    public function retrieve_account() {
+    public function retrieve_account(): PromiseInterface {
         return Async\async(self::do_retrieve_account(...))();
     }
 
@@ -1601,7 +1606,7 @@ class paradex extends Exchange {
         return $response;
     }
 
-    public function authenticate_rest($params = array()) {
+    public function authenticate_rest($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate_rest(...))($params);
     }
 
@@ -1884,7 +1889,7 @@ class paradex extends Exchange {
         $orderReq = array(
             'timestamp' => $now * 1000,
             'market' => $this->string_to_base16($request['market']),
-            'side' => ($request['side'] === 'BUY') ? '1' : '2',
+            'side' => ($this->safe_string($request, 'side') === 'BUY') ? '1' : '2',
             'orderType' => $this->string_to_base16($request['type']),
             'size' => $this->scale_number($request['size']),
             'price' => ($isMarket) ? '0' : $this->scale_number($request['price']),
@@ -2868,7 +2873,7 @@ class paradex extends Exchange {
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
-            if ($row['kind'] === 'DEPOSIT') {
+            if ($this->safe_string($row, 'kind') === 'DEPOSIT') {
                 $deposits[] = $row;
             }
         }
@@ -2936,7 +2941,7 @@ class paradex extends Exchange {
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
-            if ($row['kind'] === 'WITHDRAWAL') {
+            if ($this->safe_string($row, 'kind') === 'WITHDRAWAL') {
                 $deposits[] = $row;
             }
         }
@@ -3673,7 +3678,10 @@ class paradex extends Exchange {
                     'public_key' => $query['public_key'],
                 ));
             } else {
-                $token = $this->options['authToken'];
+                $token = $this->safe_string($this->options, 'authToken');
+                if ($token === null) {
+                    throw new AuthenticationError($this->id . ' sign() requires an authToken, call authenticateRest() first');
+                }
                 $headers['Authorization'] = 'Bearer ' . $token;
                 if (($method === 'POST') || ($method === 'PUT') || (($method === 'DELETE') && ($path === 'orders/batch'))) {
                     $headers['Content-Type'] = 'application/json';

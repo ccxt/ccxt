@@ -7,6 +7,7 @@ import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/e
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -176,7 +177,7 @@ export default class bitvavo extends bitvavoRest {
         //
         this.handleBidAsk (client, message);
         const event = this.safeString (message, 'event');
-        const tickers = this.safeList (message, 'data', []);
+        const tickers: Dict[] = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -213,7 +214,7 @@ export default class bitvavo extends bitvavoRest {
 
     handleBidAsk (client: Client, message: Dict) {
         const event = 'bidask';
-        const tickers = this.safeList (message, 'data', []);
+        const tickers: Dict[] = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -470,7 +471,7 @@ export default class bitvavo extends bitvavoRest {
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         const messageHash = name + '@' + marketId + '_' + interval;
-        const candles = this.safeList (message, 'candle', []);
+        const candles: Dict[] = this.safeList (message, 'candle', []);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -642,7 +643,7 @@ export default class bitvavo extends bitvavoRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -688,7 +689,7 @@ export default class bitvavo extends bitvavoRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+        const orderbook: Ob = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -836,7 +837,7 @@ export default class bitvavo extends bitvavoRest {
             'action': name,
             'market': marketId,
         };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const orderbook: Ob = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         return orderbook.limit ();
     }
 

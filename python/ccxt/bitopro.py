@@ -450,6 +450,8 @@ class bitopro(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         limits = {
             'amount': {
@@ -916,7 +918,7 @@ class bitopro(Exchange, ImplicitAPI):
         sparse = self.parse_ohlcvs(data, market, timeframe, since, limit)
         return self.insert_missing_candles(sparse, timeframeInSeconds, alignedSince, limit)
 
-    def insert_missing_candles(self, candles: object, distance: object, since: object, limit: object):
+    def insert_missing_candles(self, candles: object, distance: float, since: Int, limit: float):
         # the exchange doesn't send zero volume candles so we emulate them instead
         # otherwise sending a limit arg leads to unexpected results
         length = len(candles)
@@ -1838,7 +1840,10 @@ class bitopro(Exchange, ImplicitAPI):
         elif api == 'public' and method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        url = self.urls['api']['rest'] + url
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

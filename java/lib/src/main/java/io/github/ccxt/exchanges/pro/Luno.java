@@ -66,38 +66,60 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
-            this.checkRequiredCredentials(true);
+            String symbol = symbol3;
+            Object limit = limit3;
+            this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "symbol", symbolValue );
+                put( "symbol", finalSymbol );
             }};
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subscriptionHash);
-            String messageHash = ("trades:" + symbolValue);
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+            }
+            String url = (wsUrl + subscriptionHash);
+            String messageHash = ("trades:" + symbol);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
                 put( "api_key_secret", Luno.this.secret );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscriptionHash, subscription)).join();
-            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+                limit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbol, limit);
             }
-            return this.filterBySinceLimit(trades, since, Helpers.toLongOrNull(limitResolved), "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name luno#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of    trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.watchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public void handleTrades(Client client, Map<String, Object> message, Map<String, Object> subscription)
@@ -125,7 +147,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         Object symbol = ((Map<String, Object>)subscription).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        String messageHash = Helpers.add("trades:", symbol);
+        String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -136,7 +158,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, Helpers.toMapArg(market));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
             stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -164,21 +186,26 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             symbol = ((Map<String, Object>)market).get("symbol");
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", null,
-            "timestamp", null,
-            "datetime", null,
-            "symbol", symbol,
-            "order", null,
-            "type", null,
-            "side", null,
-            "takerOrMaker", null,
-            "price", null,
-            "amount", this.safeString(trade, "base"),
-            "cost", this.safeString(trade, "counter"),
-            "fee", null
-        ), market);
+        final Object finalSymbol = symbol;
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "info", trade );
+            put( "id", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "symbol", finalSymbol );
+            put( "order", null );
+            put( "type", null );
+            put( "side", null );
+            put( "takerOrMaker", null );
+            put( "price", null );
+            put( "amount", Luno.this.safeString(trade, "base") );
+            put( "cost", Luno.this.safeString(trade, "counter") );
+            put( "fee", null );
+        }}, market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -192,24 +219,30 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            this.checkRequiredCredentials(true);
+            String symbol = symbol3;
+            this.checkRequiredCredentials();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
+            symbol = (String) ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
+            final String finalSymbol = symbol;
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "symbol", symbolValue );
+                put( "symbol", finalSymbol );
             }};
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subscriptionHash);
-            String messageHash = ("orderbook:" + symbolValue);
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+            }
+            String url = (wsUrl + subscriptionHash);
+            String messageHash = ("orderbook:" + symbol);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
                 put( "api_key_secret", Luno.this.secret );
@@ -219,6 +252,21 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name luno#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    {
+        return this.watchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message, Map<String, Object> subscription)
@@ -256,25 +304,25 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object symbol = ((Map<String, Object>)subscription).get("symbol");
-        String messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = ("orderbook:" + symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
-        List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
+        List<Object> asks = (List<Object>) this.safeList(message, "asks");
         if (!java.util.Objects.equals(asks, null))
         {
-            Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "volume", "id");
+            Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
-            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             this.handleDelta(ob, message);
             Helpers.addElementToObject(ob, "timestamp", timestamp);
             Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long nonce = this.safeInteger(message, "sequence");
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         client.resolve(orderbook, messageHash);
@@ -282,8 +330,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
 
     public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, String bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, java.util.Objects.requireNonNullElse(bidsKey, "bids"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
-        List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, java.util.Objects.requireNonNullElse(asksKey, "asks"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Luno.this.sortBy(bids, 0, true) );
@@ -293,29 +341,41 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             put( "nonce", null );
         }};
     }
+    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Object... optionalArgs)
+    {
+        return this.customParseOrderBook(orderbook, symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, "bids"), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : "asks", optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : "price", optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : "volume", optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2);
+    }
 
     public Object parseOrderBookBidsAsks(Object bidasks, Object priceKey, Object amountKey, Object thirdKey)
     {
-        List<Object> bidasksValue = this.toArray(bidasks);
+        bidasks = this.toArray(bidasks);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (bidasksValue == null ? 0 : bidasksValue.size()); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidasks); i++)
         {
-            ((List<Object>)result).add(this.customParseBidAsk((bidasksValue == null || i < 0 || i >= bidasksValue.size() ? null : bidasksValue.get(i)), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(thirdKey, 2)));
+            ((List<Object>)result).add(this.customParseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
         return result;
+    }
+    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
+    {
+        return this.parseOrderBookBidsAsks(bidasks, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2);
     }
 
     public Object customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Object thirdKey)
     {
-        Double price = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(priceKey, "price"), (Object) null);
-        Double amount = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(amountKey, "volume"), (Object) null);
+        Double price = this.safeNumber(bidask, priceKey);
+        Double amount = this.safeNumber(bidask, amountKey);
         List<Object> result = new ArrayList<Object>(Arrays.asList(price, amount));
-        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(thirdKey, 2), null))
+        if (!java.util.Objects.equals(thirdKey, null))
         {
-            Object thirdValue = ((Object)this.safeString(bidask, java.util.Objects.requireNonNullElse(thirdKey, 2)));
+            Object thirdValue = ((Object)this.safeString(bidask, thirdKey));
             ((List<Object>)result).add(thirdValue);
         }
         return result;
+    }
+    public Object customParseBidAsk(Object bidask, Object... optionalArgs)
+    {
+        return this.customParseBidAsk(bidask, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2);
     }
 
     public void handleDelta(Object orderbook, Object message)
@@ -363,7 +423,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Map<String, Object> createUpdate = (Map<String, Object>) this.safeDict(message, "create_update", (Object) null);
+        Map<String, Object> createUpdate = (Map<String, Object>) this.safeDict(message, "create_update");
         Object asksOrderSide = Helpers.GetValue(orderbook, "asks");
         Object bidsOrderSide = Helpers.GetValue(orderbook, "bids");
         if (!java.util.Objects.equals(createUpdate, null))
@@ -378,7 +438,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{bidAskArray});
             }
         }
-        Map<String, Object> deleteUpdate = (Map<String, Object>) this.safeDict(message, "delete_update", (Object) null);
+        Map<String, Object> deleteUpdate = (Map<String, Object>) this.safeDict(message, "delete_update");
         if (!java.util.Objects.equals(deleteUpdate, null))
         {
             String orderId = this.safeString(deleteUpdate, "order_id");

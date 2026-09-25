@@ -1057,6 +1057,8 @@ class hashkey(Exchange, ImplicitAPI):
             baseId = self.safe_string(market, 'underlying')
             suffix += ':' + settleId
         base = self.safe_currency_code(baseId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote + suffix
         status = self.safe_string(market, 'status')
         active = status == 'TRADING'
@@ -2274,7 +2276,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_account_type(self, type: object):
+    def parse_account_type(self, type: Str):
         types = {
             '1': 'spot account',
             '3': 'swap account',
@@ -4307,7 +4309,10 @@ class hashkey(Exchange, ImplicitAPI):
         }
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         query = None
         if api == 'private':
             self.check_required_credentials()

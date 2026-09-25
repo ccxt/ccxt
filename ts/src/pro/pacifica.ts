@@ -5,6 +5,7 @@ import { ArgumentsRequired, NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -285,7 +286,7 @@ export default class pacifica extends pacificaRest {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = this.safeDict (results, i);
@@ -448,7 +449,7 @@ export default class pacifica extends pacificaRest {
             },
         };
         const message = this.extend (request, paramsAggLevel);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -589,7 +590,7 @@ export default class pacifica extends pacificaRest {
                 'source': 'prices',
             },
         };
-        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const tickers: Tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
         }
@@ -730,7 +731,7 @@ export default class pacifica extends pacificaRest {
         // }
         //
         const parsedTickers: Ticker[] = [];
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
             const marketId = this.safeString (info, 'symbol');
@@ -780,7 +781,7 @@ export default class pacifica extends pacificaRest {
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -1228,7 +1229,7 @@ export default class pacifica extends pacificaRest {
         //     }
         //   ]
         // }
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);

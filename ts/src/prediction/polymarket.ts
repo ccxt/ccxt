@@ -6,7 +6,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type { Int, Str, Num, Dict,
+import type { OrderSide, OrderType, Int, Str, Num, Dict,
     Market, PredictionTickers, PredictionOrderBook, OHLCV,
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
@@ -1968,7 +1968,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
         await this.loadOutcome (outcome);
         const built = this.buildClobOrderBody (outcome, type, side, amount, price, params);
@@ -2357,7 +2357,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: Str, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiCredentials ();
         // cancelling by id needs no market data, so events do not have to be loaded first
         const request: Dict = { 'orderID': id };
@@ -3050,8 +3050,8 @@ export default class polymarket extends Exchange {
         }
         const orderbook = this.orderbooks[outcome];
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
-        const rawBids = this.safeList (event, 'bids', []) as any[];
-        const rawAsks = this.safeList (event, 'asks', []) as any[];
+        const rawBids: Dict[] = this.safeList (event, 'bids', []);
+        const rawAsks: Dict[] = this.safeList (event, 'asks', []);
         const bids: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
             const b = this.safeDict (rawBids, i);
@@ -3078,7 +3078,7 @@ export default class polymarket extends Exchange {
 
     handleOrderBookDelta (client: any, event: Dict) {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
-        const changes = this.safeList (event, 'price_changes', []) as any[];
+        const changes: Dict[] = this.safeList (event, 'price_changes', []);
         const updated: Dict = {};
         for (let i = 0; i < changes.length; i++) {
             const change = this.safeDict (changes, i);

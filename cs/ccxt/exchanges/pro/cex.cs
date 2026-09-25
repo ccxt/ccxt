@@ -141,7 +141,7 @@ public partial class cex : ccxt.cex
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string? currentSymbol = this.safeString((this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
-        if ((currentSymbol != null) && !isEqual(currentSymbol, symbolVar))
+        if ((currentSymbol != null) && !(currentSymbol == symbolVar))
         {
             throw new ArgumentsRequired ((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
@@ -265,7 +265,7 @@ public partial class cex : ccxt.cex
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object index = subtract((dataLength - 1), i);
-            object rawTrade = getValue(data, index);
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
             Dictionary<string, object> parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -1023,7 +1023,7 @@ public partial class cex : ccxt.cex
         }
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            object rawOrder = rawOrders[i];
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
             Dictionary<string, object> market = this.safeMarket(symbol);
             Dictionary<string, object> order = this.parseOrder(rawOrder, market);
             order["status"] = "open";
@@ -1150,7 +1150,8 @@ public partial class cex : ccxt.cex
         string? symbol = this.pairToSymbol(pair);
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
         string messageHash = ("orderbook:" + symbol);
-        if (!isEqual(incrementalId, add(getValue(storedOrderBook, "nonce"), 1)))
+        Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
+        if (((nonce == null)) || (!isEqual(incrementalId, (nonce + 1))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             client.reject((this.id + " watchOrderBook() skipped a message"), messageHash);

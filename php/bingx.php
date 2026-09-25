@@ -1053,6 +1053,9 @@ class bingx extends Exchange {
         $quoteId = $symbolParts[1];
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $currency = $this->safe_string($market, 'currency');
         $checkIsInverse = false;
         $checkIsLinear = true;

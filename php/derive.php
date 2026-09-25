@@ -668,6 +668,9 @@ class derive extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $marketId = $this->safe_string($market, 'instrument_name');
         $symbol = $base . '/' . $quote;
         $settleId = null;
@@ -2773,7 +2776,11 @@ class derive extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         if ($method === 'POST') {
             $headers = array(
                 'Content-Type' => 'application/json',

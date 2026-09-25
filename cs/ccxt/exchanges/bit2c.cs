@@ -1005,7 +1005,7 @@ public partial class bit2c : Exchange
     {
         object newString = "";
         List<object> strParts = ((string)str).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-        for (int i = 0; i < (strParts?.Count ?? 0); i++)
+        for (int i = 0; i < strParts.Count; i++)
         {
             newString = add(newString, strParts[i]);
         }
@@ -1059,8 +1059,11 @@ public partial class bit2c : Exchange
         {
             id = reference;
             timestamp = this.safeTimestamp(trade, "ticks");
-            price = this.safeString(trade, "price");
-            price = this.removeCommaFromValue(price);
+            string? rawPrice = this.safeString(trade, "price");
+            if ((rawPrice != null))
+            {
+                price = this.removeCommaFromValue(rawPrice);
+            }
             amount = this.safeString(trade, "firstAmount");
             List<object> reference_parts = reference.Split(new [] {"|"}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             string? marketId = this.safeString(trade, "pair");
@@ -1123,7 +1126,7 @@ public partial class bit2c : Exchange
 
     public virtual bool isFiat(string? code)
     {
-        return isEqual(code, "NIS");
+        return (code == "NIS");
     }
 
     /**
@@ -1185,15 +1188,20 @@ public partial class bit2c : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/"), this.implodeParams(path, parameters));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         if (isEqual(api, "public"))
         {
-            url = add(url, ".json");
+            url = url + ".json";
         } else
         {
             this.checkRequiredCredentials();
@@ -1203,11 +1211,11 @@ public partial class bit2c : Exchange
                 { "nonce", nonce },
             }, parameters);
             string auth = this.urlencode(query);
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + auth));
+                    url = url + ("?" + auth);
                 }
             } else
             {

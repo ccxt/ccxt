@@ -767,7 +767,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public CompletableFuture<Object> handleBuilderFeeApproval()
+    public CompletableFuture<Boolean> handleBuilderFeeApproval()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -790,14 +790,14 @@ public class Pacifica extends PacificaApi
             {
                 String builder = this.safeString(this.options, "builderCode", "CCXT"); // case sensitive
                 String maxFeeRate = this.safeString(this.options, "feeRate", "0.01");
-                (this.approveBuilderCode(builder, maxFeeRate, new HashMap<String, Object>() {{}})).join();
+                (this.approveBuilderCode(builder, maxFeeRate)).join();
                 Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
             } catch(Exception e)
             {
                 Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
             }
             return true;
-        });
+        }).thenApply(res -> (Boolean) res);
 
     }
 
@@ -859,6 +859,18 @@ public class Pacifica extends PacificaApi
         });
 
     }
+    /**
+     * @method
+     * @name pacifica#fetchMarkets
+     * @description retrieves data on all markets for pacifica
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -873,10 +885,22 @@ public class Pacifica extends PacificaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object markets = (this.fetchMarkets(parameters)).join();
+            Object markets = (this.fetchMarkets((Object)(parameters))).join();
             return this.filterBy(markets, "type", "swap");
         });
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchSwapMarkets
+     * @description retrieves data on all swap markets for pacifica
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
+    {
+        return this.fetchSwapMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarket(Object market)
@@ -950,75 +974,93 @@ public class Pacifica extends PacificaApi
             crossMargin = !java.util.Objects.equals(isolatedOnly, true);
             isolatedMargin = true;
         }
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
+        String settle = this.safeCurrencyCode(settleId);
         String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(isSwap))
         {
             symbol = ((symbol + ":") + settle);
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
-        Double taker = this.safeNumber(fees, "taker", (Object) null);
-        Double maker = this.safeNumber(fees, "maker", (Object) null);
-        Double amountPrecision = this.safeNumber(market, "lot_size", (Object) null);
-        Double pricePrecision = this.safeNumber(market, "tick_size", (Object) null);
+        Double taker = this.safeNumber(fees, "taker");
+        Double maker = this.safeNumber(fees, "maker");
+        Double amountPrecision = this.safeNumber(market, "lot_size");
+        Double pricePrecision = this.safeNumber(market, "tick_size");
         Boolean active = true; // there is no non-active markets comes from endpoint market info
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", isSpot,
-            "margin", false,
-            "swap", isSwap,
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", isSwap,
-            "linear", linear,
-            "inverse", inverse,
-            "taker", taker,
-            "maker", maker,
-            "contractSize", contractSize,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        final String finalId = id;
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalQuote = quote;
+        final String finalQuoteId = quoteId;
+        final String finalSettleId = settleId;
+        final String finalType = type;
+        final Boolean finalLinear = linear;
+        final Boolean finalInverse = inverse;
+        final Double finalContractSize = contractSize;
+        final Object finalMinLeverage = minLeverage;
+        final Long finalMaxLeverage = maxLeverage;
+        final Boolean finalCrossMargin = crossMargin;
+        final Boolean finalIsolatedMargin = isolatedMargin;
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
+            put( "id", finalId );
+            put( "symbol", finalSymbol );
+            put( "base", finalBase );
+            put( "quote", finalQuote );
+            put( "settle", settle );
+            put( "baseId", baseId );
+            put( "quoteId", finalQuoteId );
+            put( "settleId", finalSettleId );
+            put( "type", finalType );
+            put( "spot", isSpot );
+            put( "margin", false );
+            put( "swap", isSwap );
+            put( "future", false );
+            put( "option", false );
+            put( "active", active );
+            put( "contract", isSwap );
+            put( "linear", finalLinear );
+            put( "inverse", finalInverse );
+            put( "taker", taker );
+            put( "maker", maker );
+            put( "contractSize", finalContractSize );
+            put( "expiry", null );
+            put( "expiryDatetime", null );
+            put( "strike", null );
+            put( "optionType", null );
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", amountPrecision );
                 put( "price", pricePrecision );
-            }},
-            "limits", Helpers.newMap(
-                "leverage", Helpers.newMap(
-                    "min", minLeverage,
-                    "max", maxLeverage
-                ),
-                "amount", new HashMap<String, Object>() {{
+            }} );
+            put( "limits", new HashMap<String, Object>() {{
+                put( "leverage", new HashMap<String, Object>() {{
+                    put( "min", finalMinLeverage );
+                    put( "max", finalMaxLeverage );
+                }} );
+                put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "price", new HashMap<String, Object>() {{
-                    put( "min", Pacifica.this.safeNumber(market, "min_tick", (Object) null) );
-                    put( "max", Pacifica.this.safeNumber(market, "max_tick", (Object) null) );
-                }},
-                "cost", new HashMap<String, Object>() {{
-                    put( "min", Pacifica.this.safeNumber(market, "min_order_size", (Object) null) );
-                    put( "max", Pacifica.this.safeNumber(market, "max_order_size", (Object) null) );
-                }}
-            ),
-            "created", this.safeInteger(market, "created_at"),
-            "marginModes", Helpers.newMap(
-                "cross", crossMargin,
-                "isolated", isolatedMargin
-            ),
-            "info", market
-        ));
+                }} );
+                put( "price", new HashMap<String, Object>() {{
+                    put( "min", Pacifica.this.safeNumber(market, "min_tick") );
+                    put( "max", Pacifica.this.safeNumber(market, "max_tick") );
+                }} );
+                put( "cost", new HashMap<String, Object>() {{
+                    put( "min", Pacifica.this.safeNumber(market, "min_order_size") );
+                    put( "max", Pacifica.this.safeNumber(market, "max_order_size") );
+                }} );
+            }} );
+            put( "created", Pacifica.this.safeInteger(market, "created_at") );
+            put( "marginModes", new HashMap<String, Object>() {{
+                put( "cross", finalCrossMargin );
+                put( "isolated", finalIsolatedMargin );
+            }} );
+            put( "info", market );
+        }});
     }
 
     /**
@@ -1030,18 +1072,20 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchBalance", (Map<String, Object>) (parameters));
-            String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> parameters = parameters3;
+            String userAccount = null;
+            List<Object> userAccountparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchBalance", (Map<String, Object>) (parameters));
+            userAccount = (String) ((List<Object>) userAccountparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAccountparametersVariable).get(1);
+            final String finalUserAccount = userAccount;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAccount );
+                put( "account", finalUserAccount );
             }};
-            Map<String, Object> response = (this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": {
@@ -1089,9 +1133,9 @@ public class Pacifica extends PacificaApi
             List<Object> spotBalances = (List<Object>) this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i);
                 String currencyId = this.safeString(balance, "symbol");
-                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                String code = this.safeCurrencyCode(currencyId);
                 Map<String, Object> account = (Map<String, Object>) this.account();
                 account.put("total", this.safeString(balance, "amount"));
                 account.put("free", this.safeString(balance, "available_to_withdraw"));
@@ -1108,6 +1152,19 @@ public class Pacifica extends PacificaApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name pacifica#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1119,33 +1176,35 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (this.loadAccountSettings(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> parameters = parameters3;
+            (this.loadAccountSettings()).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLeverage", (Map<String, Object>) (parameters));
-            String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            String userAccount = null;
+            List<Object> userAccountparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLeverage", (Map<String, Object>) (parameters));
+            userAccount = (String) ((List<Object>) userAccountparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAccountparametersVariable).get(1);
             String cacheAddress = this.walletAddress;
             Object settings = null;
             if (java.util.Objects.equals(userAccount, cacheAddress))
             {
-                settings = this.handleOption("fetchLeverage", "settings", (Object) null);
+                settings = this.handleOption("fetchLeverage", "settings");
             } else
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "account", userAccount
-                );
-                settings = (this.fetchAccountSettings(Helpers.toMapArg(this.extend(request, paramsOriginAndSingleAddress)))).join();
+                final String finalUserAccount = userAccount;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "account", finalUserAccount );
+                }};
+                settings = (this.fetchAccountSettings(this.extend(request, parameters))).join();
             }
-            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol, (Object) null);
+            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol);
             if (java.util.Objects.equals(setting, null))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1157,6 +1216,20 @@ public class Pacifica extends PacificaApi
             }
         }).thenApply(Leverage::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+     * @param {string} symbol  unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
+    {
+        return this.fetchLeverage(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseLeverageFromSetting(String symbol, Map<String, Object> setting)
@@ -1177,13 +1250,14 @@ public class Pacifica extends PacificaApi
         {
             marginMode = "isolated";
         }
-        return Helpers.newMap(
-            "info", setting,
-            "symbol", symbol,
-            "marginMode", marginMode,
-            "longLeverage", leverage,
-            "shortLeverage", leverage
-        );
+        final String finalMarginMode = marginMode;
+        return new HashMap<String, Object>() {{
+            put( "info", setting );
+            put( "symbol", symbol );
+            put( "marginMode", finalMarginMode );
+            put( "longLeverage", leverage );
+            put( "shortLeverage", leverage );
+        }};
     }
 
     public Map<String, Object> parseLeverageFromMarket(Map<String, Object> market)
@@ -1208,18 +1282,20 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    public CompletableFuture<Map<String, Object>> fetchAccountSettings(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchAccountSettings(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchAccountSettings", (Map<String, Object>) (parameters));
-            String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> parameters = parameters3;
+            String userAccount = null;
+            List<Object> userAccountparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchAccountSettings", (Map<String, Object>) (parameters));
+            userAccount = (String) ((List<Object>) userAccountparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAccountparametersVariable).get(1);
+            final String finalUserAccount = userAccount;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAccount );
+                put( "account", finalUserAccount );
             }};
-            Map<String, Object> response = (this.publicGetAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetAccountSettings(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -1238,14 +1314,27 @@ public class Pacifica extends PacificaApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
-
-    public CompletableFuture<Object> loadAccountSettings(Object refresh, Map<String, Object> parameters)
+    /**
+     * @method
+     * @name pacifica#fetchAccountSettings
+     * @description fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} Dict repacked from list by symbol key
+     */
+    public CompletableFuture<Map<String, Object>> fetchAccountSettings(Object... optionalArgs)
     {
+        return this.fetchAccountSettings(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> loadAccountSettings(Object refresh2, Map<String, Object> parameters)
+    {
+        final Object refresh3 = refresh2;
         return BaseExchange.supplyAsync(() -> {
-
-            Object settings = this.handleOption("loadAccountSettings", "settings", (Object) null);
-            if ((java.util.Objects.equals(settings, null)) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(refresh, false), true)))
+            Object refresh = refresh3;
+            Object settings = this.handleOption("loadAccountSettings", "settings");
+            if ((java.util.Objects.equals(settings, null)) || (java.util.Objects.equals(refresh, true)))
             {
                 Helpers.addElementToObject(this.options, "settings", this.createSafeDictionary());
                 settings = (this.fetchAccountSettings(parameters)).join();
@@ -1254,6 +1343,10 @@ public class Pacifica extends PacificaApi
             return null;
         });
 
+    }
+    public CompletableFuture<Object> loadAccountSettings(Object... optionalArgs)
+    {
+        return this.loadAccountSettings(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseAccountSettings(Object settings)
@@ -1266,8 +1359,8 @@ public class Pacifica extends PacificaApi
         Map<String, Object> settingsBySymbol = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)settings).size(); i++)
         {
-            Object marketId = Helpers.GetValue((settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)), "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Object marketId = ((Map<String, Object>)(settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i))).get("symbol");
+            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             settingsBySymbol.put((String)symbol, (settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)));
         }
@@ -1284,26 +1377,28 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (this.loadAccountSettings(false, new HashMap<String, Object>() {{}})).join();
-            List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMarginMode", (Map<String, Object>) (parameters));
-            String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
+            Map<String, Object> parameters = parameters3;
+            (this.loadAccountSettings()).join();
+            String userAccount = null;
+            List<Object> userAccountparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMarginMode", (Map<String, Object>) (parameters));
+            userAccount = (String) ((List<Object>) userAccountparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAccountparametersVariable).get(1);
             String cacheAddress = this.walletAddress;
             Object settings = null;
             if (java.util.Objects.equals(userAccount, cacheAddress))
             {
-                settings = this.handleOption("fetchMarginMode", "settings", (Object) null);
+                settings = this.handleOption("fetchMarginMode", "settings");
             } else
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "account", userAccount
-                );
-                settings = (this.fetchAccountSettings(Helpers.toMapArg(this.extend(request, paramsOriginAndSingleAddress)))).join();
+                final String finalUserAccount = userAccount;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "account", finalUserAccount );
+                }};
+                settings = (this.fetchAccountSettings(this.extend(request, parameters))).join();
             }
             // {
             //   "WLFI/USDC:USDC": {
@@ -1314,7 +1409,7 @@ public class Pacifica extends PacificaApi
             //       "updated_at": 1758086074002
             //    },
             // }
-            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol, (Object) null);
+            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol);
             if (java.util.Objects.equals(setting, null))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1329,6 +1424,20 @@ public class Pacifica extends PacificaApi
             }
         }).thenApply(MarginMode::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
+    {
+        return this.fetchMarginMode(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseMarginModeFromSetting(String symbol, Map<String, Object> setting)
@@ -1347,11 +1456,12 @@ public class Pacifica extends PacificaApi
         {
             marginMode = "isolated";
         }
-        return Helpers.newMap(
-            "symbol", symbol,
-            "marginMode", marginMode,
-            "info", setting
-        );
+        final String finalMarginMode = marginMode;
+        return new HashMap<String, Object>() {{
+            put( "symbol", symbol );
+            put( "marginMode", finalMarginMode );
+            put( "info", setting );
+        }};
     }
 
     /**
@@ -1365,24 +1475,26 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", Helpers.toLongOrNull(1));
-            Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
-            Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
+            Long aggLevel = null;
+            List<Object> aggLevelparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+            aggLevel = (Long) ((List<Object>) aggLevelparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) aggLevelparametersVariable).get(1);
+            final Long finalAggLevel = aggLevel;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "agg_level", aggLevel );
+                put( "agg_level", finalAggLevel );
             }};
-            Map<String, Object> response = (this.publicGetBook(this.extend(request, paramsAggLevel))).join();
+            Map<String, Object> response = (this.publicGetBook(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": {
@@ -1425,9 +1537,24 @@ public class Pacifica extends PacificaApi
                 put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
             }};
             Long timestamp = this.safeInteger(data, "t");
-            return this.parseOrderBook(result, this.safeSymbol(null, Helpers.toMapArg(market), (String) null, (String) null), Helpers.toLongOrNull(timestamp), "bids", "asks", "p", "a", 2);
+            return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1471,6 +1598,19 @@ public class Pacifica extends PacificaApi
         }).thenApply(FundingRates::new);
 
     }
+    /**
+     * @method
+     * @name pacifica#fetchFundingRates
+     * @description retrieves data on all swap markets for pacifica
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
+    {
+        return this.fetchFundingRates(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseFundingRate(Object info, Map<String, Object> market)
     {
@@ -1489,12 +1629,12 @@ public class Pacifica extends PacificaApi
         //       }
         //
         String marketId = this.safeString(info, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
-        Double funding = this.safeNumber(info, "funding", (Object) null);
-        Double markPx = this.safeNumber(info, "mark", (Object) null);
-        Double oraclePx = this.safeNumber(info, "oracle", (Object) null);
-        Double nextFundingRate = this.safeNumber(info, "next_funding", (Object) null);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        Double funding = this.safeNumber(info, "funding");
+        Double markPx = this.safeNumber(info, "mark");
+        Double oraclePx = this.safeNumber(info, "oracle");
+        Double nextFundingRate = this.safeNumber(info, "next_funding");
         Long timestamp = this.safeInteger(info, "timestamp");
         Object fundingTimestamp = Helpers.multiply(Helpers.multiply(Helpers.multiply((Helpers.add((Math.floor(Double.parseDouble(String.valueOf((((double) (((double) (((double) this.milliseconds()) / ((double) 60))) / ((double) 60))) / ((double) 1000)))))), 1)), 60), 60), 1000);
         return new HashMap<String, Object>() {{
@@ -1518,6 +1658,10 @@ public class Pacifica extends PacificaApi
             put( "interval", "1h" );
         }};
     }
+    public Object parseFundingRate(Object info, Object... optionalArgs)
+    {
+        return this.parseFundingRate(info, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -1533,11 +1677,17 @@ public class Pacifica extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol2, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Object symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(since, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a \"since\" argument")) ;
@@ -1549,27 +1699,29 @@ public class Pacifica extends PacificaApi
             Integer defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            Boolean paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", Helpers.toStringArg(symbol), since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(defaultMaxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, defaultMaxLimit)).join();
             }
-            String tf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", ((Map<String, Object>)market).get("id"),
-                "interval", tf,
-                "start_time", since
-            );
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
+            String tf = this.safeString(this.timeframes, timeframe, timeframe);
+            final Long finalSince = since;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "interval", tf );
+                put( "start_time", finalSince );
+            }};
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
+            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
             Long nowMillis = this.milliseconds();
-            Object until = this.safeInteger(requestUntil, "end_time");
+            Object until = this.safeInteger(request, "end_time");
             if (java.util.Objects.equals(until, null))
             {
                 if (!java.util.Objects.equals(limit, null))
@@ -1584,9 +1736,9 @@ public class Pacifica extends PacificaApi
                 {
                     until = nowMillis;
                 }
-                ((Map<String, Object>)requestUntil).put("end_time", until);
+                request.put("end_time", until);
             }
-            Map<String, Object> response = (this.publicGetKline(this.extend(requestUntil, paramsUntil))).join();
+            Map<String, Object> response = (this.publicGetKline(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -1609,9 +1761,27 @@ public class Pacifica extends PacificaApi
             // }
             //
             List<Object> candles = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
+            return this.parseOHLCVs(candles, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch. 'limit' is priority
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1630,7 +1800,11 @@ public class Pacifica extends PacificaApi
         //       "n": 2
         //     }
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o", (Object) null), this.safeNumber(ohlcv, "h", (Object) null), this.safeNumber(ohlcv, "l", (Object) null), this.safeNumber(ohlcv, "c", (Object) null), this.safeNumber(ohlcv, "v", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1651,7 +1825,7 @@ public class Pacifica extends PacificaApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1677,9 +1851,24 @@ public class Pacifica extends PacificaApi
             // }
             //
             List<Object> recentTrades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(recentTrades, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(recentTrades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-recent-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1697,49 +1886,57 @@ public class Pacifica extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Boolean paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            String userAddress = null;
+            List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchMyTrades", (Map<String, Object>) (parameters));
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOriginAndSingleAddress), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            Helpers.addElementToObject(requestUntil, "account", userAddress);
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
+            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            request.put("account", userAddress);
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(requestUntil, "symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)requestUntil).put("limit", limit);
+                request.put("limit", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)requestUntil).put("start_time", since);
+                request.put("start_time", since);
             }
-            Map<String, Object> response = (this.publicGetTradesHistory(this.extend(requestUntil, paramsUntil))).join();
+            Map<String, Object> response = (this.publicGetTradesHistory(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -1766,9 +1963,28 @@ public class Pacifica extends PacificaApi
             // }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseTrades(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-trade-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @param {string} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1805,8 +2021,8 @@ public class Pacifica extends PacificaApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String id = this.safeString(trade, "history_id");
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "open_long"))
@@ -1834,25 +2050,32 @@ public class Pacifica extends PacificaApi
         {
             takerOrMaker = null;
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", id,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", new HashMap<String, Object>() {{
+        final String finalOrderId = orderId;
+        final String finalSide = side;
+        final String finalTakerOrMaker = takerOrMaker;
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "info", trade );
+            put( "timestamp", timestamp );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
+            put( "symbol", symbol );
+            put( "id", id );
+            put( "order", finalOrderId );
+            put( "type", null );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
+            put( "price", price );
+            put( "amount", amount );
+            put( "cost", null );
+            put( "fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", "USDC" );
                 put( "rate", null );
-            }}
-        ), Helpers.toMapArg(marketResolved));
+            }} );
+        }}, market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1879,33 +2102,33 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
             var requestoperationTypeVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var request = ((List<Object>) requestoperationTypeVariable).get(0);
             var operationType = ((List<Object>) requestoperationTypeVariable).get(1);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(operationType, "create_market_order"))
             {
-                response = (this.privatePostOrdersCreateMarket(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostOrdersCreateMarket(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(operationType, "create_stop_order"))
             {
-                response = (this.privatePostOrdersStopCreate(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostOrdersStopCreate(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(operationType, "set_position_tpsl"))
             {
-                response = (this.privatePostPositionsTpsl(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostPositionsTpsl(this.extend(request, parameters))).join();
             } else
             {
-                response = (this.privatePostOrdersCreate(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostOrdersCreate(this.extend(request, parameters))).join();
             }
             //
             // {
@@ -1926,14 +2149,44 @@ public class Pacifica extends PacificaApi
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "order_id");
-            return this.safeOrder(Helpers.newMap(
-                "id", orderId,
-                "status", status,
-                "info", response,
-                "symbol", symbol
-            ), (Map<String, Object>) null);
+            final String finalStatus = status;
+            final Map<String, Object> finalResponse = response;
+            return this.safeOrder(new HashMap<String, Object>() {{
+                put( "id", orderId );
+                put( "status", finalStatus );
+                put( "info", finalResponse );
+                put( "symbol", symbol );
+            }});
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#createOrder
+     * @description create a trade order
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency. Not used for set tpsl order!
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+     * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
+     * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -1972,10 +2225,11 @@ public class Pacifica extends PacificaApi
          * @returns {object} an [order structure]
          */
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Map<String, Object> sigPayload = Helpers.newMap(
-            "symbol", ((Map<String, Object>)market).get("id"),
-            "side", this.mapSide((String) (side))
-        );
+        final String finalSide = side;
+        Map<String, Object> sigPayload = new HashMap<String, Object>() {{
+            put( "symbol", ((Map<String, Object>)market).get("id") );
+            put( "side", Pacifica.this.mapSide((String) (finalSide)) );
+        }};
         String operationType = null;
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         String orderType = ((String)type).toUpperCase();
@@ -2003,10 +2257,13 @@ public class Pacifica extends PacificaApi
             operationType = "create_stop_order";
             sigPayload.put("reduce_only", reduceOnly);
             String stopClientOrderId = this.safeString(parameters, "clientOrderId");
-            Map<String, Object> stopPayload = Helpers.newMap(
-                "amount", this.amountToPrecision(symbol, amount),
-                "stop_price", this.priceToPrecision(symbol, triggerPrice)
-            );
+            parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))));
+            final Object finalAmount = amount;
+            final String finalTriggerPrice = triggerPrice;
+            Map<String, Object> stopPayload = new HashMap<String, Object>() {{
+                put( "amount", Pacifica.this.amountToPrecision(symbol, finalAmount) );
+                put( "stop_price", Pacifica.this.priceToPrecision(symbol, finalTriggerPrice) );
+            }};
             if (!java.util.Objects.equals(stopClientOrderId, null))
             {
                 stopPayload.put("client_order_id", stopClientOrderId);
@@ -2020,19 +2277,14 @@ public class Pacifica extends PacificaApi
         {
             operationType = "create_order";
             sigPayload.put("reduce_only", reduceOnly);
-            if (java.util.Objects.equals(timeInForce, null))
-            {
-                sigPayload.put("tif", "GTC");
-            } else
-            {
-                sigPayload.put("tif", timeInForce);
-            }
+            sigPayload.put("tif", timeInForce);
         }
         if (Boolean.TRUE.equals(isTakeProfitOrder))
         {
-            Map<String, Object> tpPayload = Helpers.newMap(
-                "stop_price", this.priceToPrecision(symbol, takeProfitPrice)
-            );
+            final String finalTakeProfitPrice = takeProfitPrice;
+            Map<String, Object> tpPayload = new HashMap<String, Object>() {{
+                put( "stop_price", Pacifica.this.priceToPrecision(symbol, finalTakeProfitPrice) );
+            }};
             if (!java.util.Objects.equals(price, null))
             {
                 tpPayload.put("limit_price", this.priceToPrecision(symbol, price));
@@ -2041,9 +2293,10 @@ public class Pacifica extends PacificaApi
         }
         if (Boolean.TRUE.equals(isStopLossOrder))
         {
-            Map<String, Object> slPayload = Helpers.newMap(
-                "stop_price", this.priceToPrecision(symbol, stopLossPrice)
-            );
+            final String finalStopLossPrice = stopLossPrice;
+            Map<String, Object> slPayload = new HashMap<String, Object>() {{
+                put( "stop_price", Pacifica.this.priceToPrecision(symbol, finalStopLossPrice) );
+            }};
             if (!java.util.Objects.equals(price, null))
             {
                 slPayload.put("limit_price", this.priceToPrecision(symbol, price));
@@ -2058,14 +2311,17 @@ public class Pacifica extends PacificaApi
         {
             sigPayload.put("amount", this.amountToPrecision(symbol, amount));
         }
-        Object paramsClientOrderId = (((java.util.Objects.equals(operationType, "create_stop_order")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId"))) : parameters;
-        String clientOrderId = this.safeString(paramsClientOrderId, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             sigPayload.put("client_order_id", clientOrderId);
         }
-        Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (paramsClientOrderId));
+        Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
         return new ArrayList<Object>(Arrays.asList(request, operationType));
+    }
+    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrderRequest(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object batchOrdersRequest(Object actions)
@@ -2105,12 +2361,12 @@ public class Pacifica extends PacificaApi
         //  Cancel (Only common (limit) orders)
         //
         Integer lenActions = ((List<?>)actions).size();
-        Object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax", (Object) null);
+        Object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if (!java.util.Objects.equals(maxLen, null))
         {
             if (Helpers.isGreaterThan(lenActions, maxLen))
             {
-                throw new ExchangeError(Helpers.add((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
+                throw new ExchangeError(((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + this.numberToString(maxLen))) ;
             }
         }
         return new HashMap<String, Object>() {{
@@ -2124,7 +2380,7 @@ public class Pacifica extends PacificaApi
         Long timestamp = this.milliseconds(); // unified sequence
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i);
             String symbol = this.safeString(order, "symbol");
             String side = this.safeString(order, "side");
             String price = this.safeString(order, "price");
@@ -2138,7 +2394,7 @@ public class Pacifica extends PacificaApi
             {
                 throw new NotSupported(((this.id + " createOrders() supports only type = \"limit\"! Your value type=") + type)) ;
             }
-            List<Object> requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, Helpers.toMapArg(orderParams));
+            List<Object> requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "Create" );
                 put( "data", ((List<Object>)requestList).get(0) );
@@ -2146,6 +2402,10 @@ public class Pacifica extends PacificaApi
             ((List<Object>)actions).add(action);
         }
         return this.batchOrdersRequest(actions);
+    }
+    public Object createOrdersRequest(Object orders, Object... optionalArgs)
+    {
+        return this.createOrdersRequest(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2164,10 +2424,10 @@ public class Pacifica extends PacificaApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
-            Object request = this.createOrdersRequest(orders, new HashMap<String, Object>() {{}});
+            Object request = this.createOrdersRequest(orders);
             Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
             // {
             //   "success": true,
@@ -2204,15 +2464,29 @@ public class Pacifica extends PacificaApi
                     status = "open";
                 }
                 String orderId = this.safeString(order, "order_id");
-                ((List<Object>)ordersToReturn).add(this.safeOrder(Helpers.newMap(
-                    "info", order,
-                    "id", orderId,
-                    "status", status
-                ), (Map<String, Object>) null));
+    final String finalStatus = status;
+                            ((List<Object>)ordersToReturn).add(this.safeOrder(new HashMap<String, Object>() {{
+                    put( "info", order );
+                    put( "id", orderId );
+                    put( "status", finalStatus );
+                }}));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#createOrders
+     * @description create a list of trade orders. It is supports only limit orders and have a random jitter ~100-300ms!
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type (optional or 'limit'), side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    {
+        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2227,14 +2501,16 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
             if (java.util.Objects.equals(symbol, null))
@@ -2242,8 +2518,8 @@ public class Pacifica extends PacificaApi
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a \"symbol\" argument!")) ;
             }
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderIds")));
-            Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, paramsOmitted))).join();
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderIds")));
+            Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2279,15 +2555,33 @@ public class Pacifica extends PacificaApi
                 {
                     status = "canceled";
                 }
-                ((List<Object>)ordersToReturn).add(this.safeOrder(Helpers.newMap(
-                    "info", order,
-                    "status", status,
-                    "symbol", symbol
-                ), (Map<String, Object>) null));
+    final String finalStatus = status;
+                final String finalSymbol = symbol;
+                            ((List<Object>)ordersToReturn).add(this.safeOrder(new HashMap<String, Object>() {{
+                    put( "info", order );
+                    put( "status", finalStatus );
+                    put( "symbol", finalSymbol );
+                }}));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/batch-order
+     * @param {string[]} ids order ids. An ids list is always required (can be empty). Both ids and clientOrderIds can be passed simultaneously.
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string|string[]} [params.clientOrderIds] client order ids, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object cancelOrdersRequest(Object ids, String symbol, Map<String, Object> parameters)
@@ -2304,14 +2598,14 @@ public class Pacifica extends PacificaApi
             ((List<Object>)actions).add(action);
         }
         List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "clientOrderIds");
+        parameters = (Map<String, Object>) (this.omit(parameters, "clientOrderIds"));
         for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
         {
             Object cloid = (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i));
             Map<String, Object> cloidParams = new HashMap<String, Object>() {{
                 put( "clientOrderId", cloid );
             }};
-            Object request = this.cancelOrderRequest(cloid, symbol, Helpers.toMapArg(this.extend(cloidParams, paramsOmitted)));
+            Object request = this.cancelOrderRequest(cloid, symbol, this.extend(cloidParams, parameters));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "Cancel" );
                 put( "data", request );
@@ -2319,6 +2613,10 @@ public class Pacifica extends PacificaApi
             ((List<Object>)actions).add(action);
         }
         return this.batchOrdersRequest(actions);
+    }
+    public Object cancelOrdersRequest(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrdersRequest(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2332,19 +2630,19 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
             Object request = this.cancelAllOrdersRequest((String) (symbol), parameters);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("excludeReduceOnly", "expiryWindow")));
-            Map<String, Object> response = (this.privatePostOrdersCancelAll(this.extend(request, paramsOmitted))).join();
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("excludeReduceOnly", "expiryWindow")));
+            Map<String, Object> response = (this.privatePostOrdersCancelAll(this.extend(request, parameters))).join();
             //
             // {
             //   success: true,
@@ -2357,9 +2655,24 @@ public class Pacifica extends PacificaApi
             //
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}, (Map<String, Object>) null)));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
+     * @param {string} [symbol] (optional) unified market symbol of the market to cancel orders in.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object cancelAllOrdersRequest(String symbol, Map<String, Object> parameters)
@@ -2380,6 +2693,10 @@ public class Pacifica extends PacificaApi
         Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
         return request;
     }
+    public Object cancelAllOrdersRequest(String symbol, Object... optionalArgs)
+    {
+        return this.cancelAllOrdersRequest(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2395,14 +2712,16 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
             if (java.util.Objects.equals(symbol, null))
@@ -2411,14 +2730,14 @@ public class Pacifica extends PacificaApi
             }
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(isStopOrder, true))
             {
-                response = (this.privatePostOrdersStopCancel(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostOrdersStopCancel(this.extend(request, parameters))).join();
             } else
             {
-                response = (this.privatePostOrdersCancel(this.extend(request, paramsOmitted))).join();
+                response = (this.privatePostOrdersCancel(this.extend(request, parameters))).join();
             }
             //
             // response:
@@ -2433,14 +2752,35 @@ public class Pacifica extends PacificaApi
             {
                 status = "canceled";
             }
-            return this.safeOrder(Helpers.newMap(
-                "id", id,
-                "status", status,
-                "info", response,
-                "symbol", symbol
-            ), (Map<String, Object>) null);
+            final String finalStatus = status;
+            final Map<String, Object> finalResponse = response;
+            final String finalSymbol = symbol;
+            return this.safeOrder(new HashMap<String, Object>() {{
+                put( "id", id );
+                put( "status", finalStatus );
+                put( "info", finalResponse );
+                put( "symbol", finalSymbol );
+            }});
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-stop-order#response
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] necessary if this is to cancel a stop order.
+     * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object cancelOrderRequest(Object id, String symbol, Map<String, Object> parameters)
@@ -2469,6 +2809,10 @@ public class Pacifica extends PacificaApi
         Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
         return request;
     }
+    public Object cancelOrderRequest(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrderRequest(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2486,20 +2830,20 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderId")));
-            Map<String, Object> response = (this.privatePostOrdersEdit(this.extend(request, paramsOmitted))).join();
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderId")));
+            Map<String, Object> response = (this.privatePostOrdersEdit(this.extend(request, parameters))).join();
             //
             // {
             //     'data': {
@@ -2513,9 +2857,29 @@ public class Pacifica extends PacificaApi
                 put( "id", orderId );
                 put( "info", response );
                 put( "symbol", symbol );
-            }}, (Map<String, Object>) null);
+            }});
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#editOrder
+     * @description edit a trade order
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/edit-order
+     * @param {string} id edit order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'market' or 'limit' WARN is not usable!
+     * @param {string} side 'buy' or 'sell' WARN is not usable!
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> editOrderRequest(Object id, String symbol, Object type, String side, Object amount, Object price, Map<String, Object> market, Map<String, Object> parameters)
@@ -2555,6 +2919,10 @@ public class Pacifica extends PacificaApi
         Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
         return (Map<String, Object>) (request);
     }
+    public Map<String, Object> editOrderRequest(Object id, String symbol, Object type, String side, Object amount, Object price, Map<String, Object> market, Object... optionalArgs)
+    {
+        return this.editOrderRequest(id, symbol, type, side, amount, price, market, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2569,27 +2937,32 @@ public class Pacifica extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2598,7 +2971,7 @@ public class Pacifica extends PacificaApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.publicGetFundingRateHistory(this.extend(request, paramsPaginate))).join();
+            Map<String, Object> response = (this.publicGetFundingRateHistory(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2626,15 +2999,32 @@ public class Pacifica extends PacificaApi
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", ((Map<String, Object>)market).get("symbol") );
-                    put( "fundingRate", Pacifica.this.safeNumber(entry, "funding_rate", (Object) null) );
+                    put( "fundingRate", Pacifica.this.safeNumber(entry, "funding_rate") );
                     put( "timestamp", timestamp );
                     put( "datetime", Pacifica.this.iso8601(timestamp) );
                 }});
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
-            return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
+            return this.filterBySinceLimit(sorted, since, limit, "timestamp");
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-historical-funding
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2646,16 +3036,16 @@ public class Pacifica extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
             //
             //  {
@@ -2683,16 +3073,29 @@ public class Pacifica extends PacificaApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, (Map<String, Object>) null);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info);
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     result.put((String)symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -2712,20 +3115,24 @@ public class Pacifica extends PacificaApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Pacifica.this.iso8601(timestamp) );
-            put( "previousClose", Pacifica.this.safeNumber(ticker, "yesterday_price", (Object) null) );
-            put( "close", Pacifica.this.safeNumber(ticker, "mid", (Object) null) );
+            put( "previousClose", Pacifica.this.safeNumber(ticker, "yesterday_price") );
+            put( "close", Pacifica.this.safeNumber(ticker, "mid") );
             put( "bid", null );
             put( "ask", null );
-            put( "quoteVolume", Pacifica.this.safeNumber(ticker, "volume_24h", (Object) null) );
+            put( "quoteVolume", Pacifica.this.safeNumber(ticker, "volume_24h") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, market);
+    }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2747,13 +3154,29 @@ public class Pacifica extends PacificaApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Order> orders = (this.fetchOrders(symbol, (Long) null, (Long) null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             List<Object> closedOrders = (List<Object>) this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("closed")), false);
-            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit, false);
+            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchClosedOrders
+     * @description fetch all unfilled currently closed orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2775,13 +3198,29 @@ public class Pacifica extends PacificaApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Order> orders = (this.fetchOrders(symbol, (Long) null, (Long) null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             List<Object> closedOrders = (List<Object>) this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled")), false);
-            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit, false);
+            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchCanceledOrders
+     * @description fetch all canceled orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
+    {
+        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2803,13 +3242,29 @@ public class Pacifica extends PacificaApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Order> orders = (this.fetchOrders(symbol, (Long) null, (Long) null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            List<Order> orders = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join(); // don't filter here because we don't want to catch open orders
             List<Object> closedOrders = (List<Object>) this.filterByArray(orders, "status", new ArrayList<Object>(Arrays.asList("canceled", "closed", "rejected")), false);
-            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit, false);
+            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchCanceledAndClosedOrders
+     * @description fetch all closed and canceled orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchCanceledAndClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2824,27 +3279,31 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            String userAddress = null;
+            List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAddress );
+                put( "account", finalUserAddress );
             }};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            Map<String, Object> response = (this.publicGetOrders(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2872,9 +3331,25 @@ public class Pacifica extends PacificaApi
             // }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2891,39 +3366,46 @@ public class Pacifica extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+            Boolean paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             Integer defaultLimit = 100; // max default 100
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPaginate), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchOrders", (Map<String, Object>) (paramsPaginate));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            String userAddress = null;
+            List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchOrders", (Map<String, Object>) (parameters));
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAddress );
+                put( "account", finalUserAddress );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.publicGetOrdersHistory(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetOrdersHistory(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2953,10 +3435,28 @@ public class Pacifica extends PacificaApi
             // }
             //
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            List<Object> orders = this.parseOrders(data, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseOrders(data, market, since, limit);
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchOrders
+     * @description fetch all orders
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @param {string} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object addPaginationCursorToResult(Map<String, Object> response)
@@ -2967,11 +3467,11 @@ public class Pacifica extends PacificaApi
         Integer dataLength = ((List<?>)data).size();
         if (java.util.Objects.equals(hasMore, true))
         {
-            if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(dataLength, 0)))
+            if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
             {
                 Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-                Helpers.addElementToObject(first, "next_cursor", paginationCursor);
-                Helpers.addElementToObject(first, "has_more", hasMore);
+                ((Map<String, Object>)first).put("next_cursor", paginationCursor);
+                ((Map<String, Object>)first).put("has_more", hasMore);
                 Helpers.addElementToObject(data, 0, first);
             }
         }
@@ -2988,14 +3488,14 @@ public class Pacifica extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3056,13 +3556,27 @@ public class Pacifica extends PacificaApi
             List<Object> sorted = this.sortBy(data, "history_id", true);
             Integer lastIdx = ((List<?>)sorted).size();
             Object lastInfo = new HashMap<String, Object>() {{}};
-            if (Helpers.isGreaterThan(lastIdx, 0))
+            if ((lastIdx != null && lastIdx > 0))
             {
                 lastInfo = (sorted == null || 0 >= ((List<?>)sorted).size() ? null : ((List<?>)sorted).get(0));
             }
-            return this.parseOrder(lastInfo, Helpers.toMapArg(market));
+            return this.parseOrder(lastInfo, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history-by-id
+     * @param {string} id order id
+     * @param {string} symbol (optional) unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -3093,7 +3607,7 @@ public class Pacifica extends PacificaApi
         {
             tif = ((String)tifRaw).toUpperCase();
         }
-        return this.safeString(tifMap, tif);
+        return this.safeString(tifMap, tif, "GTC");
     }
 
     public String mapSide(String sideRaw)
@@ -3207,8 +3721,8 @@ public class Pacifica extends PacificaApi
         //     }
         //
         String marketId = this.safeString2(order, "symbol", "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long timestamp = (Long) this.safeInteger2(order, "created_at", "ct");
         String status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         String side = this.safeString(order, "side", "d");
@@ -3226,31 +3740,37 @@ public class Pacifica extends PacificaApi
         {
             average = this.safeString(order, "price"); // on a matching event price is the fill price
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString2(order, "order_id", "i"),
-            "clientOrderId", this.safeString2(order, "client_order_id", "I"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", this.safeInteger2(order, "updated_at", "ut"),
-            "symbol", symbol,
-            "type", this.parseOrderType((String) (this.safeStringLower2(order, "order_type", "ot"))),
-            "timeInForce", null,
-            "postOnly", null,
-            "reduceOnly", this.safeBool2(order, "reduce_only", "r", (Object) null),
-            "side", side,
-            "price", this.safeString2(order, "price", "lp"),
-            "triggerPrice", this.safeNumber2(order, "stop_price", "sp", (Object) null),
-            "amount", totalAmount,
-            "cost", null,
-            "average", average,
-            "filled", filledAmount,
-            "remaining", remaining,
-            "status", this.parseOrderStatus(status),
-            "fee", null,
-            "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        final String finalSide = side;
+        final String finalAverage = average;
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", order );
+            put( "id", Pacifica.this.safeString2(order, "order_id", "i") );
+            put( "clientOrderId", Pacifica.this.safeString2(order, "client_order_id", "I") );
+            put( "timestamp", timestamp );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", null );
+            put( "lastUpdateTimestamp", Pacifica.this.safeInteger2(order, "updated_at", "ut") );
+            put( "symbol", symbol );
+            put( "type", Pacifica.this.parseOrderType((String) (Pacifica.this.safeStringLower2(order, "order_type", "ot"))) );
+            put( "timeInForce", null );
+            put( "postOnly", null );
+            put( "reduceOnly", Pacifica.this.safeBool2(order, "reduce_only", "r") );
+            put( "side", finalSide );
+            put( "price", Pacifica.this.safeString2(order, "price", "lp") );
+            put( "triggerPrice", Pacifica.this.safeNumber2(order, "stop_price", "sp") );
+            put( "amount", totalAmount );
+            put( "cost", null );
+            put( "average", finalAverage );
+            put( "filled", filledAmount );
+            put( "remaining", remaining );
+            put( "status", Pacifica.this.parseOrderStatus(status) );
+            put( "fee", null );
+            put( "trades", null );
+        }}, market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3268,10 +3788,24 @@ public class Pacifica extends PacificaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            List<Position> positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
         }).thenApply(Position::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchPosition
+     * @description fetch data on an open position
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchPosition(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3284,23 +3818,27 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters2)
     {
-
+        final List<String> symbols3 = symbols2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            List<String> symbols = symbols3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchPositions", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            String userAddress = null;
+            List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchPositions", (Map<String, Object>) (parameters));
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAddress );
+                put( "account", finalUserAddress );
             }};
-            Map<String, Object> response = (this.publicGetPositions(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetPositions(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -3324,11 +3862,25 @@ public class Pacifica extends PacificaApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i)))));
             }
-            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
+            return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3347,8 +3899,8 @@ public class Pacifica extends PacificaApi
         //     }
         //
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String margin = this.safeString(position, "margin");
         String marginMode = (((!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0")))) ? "isolated" : "cross";
         Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
@@ -3358,31 +3910,38 @@ public class Pacifica extends PacificaApi
             side = (((java.util.Objects.equals(side, "bid")))) ? "long" : "short";
         }
         Long createdAt = this.safeInteger(position, "created_at");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "timestamp", createdAt,
-            "datetime", this.iso8601(createdAt),
-            "isolated", isIsolated,
-            "hedged", null,
-            "side", side,
-            "contracts", this.safeNumber(position, "amount", (Object) null),
-            "contractSize", null,
-            "entryPrice", this.safeNumber(position, "entry_price", (Object) null),
-            "markPrice", null,
-            "notional", null,
-            "leverage", null,
-            "collateral", margin,
-            "initialMargin", null,
-            "maintenanceMargin", null,
-            "initialMarginPercentage", null,
-            "maintenanceMarginPercentage", null,
-            "unrealizedPnl", null,
-            "liquidationPrice", null,
-            "marginMode", marginMode,
-            "percentage", null
-        ));
+        final String finalSide = side;
+        final String finalMargin = margin;
+        final String finalMarginMode = marginMode;
+        return this.safePosition(new HashMap<String, Object>() {{
+            put( "info", position );
+            put( "id", null );
+            put( "symbol", symbol );
+            put( "timestamp", createdAt );
+            put( "datetime", Pacifica.this.iso8601(createdAt) );
+            put( "isolated", isIsolated );
+            put( "hedged", null );
+            put( "side", finalSide );
+            put( "contracts", Pacifica.this.safeNumber(position, "amount") );
+            put( "contractSize", null );
+            put( "entryPrice", Pacifica.this.safeNumber(position, "entry_price") );
+            put( "markPrice", null );
+            put( "notional", null );
+            put( "leverage", null );
+            put( "collateral", finalMargin );
+            put( "initialMargin", null );
+            put( "maintenanceMargin", null );
+            put( "initialMarginPercentage", null );
+            put( "maintenanceMarginPercentage", null );
+            put( "unrealizedPnl", null );
+            put( "liquidationPrice", null );
+            put( "marginMode", finalMarginMode );
+            put( "percentage", null );
+        }});
+    }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3396,11 +3955,15 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setMarginMode(String marginMode2, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String marginMode3 = marginMode2;
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String marginMode = marginMode3;
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             String operationType = "update_margin_mode";
             if (java.util.Objects.equals(symbol, null))
             {
@@ -3408,7 +3971,7 @@ public class Pacifica extends PacificaApi
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
@@ -3417,6 +3980,7 @@ public class Pacifica extends PacificaApi
                 put( "is_isolated", isIsolated );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
             Map<String, Object> response = (this.privatePostAccountMargin(request)).join();
             // {
             //     "success": true
@@ -3424,6 +3988,21 @@ public class Pacifica extends PacificaApi
             return response;
         });
 
+    }
+    /**
+     * @method
+     * @name pacifica#setMarginMode
+     * @description set margin mode (symbol)
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-margin-mode
+     * @param {string} marginMode margin mode must be either [isolated, cross]
+     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setMarginMode(String marginMode, Object... optionalArgs)
+    {
+        return this.setMarginMode(marginMode, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3437,11 +4016,13 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Map<String, Object> parameters = parameters3;
             String operationType = "update_leverage";
             if (java.util.Objects.equals(symbol, null))
             {
@@ -3449,7 +4030,7 @@ public class Pacifica extends PacificaApi
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
@@ -3457,6 +4038,7 @@ public class Pacifica extends PacificaApi
                 put( "leverage", leverage );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
             Map<String, Object> response = (this.privatePostAccountLeverage(request)).join();
             // {
             //     "success": true
@@ -3464,6 +4046,21 @@ public class Pacifica extends PacificaApi
             return response;
         });
 
+    }
+    /**
+     * @method
+     * @name pacifica#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/update-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} response from the exchange
+     */
+    public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
+    {
+        return this.setLeverage(leverage, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3479,28 +4076,45 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             String operationType = "withdraw";
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             this.checkAddress(address);
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "amount", String.valueOf(amount) );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
-            Map<String, Object> response = (this.privatePostAccountWithdraw(this.extend(request, paramsOmitted))).join();
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
+            Map<String, Object> response = (this.privatePostAccountWithdraw(this.extend(request, parameters))).join();
             return new HashMap<String, Object>() {{
                 put( "info", response );
             }};
         }).thenApply(Transaction::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#withdraw
+     * @description make a withdrawal (only support native USDC)
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/request-withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3513,23 +4127,25 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchTradingFee", (Map<String, Object>) (parameters));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            String userAddress = null;
+            List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchTradingFee", (Map<String, Object>) (parameters));
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAddress );
+                put( "account", finalUserAddress );
             }};
-            Map<String, Object> response = (this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": {
@@ -3553,9 +4169,23 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (data), Helpers.toMapArg(market));
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTradingFee(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
@@ -3580,15 +4210,19 @@ public class Pacifica extends PacificaApi
         //   }
         //
         //
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market);
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", Pacifica.this.safeNumber(fee, "maker_fee", (Object) null) );
-            put( "taker", Pacifica.this.safeNumber(fee, "taker_fee", (Object) null) );
+            put( "maker", Pacifica.this.safeNumber(fee, "maker_fee") );
+            put( "taker", Pacifica.this.safeNumber(fee, "taker_fee") );
             put( "percentage", null );
             put( "tierBased", null );
         }};
+    }
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    {
+        return this.parseTradingFee(fee, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3600,21 +4234,34 @@ public class Pacifica extends PacificaApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols2, Map<String, Object> parameters)
     {
-
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterests(data, Helpers.toStringListArg(symbolsNormalized));
+            return this.parseOpenInterests(data, symbols);
         }).thenApply(OpenInterests::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterests> fetchOpenInterests(Object... optionalArgs)
+    {
+        return this.fetchOpenInterests(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3626,25 +4273,38 @@ public class Pacifica extends PacificaApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            String symbolValue = this.symbol(symbol);
-            OpenInterests ois = (this.fetchOpenInterests(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
-            Map<String, Object> oi = (Map<String, Object>) this.safeDict(ois, symbolValue, (Object) null);
+            symbol = this.symbol(symbol);
+            OpenInterests ois = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
+            Map<String, Object> oi = (Map<String, Object>) this.safeDict(ois, symbol);
             if (java.util.Objects.equals(oi, null))
             {
-                throw new BadSymbol(((this.id + " fetchOpenInterest() could not find open interest for ") + symbolValue)) ;
+                throw new BadSymbol(((this.id + " fetchOpenInterest() could not find open interest for ") + symbol)) ;
             }
             return oi;
         }).thenApply(OpenInterest::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    {
+        return this.fetchOpenInterest(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
@@ -3664,11 +4324,11 @@ public class Pacifica extends PacificaApi
         //     }
         //
         String marketId = this.safeString(interest, "symbol");
-        Object marketResolved = (((!java.util.Objects.equals(marketId, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
-        String symbol = null;
+        Object symbol = null;
         if (!java.util.Objects.equals(marketId, null))
         {
-            symbol = this.safeString(marketResolved, "symbol");
+            market = (Map<String, Object>) (this.safeMarket(marketId, market));
+            symbol = ((Map<String, Object>)market).get("symbol");
         }
         String interestValue = null;
         String markPrice = this.safeString(interest, "mark");
@@ -3678,14 +4338,21 @@ public class Pacifica extends PacificaApi
             interestValue = Precise.stringMul(openInterest, markPrice);
         }
         Long timestamp = this.safeInteger(interest, "timestamp");
-        return this.safeOpenInterest(Helpers.newMap(
-            "symbol", this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null),
-            "openInterestAmount", this.parseNumber(openInterest),
-            "openInterestValue", this.parseNumber(interestValue),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "info", interest
-        ), Helpers.toMapArg(marketResolved));
+        final Object finalSymbol = symbol;
+        final String finalOpenInterest = openInterest;
+        final String finalInterestValue = interestValue;
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
+            put( "symbol", Pacifica.this.safeSymbol(finalSymbol) );
+            put( "openInterestAmount", Pacifica.this.parseNumber(finalOpenInterest) );
+            put( "openInterestValue", Pacifica.this.parseNumber(finalInterestValue) );
+            put( "timestamp", timestamp );
+            put( "datetime", Pacifica.this.iso8601(timestamp) );
+            put( "info", interest );
+        }}, market);
+    }
+    public Object parseOpenInterest(Object interest, Object... optionalArgs)
+    {
+        return this.parseOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3702,34 +4369,39 @@ public class Pacifica extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLedger", (Map<String, Object>) (paramsPaginate));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Boolean paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            String userAddress = null;
+            List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLedger", (Map<String, Object>) (parameters));
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAddress );
+                put( "account", finalUserAddress );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.publicGetAccountBalanceHistory(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetAccountBalanceHistory(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -3746,9 +4418,27 @@ public class Pacifica extends PacificaApi
             //   "has_more": true
             // }
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseLedger(data, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseLedger(data, null, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @param {string} [params.cursor] pagination cursor from prev request (manual use)
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
@@ -3783,6 +4473,10 @@ public class Pacifica extends PacificaApi
             put( "status", null );
             put( "fee", null );
         }}, currency);
+    }
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    {
+        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseLedgerEntryType(String type)
@@ -3821,39 +4515,46 @@ public class Pacifica extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
-            Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
-            String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
+            Boolean paginate = false;
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
+            String userAddress = null;
+            List<Object> userAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchFundingHistory", (Map<String, Object>) (parameters));
+            userAddress = (String) ((List<Object>) userAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) userAddressparametersVariable).get(1);
+            final String finalUserAddress = userAddress;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account", userAddress );
+                put( "account", finalUserAddress );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
             }
             Integer defaultLimit = 100;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, Helpers.toMapArg(paramsOriginAndSingleAddress), "next_cursor", "cursor", (Long) null, Helpers.toLongOrNull(defaultLimit))).join();
+                return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
-            Map<String, Object> response = (this.publicGetFundingHistory(this.extend(request, paramsOriginAndSingleAddress))).join();
+            Map<String, Object> response = (this.publicGetFundingHistory(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -3872,9 +4573,27 @@ public class Pacifica extends PacificaApi
             //   "has_more": true
             // }
             Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
-            return this.parseIncomes(data, Helpers.toMapArg(market), since, limit);
+            return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name pacifica#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @param {string} [params.cursor] pagination cursor from prev request
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
@@ -3893,11 +4612,11 @@ public class Pacifica extends PacificaApi
         String id = this.safeString(income, "history_id");
         Long timestamp = this.safeInteger(income, "created_at");
         String marketId = this.safeString(income, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String amount = this.safeString(income, "amount");
-        String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
-        Double rate = this.safeNumber(income, "rate", (Object) null);
+        String code = this.safeCurrencyCode("USDC");
+        Double rate = this.safeNumber(income, "rate");
         return new HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", symbol );
@@ -3908,6 +4627,10 @@ public class Pacifica extends PacificaApi
             put( "amount", Pacifica.this.parseNumber(amount) );
             put( "rate", rate );
         }};
+    }
+    public Object parseIncome(Map<String, Object> income, Object... optionalArgs)
+    {
+        return this.parseIncome(income, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -3923,14 +4646,14 @@ public class Pacifica extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             String operationType = "transfer_funds";
@@ -3939,8 +4662,8 @@ public class Pacifica extends PacificaApi
                 put( "amount", Pacifica.this.numberToString(amount) );
             }};
             Map<String, Object> request = this.postActionRequest(operationType, (Map<String, Object>) (sigPayload), (Map<String, Object>) (parameters));
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
-            Map<String, Object> response = (this.privatePostAccountSubaccountTransfer(this.extend(request, paramsOmitted))).join();
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow")));
+            Map<String, Object> response = (this.privatePostAccountSubaccountTransfer(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -3953,13 +4676,30 @@ public class Pacifica extends PacificaApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseTransfer(data, Helpers.toMapArg(currency)), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", Pacifica.this.safeString(request, "account") );
                 put( "toAccount", toAccount );
             }});
         }).thenApply(TransferEntry::new);
 
+    }
+    /**
+     * @method
+     * @name pacifica#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from *spot, swap*
+     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -3975,23 +4715,28 @@ public class Pacifica extends PacificaApi
         //   "code": null
         // }
         //
-        Boolean success = (Boolean) this.safeBool(transfer, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(transfer, "success");
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {
             status = (((java.util.Objects.equals(success, true)))) ? "ok" : "failed";
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", null,
-            "timestamp", null,
-            "datetime", null,
-            "currency", this.safeCurrencyCode((String) (null), currency),
-            "amount", null,
-            "fromAccount", null,
-            "toAccount", null,
-            "status", status
-        );
+        final String finalStatus = status;
+        return new HashMap<String, Object>() {{
+            put( "info", transfer );
+            put( "id", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "currency", Pacifica.this.safeCurrencyCode((String) (null), currency) );
+            put( "amount", null );
+            put( "fromAccount", null );
+            put( "toAccount", null );
+            put( "status", finalStatus );
+        }};
+    }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -4006,18 +4751,20 @@ public class Pacifica extends PacificaApi
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    public CompletableFuture<Object> createSubAccount(Object name, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSubAccount(Object name, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
-            List<Object> agentAddressparamsAgentAddressVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createSubAccount", "agentAddress", (String) null);
-            String agentAddress = (String) ((List<Object>) agentAddressparamsAgentAddressVariable).get(0);
-            Map<String, Object> paramsAgentAddress = (Map<String, Object>) ((List<Object>) agentAddressparamsAgentAddressVariable).get(1);
-            List<Object> originAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("createSubAccount", (Map<String, Object>) (paramsAgentAddress));
-            String originAddress = (String) ((List<Object>) originAddressparamsOriginAndSingleAddressVariable).get(0);
-            var paramsOriginAndSingleAddress = ((List<Object>) originAddressparamsOriginAndSingleAddressVariable).get(1);
+            String agentAddress = null;
+            List<Object> agentAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createSubAccount", "agentAddress");
+            agentAddress = (String) ((List<Object>) agentAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) agentAddressparametersVariable).get(1);
+            String originAddress = null;
+            List<Object> originAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("createSubAccount", (Map<String, Object>) (parameters));
+            originAddress = (String) ((List<Object>) originAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) originAddressparametersVariable).get(1);
             if (java.util.Objects.equals(originAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
@@ -4026,12 +4773,14 @@ public class Pacifica extends PacificaApi
             {
                 finalHeaders.put("agent_wallet", agentAddress);
             }
-            List<Object> subAccountAddressparamsSubAccountAddressVariable = (List<Object>) this.handleOptionStringAndParams(paramsOriginAndSingleAddress, "createSubAccount", "subAccountAddress", (String) null);
-            String subAccountAddress = (String) ((List<Object>) subAccountAddressparamsSubAccountAddressVariable).get(0);
-            Map<String, Object> paramsSubAccountAddress = (Map<String, Object>) ((List<Object>) subAccountAddressparamsSubAccountAddressVariable).get(1);
-            List<Object> subAccountPrivateKeyparamsSubAccountPrivateKeyVariable = (List<Object>) this.handleOptionStringAndParams(paramsSubAccountAddress, "createSubAccount", "subAccountPrivateKey", (String) null);
-            String subAccountPrivateKey = (String) ((List<Object>) subAccountPrivateKeyparamsSubAccountPrivateKeyVariable).get(0);
-            Map<String, Object> paramsSubAccountPrivateKey = (Map<String, Object>) ((List<Object>) subAccountPrivateKeyparamsSubAccountPrivateKeyVariable).get(1);
+            String subAccountAddress = null;
+            List<Object> subAccountAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createSubAccount", "subAccountAddress");
+            subAccountAddress = (String) ((List<Object>) subAccountAddressparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) subAccountAddressparametersVariable).get(1);
+            String subAccountPrivateKey = null;
+            List<Object> subAccountPrivateKeyparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createSubAccount", "subAccountPrivateKey");
+            subAccountPrivateKey = (String) ((List<Object>) subAccountPrivateKeyparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) subAccountPrivateKeyparametersVariable).get(1);
             if (java.util.Objects.equals(subAccountAddress, null))
             {
                 throw new ArgumentsRequired((this.id + " createSubAccount() requires a \"subAccountAddress\"!")) ;
@@ -4040,24 +4789,29 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
             }
-            List<Object> timestampparamsTimestampVariable = (List<Object>) this.handleParamInteger(paramsSubAccountPrivateKey, "timestamp", Helpers.toLongOrNull(this.milliseconds()));
-            Long timestamp = (Long) ((List<Object>) timestampparamsTimestampVariable).get(0);
-            Map<String, Object> paramsTimestamp = (Map<String, Object>) ((List<Object>) timestampparamsTimestampVariable).get(1);
-            List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", Helpers.toLongOrNull(5000));
-            Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
-            var paramsExpiryWindow = ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
+            Long timestamp = null;
+            List<Object> timestampparametersVariable = (List<Object>) this.handleParamInteger(parameters, "timestamp", this.milliseconds());
+            timestamp = (Long) ((List<Object>) timestampparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) timestampparametersVariable).get(1);
+            Long expiryWindow = null;
+            List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
+            expiryWindow = (Long) ((List<Object>) expiryWindowparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) expiryWindowparametersVariable).get(1);
+            final Long finalTimestamp = timestamp;
+            final Long finalExpiryWindow = expiryWindow;
             Map<String, Object> subaccountSignatureHeader = new HashMap<String, Object>() {{
-                put( "timestamp", timestamp );
-                put( "expiry_window", expiryWindow );
+                put( "timestamp", finalTimestamp );
+                put( "expiry_window", finalExpiryWindow );
                 put( "type", "subaccount_initiate" );
             }};
-            Map<String, Object> subSigPayload = Helpers.newMap(
-                "account", originAddress
-            );
+            final String finalOriginAddress = originAddress;
+            Map<String, Object> subSigPayload = new HashMap<String, Object>() {{
+                put( "account", finalOriginAddress );
+            }};
             Object subaccountSignature = this.signMessage((Map<String, Object>) (subaccountSignatureHeader), (Map<String, Object>) (subSigPayload), subAccountPrivateKey);
             Map<String, Object> mainSignatureHeader = new HashMap<String, Object>() {{
-                put( "timestamp", timestamp );
-                put( "expiry_window", expiryWindow );
+                put( "timestamp", finalTimestamp );
+                put( "expiry_window", finalExpiryWindow );
                 put( "type", "subaccount_confirm" );
             }};
             Map<String, Object> mainSigPayload = new HashMap<String, Object>() {{
@@ -4071,7 +4825,7 @@ public class Pacifica extends PacificaApi
             finalHeaders.put("timestamp", timestamp);
             finalHeaders.put("expiry_window", expiryWindow);
             Map<String, Object> request = finalHeaders;
-            Map<String, Object> response = (this.privatePostAccountSubaccountCreate(this.extend(request, paramsExpiryWindow))).join();
+            Map<String, Object> response = (this.privatePostAccountSubaccountCreate(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -4083,6 +4837,22 @@ public class Pacifica extends PacificaApi
             return response;
         });
 
+    }
+    /**
+     * @method
+     * @name pacifica#createSubAccount
+     * @description creates a sub-account under the main account
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
+     * @param {string} name unused argument
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiryWindow] time to live in milliseconds
+     * @param {string} [params.subAccountAddress] - The public key (address) of the sub-account to use for creation
+     * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    {
+        return this.createSubAccount(name, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Map<String, Object>> bindAgentWallet(Object agentAddress, Map<String, Object> parameters)
@@ -4099,6 +4869,10 @@ public class Pacifica extends PacificaApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
+    public CompletableFuture<Map<String, Object>> bindAgentWallet(Object agentAddress, Object... optionalArgs)
+    {
+        return this.bindAgentWallet(agentAddress, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public CompletableFuture<Map<String, Object>> createApiKey(Map<String, Object> parameters)
     {
@@ -4111,6 +4885,10 @@ public class Pacifica extends PacificaApi
             return (this.privatePostAccountApiKeysCreate(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
+    }
+    public CompletableFuture<Map<String, Object>> createApiKey(Object... optionalArgs)
+    {
+        return this.createApiKey(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Map<String, Object>> revokeApiKey(Object apiKey, Map<String, Object> parameters)
@@ -4127,6 +4905,10 @@ public class Pacifica extends PacificaApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
+    public CompletableFuture<Map<String, Object>> revokeApiKey(Object apiKey, Object... optionalArgs)
+    {
+        return this.revokeApiKey(apiKey, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public CompletableFuture<Map<String, Object>> fetchApiKeys(Map<String, Object> parameters)
     {
@@ -4139,6 +4921,10 @@ public class Pacifica extends PacificaApi
             return (this.privatePostAccountApiKeys(this.extend(request, parameters))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
+    }
+    public CompletableFuture<Map<String, Object>> fetchApiKeys(Object... optionalArgs)
+    {
+        return this.fetchApiKeys(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Map<String, Object>> approveBuilderCode(Object builderCode, Object maxFeeRate, Map<String, Object> parameters)
@@ -4156,8 +4942,12 @@ public class Pacifica extends PacificaApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
+    public CompletableFuture<Map<String, Object>> approveBuilderCode(Object builderCode, Object maxFeeRate, Object... optionalArgs)
+    {
+        return this.approveBuilderCode(builderCode, maxFeeRate, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public CompletableFuture<Object> fetchBuilderApprovals(Object address)
+    public CompletableFuture<Map<String, Object>> fetchBuilderApprovals(Object address)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4166,7 +4956,7 @@ public class Pacifica extends PacificaApi
                 put( "account", address );
             }};
             return (this.publicGetAccountBuilderCodesApprovals(this.extend(request))).join();
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -4184,20 +4974,25 @@ public class Pacifica extends PacificaApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
+    public CompletableFuture<Map<String, Object>> revokeBuilderCode(Object builderCode, Object... optionalArgs)
+    {
+        return this.revokeBuilderCode(builderCode, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object handleOriginAndSingleAddress(Object methodName, Map<String, Object> parameters)
     {
-        List<Object> addressparamsAccountVariable = (List<Object>) this.handleParamString2(parameters, "account", "address", (String) null);
-        String address = (String) ((List<Object>) addressparamsAccountVariable).get(0);
-        Map<String, Object> paramsAccount = (Map<String, Object>) ((List<Object>) addressparamsAccountVariable).get(1); // this is for get endpoints that accept account or address
+        String address = null;
+        List<Object> addressparametersVariable = (List<Object>) this.handleParamString2(parameters, "account", "address");
+        address = (String) ((List<Object>) addressparametersVariable).get(0);
+        parameters = (Map<String, Object>) ((List<Object>) addressparametersVariable).get(1); // this is for get endpoints that accept account or address
         if (!java.util.Objects.equals(address, null))
         {
-            return new ArrayList<Object>(Arrays.asList(address, paramsAccount));
+            return new ArrayList<Object>(Arrays.asList(address, parameters));
         }
         String address1 = this.walletAddress;
         if (!java.util.Objects.equals(address1, null))
         {
-            return new ArrayList<Object>(Arrays.asList(address1, paramsAccount));
+            return new ArrayList<Object>(Arrays.asList(address1, parameters));
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
@@ -4247,39 +5042,46 @@ public class Pacifica extends PacificaApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String requestBody = body;
         Boolean isTestnet = this.isSandboxModeEnabled;
         String urlKey = "api";
         if (Boolean.TRUE.equals(isTestnet))
         {
             urlKey = "test";
         }
-        String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), java.util.Objects.requireNonNullElse(api, "public")));
+        String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         String url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
-        Object paramsOmitted = this.omit(parameters, this.extractParams(path));
-        Integer paramsLen = ((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size();
-        Map<String, Object> headersValue = new HashMap<String, Object>() {{
+        parameters = this.omit(parameters, this.extractParams(path));
+        Integer paramsLen = ((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size();
+        headers = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (Helpers.isGreaterThan(paramsLen, 0)))
+        if ((java.util.Objects.equals(method, "GET")) && ((paramsLen != null && paramsLen > 0)))
         {
-            url = (url + ("?" + this.urlencode(paramsOmitted)));
-            headersValue.put("Accept", "*/*");
+            url = (url + ("?" + this.urlencode(parameters)));
+            ((Map<String, Object>)headers).put("Accept", "*/*");
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
+        if (java.util.Objects.equals(method, "POST"))
         {
-            requestBody = this.json(paramsOmitted);
+            body = (String) (this.json(parameters));
         }
-        if (!java.util.Objects.equals(this.handleOption("sign", "apiKey", (Object) null), null))
+        if (!java.util.Objects.equals(this.handleOption("sign", "apiKey"), null))
         {
-            headersValue.put("PF-API-KEY", ((Map<String, Object>)this.options).get("apiKey"));
+            ((Map<String, Object>)headers).put("PF-API-KEY", ((Map<String, Object>)this.options).get("apiKey"));
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", headersValue
-        );
+        final String finalUrl = url;
+        final Object finalMethod = method;
+        final String finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", finalMethod );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
@@ -4287,15 +5089,19 @@ public class Pacifica extends PacificaApi
         String cost = this.safeString(config, "cost", "1");
         Double costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-        if (Helpers.isGreaterThan(costNumber, 1))
+        if ((costNumber != null && costNumber > 1))
         {
-            if (!java.util.Objects.equals(this.handleOption(method, "apiKey", (Object) null), null))
+            if (!java.util.Objects.equals(this.handleOption(method, "apiKey"), null))
             {
                 Object costWithKey = this.handleOption(method, "maxCostHugeWithApiKey", 3);
                 return costWithKey;
             }
         }
         return costNumber;
+    }
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
+    {
+        return this.calculateRateLimiterCost(api, method, path, parameters, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
 
     public Object sortJsonKeys(Object value)
@@ -4305,10 +5111,10 @@ public class Pacifica extends PacificaApi
             Object result = new HashMap<String, Object>() {{}};
             List<Object> keys = Helpers.objectKeys(value);
             Object sortedKeys = this.sort(keys);
-            for (var i = 0; i < Helpers.getArrayLength(sortedKeys); i++)
+            for (var i = 0; i < ((List<?>)sortedKeys).size(); i++)
             {
-                Object key = Helpers.GetValue(sortedKeys, i);
-                Helpers.addElementToObject(result, key, this.sortJsonKeys(Helpers.GetValue(value, key)));
+                Object key = (sortedKeys == null || i < 0 || i >= ((List<?>)sortedKeys).size() ? null : ((List<?>)sortedKeys).get(i));
+                ((Map<String, Object>)result).put((String)key, this.sortJsonKeys(Helpers.GetValue(value, key)));
             }
             return result;
         } else if ((value instanceof List))
@@ -4352,7 +5158,7 @@ public class Pacifica extends PacificaApi
 
     public Map<String, Object> postActionRequest(String operationType, Map<String, Object> sigPayload, Map<String, Object> parameters)
     {
-        this.checkRequiredCredentials(true); // check credentials every post action
+        this.checkRequiredCredentials(); // check credentials every post action
         if (java.util.Objects.equals(operationType, "undefined"))
         {
             throw new ArgumentsRequired((((this.id + " action: ") + operationType) + " postActionRequest() requires \"operationType\"")) ;
@@ -4363,7 +5169,7 @@ public class Pacifica extends PacificaApi
             Object builderCode = null;
             if (java.util.Objects.equals(useBuilder, true))
             {
-                builderCode = this.handleOption("postActionRequest", "builderCode", (Object) null);
+                builderCode = this.handleOption("postActionRequest", "builderCode");
             }
             if (!java.util.Objects.equals(builderCode, null))
             {
@@ -4374,21 +5180,28 @@ public class Pacifica extends PacificaApi
                 }
             }
         }
-        List<Object> expiryWindowparamsExpiryWindowVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", Helpers.toLongOrNull(5000));
-        Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
-        Map<String, Object> paramsExpiryWindow = (Map<String, Object>) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
-        Long timestamp = this.safeInteger(paramsExpiryWindow, "timestamp", this.milliseconds());
-        Map<String, Object> signatureHeader = Helpers.newMap(
-            "timestamp", timestamp,
-            "expiry_window", expiryWindow,
-            "type", operationType
-        );
+        Long expiryWindow = null;
+        List<Object> expiryWindowparametersVariable = (List<Object>) this.handleOptionIntegerAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
+        expiryWindow = (Long) ((List<Object>) expiryWindowparametersVariable).get(0);
+        parameters = (Map<String, Object>) ((List<Object>) expiryWindowparametersVariable).get(1);
+        Long timestamp = this.safeInteger(parameters, "timestamp", this.milliseconds());
+        final Long finalExpiryWindow = expiryWindow;
+        final String finalOperationType = operationType;
+        Map<String, Object> signatureHeader = new HashMap<String, Object>() {{
+            put( "timestamp", timestamp );
+            put( "expiry_window", finalExpiryWindow );
+            put( "type", finalOperationType );
+        }};
         Object signature = this.signMessage((Map<String, Object>) (signatureHeader), (Map<String, Object>) (sigPayload), this.privateKey);
         Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
-        List<Object> agentAddressparamsAgentAddressVariable = (List<Object>) this.handleOptionStringAndParams(paramsExpiryWindow, "postActionRequest", "agentAddress", (String) null);
-        String agentAddress = (String) ((List<Object>) agentAddressparamsAgentAddressVariable).get(0);
-        Map<String, Object> paramsAgentAddress = (Map<String, Object>) ((List<Object>) agentAddressparamsAgentAddressVariable).get(1);
-        String originAddress = (String) ((List<Object>)this.handleOriginAndSingleAddress("postActionRequest", (Map<String, Object>) (paramsAgentAddress))).get(0);
+        String agentAddress = null;
+        List<Object> agentAddressparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "postActionRequest", "agentAddress");
+        agentAddress = (String) ((List<Object>) agentAddressparametersVariable).get(0);
+        parameters = (Map<String, Object>) ((List<Object>) agentAddressparametersVariable).get(1);
+        String originAddress = null;
+        List<Object> originAddressparametersVariable = (List<Object>) this.handleOriginAndSingleAddress("postActionRequest", (Map<String, Object>) (parameters));
+        originAddress = (String) ((List<Object>) originAddressparametersVariable).get(0);
+        parameters = (Map<String, Object>) ((List<Object>) originAddressparametersVariable).get(1);
         if (java.util.Objects.equals(originAddress, null))
         {
             throw new ArgumentsRequired((((this.id + " action: ") + operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;

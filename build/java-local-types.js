@@ -1184,10 +1184,45 @@ const ARRAYCACHE_CONSTRUCTORS = new Set ([
     'ArrayCache', 'ArrayCacheByTimestamp', 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide',
 ]);
 
+const ORDERBOOKSIDE_TYPE = 'io.github.ccxt.ws.OrderBookSide';
+
 const WS_TYPES = new Set ([
-    ARRAYCACHE_TYPE, ORDERBOOK_TYPE,
+    ARRAYCACHE_TYPE, ORDERBOOK_TYPE, ORDERBOOKSIDE_TYPE,
     ORDERBOOK_TYPE + '.IndexedOrderBook', ORDERBOOK_TYPE + '.CountedOrderBook',
 ]);
+
+// TS class (declared in ts/src/base/ws/**) -> the hand-written Java class every instance prints as
+const WS_TS_CLASS_JAVA_TYPES = {
+    'ArrayCache': ARRAYCACHE_TYPE, 'ArrayCacheByTimestamp': ARRAYCACHE_TYPE,
+    'ArrayCacheBySymbolById': ARRAYCACHE_TYPE, 'ArrayCacheBySymbolBySide': ARRAYCACHE_TYPE,
+    'OrderBook': ORDERBOOK_TYPE, 'IndexedOrderBook': ORDERBOOK_TYPE, 'CountedOrderBook': ORDERBOOK_TYPE,
+    'IOrderBookSide': ORDERBOOKSIDE_TYPE, 'OrderBookSide': ORDERBOOKSIDE_TYPE, 'Asks': ORDERBOOKSIDE_TYPE, 'Bids': ORDERBOOKSIDE_TYPE,
+    'IndexedOrderBookSide': ORDERBOOKSIDE_TYPE, 'IndexedAsks': ORDERBOOKSIDE_TYPE, 'IndexedBids': ORDERBOOKSIDE_TYPE,
+};
+const WS_BASE_SOURCE_FILE = /[\\/]ts[\\/]src[\\/]base[\\/](ws[\\/]\w+|Exchange)\.ts$/;
+
+// Java type of a local whose checker type (undefined stripped) is one ws class of ts/src/base/ws
+// (the declared type when the local is annotated: `const cache: ArrayCache = this.positions`)
+function wsCheckerLocalType (printer, initializer) {
+    let type;
+    try {
+        const declaration = initializer.parent;
+        const at = ts.isVariableDeclaration (declaration) && declaration.type !== undefined ? declaration.name : initializer;
+        type = printer.getChecker ().getNonNullableType (printer.getChecker ().getTypeAtLocation (at));
+    } catch (e) {
+        return undefined;
+    }
+    const symbol = type?.getSymbol ();
+    if (symbol === undefined || type.isUnion () || type.flags & ts.TypeFlags.Any) {
+        return undefined;
+    }
+    const javaType = WS_TS_CLASS_JAVA_TYPES[String (symbol.escapedName)];
+    const decl = symbol.declarations?.[0];
+    if (javaType === undefined || decl === undefined || !WS_BASE_SOURCE_FILE.test (decl.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    return javaType;
+}
 
 function isWsType (javaType) {
     return WS_TYPES.has (javaType);
@@ -1512,7 +1547,7 @@ function javaCoreDeclarationTable (node) {
     return table;
 }
 
-function syncCoreCallType (node) {
+function syncCoreCallType (printer, node) {
     if (node?.kind !== ts.SyntaxKind.CallExpression || !isThisOrSuperCall (node)) {
         return undefined;
     }
@@ -1525,7 +1560,32 @@ function syncCoreCallType (node) {
         return undefined;
     }
     const type = [ ...entry.types ][0];
-    return type !== 'Object' && JAVA_CORE_TYPE_OK.test (type) ? type : undefined;
+    if (type === 'Object' || !JAVA_CORE_TYPE_OK.test (type)) {
+        return undefined;
+    }
+    // the on-disk file is the previous generation: a callee this run prints must print the same type
+    return printedDeclarationAgrees (printer, node, type) ? type : undefined;
+}
+
+function printedDeclarationAgrees (printer, call, type) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    // base-tier declarations have hand-written Java counterparts: the on-disk read stays the proof
+    if (declaration === undefined || declaration.kind !== ts.SyntaxKind.MethodDeclaration || declaration.body === undefined
+        || !/(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/.test (declaration.getSourceFile ().fileName)) {
+        return true;
+    }
+    let printed;
+    try {
+        printed = printer.printFunctionType (declaration);
+    } catch (e) {
+        return false;
+    }
+    return typeof printed === 'string' && qualifyApiReturnType (printed.replace (/\s+/g, '')) === type;
 }
 
 
@@ -2618,6 +2678,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
                 ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
         }
+        const checkerType = wsCheckerLocalType (printer, initializer);
+        if (checkerType !== undefined) {
+            return { type: checkerType, cast: '(' + checkerType + ')', anyValueShape: true, skipInheritedAsyncGuard: true };
+        }
         if (/^messageHash\d*$/.test (declaration.name.escapedText)
             && isProvablyStringExpression (printer, initializer, declaration.name.escapedText, narrowed)) {
             // the checkcast is kept only for the producers whose printed Java is still
@@ -2720,7 +2784,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // read over the class chain has the static type of the call. Last in the function so
     // every name a family above already covers keeps that family's audit.
     if (!asserted) {
-        const sync = syncCoreCallType (assertedCall);
+        const sync = syncCoreCallType (printer, assertedCall);
         if (sync !== undefined) {
             return { type: sync };
         }
@@ -2854,7 +2918,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
             }
             // a later sync core write (`x = this.<m>(...)`): the same on-disk declaration
             // the initialiser read proves the box
-            if (syncCoreCallType (node) === javaType) {
+            if (syncCoreCallType (printer, node) === javaType) {
                 return true;
             }
             return false;
@@ -5514,6 +5578,28 @@ export function installJavaLocalTypes (transpiler) {
         const mapped = javaMethodReturnType (printer, node, own);
         return mapped === undefined ? own : mapped;
     };
+    // (1b) `Market` / `Currency` (structure | undefined) returns: null prints for undefined, so the
+    // structure part decides; javaReturnSitesPrintType still proves every return site
+    if (typeof printer.javaNativeReturnTypeTarget === 'function') {
+        const upstreamTarget = printer.javaNativeReturnTypeTarget.bind (printer);
+        printer.javaNativeReturnTypeTarget = function (node) {
+            const own = upstreamTarget (node);
+            if (own !== undefined || node?.type === undefined) {
+                return own;
+            }
+            let type;
+            try {
+                type = printer.getChecker ().getTypeAtLocation (node.type);
+            } catch (e) {
+                return undefined;
+            }
+            if (!type?.isUnion?.()) {
+                return undefined;
+            }
+            const defined = type.types.filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+            return ((defined.length === 1) && printer.isJavaMapStructureType (defined[0])) ? JAVA_STRUCTURE_TYPE : undefined;
+        };
+    }
     // (2) the return sites the signature retype cannot type on its own (see the header)
     const upstreamReturn = printer.printReturnStatement.bind (printer);
     printer.printReturnStatement = function (node, identation) {
@@ -11554,6 +11640,12 @@ function nullScalarWriteType (printer, node) {
         return 'Boolean';
     }
     if (isStaticallyStringExpression (printer, value, undefined)) {
+        return JAVA_DATAFLOW_STRING;
+    }
+    // a `+` the printer emits as the native Java concat `(a + b)` (one operand a proven String,
+    // JLS 15.18.1): statically String with no cast, null operands included
+    if (value.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printedConcatIsNative (printer, value.left, value.right)) {
         return JAVA_DATAFLOW_STRING;
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {

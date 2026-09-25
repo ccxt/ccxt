@@ -712,7 +712,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function parse_ws_bid_ask(mixed $orderbook, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $orderbook, ?array $market = null): array {
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         $bids = $this->sort_by($this->aggregate($orderbook['bids']), 0);
         $asks = $this->sort_by($this->aggregate($orderbook['asks']), 0);
@@ -1933,7 +1933,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(?array $liquidation, ?array $market = null) {
         //
         //     {
         //         "price": "0.03803",
@@ -2919,7 +2919,7 @@ class bybit extends \ccxt\async\bybit {
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
-                    $subHash = $subMessageHashes[$j];
+                    $subHash = $this->safe_string($subMessageHashes, $j);
                     $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades') || ($subHash === 'positions');
                     $this->clean_unsubscription($client, $subHash, $unsubHash, $usePrefix);
                 }

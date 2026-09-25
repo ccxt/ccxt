@@ -835,7 +835,7 @@ public class TestSharedMethods extends BaseTest {
                 if (!java.util.Objects.equals(ohlcv, null))
                 {
                     Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
-                    if (Helpers.isLessThanOrEqual(ohlcvLength, 1))
+                    if ((ohlcvLength == null || ohlcvLength <= 1))
                     {
                         // if only 1 day of listing, then allow it
                         return;

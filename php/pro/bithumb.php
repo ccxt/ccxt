@@ -280,7 +280,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드

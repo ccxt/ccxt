@@ -745,7 +745,7 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -785,15 +785,19 @@ public partial class whitebit : Exchange
         {
             quoteId = "USDT";
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         bool? active = this.safeBool(market, "tradesEnabled");
         bool? isCollateral = this.safeBool(market, "isCollateral");
         string? typeId = this.safeString(market, "type");
         string? type = null;
         string? settle = null;
         string? settleId = null;
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = ((bs + "/") + quote);
         bool swap = (typeId == "futures") || (typeId == "tradfiFutures");
         bool margin = ((isCollateral == true)) && !swap;
         bool contract = false;
@@ -1388,7 +1392,7 @@ public partial class whitebit : Exchange
             {
                 continue;
             }
-            object symbol = getValue(market, "symbol");
+            string? symbol = marketSymbol;
             // Filter by symbols if specified
             if ((symbols != null))
             {
@@ -1537,7 +1541,7 @@ public partial class whitebit : Exchange
             {
                 string? feeKey = ((string)feeKeys[j]);
                 IDictionary<string, object> fee = this.safeDict(feesData, feeKey);
-                if (((fee != null) && (fee != null)) && isEqual(GetValue(fee, "ticker"), code))
+                if (((fee != null) && (fee != null)) && (this.safeString(fee, "ticker") == code))
                 {
                     feeData = fee;
                     break;
@@ -1838,7 +1842,7 @@ public partial class whitebit : Exchange
                     List<object> marketOrders = this.safeList(response, marketId, new List<object>() {});
                     for (int j = 0; j < marketOrders.Count; j++)
                     {
-                        object order = marketOrders[j];
+                        IDictionary<string, object> order = ((IDictionary<string, object>)marketOrders[j]);
                         string? orderId = this.safeString(order, "id");
                         if ((orderId == id))
                         {
@@ -3265,7 +3269,7 @@ public partial class whitebit : Exchange
         {
             request["startDate"] = this.parseToInt((since / 1000));
         }
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }
@@ -3328,7 +3332,7 @@ public partial class whitebit : Exchange
         {
             request["startDate"] = this.parseToInt((since / 1000));
         }
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }
@@ -4885,10 +4889,10 @@ public partial class whitebit : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4902,12 +4906,17 @@ public partial class whitebit : Exchange
         }
         ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
         string pathWithParams = ("/" + this.implodeParams(path, parameters));
-        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), version), accessibility), pathWithParams);
+        string? apiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), version), accessibility);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + pathWithParams);
         if (isEqual(accessibility, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         }
         if (isEqual(accessibility, "private"))
@@ -4946,7 +4955,7 @@ public partial class whitebit : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + (reason)) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
         if (isEqual(code, 404))
         {

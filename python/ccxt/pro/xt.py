@@ -66,7 +66,7 @@ class xt(ccxt.async_support.xt):
             'token': None,
         })
 
-    async def get_listen_key(self, isContract: bool):
+    async def get_listen_key(self, isContract: bool) -> Str:
         """
  @ignore
         required for private endpoints
@@ -81,7 +81,7 @@ class xt(ccxt.async_support.xt):
         tradeType = 'spot'
         if isContract:
             tradeType = 'contract'
-        url = self.urls['api']['ws'][tradeType]
+        url = self.safe_string(self.urls['api']['ws'], tradeType)
         if not isContract:
             url = url + '/private'
         client = self.client(url)
@@ -223,7 +223,7 @@ class xt(ccxt.async_support.xt):
         subscription = {
             'id': id,
         }
-        url = self.urls['api']['ws'][tradeType] + '/' + tail
+        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> object:
@@ -272,7 +272,7 @@ class xt(ccxt.async_support.xt):
         tail = access
         if isContract:
             tail = 'user' if privateAccess else 'market'
-        url = self.urls['api']['ws'][tradeType] + '/' + tail
+        url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
         subscription = {
             'unsubscribe': True,
             'id': id,
@@ -591,7 +591,7 @@ class xt(ccxt.async_support.xt):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']['contract'] + '/' + 'user'
+        url = self.safe_string(self.urls['api']['ws'], 'contract') + '/' + 'user'
         client = self.client(url)
         self.set_positions_cache(client)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
@@ -643,7 +643,7 @@ class xt(ccxt.async_support.xt):
         messageHash = 'unsubscribe::' + name
         return await self.un_subscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, None, params)
 
-    def handle_funding_rate(self, client: Client, message: dict):
+    def handle_funding_rate(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "topic": "fund_rate",
@@ -698,7 +698,7 @@ class xt(ccxt.async_support.xt):
             future.resolve(cache)
             client.resolve(cache, 'position::contract')
 
-    def handle_position(self, client: object, message: dict):
+    def handle_position(self, client: Client, message: dict):
         #
         #    {
         #      topic: 'position',
@@ -746,7 +746,7 @@ class xt(ccxt.async_support.xt):
                 client.resolve(positions, messageHash)
         client.resolve([position], 'position::contract')
 
-    def handle_ticker(self, client: Client, message: dict):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -824,7 +824,7 @@ class xt(ccxt.async_support.xt):
             client.resolve(ticker, messageHash)
         return message
 
-    def handle_tickers(self, client: Client, message: dict):
+    def handle_tickers(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -921,7 +921,7 @@ class xt(ccxt.async_support.xt):
         client.resolve(self.tickers, messageHashStart)
         return message
 
-    def handle_ohlcv(self, client: Client, message: dict):
+    def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -981,7 +981,7 @@ class xt(ccxt.async_support.xt):
             client.resolve(stored, messageHash)
         return message
 
-    def handle_trade(self, client: Client, message: dict):
+    def handle_trade(self, client: Client, message: dict) -> dict:
         #
         # spot
         #
@@ -1278,7 +1278,7 @@ class xt(ccxt.async_support.xt):
             'trades': None,
         }, market)
 
-    def handle_order(self, client: Client, message: dict):
+    def handle_order(self, client: Client, message: dict) -> dict:
         #
         # spot
         #

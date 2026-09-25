@@ -499,6 +499,9 @@ export default class bydfi extends Exchange {
         const settleId = this.safeString (market, 'marginAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const inverse = this.safeBool (market, 'reverse');
@@ -862,7 +865,10 @@ export default class bydfi extends Exchange {
             'interval': interval,
         };
         let startTime = since;
-        const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
+        let numberOfCandles: number = maxLimit;
+        if (limit !== undefined && limit !== null && limit !== 0) {
+            numberOfCandles = limit;
+        }
         let until: Int = undefined;
         let paramsUntil = undefined;
         [ until, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
@@ -2334,7 +2340,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2816,7 +2822,7 @@ export default class bydfi extends Exchange {
         return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]> {
         let methodName: Str = 'fetchWithdrawals';
         if (type === 'deposit') {
             methodName = 'fetchDeposits';
@@ -2967,7 +2973,11 @@ export default class bydfi extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
         let endpoint = '/' + path;
         let query = '';
         const sortedParams = this.keysort (params);

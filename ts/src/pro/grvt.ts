@@ -6,6 +6,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBy
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -564,7 +565,7 @@ export default class grvt extends grvtRest {
             'stream': channel,
             'selectors': rawHashes,
         };
-        const orderbook = await this.subscribeMultiple (messageHashes, this.extend (request, paramsInterval), rawHashes);
+        const orderbook: Ob = await this.subscribeMultiple (messageHashes, this.extend (request, paramsInterval), rawHashes);
         return orderbook.limit ();
     }
 
@@ -836,7 +837,7 @@ export default class grvt extends grvtRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         // same as REST api
         return this.parsePosition (position, market);
     }
@@ -961,7 +962,7 @@ export default class grvt extends grvtRest {
         return this.parseOrder (order, market);
     }
 
-    handleErrorMessage (client: Client, response: any): Bool {
+    handleErrorMessage (client: Client, response: Dict): Bool {
         //
         //    {
         //        "jsonrpc": "2.0",

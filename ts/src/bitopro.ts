@@ -452,6 +452,9 @@ export default class bitopro extends Exchange {
         const quoteId = this.safeString (market, 'quote');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const limits: Dict = {
             'amount': {
@@ -594,7 +597,7 @@ export default class bitopro extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.publicGetTickers ();
-        const tickers = this.safeList (response, 'data', []);
+        const tickers: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -765,7 +768,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTradesPair (this.extend (request, params));
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -942,7 +945,7 @@ export default class bitopro extends Exchange {
         return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limitResolved) as OHLCV[];
     }
 
-    insertMissingCandles (candles: any, distance: any, since: any, limit: any) {
+    insertMissingCandles (candles: any, distance: number, since: Int, limit: number) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
@@ -1476,7 +1479,7 @@ export default class bitopro extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetOrdersOpen (this.extend (request, params));
-        const orders = this.safeList (response, 'data', []);
+        const orders: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1521,7 +1524,7 @@ export default class bitopro extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetOrdersTradesPair (this.extend (request, params));
-        const trades = this.safeList (response, 'data', []);
+        const trades: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1674,7 +1677,7 @@ export default class bitopro extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetWalletDepositHistoryCurrency (this.extend (request, params));
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1729,7 +1732,7 @@ export default class bitopro extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetWalletWithdrawHistoryCurrency (this.extend (request, params));
-        const result = this.safeList (response, 'data', []);
+        const result: Dict[] = this.safeList (response, 'data', []);
         //
         //     {
         //         "data":[
@@ -1951,7 +1954,11 @@ export default class bitopro extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api']['rest'] + url;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        url = apiUrl + url;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

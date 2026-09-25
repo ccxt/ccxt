@@ -632,6 +632,8 @@ class paradex(Exchange, ImplicitAPI):
         baseId = self.safe_string(market, 'base_currency')
         quote = self.safe_currency_code(quoteId)
         base = self.safe_currency_code(baseId)
+        if (base is None) or (quote is None):
+            return None
         settleId = self.safe_string(market, 'settlement_currency')
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
@@ -848,7 +850,7 @@ class paradex(Exchange, ImplicitAPI):
         if since is not None:
             request['start_at'] = since
             if limit is not None:
-                request['end_at'] = self.sum(since, duration * (limit + 1) * 1000) - 1
+                request['end_at'] = since + duration * (limit + 1) * 1000 - 1
             else:
                 request['end_at'] = until
         else:
@@ -1366,7 +1368,8 @@ class paradex(Exchange, ImplicitAPI):
         }, market)
 
     def hash_message(self, message: object):
-        return '0x' + self.hash(message, 'keccak', 'hex')
+        hashed = self.hash(message, 'keccak', 'hex')
+        return '0x' + hashed
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
@@ -1378,7 +1381,7 @@ class paradex(Exchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def get_system_config(self):
+    def get_system_config(self) -> dict:
         cachedConfig = self.safe_dict(self.options, 'systemConfig')
         if cachedConfig is not None:
             return cachedConfig
@@ -1430,7 +1433,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return domain
 
-    def retrieve_account(self):
+    def retrieve_account(self) -> dict:
         cachedAccount = self.safe_dict(self.options, 'paradexAccount')
         if cachedAccount is not None:
             return cachedAccount
@@ -1474,7 +1477,7 @@ class paradex(Exchange, ImplicitAPI):
         response = self.privatePostOnboarding(params)
         return response
 
-    def authenticate_rest(self, params: dict = {}):
+    def authenticate_rest(self, params: dict = {}) -> Str:
         cachedToken = self.safe_string(self.options, 'authToken')
         now = self.nonce()
         if cachedToken is not None:
@@ -1722,7 +1725,7 @@ class paradex(Exchange, ImplicitAPI):
         orderReq = {
             'timestamp': now * 1000,
             'market': self.string_to_base16(request['market']),
-            'side': '1' if (request['side'] == 'BUY') else '2',
+            'side': '1' if (self.safe_string(request, 'side') == 'BUY') else '2',
             'orderType': self.string_to_base16(request['type']),
             'size': self.scale_number(request['size']),
             'price': '0' if (isMarket) else self.scale_number(request['price']),
@@ -2583,7 +2586,7 @@ class paradex(Exchange, ImplicitAPI):
         deposits = []
         for i in range(0, len(rows)):
             row = rows[i]
-            if row['kind'] == 'DEPOSIT':
+            if self.safe_string(row, 'kind') == 'DEPOSIT':
                 deposits.append(row)
         return self.parse_transactions(deposits, None, since, limit)
 
@@ -2640,7 +2643,7 @@ class paradex(Exchange, ImplicitAPI):
         deposits = []
         for i in range(0, len(rows)):
             row = rows[i]
-            if row['kind'] == 'WITHDRAWAL':
+            if self.safe_string(row, 'kind') == 'WITHDRAWAL':
                 deposits.append(row)
         return self.parse_transactions(deposits, None, since, limit)
 
@@ -3296,7 +3299,9 @@ class paradex(Exchange, ImplicitAPI):
                     'public_key': query['public_key'],
                 })
             else:
-                token = self.options['authToken']
+                token = self.safe_string(self.options, 'authToken')
+                if token is None:
+                    raise AuthenticationError(self.id + ' sign() requires an authToken, call authenticateRest() first')
                 headers['Authorization'] = 'Bearer ' + token
                 if (method == 'POST') or (method == 'PUT') or ((method == 'DELETE') and (path == 'orders/batch')):
                     headers['Content-Type'] = 'application/json'

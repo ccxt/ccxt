@@ -5,6 +5,7 @@ import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, NullableDict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -108,7 +109,7 @@ export default class blockchaincom extends blockchaincomRest {
             return;
         }
         const result: Dict = { 'info': message };
-        const balances = this.safeList (message, 'balances', []);
+        const balances: Dict[] = this.safeList (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
             const currencyId = this.safeString (entry, 'currency');
@@ -544,7 +545,7 @@ export default class blockchaincom extends blockchaincomRest {
         } else if (event === 'rejected') {
             throw new ExchangeError (this.id + ' ' + this.json (message));
         } else if (event === 'snapshot') {
-            const orders = this.safeList (message, 'orders', []);
+            const orders: Dict[] = this.safeList (message, 'orders', []);
             for (let i = 0; i < orders.length; i++) {
                 const order = orders[i];
                 const parsedOrder = this.parseWsOrder (order);
@@ -667,7 +668,7 @@ export default class blockchaincom extends blockchaincomRest {
             'symbol': market['id'],
         };
         const request = this.deepExtend (subscribe, paramsOmitted);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 

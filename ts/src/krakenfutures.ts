@@ -444,7 +444,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const instruments = this.safeList (response, 'instruments', []);
+        const instruments: Dict[] = this.safeList (response, 'instruments', []);
         const result: List = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
@@ -473,6 +473,9 @@ export default class krakenfutures extends Exchange {
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             // swap == perpetual
             let settle: Str = undefined;
             let settleId: Str = undefined;
@@ -830,7 +833,7 @@ export default class krakenfutures extends Exchange {
             //
             volumes = this.safeDict (volumesResponse, 'volumesByFeeSchedule', {});
         }
-        const feeSchedules = this.safeList (response, 'feeSchedules', []);
+        const feeSchedules: Dict[] = this.safeList (response, 'feeSchedules', []);
         const schedulesByUid: Dict = {};
         for (let i = 0; i < feeSchedules.length; i++) {
             const schedule = feeSchedules[i];
@@ -867,7 +870,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         // fees are expressed in percent, tiers are sorted by ascending usdVolume
-        const tiers = this.safeList (fee, 'tiers', []);
+        const tiers: Dict[] = this.safeList (fee, 'tiers', []);
         let makerFee: Str = undefined;
         let takerFee: Str = undefined;
         for (let i = 0; i < tiers.length; i++) {
@@ -1076,7 +1079,7 @@ export default class krakenfutures extends Exchange {
             //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
             //    }
             //
-            const elements = this.safeList (response, 'elements', []);
+            const elements: Dict[] = this.safeList (response, 'elements', []);
             // we need to reverse the list to fix chronology
             rawTrades = [];
             const length = elements.length;
@@ -1728,7 +1731,7 @@ export default class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOpenorders (params);
-        const orders = this.safeList (response, 'openOrders', []);
+        const orders: Dict[] = this.safeList (response, 'openOrders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1752,7 +1755,7 @@ export default class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOrdersStatus (params);
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1817,7 +1820,7 @@ export default class krakenfutures extends Exchange {
         } else {
             response = await this.historyGetOrders (this.extend (request, params));
         }
-        const allOrders = this.safeList (response, 'elements', []);
+        const allOrders: Dict[] = this.safeList (response, 'elements', []);
         const closedOrders: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = this.safeDict (allOrders, i);
@@ -1878,7 +1881,7 @@ export default class krakenfutures extends Exchange {
         } else {
             response = await this.historyGetOrders (this.extend (request, params));
         }
-        const allOrders = this.safeList (response, 'elements', []);
+        const allOrders: Dict[] = this.safeList (response, 'elements', []);
         const canceledAndRejected: Dict[] = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = this.safeDict (allOrders, i);
@@ -2321,7 +2324,7 @@ export default class krakenfutures extends Exchange {
                 'trades': undefined,
             });
         }
-        const orderEvents = this.safeList (order, 'orderEvents', []);
+        const orderEvents: Dict[] = this.safeList (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
         const orderEventsLength = orderEvents.length;
         if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {
@@ -2521,7 +2524,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const fills = this.safeList (response, 'fills', []);
+        const fills: Dict[] = this.safeList (response, 'fills', []);
         return this.parseTrades (fills, market, since, limit);
     }
 
@@ -2586,7 +2589,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const logs = this.safeList (response, 'logs', []);
+        const logs: Dict[] = this.safeList (response, 'logs', []);
         // each execution emits two rows: a cash leg(asset is a currency) and
         // a position-size leg(asset equals the contract id) - keep the cash legs only
         const rows: List = [];
@@ -2670,7 +2673,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const logs = this.safeList (response, 'logs', []);
+        const logs: Dict[] = this.safeList (response, 'logs', []);
         return this.parseIncomes (logs, market, since, limit);
     }
 
@@ -3053,7 +3056,7 @@ export default class krakenfutures extends Exchange {
         }
         const marketIds = this.marketIds (symbols);
         const response = await this.publicGetTickers (params);
-        const tickers = this.safeList (response, 'tickers', []);
+        const tickers: Dict[] = this.safeList (response, 'tickers', []);
         const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeDict (tickers, i);
@@ -3312,7 +3315,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2026-09-17T18:14:37.761Z"
         //    }
         //
-        const elements = this.safeList (response, 'elements', []);
+        const elements: Dict[] = this.safeList (response, 'elements', []);
         const updates: List = [];
         for (let i = 0; i < elements.length; i++) {
             const event = this.safeDict (elements[i], 'event', {});
@@ -3636,7 +3639,7 @@ export default class krakenfutures extends Exchange {
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transferOut (code: string, amount: number, params: Dict = {}) {
+    async transferOut (code: string, amount: number, params: Dict = {}): Promise<TransferEntry> {
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
 
@@ -3653,7 +3656,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3748,7 +3751,7 @@ export default class krakenfutures extends Exchange {
         //         ]
         //     }
         //
-        const leveragePreferences = this.safeList (response, 'leveragePreferences', []);
+        const leveragePreferences: Dict[] = this.safeList (response, 'leveragePreferences', []);
         return this.parseLeverages (leveragePreferences, symbols, 'symbol');
     }
 
@@ -3847,7 +3850,11 @@ export default class krakenfutures extends Exchange {
             }
             query += '?' + postData;
         }
-        const url = this.urls['api'][api] + query;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + query;
         const requestBody = (path === 'batchorder') ? postData : body;
         let privateHeaders = undefined;
         if (api === 'private' || access === 'private') {

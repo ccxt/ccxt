@@ -1858,7 +1858,7 @@ public partial class bybit : ccxt.bybit
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions
@@ -2949,7 +2949,7 @@ public partial class bybit : ccxt.bybit
         // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
         // first-match loop (in Go map iteration order is randomized). Check the
         // orderbook prefix explicitly, then fall back to a simple first-match.
-        if (getIndexOf(topic, "orderbook") >= 0)
+        if ((topic?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrderBook(client, (Dictionary<string, object>)message);
             return;
@@ -2958,7 +2958,7 @@ public partial class bybit : ccxt.bybit
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (getIndexOf(topic, key) >= 0)
+            if ((topic?.IndexOf(key, StringComparison.Ordinal) ?? -1) >= 0)
             {
                 object method = getValue(methods, key);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -3103,7 +3103,7 @@ public partial class bybit : ccxt.bybit
                 for (int j = 0; j < messageHashes.Count; j++)
                 {
                     object unsubHash = messageHashes[j];
-                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                    string? subHash = this.safeString(subMessageHashes, j);
                     bool usePrefix = (subHash == "orders") || (subHash == "myTrades") || (subHash == "positions");
                     this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }

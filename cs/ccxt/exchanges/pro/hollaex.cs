@@ -289,7 +289,7 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
-            object messageHash = add(add(channel, ":"), marketId);
+            string? messageHash = ((string)add(add(channel, ":"), marketId));
             client.resolve(this.myTrades, messageHash);
         }
     }
@@ -431,7 +431,7 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
-            object messageHash = add(add(channel, ":"), marketId);
+            string? messageHash = ((string)add(add(channel, ":"), marketId));
             client.resolve(this.orders, messageHash);
         }
     }

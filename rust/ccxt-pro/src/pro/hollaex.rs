@@ -519,7 +519,7 @@ impl HollaexCore {
         // usually the first message is an empty array
         // when the user does not have any trades yet
         let mut dataLength: Value = get_array_length(&rawTrades);
-        if is_equal(&dataLength, &Value::Int(0)) {
+        if (dataLength.as_f64() == Some(0.0)) {
             return;
         }
         if (self.myTrades.clone() == Value::Null) {
@@ -667,7 +667,7 @@ impl HollaexCore {
 }) });
         // usually the first message is an empty array
         let mut dataLength: Value = get_array_length(&data);
-        if is_equal(&dataLength, &Value::Int(0)) {
+        if (dataLength.as_f64() == Some(0.0)) {
             return;
         }
         if (self.orders.clone() == Value::Null) {
@@ -829,7 +829,7 @@ impl HollaexCore {
                 m.insert("api-expires".to_string(), expires);
             m
         });
-        let mut signedUrl: Value = Value::Str(format!("{}{}", add(&url, &Value::Str("?".into())), self.urlencode(authParams, &[])).into());
+        let mut signedUrl: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(authParams, &[])).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));

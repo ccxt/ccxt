@@ -778,7 +778,7 @@ public partial class bitget : ccxt.bitget
         {
             return;
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1348,7 +1348,7 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object index = subtract(subtract(length, i), 1);
-            object rawTrade = getValue(data, index);
+            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)getValue(data, index));
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -1664,7 +1664,7 @@ public partial class bitget : ccxt.bitget
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             string? marketId = this.safeString2(rawPosition, "instId", "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
@@ -2610,7 +2610,7 @@ public partial class bitget : ccxt.bitget
         string? instType = this.safeStringLower(arg, "instType");
         for (int i = 0; i < length; i++)
         {
-            object trade = (data != null && i < data.Count ? data[i] : null);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)(data != null && i < data.Count ? data[i] : null));
             IDictionary<string, object> market = null;
             if (instType == "uta")
             {
@@ -3202,11 +3202,11 @@ public partial class bitget : ccxt.bitget
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
-        if (getIndexOf(topic, "candle") >= 0)
+        if ((topic?.IndexOf("candle", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOHLCV(client, message);
         }
-        if (getIndexOf(topic, "books") >= 0)
+        if ((topic?.IndexOf("books", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrderBook(client, message);
         }
@@ -3432,20 +3432,20 @@ public partial class bitget : ccxt.bitget
         {
             IDictionary<string, object> arg = this.safeDict(argsList, i);
             string? channel = this.safeString2(arg, "channel", "topic", "");
-            if (getIndexOf(channel, "books") >= 0)
+            if ((channel?.IndexOf("books", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription(client, message);
-            } else if ((getIndexOf(channel, "trade") >= 0) || (getIndexOf(channel, "publicTrade") >= 0))
+            } else if (((channel?.IndexOf("trade", StringComparison.Ordinal) ?? -1) >= 0) || ((channel?.IndexOf("publicTrade", StringComparison.Ordinal) ?? -1) >= 0))
             {
                 this.handleTradesUnSubscription(client, message);
-            } else if (getIndexOf(channel, "ticker") >= 0)
+            } else if ((channel?.IndexOf("ticker", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleTickerUnSubscription(client, message);
-            } else if (getIndexOf(channel, "candle") >= 0)
+            } else if ((channel?.IndexOf("candle", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleOHLCVUnSubscription(client, message);
-            } else if (getIndexOf(channel, "kline") >= 0)
+            } else if ((channel?.IndexOf("kline", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleOHLCVUnSubscription(client, message);
             }

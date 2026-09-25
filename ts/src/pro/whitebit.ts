@@ -7,6 +7,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/erro
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Fee, FeeString, List, Market, NullableDict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -117,7 +118,7 @@ export default class whitebit extends whitebitRest {
         //     "id": null
         // }
         //
-        const params = this.safeList (message, 'params', []);
+        const params: Dict[] = this.safeList (message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString (data, 7);
@@ -170,7 +171,7 @@ export default class whitebit extends whitebitRest {
             priceInterval,
             true, // true for allowing multiple subscriptions
         ];
-        const orderbook = await this.watchPublic (messageHash, method, reqParams, paramsOmitted);
+        const orderbook: Ob = await this.watchPublic (messageHash, method, reqParams, paramsOmitted);
         return orderbook.limit ();
     }
 
@@ -213,7 +214,7 @@ export default class whitebit extends whitebitRest {
         //  }
         //
         const params = this.safeList (message, 'params', []);
-        const isSnapshot = this.safeValue (params, 0);
+        const isSnapshot = this.safeBool (params, 0);
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -728,7 +729,7 @@ export default class whitebit extends whitebitRest {
         }, marketResolved);
     }
 
-    parseWsOrderType (status: any) {
+    parseWsOrderType (status: any): string {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -782,7 +783,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], paramsAwaitBalanceSnapshot);
     }
 
-    setBalanceCache (client: Client, type: any, subscriptionHash: any) {
+    setBalanceCache (client: Client, type: Str, subscriptionHash: any) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -976,7 +977,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<number> {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);

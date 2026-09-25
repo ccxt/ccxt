@@ -547,6 +547,8 @@ class extended(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if quoteId == 'USD':
             quote = 'USDC'
+        if (base is None) or (quote is None):
+            return None
         status = self.safe_string(market, 'status')
         active = (status == 'ACTIVE')
         amountPrecision = self.safe_number(tradingConfig, 'minOrderSizeChange')
@@ -1120,7 +1122,7 @@ class extended(Exchange, ImplicitAPI):
             'rate': self.safe_number(history, 'fundingRate'),
         }
 
-    def parse_funding_histories(self, histories: object, market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
+    def parse_funding_histories(self, histories: list[object], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(histories)):
             result.append(self.parse_funding_history(histories[i], market))

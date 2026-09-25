@@ -113,9 +113,9 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.unlock_id()
         return newValue
 
-    def create_public_request(self, market: object, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):
-        marketId = market['symbol']  # spot markets use symbol with slash
-        if market['type'] == 'swap':
+    def create_public_request(self, market: object, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
+        marketId = self.safe_string(market, 'symbol')  # spot markets use symbol with slash
+        if self.safe_string(market, 'type') == 'swap':
             marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
         action = '1'  # subscribe
         if unWatch:
@@ -161,10 +161,10 @@ class deepcoin(ccxt.async_support.deepcoin):
 
     async def watch_private(self, messageHash: str, params: dict = {}) -> object:
         listenKey = await self.authenticate()
-        url = self.urls['api']['ws']['private'] + '?listenKey=' + listenKey
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '?listenKey=' + listenKey
         return await self.watch(url, messageHash, None, 'private', params)
 
-    async def authenticate(self, params: dict = {}):
+    async def authenticate(self, params: dict = {}) -> Str:
         self.check_required_credentials()
         time = self.milliseconds()
         # single-flight leader election on a never-dialed client, see
@@ -787,7 +787,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         #     }
         #
         timestamp = self.safe_integer(message, 'mt', 0)
-        if timestamp > orderbook['timestamp']:
+        currentTimestamp = self.safe_integer(orderbook, 'timestamp')
+        if (currentTimestamp is not None) and (timestamp > currentTimestamp):
             response = self.safe_list(message, 'r', [])
             self.handle_deltas(orderbook, response)
             orderbook['timestamp'] = timestamp
@@ -1037,7 +1038,7 @@ class deepcoin(ccxt.async_support.deepcoin):
                 messageHashes.append(symbolMessageHash)
         else:
             messageHashes.append(messageHash)
-        url = self.urls['api']['ws']['private'] + '?listenKey=' + listenKey
+        url = self.safe_string(self.urls['api']['ws'], 'private') + '?listenKey=' + listenKey
         positions = await self.watch_multiple(url, messageHashes, params, ['private'])
         if self.newUpdates:
             return positions
@@ -1083,7 +1084,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             client.resolve(self.positions, messageHash)
             client.resolve(self.positions, symbolMessageHash)
 
-    def parse_ws_position(self, position: object, market: Market = None) -> Position:
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "A": "9256245",

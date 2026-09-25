@@ -663,6 +663,9 @@ class coinbaseexchange extends Exchange {
             // const quoteId = this.safeString (market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $status = $this->safe_string($market, 'status');
             $result[] = $this->extend($this->fees['trading'], array(
                 'id' => $id,
@@ -1075,8 +1078,9 @@ class coinbaseexchange extends Exchange {
             'rate' => $feeRate,
         );
         $id = $this->safe_string($trade, 'trade_id');
+        $rawSide = $this->safe_string($trade, 'side');
         $side = 'buy';
-        if ($trade['side'] === 'buy') {
+        if ($rawSide === 'buy') {
             $side = 'sell';
         }
         $orderId = $this->safe_string($trade, 'order_id');
@@ -1084,7 +1088,7 @@ class coinbaseexchange extends Exchange {
         $makerOrderId = $this->safe_string($trade, 'maker_order_id');
         $takerOrderId = $this->safe_string($trade, 'taker_order_id');
         if (($orderId !== null) || (($makerOrderId !== null) && ($takerOrderId !== null))) {
-            $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
+            $side = ($rawSide === 'buy') ? 'buy' : 'sell';
         }
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'size');
@@ -2177,7 +2181,11 @@ class coinbaseexchange extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->implode_hostname($this->urls['api'][$api]) . $request;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($apiUrl) . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

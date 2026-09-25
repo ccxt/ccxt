@@ -84,10 +84,10 @@ func (this *Bittrade) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	// only supports a limit of 150 at this time
-	var messageHash any = ccxt.Add(ccxt.Add("market.", market["id"]), ".detail")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market.", market["id"]), ".detail"))
 	var api *string = this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
@@ -133,7 +133,7 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
 	}
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var ticker map[string]any = ccxt.MapTyped(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ticker["timestamp"] = timestamp
@@ -172,10 +172,10 @@ func (this *Bittrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	// only supports a limit of 150 at this time
-	var messageHash any = ccxt.Add(ccxt.Add("market.", market["id"]), ".trade.detail")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market.", market["id"]), ".trade.detail"))
 	var api *string = this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
@@ -230,7 +230,7 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	}
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesCache, nil) {
@@ -282,10 +282,10 @@ func (this *Bittrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".kline."), interval)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".kline."), interval))
 	var api *string = this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
@@ -335,7 +335,7 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	}
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
@@ -380,7 +380,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	// only supports a limit of 150 at this time
 	limit = func() any {
@@ -389,7 +389,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		}
 		return limit
 	}()
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".mbp."), ccxt.ToString(limit))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market.", market["id"]), ".mbp."), ccxt.ToString(limit)))
 	var api *string = this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
@@ -484,7 +484,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan any, client any, messag
 			// try block:
 			var symbol *string = this.SafeString(subscription, "symbol")
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			var params any = this.SafeValue(subscription, "params")
+			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
 			var api *string = this.SafeString(this.Options, "api", "api")
 			var hostname map[string]any = map[string]any{
 				"hostname": this.Hostname,

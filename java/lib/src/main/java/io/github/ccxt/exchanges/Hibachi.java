@@ -357,7 +357,7 @@ public class Hibachi extends HibachiApi
 
     public Object getAccountId()
     {
-        this.checkRequiredCredentials(true);
+        this.checkRequiredCredentials();
         Long id = this.parseToInt(this.accountId);
         return id;
     }
@@ -365,46 +365,52 @@ public class Hibachi extends HibachiApi
     public Object parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol");
-        Double numericId = this.safeNumber(market, "id", (Object) null);
+        Double numericId = this.safeNumber(market, "id");
         String marketType = "swap";
         String baseId = this.safeString(market, "underlyingSymbol");
         String quoteId = this.safeString(market, "settlementSymbol");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settleId = this.safeString(market, "settlementSymbol");
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "numericId", numericId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", marketType,
-            "spot", false,
-            "margin", false,
-            "swap", true,
-            "future", false,
-            "option", false,
-            "active", java.util.Objects.equals(this.safeString(market, "status"), "LIVE"),
-            "contract", true,
-            "linear", true,
-            "inverse", false,
-            "contractSize", this.parseNumber("1"),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        final String finalBase = base;
+        final String finalQuote = quote;
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
+            put( "id", marketId );
+            put( "numericId", numericId );
+            put( "symbol", symbol );
+            put( "base", finalBase );
+            put( "quote", finalQuote );
+            put( "settle", settle );
+            put( "baseId", baseId );
+            put( "quoteId", quoteId );
+            put( "settleId", settleId );
+            put( "type", marketType );
+            put( "spot", false );
+            put( "margin", false );
+            put( "swap", true );
+            put( "future", false );
+            put( "option", false );
+            put( "active", java.util.Objects.equals(Hibachi.this.safeString(market, "status"), "LIVE") );
+            put( "contract", true );
+            put( "linear", true );
+            put( "inverse", false );
+            put( "contractSize", Hibachi.this.parseNumber("1") );
+            put( "expiry", null );
+            put( "expiryDatetime", null );
+            put( "strike", null );
+            put( "optionType", null );
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Hibachi.this.parseNumber(Hibachi.this.parsePrecision(Hibachi.this.safeString(market, "underlyingDecimals"))) );
                 put( "price", Helpers.divide(Hibachi.this.parseNumber(Hibachi.this.safeValue(Hibachi.this.safeList(market, "orderbookGranularities", new ArrayList<Object>(Arrays.asList())), 0)), 10000) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }} );
+            put( "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -418,13 +424,13 @@ public class Hibachi extends HibachiApi
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Hibachi.this.safeNumber(market, "minNotional", (Object) null) );
+                    put( "min", Hibachi.this.safeNumber(market, "minNotional") );
                     put( "max", null );
                 }} );
-            }},
-            "created", created,
-            "info", market
-        ));
+            }} );
+            put( "created", created );
+            put( "info", market );
+        }});
     }
 
     /**
@@ -466,10 +472,22 @@ public class Hibachi extends HibachiApi
             //     "underlyingDecimals": 9,
             //     "underlyingSymbol": "ETH"
             // },
-            List<Object> rows = (List<Object>) this.safeList(response, "futureContracts", (Object) null);
+            List<Object> rows = (List<Object>) this.safeList(response, "futureContracts");
             return this.parseMarkets(rows);
         });
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchMarkets
+     * @description retrieves data on all markets for hibachi
+     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object hardcodedCurrencies()
@@ -497,21 +515,22 @@ public class Hibachi extends HibachiApi
     put( "withdraw", null );
     put( "info", new HashMap<String, Object>() {{}} );
 }});
-        String code = this.safeCurrencyCode("USDT", (Map<String, Object>) null);
+        String code = this.safeCurrencyCode("USDT");
         if (!java.util.Objects.equals(code, null))
         {
-            result.put((String)code, this.safeCurrencyStructure(Helpers.newMap(
-    "id", "USDT",
-    "name", "USDT",
-    "type", "fiat",
-    "code", code,
-    "precision", this.parseNumber("0.000001"),
-    "active", true,
-    "fee", null,
-    "networks", networks,
-    "deposit", true,
-    "withdraw", true,
-    "limits", new HashMap<String, Object>() {{
+            final String finalCode = code;
+            result.put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
+    put( "id", "USDT" );
+    put( "name", "USDT" );
+    put( "type", "fiat" );
+    put( "code", finalCode );
+    put( "precision", Hibachi.this.parseNumber("0.000001") );
+    put( "active", true );
+    put( "fee", null );
+    put( "networks", networks );
+    put( "deposit", true );
+    put( "withdraw", true );
+    put( "limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -520,9 +539,9 @@ public class Hibachi extends HibachiApi
             put( "min", null );
             put( "max", null );
         }} );
-    }},
-    "info", new HashMap<String, Object>() {{}}
-)));
+    }} );
+    put( "info", new HashMap<String, Object>() {{}} );
+}}));
         }
         return result;
     }
@@ -533,7 +552,7 @@ public class Hibachi extends HibachiApi
             put( "info", response );
         }};
         // Hibachi only supports USDT on Arbitrum at this time
-        String code = this.safeCurrencyCode("USDT", (Map<String, Object>) null);
+        String code = this.safeCurrencyCode("USDT");
         Map<String, Object> account = (Map<String, Object>) this.account();
         account.put("total", this.safeString(response, "balance"));
         account.put("free", this.safeString(response, "maximalWithdraw"));
@@ -581,19 +600,31 @@ public class Hibachi extends HibachiApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name hibachi#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
     {
-        Map<String, Object> prices = (Map<String, Object>) this.safeDict(ticker, "prices", (Object) null);
-        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", (Object) null);
-        Double bid = this.safeNumber(prices, "bidPrice", (Object) null);
-        Double ask = this.safeNumber(prices, "askPrice", (Object) null);
-        Double last = this.safeNumber(prices, "tradePrice", (Object) null);
-        Double high = this.safeNumber(stats, "high24h", (Object) null);
-        Double low = this.safeNumber(stats, "low24h", (Object) null);
-        Double volume = this.safeNumber(stats, "volume24h", (Object) null);
+        Map<String, Object> prices = (Map<String, Object>) this.safeDict(ticker, "prices");
+        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats");
+        Double bid = this.safeNumber(prices, "bidPrice");
+        Double ask = this.safeNumber(prices, "askPrice");
+        Double last = this.safeNumber(prices, "tradePrice");
+        Double high = this.safeNumber(stats, "high24h");
+        Double low = this.safeNumber(stats, "low24h");
+        Double volume = this.safeNumber(stats, "volume24h");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Hibachi.this.safeSymbol(null, market, (String) null, (String) null) );
+            put( "symbol", Hibachi.this.safeSymbol(null, market) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "bid", bid );
@@ -614,6 +645,10 @@ public class Hibachi extends HibachiApi
             put( "quoteVolume", volume );
             put( "info", ticker );
         }}, market);
+    }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -643,8 +678,8 @@ public class Hibachi extends HibachiApi
         //          "timestamp": 1752543391
         //      }
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String id = this.safeString(trade, "id");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
@@ -677,21 +712,31 @@ public class Hibachi extends HibachiApi
                 orderId = this.safeString(trade, "askOrderId");
             }
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "order", orderId,
-            "takerOrMaker", takerOrMaker,
-            "type", orderType,
-            "fee", fee,
-            "info", trade
-        ), Helpers.toMapArg(marketResolved));
+        final String finalId = id;
+        final String finalSide = side;
+        final String finalOrderId = orderId;
+        final String finalTakerOrMaker = takerOrMaker;
+        final String finalOrderType = orderType;
+        final Map<String, Object> finalFee = fee;
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "id", finalId );
+            put( "timestamp", timestamp );
+            put( "datetime", Hibachi.this.iso8601(timestamp) );
+            put( "symbol", symbol );
+            put( "side", finalSide );
+            put( "price", price );
+            put( "amount", amount );
+            put( "cost", cost );
+            put( "order", finalOrderId );
+            put( "takerOrMaker", finalTakerOrMaker );
+            put( "type", finalOrderType );
+            put( "fee", finalFee );
+            put( "info", trade );
+        }}, market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -712,7 +757,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -737,9 +782,24 @@ public class Hibachi extends HibachiApi
             {
                 tradesList = trades;
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradesList, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-doc.hibachi.xyz/#86a53bc1-d3bb-4b93-8a11-7034d4698caa
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of recent [trade structures]
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -759,7 +819,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -791,9 +851,23 @@ public class Hibachi extends HibachiApi
                 put( "prices", pricesResponse );
                 put( "stats", statsResponse );
             }};
-            return this.parseTicker(ticker, Helpers.toMapArg(market));
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchTicker
+     * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+     * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
+     * @description fetches a price ticker and the related information for the past 24h
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -816,7 +890,7 @@ public class Hibachi extends HibachiApi
     public Object parseOrder(Object order, Map<String, Object> market)
     {
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         String status = this.safeString(order, "status");
         String type = this.safeStringLower(order, "orderType");
         String price = this.safeString2(order, "price", "avgFillPrice");
@@ -864,31 +938,43 @@ public class Hibachi extends HibachiApi
             timestamp = this.safeIntegerProduct(order, "creationTime", 1000);
         }
         Long lastUpdateTimestamp = this.safeInteger(order, "closedAt");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "orderId"),
-            "clientOrderId", null,
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "status", this.parseOrderStatus(status),
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
-            "type", type,
-            "timeInForce", timeInForce,
-            "side", side,
-            "price", price,
-            "average", this.safeString(order, "avgFillPrice"),
-            "amount", amount,
-            "filled", filled,
-            "remaining", remainingString,
-            "cost", null,
-            "trades", null,
-            "fee", null,
-            "reduceOnly", reduceOnly,
-            "postOnly", postOnly,
-            "triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null)
-        ), Helpers.toMapArg(marketResolved));
+        final Long finalTimestamp = timestamp;
+        final Map<String, Object> finalMarket = market;
+        final String finalTimeInForce = timeInForce;
+        final String finalSide = side;
+        final String finalFilled = filled;
+        final String finalRemainingString = remainingString;
+        final Boolean finalReduceOnly = reduceOnly;
+        final Boolean finalPostOnly = postOnly;
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", order );
+            put( "id", Hibachi.this.safeString(order, "orderId") );
+            put( "clientOrderId", null );
+            put( "datetime", Hibachi.this.iso8601(finalTimestamp) );
+            put( "timestamp", finalTimestamp );
+            put( "lastTradeTimestamp", null );
+            put( "lastUpdateTimestamp", lastUpdateTimestamp );
+            put( "status", Hibachi.this.parseOrderStatus(status) );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "type", type );
+            put( "timeInForce", finalTimeInForce );
+            put( "side", finalSide );
+            put( "price", price );
+            put( "average", Hibachi.this.safeString(order, "avgFillPrice") );
+            put( "amount", amount );
+            put( "filled", finalFilled );
+            put( "remaining", finalRemainingString );
+            put( "cost", null );
+            put( "trades", null );
+            put( "fee", null );
+            put( "reduceOnly", finalReduceOnly );
+            put( "postOnly", finalPostOnly );
+            put( "triggerPrice", Hibachi.this.safeNumber(order, "triggerPrice") );
+        }}, market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -901,14 +987,14 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -920,9 +1006,23 @@ public class Hibachi extends HibachiApi
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
             Map<String, Object> response = (this.privateGetTradeOrder(this.extend(request, parameters))).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api-doc.hibachi.xyz/#096a8854-b918-4de8-8731-b2a28d26b96d
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -940,7 +1040,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", Hibachi.this.getAccountId() );
@@ -950,13 +1050,13 @@ public class Hibachi extends HibachiApi
             //        "tradeMakerFeeRate": "0.00000000",
             //        "tradeTakerFeeRate": "0.00020000"
             //    },
-            Double makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate", (Object) null);
-            Double takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate", (Object) null);
+            Double makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate");
+            Double takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -968,6 +1068,18 @@ public class Hibachi extends HibachiApi
             return result;
         }).thenApply(TradingFees::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchTradingFees
+     * @description fetch the trading fee
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    {
+        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object orderMessage(Map<String, Object> market, Object nonce, Object feeRate, String type, String side, Object amount, Object price)
@@ -994,7 +1106,7 @@ public class Hibachi extends HibachiApi
         // - FeeRate: Internal = External * (10^8)
         String amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
         String feeRateStr = this.numberToString(feeRate);
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", (Object) null);
+        Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info");
         String underlying = ("1e" + this.safeString(info, "underlyingDecimals"));
         String settlement = ("1e" + this.safeString(info, "settlementDecimals"));
         String one = "1";
@@ -1031,6 +1143,10 @@ public class Hibachi extends HibachiApi
         Object message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
         return message;
     }
+    public Object orderMessage(Map<String, Object> market, Object nonce, Object feeRate, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.orderMessage(market, nonce, feeRate, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null);
+    }
 
     public Map<String, Object> createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
@@ -1063,18 +1179,21 @@ public class Hibachi extends HibachiApi
         }
         Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", this.safeString(market, "id"),
-            "nonce", nonce,
-            "side", sideInternal,
-            "orderType", ((String)type).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount),
-            "price", priceInternal,
-            "signature", signature,
-            "maxFeesPercent", this.numberToString(feeRate)
-        );
+        final String finalSideInternal = sideInternal;
+        final String finalType = type;
+        final String finalPriceInternal = priceInternal;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", Hibachi.this.safeString(market, "id") );
+            put( "nonce", nonce );
+            put( "side", finalSideInternal );
+            put( "orderType", ((String)finalType).toUpperCase() );
+            put( "quantity", Hibachi.this.amountToPrecision(symbol, amount) );
+            put( "price", finalPriceInternal );
+            put( "signature", signature );
+            put( "maxFeesPercent", Hibachi.this.numberToString(feeRate) );
+        }};
         boolean postOnly = Helpers.isTrue(this.isPostOnly(java.util.Objects.equals(((String)type).toUpperCase(), "MARKET"), null, parameters));
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (postOnly)
@@ -1091,8 +1210,12 @@ public class Hibachi extends HibachiApi
         {
             request.put("triggerPrice", triggerPrice);
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice")));
-        return (Map<String, Object>) (this.extend(request, paramsOmitted));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"))));
+        return (Map<String, Object>) (this.extend(request, parameters));
+    }
+    public Map<String, Object> createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrderRequest(nonce, symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1115,7 +1238,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Object nonce = this.incrementingNonce();
             Map<String, Object> request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
@@ -1129,9 +1252,26 @@ public class Hibachi extends HibachiApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Hibachi.this.safeString(response, "orderId") );
                 put( "status", "pending" );
-            }}, (Map<String, Object>) null);
+            }});
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#createOrder
+     * @description create a trade order
+     * @see https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1150,20 +1290,20 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Object nonce = this.incrementingNonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
-                Double price = this.safeNumber(rawOrder, "price", (Object) null);
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
                 orderRequest.put("action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1184,11 +1324,24 @@ public class Hibachi extends HibachiApi
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "pending" );
-                }}, (Map<String, Object>) null));
+                }}));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#createOrders
+     * @description *contract only* create a list of trade orders
+     * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    {
+        return this.createOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> editOrderRequest(Object nonce, String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -1219,6 +1372,10 @@ public class Hibachi extends HibachiApi
         }};
         return (Map<String, Object>) (this.extend(request, parameters));
     }
+    public Map<String, Object> editOrderRequest(Object nonce, String id, String symbol, String type, String side, Object... optionalArgs)
+    {
+        return this.editOrderRequest(nonce, id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1241,7 +1398,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Object nonce = this.incrementingNonce();
             Map<String, Object> request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
@@ -1254,9 +1411,27 @@ public class Hibachi extends HibachiApi
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", "pending" );
-            }}, (Map<String, Object>) null);
+            }});
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#editOrder
+     * @description edit a limit order that is not matched
+     * @see https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell', should stay the same with original side
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1275,21 +1450,21 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Object nonce = this.incrementingNonce();
             List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i);
                 String id = this.safeString(rawOrder, "id");
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
-                Double price = this.safeNumber(rawOrder, "price", (Object) null);
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, Helpers.toMapArg(orderParams));
+                Map<String, Object> orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
                 orderRequest.put("action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
@@ -1310,11 +1485,24 @@ public class Hibachi extends HibachiApi
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "pending" );
-                }}, (Map<String, Object>) null));
+                }}));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#editOrders
+     * @description edit a list of trade orders
+     * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> editOrders(Object orders, Object... optionalArgs)
+    {
+        return this.editOrders(orders, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object cancelOrderRequest(Object id)
@@ -1356,9 +1544,23 @@ public class Hibachi extends HibachiApi
                 put( "info", response );
                 put( "id", id );
                 put( "status", "canceled" );
-            }}, (Map<String, Object>) null);
+            }});
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#cancelOrder
+     * @see https://api-doc.hibachi.xyz/#e99c4f48-e610-4b7c-b7f6-1b4bb7af0271
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol is unused
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1400,11 +1602,25 @@ public class Hibachi extends HibachiApi
                     put( "info", responseOrder );
                     put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                     put( "status", "canceled" );
-                }}, (Map<String, Object>) null));
+                }}));
             }
             return ret;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#cancelOrders
+     * @description cancel multiple orders
+     * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, unused
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1416,14 +1632,14 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Object nonce = this.incrementingNonce();
             String nonce16 = this.intToBase16(nonce);
@@ -1447,9 +1663,22 @@ public class Hibachi extends HibachiApi
             //
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}, (Map<String, Object>) null)));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#cancelAllOrders
+     * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
+     * @description cancel all open orders in a market
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object encodeWithdrawMessage(Object amount, Object maxFees, Object address)
@@ -1509,8 +1738,8 @@ public class Hibachi extends HibachiApi
             //          "withdrawalFees": "0.012050"
             //    },
             // }
-            Map<String, Object> feeConfig = (Map<String, Object>) this.safeDict(exchangeInfo, "feeConfig", (Object) null);
-            Double maxFees = this.safeNumber(feeConfig, "withdrawalFees", (Object) null);
+            Map<String, Object> feeConfig = (Map<String, Object>) this.safeDict(exchangeInfo, "feeConfig");
+            Double maxFees = this.safeNumber(feeConfig, "withdrawalFees");
             // Generate the signature
             Object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
             Object signature = this.signMessage(message, this.privateKey);
@@ -1557,6 +1786,22 @@ public class Hibachi extends HibachiApi
         }).thenApply(Transaction::new);
 
     }
+    /**
+     * @method
+     * @name hibachi#withdraw
+     * @description make a withdrawal
+     * @see https://api-doc.hibachi.xyz/#6421625d-3e45-45fa-be9b-d2a0e780c090
+     * @param {string} code unified currency code, only support USDT
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
     public Long nonce()
     {
@@ -1573,7 +1818,7 @@ public class Hibachi extends HibachiApi
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             Object hash = this.hash(message, sha256(), "hex");
-            Object signature = ecdsa(Helpers.slice(hash, -64, null), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+            Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
             String v = this.intToBase16(Helpers.GetValue(signature, "v"));
@@ -1598,7 +1843,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1606,8 +1851,8 @@ public class Hibachi extends HibachiApi
             }};
             Map<String, Object> response = (this.publicGetMarketDataOrderbook(this.extend(request, parameters))).join();
             Map<String, Object> formattedResponse = new HashMap<String, Object>() {{}};
-            formattedResponse.put("ask", this.safeList(this.safeDict(response, "ask", (Object) null), "levels", (Object) null));
-            formattedResponse.put("bid", this.safeList(this.safeDict(response, "bid", (Object) null), "levels", (Object) null));
+            formattedResponse.put("ask", this.safeList(this.safeDict(response, "ask"), "levels"));
+            formattedResponse.put("bid", this.safeList(this.safeDict(response, "bid"), "levels"));
             // {
             //     "ask": {
             //         "endPrice": "3512.63",
@@ -1646,9 +1891,23 @@ public class Hibachi extends HibachiApi
             //         "startPrice": "3515.39"
             //     }
             // }
-            return this.parseOrderBook(formattedResponse, symbol, Helpers.toLongOrNull(this.milliseconds()), "bid", "ask", "price", "quantity", 2);
+            return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity");
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchOrderBook
+     * @description fetches the state of the open orders on the orderbook
+     * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
+     * @param {string} symbol unified symbol of the market
+     * @param {int} [limit] currently unused
+     * @param {object} [params] extra parameters to be passed -- see documentation link above
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1662,14 +1921,14 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -1701,15 +1960,30 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "trades", (Object) null);
+            List<Object> trades = (List<Object>) this.safeList(response, "trades");
             List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(trades, null))
             {
                 tradesList = trades;
             }
-            return this.parseTrades(tradesList, Helpers.toMapArg(market), since, limit, parameters);
+            return this.parseTrades(tradesList, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchMyTrades
+     * @see https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1727,7 +2001,11 @@ public class Hibachi extends HibachiApi
         //     }
         //   ]
         //
-        return new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(ohlcv, "timestamp", 1000), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volumeNotional", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(ohlcv, "timestamp", 1000), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volumeNotional")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1741,14 +2019,14 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since, Long limit, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -1787,9 +2065,24 @@ public class Hibachi extends HibachiApi
             //         "totalQuantity": "1.234000000"
             //     }
             // ]
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchOpenOrders
+     * @description fetches all current open orders
+     * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
+     * @param {string} [symbol] unified market symbol to filter by
+     * @param {int} [since] millisecond timestamp of the earliest order
+     * @param {int} [limit] the maximum number of open orders to return
+     * @param {object} [params] extra parameters
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1807,14 +2100,20 @@ public class Hibachi extends HibachiApi
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByStatus(Object status2, String symbol2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final Object status3 = status2;
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object status = status3;
+            String symbol = symbol3;
+            Long since = since3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1832,14 +2131,15 @@ public class Hibachi extends HibachiApi
             {
                 request.put("startTime", since);
             }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until", (Long) null);
-            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
             }
-            Map<String, Object> response = (this.privateGetTradeOrdersHistory(this.extend(request, paramsUntil))).join();
+            Map<String, Object> response = (this.privateGetTradeOrdersHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "hasMore": false,
@@ -1867,10 +2167,29 @@ public class Hibachi extends HibachiApi
             //     }
             //
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
+            List<Object> parsedOrders = this.parseOrders(orders, market);
+            return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit);
         });
 
+    }
+    /**
+     * @ignore
+     * @method
+     * @name hibachi#fetchOrdersByStatus
+     * @description fetch orders filtered by terminal status
+     * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+     * @param {string} status exchange specific terminal status
+     * @param {string} [symbol] unified market symbol to filter by
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters
+     * @param {int} [params.until] timestamp in ms of the latest order
+     * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Object> fetchOrdersByStatus(Object status, Object... optionalArgs)
+    {
+        return this.fetchOrdersByStatus(status, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1893,9 +2212,26 @@ public class Hibachi extends HibachiApi
 
             Object orders = (this.fetchOrdersByStatus("filled", symbol, since, limit, parameters)).join();
             List<Object> filtered = this.filterBy(orders, "status", "closed");
-            return this.filterBySinceLimit(filtered, since, limit, "timestamp", false);
+            return this.filterBySinceLimit(filtered, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of closed order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest order
+     * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1918,9 +2254,26 @@ public class Hibachi extends HibachiApi
 
             Object orders = (this.fetchOrdersByStatus(null, symbol, since, limit, parameters)).join();
             List<Object> filtered = this.filterBy(orders, "status", "canceled");
-            return this.filterBySinceLimit(filtered, since, limit, "timestamp", false);
+            return this.filterBySinceLimit(filtered, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of canceled order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest order
+     * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
+    {
+        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1936,33 +2289,39 @@ public class Hibachi extends HibachiApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final Object timeframe3 = timeframe2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object timeframe = timeframe3;
+            Long since = since3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+            final Object finalTimeframe = timeframe;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "interval", timeframeValue );
+                put( "interval", finalTimeframe );
             }};
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("fromMs", since);
             }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until", (Long) null);
-            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("toMs", until);
             }
-            Map<String, Object> response = (this.publicGetMarketDataKlines(this.extend(request, paramsUntil))).join();
+            Map<String, Object> response = (this.publicGetMarketDataKlines(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -1977,9 +2336,26 @@ public class Hibachi extends HibachiApi
             //   ]
             //
             List<Object> klines = (List<Object>) this.safeList(response, "klines", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(klines, market, timeframeValue, since, limit, false);
+            return this.parseOHLCVs(klines, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchOHLCV
+     * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+     * @description fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1991,16 +2367,16 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols2, Map<String, Object> parameters)
     {
-
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
@@ -2048,9 +2424,22 @@ public class Hibachi extends HibachiApi
             //   }
             //
             List<Object> data = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, Helpers.toStringListArg(symbolsNormalized), new HashMap<String, Object>() {{}});
+            return this.parsePositions(data, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -2067,8 +2456,8 @@ public class Hibachi extends HibachiApi
         // }
         //
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String side = this.safeStringLower(position, "direction");
         String quantity = this.safeString(position, "quantity");
         String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
@@ -2100,15 +2489,24 @@ public class Hibachi extends HibachiApi
             put( "percentage", null );
         }});
     }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), endpoint);
-        Map<String, Object> headersValue = new HashMap<String, Object>() {{
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + endpoint);
+        headers = new HashMap<String, Object>() {{
             put( "Hibachi-Client", "HibachiCCXT/unversioned" );
         }};
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        if (java.util.Objects.equals(method, "GET"))
         {
             Object request = this.omit(parameters, this.extractParams(path));
             String query = this.urlencode(request);
@@ -2117,27 +2515,30 @@ public class Hibachi extends HibachiApi
                 url = (url + ("?" + query));
             }
         }
-        Boolean hasJsonBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
-        if (Boolean.TRUE.equals(hasJsonBody))
+        if (java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT") || java.util.Objects.equals(method, "DELETE"))
         {
-            headersValue.put("Content-Type", "application/json");
+            ((Map<String, Object>)headers).put("Content-Type", "application/json");
+            body = (String) (this.json(parameters));
         }
-        String bodyResult = body;
-        if (Boolean.TRUE.equals(hasJsonBody))
+        if (java.util.Objects.equals(api, "private"))
         {
-            bodyResult = this.json(parameters);
+            this.checkRequiredCredentials();
+            ((Map<String, Object>)headers).put("Authorization", this.apiKey);
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
-        {
-            this.checkRequiredCredentials(true);
-            headersValue.put("Authorization", this.apiKey);
-        }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersValue
-        );
+        final String finalUrl = url;
+        final Object finalMethod = method;
+        final String finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", finalMethod );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -2216,14 +2617,14 @@ public class Hibachi extends HibachiApi
             amount = this.parseNumber(amountStr);
             fee = new HashMap<String, Object>() {{
                 put( "currency", "USDT" );
-                put( "cost", Hibachi.this.safeNumber(item, "fee", (Object) null) );
+                put( "cost", Hibachi.this.safeNumber(item, "fee") );
             }};
             status = "ok";
         } else
         {
             // response from CapitalHistory
             timestamp = this.safeIntegerProduct(item, "timestampSec", 1000);
-            amount = this.safeNumber(item, "quantity", (Object) null);
+            amount = this.safeNumber(item, "quantity");
             direction = (((java.util.Objects.equals(transactionType, "deposit") || java.util.Objects.equals(transactionType, "transfer-in")))) ? "in" : "out";
             type = this.parseTransactionType(transactionType);
             status = this.parseTransactionStatus(this.safeString(item, "status"));
@@ -2236,23 +2637,35 @@ public class Hibachi extends HibachiApi
             }
             referenceId = this.safeString(item, "transactionHash");
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "id", this.safeString(item, "id"),
-            "currency", this.currency("USDT"),
-            "account", this.numberToString(this.accountId),
-            "referenceAccount", referenceAccount,
-            "referenceId", referenceId,
-            "status", status,
-            "amount", amount,
-            "before", null,
-            "after", null,
-            "fee", fee,
-            "direction", direction,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "type", type,
-            "info", item
-        ), currency);
+        final String finalReferenceAccount = referenceAccount;
+        final String finalReferenceId = referenceId;
+        final String finalStatus = status;
+        final Double finalAmount = amount;
+        final Map<String, Object> finalFee = fee;
+        final String finalDirection = direction;
+        final Long finalTimestamp = timestamp;
+        final String finalType = type;
+        return this.safeLedgerEntry(new HashMap<String, Object>() {{
+            put( "id", Hibachi.this.safeString(item, "id") );
+            put( "currency", Hibachi.this.currency("USDT") );
+            put( "account", Hibachi.this.numberToString(Hibachi.this.accountId) );
+            put( "referenceAccount", finalReferenceAccount );
+            put( "referenceId", finalReferenceId );
+            put( "status", finalStatus );
+            put( "amount", finalAmount );
+            put( "before", null );
+            put( "after", null );
+            put( "fee", finalFee );
+            put( "direction", finalDirection );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", Hibachi.this.iso8601(finalTimestamp) );
+            put( "type", finalType );
+            put( "info", item );
+        }}, currency);
+    }
+    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    {
+        return this.parseLedgerEntry(item, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2273,7 +2686,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency("USDT");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2281,7 +2694,7 @@ public class Hibachi extends HibachiApi
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
             Object promises = (Helpers.promiseAll(rawPromises)).join();
-            Map<String, Object> responseCapitalHistory = (Map<String, Object>) this.safeDict(promises, 0, (Object) null);
+            Map<String, Object> responseCapitalHistory = (Map<String, Object>) this.safeDict(promises, 0);
             //
             // {
             //     "transactions": [
@@ -2336,7 +2749,7 @@ public class Hibachi extends HibachiApi
             // }
             //
             List<Object> rowsCapitalHistory = (List<Object>) this.safeList(responseCapitalHistory, "transactions", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> responseTradingHistory = (Map<String, Object>) this.safeDict(promises, 1, (Object) null);
+            Map<String, Object> responseTradingHistory = (Map<String, Object>) this.safeDict(promises, 1);
             //
             // {
             //     "tradingHistory": [
@@ -2365,9 +2778,24 @@ public class Hibachi extends HibachiApi
             //
             List<Object> rowsTradingHistory = (List<Object>) this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = (List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
-            return this.parseLedger(rows, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseLedger(rows, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    {
+        return this.fetchLedger(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2403,6 +2831,20 @@ public class Hibachi extends HibachiApi
         }).thenApply(DepositAddress::new);
 
     }
+    /**
+     * @method
+     * @name hibachi#fetchDepositAddress
+     * @description fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+     * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters for API
+     * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
@@ -2413,28 +2855,33 @@ public class Hibachi extends HibachiApi
         {
             transactionType = this.parseTransactionType(transactionType);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "transactionHash"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", "ARBITRUM",
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", transactionType,
-            "amount", this.safeNumber(transaction, "quantity", (Object) null),
-            "currency", "USDT",
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", null,
-            "internal", null,
-            "comment", null,
-            "fee", null
-        );
+        final String finalTransactionType = transactionType;
+        return new HashMap<String, Object>() {{
+            put( "info", transaction );
+            put( "id", Hibachi.this.safeString(transaction, "id") );
+            put( "txid", Hibachi.this.safeString(transaction, "transactionHash") );
+            put( "timestamp", timestamp );
+            put( "datetime", Hibachi.this.iso8601(timestamp) );
+            put( "network", "ARBITRUM" );
+            put( "address", address );
+            put( "addressTo", address );
+            put( "addressFrom", null );
+            put( "tag", null );
+            put( "tagTo", null );
+            put( "tagFrom", null );
+            put( "type", finalTransactionType );
+            put( "amount", Hibachi.this.safeNumber(transaction, "quantity") );
+            put( "currency", "USDT" );
+            put( "status", Hibachi.this.parseTransactionStatus(Hibachi.this.safeString(transaction, "status")) );
+            put( "updated", null );
+            put( "internal", null );
+            put( "comment", null );
+            put( "fee", null );
+        }};
+    }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2453,7 +2900,7 @@ public class Hibachi extends HibachiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
@@ -2490,9 +2937,24 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             List<Object> transactions = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(transactions, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransactions(transactions, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchDepositsWithdrawals
+     * @description fetch deposit and withdrawal history for the account
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest transaction
+     * @param {int} [limit] the maximum number of transactions to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2511,11 +2973,26 @@ public class Hibachi extends HibachiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, (Long) null, parameters)).join();
+            List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, null, parameters)).join();
             List<Object> deposits = this.filterBy(transactions, "type", "deposit");
-            return this.filterBySinceLimit(deposits, since, limit, "timestamp", false);
+            return this.filterBySinceLimit(deposits, since, limit, "timestamp");
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchDeposits
+     * @description fetch deposits made to account
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code
+     * @param {int} [since] filter by earliest timestamp (ms)
+     * @param {int} [limit] maximum number of deposits to be returned
+     * @param {object} [params] extra parameters to be passed to API
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    {
+        return this.fetchDeposits(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2534,11 +3011,26 @@ public class Hibachi extends HibachiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, (Long) null, parameters)).join();
+            List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, null, parameters)).join();
             List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
-            return this.filterBySinceLimit(withdrawals, since, limit, "timestamp", false);
+            return this.filterBySinceLimit(withdrawals, since, limit, "timestamp");
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchWithdrawals
+     * @description fetch withdrawals made from account
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code
+     * @param {int} [since] filter by earliest timestamp (ms)
+     * @param {int} [limit] maximum number of deposits to be returned
+     * @param {object} [params] extra parameters to be passed to API
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Map<String, Object> parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
@@ -2558,11 +3050,15 @@ public class Hibachi extends HibachiApi
         String marketId = this.safeString(settlement, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", settlement );
-            put( "symbol", Hibachi.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "price", Hibachi.this.safeNumber(settlement, "indexPrice", (Object) null) );
+            put( "symbol", Hibachi.this.safeSymbol(marketId, market) );
+            put( "price", Hibachi.this.safeNumber(settlement, "indexPrice") );
             put( "timestamp", timestamp );
             put( "datetime", Hibachi.this.iso8601(timestamp) );
         }};
+    }
+    public Map<String, Object> parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
+    {
+        return this.parseSettlement(settlement, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseSettlements(Object settlements, Map<String, Object> market)
@@ -2573,6 +3069,10 @@ public class Hibachi extends HibachiApi
             ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
         }
         return result;
+    }
+    public Object parseSettlements(Object settlements, Object... optionalArgs)
+    {
+        return this.parseSettlements(settlements, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2587,22 +3087,27 @@ public class Hibachi extends HibachiApi
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchMySettlementHistory(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
+            (this.loadMarkets()).join();
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
-            Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("contractId", ((Map<String, Object>)market).get("numericId"));
-                symbolResolved = ((Map<String, Object>)market).get("symbol");
+                symbol = (String) ((Map<String, Object>)market).get("symbol");
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -2612,14 +3117,15 @@ public class Hibachi extends HibachiApi
             {
                 request.put("limit", limit);
             }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until", (Long) null);
-            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+            Long until = null;
+            List<Object> untilparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until");
+            until = (Long) ((List<Object>) untilparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) untilparametersVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("endTime", this.parseToInt(Helpers.divide(until, 1000)));
+                request.put("endTime", this.parseToInt((((double) until) / ((double) 1000))));
             }
-            Map<String, Object> response = (this.privateGetTradeAccountSettlementsHistory(this.extend(request, paramsUntil))).join();
+            Map<String, Object> response = (this.privateGetTradeAccountSettlementsHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "settlements": [
@@ -2636,11 +3142,27 @@ public class Hibachi extends HibachiApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(data, Helpers.toMapArg(market));
+            Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user
+     * @see https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+     * @param {string} [symbol] unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms of the earliest settlement
+     * @param {int} [limit] the maximum number of settlements to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest settlement
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     */
+    public CompletableFuture<Object> fetchMySettlementHistory(Object... optionalArgs)
+    {
+        return this.fetchMySettlementHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2664,6 +3186,18 @@ public class Hibachi extends HibachiApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
+    /**
+     * @method
+     * @name hibachi#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2681,7 +3215,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2699,9 +3233,22 @@ public class Hibachi extends HibachiApi
                 put( "timestamp", timestamp );
                 put( "datetime", Hibachi.this.iso8601(timestamp) );
                 put( "info", response );
-            }}, Helpers.toMapArg(market));
+            }}, market);
         }).thenApply(OpenInterest::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://api-doc.hibachi.xyz/#bc34e8ae-e094-4802-8d56-3efe3a7bad49
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    {
+        return this.fetchOpenInterest(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2720,7 +3267,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2753,7 +3300,7 @@ public class Hibachi extends HibachiApi
                 put( "estimatedSettlePrice", null );
                 put( "timestamp", timestamp );
                 put( "datetime", Hibachi.this.iso8601(timestamp) );
-                put( "fundingRate", Hibachi.this.safeNumber(funding, "estimatedFundingRate", (Object) null) );
+                put( "fundingRate", Hibachi.this.safeNumber(funding, "estimatedFundingRate") );
                 put( "fundingTimestamp", nextFundingTimestamp );
                 put( "fundingDatetime", Hibachi.this.iso8601(nextFundingTimestamp) );
                 put( "nextFundingRate", null );
@@ -2766,6 +3313,19 @@ public class Hibachi extends HibachiApi
             }};
         }).thenApply(FundingRate::new);
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    {
+        return this.fetchFundingRate(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2786,7 +3346,7 @@ public class Hibachi extends HibachiApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2814,14 +3374,29 @@ public class Hibachi extends HibachiApi
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbol );
-                    put( "fundingRate", Hibachi.this.safeNumber(entry, "fundingRate", (Object) null) );
+                    put( "fundingRate", Hibachi.this.safeNumber(entry, "fundingRate") );
                     put( "timestamp", timestamp );
                     put( "datetime", Hibachi.this.iso8601(timestamp) );
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name hibachi#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 }

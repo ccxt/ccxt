@@ -9,11 +9,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/myriad.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type { Int, Str, Num, Dict, int,
-    Strings, PredictionOrderRequest,
-    Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
-    PredictionEvent, Balances, fetchEventsParams,
-    PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, Bool, NullableDict, Endpoint, List, OrderType, OrderSide } from '../base/types.js';
+import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, Bool, NullableDict, Endpoint, List } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded, BadRequest } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
@@ -825,7 +821,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const defaultModel = this.safeString (info, 'tradingModel', 'amm');
@@ -1516,7 +1512,7 @@ export default class myriad extends Exchange {
         //         }
         //     }
         //
-        const rows = this.safeList (response, 'data', []);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         const result: any[] = [];
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
@@ -2456,7 +2452,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const outcomeId = (market !== undefined && market !== null) ? this.safeString (market['info'], 'outcomeId') : undefined;
-        const outcomes = this.safeList (raw, 'outcomes', []) as any[];
+        const outcomes: Dict[] = this.safeList (raw, 'outcomes', []);
         let price: Num = undefined;
         let change: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
@@ -2619,7 +2615,7 @@ export default class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        const outcomes = this.safeList (response, 'outcomes', []) as any[];
+        const outcomes: Dict[] = this.safeList (response, 'outcomes', []);
         let price: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict (outcomes, i);
@@ -3356,7 +3352,7 @@ export default class myriad extends Exchange {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
-        const changes = this.safeList (data, 'changes', []);
+        const changes: Dict[] = this.safeList (data, 'changes', []);
         const changesLength = changes.length;
         const updated: Dict = {};
         for (let i = 0; i < changesLength; i++) {
@@ -3639,7 +3635,7 @@ export default class myriad extends Exchange {
         const networkId = this.safeString (data, 'networkId');
         const marketId = this.safeString (data, 'marketId');
         const ts = this.safeInteger (data, 'ts');
-        const outcomes = this.safeList (data, 'outcomes', []);
+        const outcomes: Dict[] = this.safeList (data, 'outcomes', []);
         const outcomesLength = outcomes.length;
         if (this.tickers === undefined) {
             this.tickers = this.createSafeDictionary ();

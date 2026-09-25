@@ -49,7 +49,7 @@
                     "limit",
                     "buy",
                     0.2,
-                    "50"
+                    50
                 ],
                 "output": "timestamp=1700667180381&recvWindow=5000&side=BUY&type=LIMIT&price=50&symbol=LTCUSDT&quantity=0.2&signature=7e0639853ef89a213ed80711a4fc155a0b8b25d97b7dfc72027646c1925f4213"
             },
@@ -62,7 +62,7 @@
                     "limit",
                     "sell",
                     0.1,
-                    "100",
+                    100,
                     {
                         "postOnly": true,
                         "leverage": 5
@@ -78,8 +78,8 @@
                     "LTC/USDT:USDT",
                     "market",
                     "buy",
-                    "15",
-                    "1",
+                    15,
+                    1,
                     {
                         "leverage": 1
                     }

@@ -2424,7 +2424,7 @@ public partial class htx : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
         {
             await this.loadTimeDifference();
         }
@@ -2670,24 +2670,28 @@ public partial class htx : Exchange
                 id = (baseId + quoteId);
                 lowercaseId = id.ToLower();
             }
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(bs, "/"), quote);
+            string symbol = ((bs + "/") + quote);
             Int64? expiry = null;
             if (contract)
             {
                 if ((inverse == true))
                 {
-                    symbol = add(symbol, (":" + (bs)));
+                    symbol = symbol + (":" + bs);
                 } else if ((linear == true))
                 {
-                    symbol = add(symbol, (":" + quote));
+                    symbol = symbol + (":" + quote);
                 }
                 if (future)
                 {
                     expiry = this.safeInteger(market, "delivery_time");
-                    symbol = add(symbol, ("-" + this.yymmdd(expiry)));
+                    symbol = symbol + ("-" + this.yymmdd(expiry));
                 }
             }
             double? contractSize = this.safeNumber(market, "contract_size");
@@ -2839,6 +2843,10 @@ public partial class htx : Exchange
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             string? contractType = this.safeString(info, "contract_type");
             string? contractSuffix = this.safeString(futuresCharsMaps, contractType);
+            if ((contractSuffix == null))
+            {
+                continue;
+            }
             // see comment on formats a bit above
             object constructedId = null;
             if (isEqual(getValue(market, "linear"), true))
@@ -3836,7 +3844,7 @@ public partial class htx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limitVar, null))
+        if (!(limitVar == null))
         {
             request["size"] = mathMin(limitVar, 2000); // max 2000
         }
@@ -4155,7 +4163,7 @@ public partial class htx : Exchange
         //
         string? typeId = this.safeString(account, "type");
         IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
-        object type = this.safeValue(accountsById, typeId, typeId);
+        string? type = this.safeString(accountsById, typeId, typeId);
         return new Dictionary<string, object>() {
             { "info", account },
             { "id", this.safeString(account, "id") },
@@ -4374,7 +4382,7 @@ public partial class htx : Exchange
         {
             throw new ExchangeError ((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
-        object networkTitle = this.safeValue((this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null), networkId, networkId);
+        string? networkTitle = this.safeString((this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null), networkId, networkId);
         return ((string?)((object)(base.networkIdToCode(networkTitle, currencyCode))));
     }
 
@@ -4401,7 +4409,7 @@ public partial class htx : Exchange
         } else
         {
             object networkTitle = base.networkCodeToId(networkCode, currencyCode);
-            return ((string?)((object)(this.safeValue(uniqueNetworkIds, networkTitle, networkTitle))));
+            return ((string?)((object)(this.safeString(uniqueNetworkIds, networkTitle, networkTitle))));
         }
     }
 
@@ -4691,7 +4699,7 @@ public partial class htx : Exchange
                 List<object> balances = this.safeList(data, "list", new List<object>() {});
                 for (int i = 0; i < balances.Count; i++)
                 {
-                    object balance = balances[i];
+                    IDictionary<string, object> balance = ((IDictionary<string, object>)balances[i]);
                     string? currencyId = this.safeString(balance, "currency");
                     string? code = this.safeCurrencyCode(currencyId);
                     if ((code != null))
@@ -4975,7 +4983,7 @@ public partial class htx : Exchange
         {
             throw new ExchangeError ((this.id + " parseMarginBalanceHelper() could not resolve account")) ;
         }
-        if (isEqual(getValue(balance, "type"), "trade"))
+        if ((this.safeString(balance, "type") == "trade"))
         {
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
         }
@@ -4983,7 +4991,7 @@ public partial class htx : Exchange
         {
             throw new ExchangeError ((this.id + " parseMarginBalanceHelper() could not resolve account")) ;
         }
-        if (isEqual(getValue(balance, "type"), "frozen"))
+        if ((this.safeString(balance, "type") == "frozen"))
         {
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "balance");
         }
@@ -5017,7 +5025,7 @@ public partial class htx : Exchange
         if ((since != null))
         {
             request["start-time"] = since; // a window of 48 hours within 180 days
-            request["end-time"] = this.sum(since, ((multiply(48, 60) * 60) * 1000));
+            request["end-time"] = this.sum(since, (((48L * 60L) * 60) * 1000));
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end-time", request, parameters);
         request = (Dictionary<string, object>)requestparametersVariable[0];
@@ -7513,7 +7521,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object order = data[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)data[i]);
             result.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(order, "order_id") },
@@ -7828,8 +7836,8 @@ public partial class htx : Exchange
         for (int i = 0; i < getArrayLength(allAddresses); i++)
         {
             object address = getValue(allAddresses, i);
-            bool noteMatch = ((note == null)) || (isEqual(getValue(address, "note"), note));
-            bool networkMatch = ((networkCode == null)) || (isEqual(getValue(address, "network"), networkCode));
+            bool noteMatch = ((note == null)) || (isEqual(this.safeString(address, "note"), note));
+            bool networkMatch = ((networkCode == null)) || (isEqual(this.safeString(address, "network"), networkCode));
             if (noteMatch && networkMatch)
             {
                 addresses.Add(address);
@@ -7853,7 +7861,7 @@ public partial class htx : Exchange
     {
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }
@@ -7925,7 +7933,7 @@ public partial class htx : Exchange
     {
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if ((limitVar == null) || (limitVar > 100))
         {
             limitVar = ((Int64?)100);
         }
@@ -8977,10 +8985,10 @@ public partial class htx : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -9017,7 +9025,7 @@ public partial class htx : Exchange
                     { "AccessKeyId", this.apiKey },
                     { "Timestamp", timestamp },
                 };
-                if (!isEqual(method, "POST"))
+                if ((method != "POST"))
                 {
                     request = this.extend(request, query);
                 }
@@ -9031,7 +9039,7 @@ public partial class htx : Exchange
     { "Signature", signature },
 }));
                 url = add(url, ("?" + auth));
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     object bodyRequest = null;
                     if (isArrayParams)
@@ -9090,7 +9098,7 @@ public partial class htx : Exchange
             } else if (access == "private")
             {
                 this.checkRequiredCredentials();
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     IDictionary<string, object> options = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
                     string id = this.safeString(options, "id", "AA03022abc");
@@ -9124,7 +9132,7 @@ public partial class htx : Exchange
                 };
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort(request);
-                if (!isEqual(method, "POST"))
+                if ((method != "POST"))
                 {
                     Dictionary<string, object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
@@ -9138,7 +9146,7 @@ public partial class htx : Exchange
     { "Signature", signature },
 }));
                 url = add(url, ("?" + auth));
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     object bodyRequest = null;
                     if (isArrayParams)
@@ -9643,7 +9651,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object position = data[i];
+            IDictionary<string, object> position = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> parsed = this.parsePosition(position);
             result.Add(this.extend(parsed, new Dictionary<string, object>() {
                 { "timestamp", timestamp },
@@ -9731,7 +9739,7 @@ public partial class htx : Exchange
             for (int i = 0; i < getArrayLength(positions); i++)
             {
                 object entry = getValue(positions, i);
-                if (isEqual(getValue(entry, "contract_code"), (market.ContainsKey("id") ? market["id"] : null)))
+                if (isEqual(this.safeString(entry, "contract_code"), (market.ContainsKey("id") ? market["id"] : null)))
                 {
                     position = entry;
                     break;
@@ -9996,7 +10004,7 @@ public partial class htx : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(timeframeVar, "1h") && !isEqual(timeframeVar, "4h") && !isEqual(timeframeVar, "12h") && !isEqual(timeframeVar, "1d"))
+        if (!(timeframeVar == "1h") && !(timeframeVar == "4h") && !(timeframeVar == "12h") && !(timeframeVar == "1d"))
         {
             throw new BadRequest ((this.id + " fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe")) ;
         }

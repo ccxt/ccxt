@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 from ccxt.base.types import IndexType, Int, Market, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 
 
 class luno(ccxt.async_support.luno):
@@ -57,7 +58,10 @@ class luno(ccxt.async_support.luno):
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
         subscription = {'symbol': symbol}
-        url = self.urls['api']['ws'] + subscriptionHash
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchTrades() has no websocket url')
+        url = wsUrl + subscriptionHash
         messageHash = 'trades:' + symbol
         subscribe = {
             'api_key_id': self.apiKey,
@@ -157,7 +161,10 @@ class luno(ccxt.async_support.luno):
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
         subscription = {'symbol': symbol}
-        url = self.urls['api']['ws'] + subscriptionHash
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOrderBook() has no websocket url')
+        url = wsUrl + subscriptionHash
         messageHash = 'orderbook:' + symbol
         subscribe = {
             'api_key_id': self.apiKey,

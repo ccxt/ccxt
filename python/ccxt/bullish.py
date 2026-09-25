@@ -576,7 +576,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         response = self.publicGetV1Markets(params)
         return self.parse_markets(response)
@@ -802,6 +802,8 @@ class bullish(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteSymbol')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         basePrecision = self.safe_string(market, 'basePrecision')
         quotePrecision = self.safe_string(market, 'quotePrecision')
@@ -2397,7 +2399,7 @@ class bullish(Exchange, ImplicitAPI):
             #
             return self.parse_balance(response)
 
-    def parse_balance_for_single_currency(self, response: object, code: Str) -> Balances:
+    def parse_balance_for_single_currency(self, response: dict, code: Str) -> Balances:
         result = {'info': response}
         account = self.account()
         account['free'] = self.safe_string(response, 'availableQuantity')
@@ -2738,7 +2740,7 @@ class bullish(Exchange, ImplicitAPI):
         }
 
     def get_timestamp(self):
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
@@ -2851,7 +2853,10 @@ class bullish(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + endpoint
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + endpoint
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.microseconds())

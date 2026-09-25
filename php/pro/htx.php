@@ -460,7 +460,7 @@ class htx extends \ccxt\async\htx {
         $interval = $this->safe_string($parts, 3);
         $timeframe = $this->find_timeframe($interval);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -660,7 +660,7 @@ class htx extends \ccxt\async\htx {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $timestamp = $this->safe_integer($message, 'ts');
-        $params = $this->safe_value($subscription, 'params');
+        $params = $this->safe_dict($subscription, 'params');
         $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
         $market = $this->market($symbol);
         $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
@@ -1024,7 +1024,7 @@ class htx extends \ccxt\async\htx {
         return array( $channel, $messageHash );
     }
 
-    public function get_v5_linear_channel_and_message_hash(?string $topic, ?array $market = null, $params = array()) {
+    public function get_v5_linear_channel_and_message_hash(?string $topic, ?array $market = null, $params = array()): array {
         $contractCode = null;
         if ($market !== null) {
             $contractCode = $market['id'];
@@ -2641,7 +2641,7 @@ class htx extends \ccxt\async\htx {
                 }
             }
             if (is_array($message) && array_key_exists('ch' ?? '', $message)) {
-                if ($message['ch'] === 'auth') {
+                if ($this->safe_string($message, 'ch') === 'auth') {
                     $this->handle_authenticate($client, $message);
                     return;
                 } else {

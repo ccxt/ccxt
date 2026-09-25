@@ -1088,7 +1088,7 @@ class nado(ccxt.async_support.nado):
         }
         return await self.watch(url, unsubscribeHash, request, unsubscribeHash, subscription)
 
-    async def un_watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None):
+    async def un_watch_public_multiple(self, streamType: Str, markets: list[Market], messageHashes: list[str], params: dict = {}, subscriptionParams: list[dict] | None = None) -> list[object]:
         url = self.urls['api']['ws']['subscriptions']
         client = self.client(url)
         results = []

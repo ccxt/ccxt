@@ -108,12 +108,7 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var currencies []any = ccxt.SafeListTyped(this.Options, "currencies")
 	var channels []any = []any{}
 	for i := 0; i < len(currencies); i++ {
-		var currencyCode any = func() any {
-			if i >= 0 && i < len(currencies) {
-				return ccxt.DerefScalar(currencies[i])
-			}
-			return nil
-		}()
+		var currencyCode *string = this.SafeString(currencies, i)
 		channels = append(channels, ccxt.Add("user.portfolio.", currencyCode))
 	}
 	var subscribe map[string]any = map[string]any{
@@ -210,7 +205,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	params = this.Omit(params, "interval")
@@ -222,7 +217,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	}
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
@@ -277,7 +272,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
 		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	}
 	var message map[string]any = map[string]any{
@@ -290,8 +285,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
-	ccxt.PanicOnError(newTickers)
+	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, channels, request, channels, request))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
@@ -372,7 +366,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
 		channels = append(channels, ccxt.Add("quote.", market["id"]))
 	}
 	var message map[string]any = map[string]any{
@@ -385,8 +379,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
-	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
-	ccxt.PanicOnError(newTickers)
+	var newTickers map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, channels, request, channels, request))))
 	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
@@ -428,7 +421,7 @@ func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) a
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument_name")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
@@ -547,7 +540,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var interval *string = this.SafeString(parts, 2)
 	var symbol *string = this.SafeSymbol(marketId)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var trades []any = ccxt.SafeListTyped(params, "data")
 	if ccxt.IsEqual(this.SafeDict(this.Trades, symbol), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -565,7 +558,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
-	var messageHash any = ccxt.Add("trades|"+*symbol+"|", interval)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades|"+*symbol+"|", interval))
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
 
@@ -836,7 +829,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(storedOrderBook, "symbol", symbol)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, storedOrderBook)
-	var messageHash any = ccxt.Add("book|"+*symbol+"|", descriptor)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("book|"+*symbol+"|", descriptor))
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Deribit) CleanOrderBook(data any) any {
@@ -877,9 +870,10 @@ func (this *Deribit) CleanOrderBook(data any) any {
 func (this *Deribit) HandleDelta(bookside any, delta any) {
 	var price any = ccxt.GetValue(delta, 1)
 	var amount any = ccxt.GetValue(delta, 2)
-	if ccxt.IsEqual(ccxt.GetValue(delta, 0), "new") || ccxt.IsEqual(ccxt.GetValue(delta, 0), "change") {
+	var action *string = this.SafeString(delta, 0)
+	if (action != nil && *action == "new") || (action != nil && *action == "change") {
 		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 1})
-	} else if ccxt.IsEqual(ccxt.GetValue(delta, 0), "delete") {
+	} else if action != nil && *action == "delete" {
 		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 0})
 	}
 }
@@ -1110,7 +1104,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = strings.Split(*channel, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var rawTimeframe *string = this.SafeString(parts, 3)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
@@ -1127,7 +1121,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, stored)
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash any = ccxt.Add("chart.trades|"+*symbol+"|", rawTimeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("chart.trades|"+*symbol+"|", rawTimeframe))
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1146,12 +1140,12 @@ func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, "tick"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
-func (this *Deribit) WatchMultipleWrapperAsync(channelName any, channelDescriptor any, optionalArgs ...any) <-chan any {
+func (this *Deribit) WatchMultipleWrapperAsync(channelName string, channelDescriptor any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchMultipleWrapperBody(ch, channelName, channelDescriptor, optionalArgs...)
 	return ch
 }
-func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, channelDescriptor any, optionalArgs ...any) any {
+func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName string, channelDescriptor any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbolsArray := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1165,7 +1159,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var rawSubscriptions []any = []any{}
 	var messageHashes []any = []any{}
-	var isOHLCV bool = (ccxt.IsEqual(channelName, "chart.trades"))
+	var isOHLCV bool = (channelName == "chart.trades")
 	var symbols any = func() any {
 		if isOHLCV {
 			return this.GetListFromObjectValues(symbolsArray, 0)
@@ -1190,9 +1184,9 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 		} else {
 			market = this.Market(current)
 		}
-		var message any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "."), ccxt.GetValue(market, "id")), "."), channelDescriptor)
+		var message *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(channelName+".", ccxt.GetValue(market, "id")), "."), channelDescriptor))
 		rawSubscriptions = append(rawSubscriptions, message)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "|"), ccxt.GetValue(market, "symbol")), "|"), channelDescriptor))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(channelName+"|", ccxt.GetValue(market, "symbol")), "|"), channelDescriptor))
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",

@@ -2086,7 +2086,11 @@ export default class hollaex extends Exchange {
                 requestPath += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api']['rest'] + requestPath;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestPath;
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         if (api === 'private') {

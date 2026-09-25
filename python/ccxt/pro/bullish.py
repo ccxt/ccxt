@@ -92,7 +92,10 @@ class bullish(ccxt.async_support.bullish):
             'params': request,
             'id': id,
         }
-        fullUrl = self.urls['api']['ws']['public'] + url
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
+        fullUrl = wsUrl + url
         return await self.watch(fullUrl, messageHash, self.deep_extend(message, params), messageHash)
 
     async def watch_private(self, messageHash: str, subscribeHash: str, request={}, params={}) -> object:
@@ -195,7 +198,10 @@ class bullish(ccxt.async_support.bullish):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        url = self.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id']
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchTicker() has no public websocket url')
+        url = wsUrl + '/trading-api/v1/market-data/tick/' + market['id']
         messageHash = 'ticker::' + symbol
         return await self.watch(url, messageHash, params, messageHash)  # no need to send a subscribe message, the server sends a ticker update on connect
 

@@ -479,7 +479,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const markets = await this.v4PublicGetMarkets ();
@@ -518,6 +518,9 @@ export default class whitebit extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const active = this.safeBool (market, 'tradesEnabled');
         const isCollateral = this.safeBool (market, 'isCollateral');
         const typeId = this.safeString (market, 'type');
@@ -1089,7 +1092,7 @@ export default class whitebit extends Exchange {
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
-            const symbol = market['symbol'];
+            const symbol = marketSymbol;
             // Filter by symbols if specified
             if (symbols !== undefined) {
                 let symbolFound = false;
@@ -1229,7 +1232,7 @@ export default class whitebit extends Exchange {
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
                 const fee = this.safeDict (feesData, feeKey);
-                if ((fee !== undefined && fee !== null) && fee['ticker'] === code) {
+                if ((fee !== undefined && fee !== null) && this.safeString (fee, 'ticker') === code) {
                     feeData = fee;
                     break;
                 }
@@ -1503,7 +1506,7 @@ export default class whitebit extends Exchange {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketNew = this.safeMarket (marketId, undefined, '_');
-                    const marketOrders = this.safeList (response, marketId, []);
+                    const marketOrders: Dict[] = this.safeList (response, marketId, []);
                     for (let j = 0; j < marketOrders.length; j++) {
                         const order = marketOrders[j];
                         const orderId = this.safeString (order, 'id');
@@ -1783,7 +1786,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
                 const marketNew = this.safeMarket (marketId, undefined, '_');
-                const rawTrades = this.safeList (response, marketId, []);
+                const rawTrades: Dict[] = this.safeList (response, marketId, []);
                 const parsed = this.parseTrades (rawTrades, marketNew, since, limit);
                 results = this.arrayConcat (results, parsed);
             }
@@ -2732,7 +2735,7 @@ export default class whitebit extends Exchange {
         //         "limit": 100
         //     }
         //
-        const data = this.safeList (response, 'records', []);
+        const data: Dict[] = this.safeList (response, 'records', []);
         return this.parseTrades (data, market);
     }
 
@@ -2849,7 +2852,7 @@ export default class whitebit extends Exchange {
         //         "offset": 0
         //     }
         //
-        const records = this.safeList (response, 'records', []);
+        const records: Dict[] = this.safeList (response, 'records', []);
         return this.parseTransactions (records, currency, since, limitResolved);
     }
 
@@ -3021,7 +3024,7 @@ export default class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const subAccounts = this.safeList (response, 'data', []);
+        const subAccounts: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < subAccounts.length; i++) {
             const subAccount = this.safeDict (subAccounts, i, {});
             const accountId = this.safeString (subAccount, 'id');
@@ -3314,7 +3317,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeList (response, 'records', []);
+        const records: Dict[] = this.safeList (response, 'records', []);
         const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -3554,7 +3557,7 @@ export default class whitebit extends Exchange {
         //        }
         //    ]
         //
-        const data = this.safeList (response, 'result', []);
+        const data: Dict[] = this.safeList (response, 'result', []);
         return this.parseFundingRates (data, symbolsNormalized);
     }
 
@@ -3696,7 +3699,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    parseFundingHistories (contracts: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (contracts: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = this.safeDict (contracts, i);
@@ -3909,7 +3912,7 @@ export default class whitebit extends Exchange {
         //         "offset": 0
         //     }
         //
-        const rows = this.safeList (response, 'records', []);
+        const rows: Dict[] = this.safeList (response, 'records', []);
         return this.parseConversions (rows, code, 'fromCurrency', 'toCurrency', since, limit);
     }
 
@@ -3951,7 +3954,7 @@ export default class whitebit extends Exchange {
         //         "rate": "0.00001193"
         //     }
         //
-        const path = this.safeList (conversion, 'path', []);
+        const path: Dict[] = this.safeList (conversion, 'path', []);
         const first = this.safeDict (path, 0, {});
         const fromPath = this.safeString (first, 'from');
         const toPath = this.safeString (first, 'to');
@@ -4262,7 +4265,7 @@ export default class whitebit extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
@@ -4272,7 +4275,11 @@ export default class whitebit extends Exchange {
         const publicHeaders: Dict = (headers === undefined) ? {} : headers;
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
-        let url = (this.urls['api'] as Dict)[version][accessibility] + pathWithParams;
+        const apiUrl = this.safeString (this.urls['api'][version], accessibility);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + pathWithParams;
         if (accessibility === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);

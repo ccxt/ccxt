@@ -98,7 +98,12 @@ public partial class bullish : ccxt.bullish
             { "params", request },
             { "id", id },
         };
-        string? fullUrl = ((string)add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), url));
+        object wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
+        }
+        string? fullUrl = ((string)add(wsUrl, url));
         return await this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
@@ -225,7 +230,12 @@ public partial class bullish : ccxt.bullish
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "/trading-api/v1/market-data/tick/"), (market.ContainsKey("id") ? market["id"] : null)));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchTicker() has no public websocket url")) ;
+        }
+        string url = ((wsUrl + "/trading-api/v1/market-data/tick/") + ((market.ContainsKey("id") ? market["id"] : null)));
         string messageHash = ("ticker::" + (symbolVar));
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, parameters, messageHash));  // no need to send a subscribe message, the server sends a ticker update on connect
     }
@@ -506,7 +516,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
             {
-                object rawOrder = rawOrders[i];
+                IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
                 orders.append(parsedOrder);
                 string? symbol = this.safeString(parsedOrder, "symbol");
@@ -633,7 +643,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
             {
-                object rawTrade = rawTrades[i];
+                IDictionary<string, object> rawTrade = ((IDictionary<string, object>)rawTrades[i]);
                 Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
                 trades.append(parsedTrade);
                 string? symbol = this.safeString(parsedTrade, "symbol");
@@ -828,7 +838,7 @@ public partial class bullish : ccxt.bullish
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
         {
-            object rawPosition = rawPositions[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             positions.append(position);
             newPositions.Add(position);

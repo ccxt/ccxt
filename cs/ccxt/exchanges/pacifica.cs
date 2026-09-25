@@ -712,7 +712,7 @@ public partial class pacifica : Exchange
         });
     }
 
-    public async virtual Task<object> initializeClient()
+    public async virtual Task<bool> initializeClient()
     {
         try
         {
@@ -724,7 +724,7 @@ public partial class pacifica : Exchange
         return true;
     }
 
-    public async virtual Task<object> handleBuilderFeeApproval()
+    public async virtual Task<bool> handleBuilderFeeApproval()
     {
         if (this.isSandboxModeEnabled)
         {
@@ -894,10 +894,14 @@ public partial class pacifica : Exchange
             crossMargin = (isolatedOnly != true);
             isolatedMargin = true;
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = ((bs + "/") + quote);
         if (isSwap)
         {
             symbol = add(add(symbol, ":"), settle);
@@ -1924,13 +1928,7 @@ public partial class pacifica : Exchange
         {
             operationType = "create_order";
             sigPayload["reduce_only"] = reduceOnly;
-            if ((timeInForce == null))
-            {
-                sigPayload["tif"] = "GTC";
-            } else
-            {
-                sigPayload["tif"] = timeInForce;
-            }
+            sigPayload["tif"] = timeInForce;
         }
         if (isTakeProfitOrder)
         {
@@ -2009,11 +2007,11 @@ public partial class pacifica : Exchange
         //
         int lenActions = getArrayLength(actions);
         object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax");
-        if ((maxLen != null))
+        if (!isEqual(maxLen, null))
         {
             if (isGreaterThan(lenActions, maxLen))
             {
-                throw new ExchangeError ((string)((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + (maxLen))) ;
+                throw new ExchangeError (((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + this.numberToString(maxLen))) ;
             }
         }
         return new Dictionary<string, object>() {
@@ -2094,7 +2092,7 @@ public partial class pacifica : Exchange
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; i++)
         {
-            object order = results[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)results[i]);
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
@@ -2166,7 +2164,7 @@ public partial class pacifica : Exchange
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; i++)
         {
-            object order = results[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)results[i]);
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
@@ -2942,7 +2940,7 @@ public partial class pacifica : Exchange
         {
             tif = ((string)tifRaw).ToUpper();
         }
-        return this.safeString(tifMap, tif);
+        return this.safeString(tifMap, tif, "GTC");
     }
 
     public virtual string? mapSide(object sideRaw)
@@ -4027,7 +4025,7 @@ public partial class pacifica : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4045,12 +4043,12 @@ public partial class pacifica : Exchange
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
-        if ((isEqual(method, "GET")) && (paramsLen > 0))
+        if (((method == "GET")) && (paramsLen > 0))
         {
             url = add(url, ("?" + this.urlencode(parameters)));
             ((IDictionary<string,object>)headers)["Accept"] = "*/*";
         }
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             body = this.json(parameters);
         }
@@ -4072,7 +4070,7 @@ public partial class pacifica : Exchange
         string? cost = this.safeString(config, "cost", "1");
         double? costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-        if (isGreaterThan(costNumber, 1))
+        if ((costNumber > 1))
         {
             if (!isEqual(this.handleOption(method, "apiKey"), null))
             {

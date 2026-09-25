@@ -358,7 +358,7 @@ class bingx extends \ccxt\async\bingx {
         ), $market);
     }
 
-    public function get_order_book_limit_by_market_type(string $marketType, ?int $limit = null) {
+    public function get_order_book_limit_by_market_type(string $marketType, ?int $limit = null): float {
         if ($limit === null) {
             $limit = 100;
         } else {
@@ -1102,7 +1102,11 @@ class bingx extends \ccxt\async\bingx {
                 'dataType' => 'spot.executionReport',
             );
         }
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchOrders() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $subscription = array(
             'unsubscribe' => false,
             'id' => $uuid,
@@ -1177,7 +1181,11 @@ class bingx extends \ccxt\async\bingx {
                 'dataType' => 'spot.executionReport',
             );
         }
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchMyTrades() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $subscription = array(
             'unsubscribe' => false,
             'id' => $uuid,
@@ -1242,7 +1250,11 @@ class bingx extends \ccxt\async\bingx {
                 'dataType' => 'ACCOUNT_UPDATE',
             );
         }
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchBalance() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $client = $this->client($url);
         $this->set_balance_cache($client, $type, $subType, $subscriptionHash, $params);
         $fetchBalanceSnapshot = null;
@@ -1259,7 +1271,7 @@ class bingx extends \ccxt\async\bingx {
         return Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, ?string $subType, string $subscriptionHash, array $params) {
+    public function set_balance_cache(Client $client, string $type, ?string $subType, string $subscriptionHash, array $params) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -1276,11 +1288,11 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type, ?string $subType) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type, $subType);
     }
 
-    private function do_load_balance_snapshot(Client $client, string $messageHash, mixed $type, ?string $subType) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type, ?string $subType) {
         $response = Async\await($this->fetch_balance(array( 'type' => $type, 'subType' => $subType )));
         $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
@@ -1331,7 +1343,11 @@ class bingx extends \ccxt\async\bingx {
         $subscriptionHash = 'swap:private';
         $messageHash = 'swap:positions' . $messageHash;
         $baseUrl = $this->safe_string($this->urls['api']['ws'], $subType);
-        $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+        $userStreamKey = $this->safe_string($this->options, 'listenKey');
+        if ($baseUrl === null || $userStreamKey === null) {
+            throw new AuthenticationError($this->id . ' watchPositions() requires a websocket URL and a listen key');
+        }
+        $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $client = $this->client($url);
         $this->set_positions_cache($client, $type, $symbols);
         $fetchPositionsSnapshot = null;
@@ -1752,7 +1768,7 @@ class bingx extends \ccxt\async\bingx {
                     // Match both id and symbol: several cached orders can share a symbol.
                     for ($i = 0; $i < count($stored); $i++) {
                         $previousOrder = $stored[$i];
-                        if (($previousOrder['id'] === $orderId) && ($previousOrder['symbol'] === $parsedOrder['symbol'])) {
+                        if (($this->safe_string($previousOrder, 'id') === $orderId) && ($this->safe_string($previousOrder, 'symbol') === $this->safe_string($parsedOrder, 'symbol'))) {
                             $previousTimestamp = $this->safe_integer($previousOrder, 'lastUpdateTimestamp');
                             if (($previousTimestamp !== null) && ($updateTimestamp < $previousTimestamp)) {
                                 return;

@@ -6,6 +6,7 @@ import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -258,7 +259,7 @@ export default class coinbase extends coinbaseRest {
         return res;
     }
 
-    createWSAuth (name: string, productIds: Str[]) {
+    createWSAuth (name: string, productIds: Str[]): Dict {
         const subscribe: Dict = {};
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
@@ -458,7 +459,7 @@ export default class coinbase extends coinbaseRest {
         //
         //
         const channel = this.safeString (message, 'channel');
-        const events = this.safeList (message, 'events', []);
+        const events: Dict[] = this.safeList (message, 'events', []);
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const newTickers: Ticker[] = [];
@@ -486,7 +487,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "type": "ticker",
@@ -675,7 +676,7 @@ export default class coinbase extends coinbaseRest {
         const name = 'level2';
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const orderbook = await this.subscribe (name, false, symbolValue, params);
+        const orderbook: Ob = await this.subscribe (name, false, symbolValue, params);
         return orderbook.limit ();
     }
 
@@ -712,7 +713,7 @@ export default class coinbase extends coinbaseRest {
             await this.loadMarkets ();
         }
         const name = 'level2';
-        const orderbook = await this.subscribeMultiple (name, false, symbols, params);
+        const orderbook: Ob = await this.subscribeMultiple (name, false, symbols, params);
         return orderbook.limit ();
     }
 
@@ -999,8 +1000,8 @@ export default class coinbase extends coinbaseRest {
         const subKeysLength = subKeys.length;
         if (isUnsub && subKeysLength === 0) {
             const unSubObject = this.safeDict (this.options, 'unSubscription', {});
-            const messageHashes = this.safeList (unSubObject, 'messageHashes', []);
-            const subMessageHashes = this.safeList (unSubObject, 'subMessageHashes', []);
+            const messageHashes: string[] = this.safeList (unSubObject, 'messageHashes', []);
+            const subMessageHashes: string[] = this.safeList (unSubObject, 'subMessageHashes', []);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 const subHash = subMessageHashes[i];

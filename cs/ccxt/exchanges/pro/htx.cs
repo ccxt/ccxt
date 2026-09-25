@@ -469,7 +469,7 @@ public partial class htx : ccxt.htx
         string? interval = this.safeString(parts, 3);
         string? timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -690,7 +690,7 @@ public partial class htx : ccxt.htx
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
         Int64? timestamp = this.safeInteger(message, "ts");
-        object parameters = this.safeValue(subscription, "params");
+        IDictionary<string, object> parameters = this.safeDict(subscription, "params");
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
         object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
@@ -1441,7 +1441,7 @@ public partial class htx : ccxt.htx
         client.resolve(this.orders, messageHash);
         if ((isEqual(messageHash, "orders")) && ((marketId != null)))
         {
-            object specificMessageHash = add(add(messageHash, "."), marketId.ToLower());
+            string? specificMessageHash = ((string)add(add(messageHash, "."), marketId.ToLower()));
             client.resolve(this.orders, specificMessageHash);
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
@@ -2589,7 +2589,7 @@ public partial class htx : ccxt.htx
             this.handleMyTrade(client, message);
             return;
         }
-        if (getIndexOf(privateType, "accounts.update") >= 0)
+        if ((privateType?.IndexOf("accounts.update", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleBalance(client, message);
             return;
@@ -2604,19 +2604,19 @@ public partial class htx : ccxt.htx
         if (op == "notify")
         {
             string? topic = this.safeString(message, "topic", "");
-            if (getIndexOf(topic, "orders") >= 0)
+            if ((topic?.IndexOf("orders", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleOrder(client, message);
             }
-            if (getIndexOf(topic, "trade") >= 0)
+            if ((topic?.IndexOf("trade", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleMyTrade(client, message);
             }
-            if (getIndexOf(topic, "account") >= 0)
+            if ((topic?.IndexOf("account", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handleBalance(client, message);
             }
-            if (getIndexOf(topic, "positions") >= 0)
+            if ((topic?.IndexOf("positions", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 this.handlePositions(client, (Dictionary<string, object>)message);
             }
@@ -2866,7 +2866,7 @@ public partial class htx : ccxt.htx
             }
             if ((message != null && ((IDictionary<string, object>)message).ContainsKey("ch")))
             {
-                if (isEqual(((IDictionary<string,object>)message)["ch"], "auth"))
+                if ((this.safeString(message, "ch") == "auth"))
                 {
                     this.handleAuthenticate(client, message);
                     return;
@@ -3039,7 +3039,7 @@ public partial class htx : ccxt.htx
                 Dictionary<string, object> market = this.market(marketId);
                 for (int i = 0; i < rawTrades.Count; i++)
                 {
-                    object trade = rawTrades[i];
+                    IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
                     Dictionary<string, object> parsedTrade = this.parseTrade(trade, market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);

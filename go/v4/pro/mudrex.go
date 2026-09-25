@@ -87,19 +87,19 @@ func (this *Mudrex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	this.SetBrokerHeaders()
 	var baseIdString any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+		if !ccxt.IsEqual(market["baseId"], nil) {
 			return market["baseId"]
 		}
 		return ""
 	}()
 	var quoteIdString any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+		if !ccxt.IsEqual(market["quoteId"], nil) {
 			return market["quoteId"]
 		}
 		return ""
@@ -137,16 +137,16 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var assets []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, i)))
+			var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
 			messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
 			var baseIdString any = func() any {
-				if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+				if !ccxt.IsEqual(market["baseId"], nil) {
 					return market["baseId"]
 				}
 				return ""
 			}()
 			var quoteIdString any = func() any {
-				if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+				if !ccxt.IsEqual(market["quoteId"], nil) {
 					return market["quoteId"]
 				}
 				return ""
@@ -164,8 +164,7 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 
-	ticker := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, request, messageHashes))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -197,7 +196,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var priceType *string = this.SafeString(params, "price")
 	params = ccxt.MapTyped(this.Omit(params, "price"))
@@ -210,13 +209,13 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		prefix = "markKline"
 	}
 	var streamBaseId any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
+		if !ccxt.IsEqual(market["baseId"], nil) {
 			return market["baseId"]
 		}
 		return ""
 	}()
 	var streamQuoteId any = func() any {
-		if !ccxt.IsEqual(ccxt.GetValue(market, "quoteId"), nil) {
+		if !ccxt.IsEqual(market["quoteId"], nil) {
 			return market["quoteId"]
 		}
 		return ""
@@ -277,7 +276,7 @@ func (this *Mudrex) HandleErrorMessage(client any, message any) {
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	var code *string = this.SafeString(error, "code")
 	var msg *string = this.SafeString(error, "msg")
-	var feedback any = ccxt.Add(this.Id+" ", msg)
+	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", msg))
 	if code != nil && *code == "429" {
 		panic(ccxt.RateLimitExceeded(feedback))
 	}
@@ -296,7 +295,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	if s == nil {
 		return
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(strings.ToUpper(*s)))
+	var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -325,7 +324,7 @@ func (this *Mudrex) HandleTicker(client any, message any) {
 		if s == nil {
 			continue
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(strings.ToUpper(*s)))
+		var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var timestamp int64 = this.Milliseconds()
 		var last *float64 = this.SafeNumber(t, "p")

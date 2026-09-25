@@ -584,7 +584,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->publicGetV1Markets($params));
@@ -812,6 +812,9 @@ class bullish extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteSymbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $basePrecision = $this->safe_string($market, 'basePrecision');
         $quotePrecision = $this->safe_string($market, 'quotePrecision');
@@ -2615,7 +2618,7 @@ class bullish extends Exchange {
         }
     }
 
-    public function parse_balance_for_single_currency(mixed $response, ?string $code): array {
+    public function parse_balance_for_single_currency(array $response, ?string $code): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'availableQuantity');
@@ -2993,7 +2996,7 @@ class bullish extends Exchange {
     }
 
     public function get_timestamp() {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
@@ -3114,7 +3117,11 @@ class bullish extends Exchange {
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . $endpoint;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->microseconds();

@@ -1209,7 +1209,7 @@ public partial class lighter : ccxt.lighter
         //
         string? channel = this.safeString(message, "channel", "");
         string type = "spot";
-        if (getIndexOf(channel, "user_stats:") >= 0)
+        if ((channel?.IndexOf("user_stats:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             type = "swap";
         }
@@ -1600,42 +1600,42 @@ public partial class lighter : ccxt.lighter
             return;
         }
         string? channel = this.safeString(message, "channel", "");
-        if (getIndexOf(channel, "order_book:") >= 0)
+        if ((channel?.IndexOf("order_book:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrderBook(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(channel, "market_stats:") >= 0)
+        if ((channel?.IndexOf("market_stats:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleTicker(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(channel, "trade:") >= 0)
+        if ((channel?.IndexOf("trade:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleTrades(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(channel, "account_all_trades:") >= 0)
+        if ((channel?.IndexOf("account_all_trades:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleMyTrades(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(channel, "account_all_assets:") >= 0)
+        if ((channel?.IndexOf("account_all_assets:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleBalance(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(channel, "user_stats:") >= 0)
+        if ((channel?.IndexOf("user_stats:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleBalance(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(channel, "account_orders:") >= 0)
+        if ((channel?.IndexOf("account_orders:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrders(client, (Dictionary<string, object>)message);
             return;
         }
-        if (getIndexOf(channel, "account_all_orders:") >= 0)
+        if ((channel?.IndexOf("account_all_orders:", StringComparison.Ordinal) ?? -1) >= 0)
         {
             this.handleOrders(client, (Dictionary<string, object>)message);
             return;

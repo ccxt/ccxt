@@ -491,6 +491,18 @@ public class Onetrading extends OnetradingApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
+    /**
+     * @method
+     * @name onetrading#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.onetrading.com/rest/public/time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -521,11 +533,23 @@ public class Onetrading extends OnetradingApi
         });
 
     }
+    /**
+     * @method
+     * @name onetrading#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.onetrading.com/rest/public/currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "code");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -580,6 +604,18 @@ public class Onetrading extends OnetradingApi
         });
 
     }
+    /**
+     * @method
+     * @name onetrading#fetchMarkets
+     * @description retrieves data on all markets for onetrading
+     * @see https://docs.onetrading.com/rest/public/instruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseMarket(Object market)
     {
@@ -628,8 +664,12 @@ public class Onetrading extends OnetradingApi
         String baseId = this.safeString(baseAsset, "code");
         String quoteId = this.safeString(quoteAsset, "code");
         String id = this.safeString(market, "id");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String state = this.safeString(market, "state");
         String type = this.safeString(market, "type");
         Boolean isPerp = java.util.Objects.equals(type, "PERP");
@@ -638,35 +678,39 @@ public class Onetrading extends OnetradingApi
         {
             symbol = ((symbol + ":") + quote);
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", ((Boolean.TRUE.equals(isPerp))) ? quote : null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", ((Boolean.TRUE.equals(isPerp))) ? quoteId : null,
-            "type", ((Boolean.TRUE.equals(isPerp))) ? "swap" : "spot",
-            "spot", !Boolean.TRUE.equals(isPerp),
-            "margin", false,
-            "swap", isPerp,
-            "future", false,
-            "option", false,
-            "active", (java.util.Objects.equals(state, "ACTIVE")),
-            "contract", isPerp,
-            "linear", ((Boolean.TRUE.equals(isPerp))) ? true : null,
-            "inverse", ((Boolean.TRUE.equals(isPerp))) ? false : null,
-            "contractSize", ((Boolean.TRUE.equals(isPerp))) ? this.parseNumber("1") : null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final Object finalQuote = quote;
+        final String finalState = state;
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "symbol", finalSymbol );
+            put( "base", finalBase );
+            put( "quote", finalQuote );
+            put( "settle", ((Boolean.TRUE.equals(isPerp))) ? finalQuote : null );
+            put( "baseId", baseId );
+            put( "quoteId", quoteId );
+            put( "settleId", ((Boolean.TRUE.equals(isPerp))) ? quoteId : null );
+            put( "type", ((Boolean.TRUE.equals(isPerp))) ? "swap" : "spot" );
+            put( "spot", !Boolean.TRUE.equals(isPerp) );
+            put( "margin", false );
+            put( "swap", isPerp );
+            put( "future", false );
+            put( "option", false );
+            put( "active", (java.util.Objects.equals(finalState, "ACTIVE")) );
+            put( "contract", isPerp );
+            put( "linear", ((Boolean.TRUE.equals(isPerp))) ? true : null );
+            put( "inverse", ((Boolean.TRUE.equals(isPerp))) ? false : null );
+            put( "contractSize", ((Boolean.TRUE.equals(isPerp))) ? Onetrading.this.parseNumber("1") : null );
+            put( "expiry", null );
+            put( "expiryDatetime", null );
+            put( "strike", null );
+            put( "optionType", null );
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Onetrading.this.parseNumber(Onetrading.this.parsePrecision(Onetrading.this.safeString(market, "amount_precision"))) );
                 put( "price", Onetrading.this.parseNumber(Onetrading.this.parsePrecision(Onetrading.this.safeString(market, "market_precision"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }} );
+            put( "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -680,13 +724,13 @@ public class Onetrading extends OnetradingApi
                     put( "max", null );
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Onetrading.this.safeNumber(market, "min_size", (Object) null) );
+                    put( "min", Onetrading.this.safeNumber(market, "min_size") );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }} );
+            put( "created", null );
+            put( "info", market );
+        }});
     }
 
     /**
@@ -699,13 +743,13 @@ public class Onetrading extends OnetradingApi
      * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             String method = this.safeString(parameters, "method");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "method");
+            parameters = (Map<String, Object>) this.omit(parameters, "method");
             if (java.util.Objects.equals(method, null))
             {
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTradingFees", new HashMap<String, Object>() {{}});
@@ -713,16 +757,30 @@ public class Onetrading extends OnetradingApi
             }
             if (java.util.Objects.equals(method, "fetchPrivateTradingFees"))
             {
-                return (this.fetchPrivateTradingFees(Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchPrivateTradingFees(parameters)).join();
             } else if (java.util.Objects.equals(method, "fetchPublicTradingFees"))
             {
-                return (this.fetchPublicTradingFees(Helpers.toMapArg(paramsOmitted))).join();
+                return (this.fetchPublicTradingFees(parameters)).join();
             } else
             {
                 throw new NotSupported((((this.id + " fetchTradingFees() does not support ") + method) + ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
             }
         }).thenApply(TradingFees::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.onetrading.com/rest/public/fee-groups
+     * @see https://docs.onetrading.com/rest/trading/fees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    {
+        return this.fetchTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public CompletableFuture<Map<String, Object>> fetchPublicTradingFees(Map<String, Object> parameters)
@@ -732,7 +790,7 @@ public class Onetrading extends OnetradingApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             List<Object> response = (this.publicGetFees(parameters)).join();
             //
@@ -781,22 +839,22 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> futuresFees = (Map<String, Object>) this.safeDict(response, 1, new HashMap<String, Object>() {{}});
             List<Object> spotFeeTiers = (List<Object>) this.safeList(spotFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
             List<Object> futuresFeeTiers = (List<Object>) this.safeList(futuresFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers, (Map<String, Object>) null);
-            Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers, (Map<String, Object>) null);
+            Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers);
+            Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers);
             Map<String, Object> firstSpotTier = (Map<String, Object>) this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> firstFuturesTier = (Map<String, Object>) this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Map<String, Object> tierObject = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
                 result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
-        put( "maker", Onetrading.this.safeNumber(tierObject, "maker_fee", (Object) null) );
-        put( "taker", Onetrading.this.safeNumber(tierObject, "taker_fee", (Object) null) );
+        put( "maker", Onetrading.this.safeNumber(tierObject, "maker_fee") );
+        put( "taker", Onetrading.this.safeNumber(tierObject, "taker_fee") );
         put( "percentage", true );
         put( "tierBased", true );
         put( "tiers", spotTiers );
@@ -806,6 +864,10 @@ public class Onetrading extends OnetradingApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
+    public CompletableFuture<Map<String, Object>> fetchPublicTradingFees(Object... optionalArgs)
+    {
+        return this.fetchPublicTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public CompletableFuture<Map<String, Object>> fetchPrivateTradingFees(Map<String, Object> parameters)
     {
@@ -814,7 +876,7 @@ public class Onetrading extends OnetradingApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetAccountFees(parameters)).join();
             //
@@ -848,7 +910,7 @@ public class Onetrading extends OnetradingApi
             //    ]
             // }
             //
-            List<Object> activeFeeTier = (List<Object>) this.safeList(response, "active_fee_tiers", (Object) null);
+            List<Object> activeFeeTier = (List<Object>) this.safeList(response, "active_fee_tiers");
             Map<String, Object> spotFees = (Map<String, Object>) this.safeDict(activeFeeTier, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> futuresFees = (Map<String, Object>) this.safeDict(activeFeeTier, 1, new HashMap<String, Object>() {{}});
             String spotMakerFee = this.safeString(spotFees, "maker_fee");
@@ -862,10 +924,10 @@ public class Onetrading extends OnetradingApi
             futuresTakerFee = Precise.stringDiv(futuresTakerFee, "100");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             // const tiers = this.parseFeeTiers (feeTiers);
-            List<String> symbols = Helpers.toStringListArg(this.symbols);
+            List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String makerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
                 String takerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
@@ -883,6 +945,10 @@ public class Onetrading extends OnetradingApi
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
+    public CompletableFuture<Map<String, Object>> fetchPrivateTradingFees(Object... optionalArgs)
+    {
+        return this.fetchPrivateTradingFees(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Map<String, Object> parseFeeTiers(Object feeTiers, Map<String, Object> market)
     {
@@ -890,8 +956,8 @@ public class Onetrading extends OnetradingApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, i, (Object) null);
-            Double volume = this.safeNumber(tier, "volume", (Object) null);
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, i);
+            Double volume = this.safeNumber(tier, "volume");
             String taker = this.safeString(tier, "taker_fee");
             String maker = this.safeString(tier, "maker_fee");
             maker = Precise.stringDiv(maker, "100");
@@ -903,6 +969,10 @@ public class Onetrading extends OnetradingApi
             put( "maker", makerFees );
             put( "taker", takerFees );
         }};
+    }
+    public Map<String, Object> parseFeeTiers(Object feeTiers, Object... optionalArgs)
+    {
+        return this.parseFeeTiers(feeTiers, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -929,7 +999,7 @@ public class Onetrading extends OnetradingApi
         //
         Long timestamp = this.parse8601(this.safeString(ticker, "time"));
         String marketId = this.safeString(ticker, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_");
         String last = this.safeString(ticker, "last_price");
         String percentage = this.safeString(ticker, "price_change_percentage");
         String change = this.safeString(ticker, "price_change");
@@ -958,6 +1028,10 @@ public class Onetrading extends OnetradingApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -975,7 +1049,7 @@ public class Onetrading extends OnetradingApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1000,9 +1074,22 @@ public class Onetrading extends OnetradingApi
             //         "low":"8110.0"
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.onetrading.com/rest/public/market-ticker-instrument
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1014,16 +1101,16 @@ public class Onetrading extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols2, Map<String, Object> parameters)
     {
-
+        final List<String> symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
-
+            List<String> symbols = symbols3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
             List<Object> response = (this.publicGetMarketTicker(parameters)).join();
             //
             //     [
@@ -1049,16 +1136,29 @@ public class Onetrading extends OnetradingApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)), (Map<String, Object>) null);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)));
                 String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     result.put((String)symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
+            return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.onetrading.com/rest/public/market-ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1071,14 +1171,14 @@ public class Onetrading extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1145,9 +1245,23 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             Long timestamp = this.parse8601(this.safeString(response, "time"));
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "amount", 2);
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount");
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.onetrading.com/rest/public/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -1166,7 +1280,7 @@ public class Onetrading extends OnetradingApi
         //         "last_sequence":461123
         //     }
         //
-        Map<String, Object> granularity = (Map<String, Object>) this.safeDict(ohlcv, "granularity", (Object) null);
+        Map<String, Object> granularity = (Map<String, Object>) this.safeDict(ohlcv, "granularity");
         String unit = this.safeString(granularity, "unit");
         String period = this.safeString(granularity, "period");
         Map<String, Object> units = new HashMap<String, Object>() {{
@@ -1192,7 +1306,11 @@ public class Onetrading extends OnetradingApi
         Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt((((double) timestamp) / ((double) duration))));
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
         String volumeField = this.safeString(options, "volume", "total_amount");
-        return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, volumeField, (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeField)));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1207,17 +1325,19 @@ public class Onetrading extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since2, Long limit2, Map<String, Object> parameters)
     {
-
+        final Long since3 = since2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
+            Long since = since3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String periodUnit = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            String periodUnit = this.safeString(this.timeframes, timeframe);
             if (java.util.Objects.equals(periodUnit, null))
             {
                 throw new ExchangeError((this.id + " fetchOHLCV() missing periodUnit")) ;
@@ -1225,9 +1345,12 @@ public class Onetrading extends OnetradingApi
             var periodunitVariable = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
             var period = ((List<Object>) periodunitVariable).get(0);
             var unit = ((List<Object>) periodunitVariable).get(1);
-            int durationInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            int durationInSeconds = this.parseTimeframe(timeframe);
             Long duration = (((long) durationInSeconds) * 1000L);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500 : limit;
+            if (java.util.Objects.equals(limit, null))
+            {
+                limit = 1500L;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", ((Map<String, Object>)market).get("id") );
                 put( "period", period );
@@ -1237,11 +1360,11 @@ public class Onetrading extends OnetradingApi
             {
                 Long now = this.milliseconds();
                 request.put("to", this.iso8601(now));
-                request.put("from", this.iso8601(Helpers.subtract(now, Helpers.multiply(limitResolved, duration))));
+                request.put("from", this.iso8601(Helpers.subtract(now, Helpers.multiply(limit, duration))));
             } else
             {
                 request.put("from", this.iso8601(since));
-                request.put("to", this.iso8601(this.sum(since, Helpers.multiply(limitResolved, duration))));
+                request.put("to", this.iso8601(this.sum(since, Helpers.multiply(limit, duration))));
             }
             Map<String, Object> response = (this.publicGetCandlesticksInstrumentCode(this.extend(request, parameters))).join();
             //
@@ -1251,10 +1374,26 @@ public class Onetrading extends OnetradingApi
             //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
             //     ]
             //
-            List<Object> ohlcv = (List<Object>) this.safeList(response, "candlesticks", (Object) null);
-            return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            List<Object> ohlcv = (List<Object>) this.safeList(response, "candlesticks");
+            return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.onetrading.com/rest/public/candlesticks
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1298,48 +1437,57 @@ public class Onetrading extends OnetradingApi
         //     }
         //
         Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
-        Object tradeValue = this.safeDict(trade, "trade", trade);
-        Long timestamp = this.safeInteger(tradeValue, "trade_timestamp");
+        trade = this.safeDict(trade, "trade", trade);
+        Long timestamp = this.safeInteger(trade, "trade_timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
-            timestamp = this.parse8601(this.safeString(tradeValue, "time"));
+            timestamp = this.parse8601(this.safeString(trade, "time"));
         }
-        String side = this.safeStringLower2(tradeValue, "side", "taker_side");
-        String priceString = this.safeString(tradeValue, "price");
-        String amountString = this.safeString(tradeValue, "amount");
-        String costString = this.safeString(tradeValue, "volume");
-        String marketId = this.safeString(tradeValue, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String side = this.safeStringLower2(trade, "side", "taker_side");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String costString = this.safeString(trade, "volume");
+        String marketId = this.safeString(trade, "instrument_code");
+        String symbol = this.safeSymbol(marketId, market, "_");
         String feeCostString = this.safeString(feeInfo, "fee_amount");
         String takerOrMaker = null;
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(feeInfo, "fee_currency");
-            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             String feeRateString = this.safeString(feeInfo, "fee_percentage");
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode,
-                "rate", feeRateString
-            );
+            final String finalFeeCostString = feeCostString;
+            fee = new HashMap<String, Object>() {{
+                put( "cost", finalFeeCostString );
+                put( "currency", feeCurrencyCode );
+                put( "rate", feeRateString );
+            }};
             takerOrMaker = this.safeStringLower(feeInfo, "fee_type");
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", this.safeString2(tradeValue, "trade_id", "sequence"),
-            "order", this.safeString(tradeValue, "order_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "takerOrMaker", takerOrMaker,
-            "fee", fee,
-            "info", tradeValue
-        ), market);
+        final Object finalTrade = trade;
+        final Long finalTimestamp = timestamp;
+        final String finalTakerOrMaker = takerOrMaker;
+        final Map<String, Object> finalFee = fee;
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "id", Onetrading.this.safeString2(finalTrade, "trade_id", "sequence") );
+            put( "order", Onetrading.this.safeString(finalTrade, "order_id") );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", Onetrading.this.iso8601(finalTimestamp) );
+            put( "symbol", symbol );
+            put( "type", null );
+            put( "side", side );
+            put( "price", priceString );
+            put( "amount", amountString );
+            put( "cost", costString );
+            put( "takerOrMaker", finalTakerOrMaker );
+            put( "fee", finalFee );
+            put( "info", finalTrade );
+        }}, market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parseBalance(Object response)
@@ -1350,9 +1498,9 @@ public class Onetrading extends OnetradingApi
         }};
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i);
             String currencyId = this.safeString(balance, "currency_code");
-            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "locked"));
@@ -1379,7 +1527,7 @@ public class Onetrading extends OnetradingApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetAccountBalances(parameters)).join();
             //
@@ -1401,6 +1549,18 @@ public class Onetrading extends OnetradingApi
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.onetrading.com/rest/trading/balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -1495,14 +1655,14 @@ public class Onetrading extends OnetradingApi
         Long timestamp = this.parse8601(this.safeString(rawOrder, "time"));
         String status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
         String marketId = this.safeString(rawOrder, "instrument_code");
-        String symbol = this.safeSymbol(marketId, market, "_", (String) null);
+        String symbol = this.safeSymbol(marketId, market, "_");
         String price = this.safeString(rawOrder, "price");
         String amount = this.safeString(rawOrder, "amount");
         String filled = this.safeString(rawOrder, "filled_amount");
         String side = this.safeStringLower(rawOrder, "side");
         String type = this.safeStringLower(rawOrder, "type");
         String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
-        Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only");
         List<Object> rawTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1517,7 +1677,7 @@ public class Onetrading extends OnetradingApi
             put( "postOnly", postOnly );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", Onetrading.this.safeNumber(rawOrder, "trigger_price", (Object) null) );
+            put( "triggerPrice", Onetrading.this.safeNumber(rawOrder, "trigger_price") );
             put( "amount", amount );
             put( "cost", null );
             put( "average", null );
@@ -1526,6 +1686,10 @@ public class Onetrading extends OnetradingApi
             put( "status", status );
             put( "trades", rawTrades );
         }}, market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -1554,33 +1718,31 @@ public class Onetrading extends OnetradingApi
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_code", ((Map<String, Object>)market).get("id"),
-                "type", uppercaseType,
-                "side", ((String)side).toUpperCase(),
-                "amount", this.amountToPrecision(symbol, amount)
-            );
+            this.checkRequiredArgument("createOrder", side, "side");
+            final String finalUppercaseType = uppercaseType;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_code", ((Map<String, Object>)market).get("id") );
+                put( "type", finalUppercaseType );
+                put( "side", ((String)side).toUpperCase() );
+                put( "amount", Onetrading.this.amountToPrecision(symbol, amount) );
+            }};
             Boolean priceIsRequired = false;
             if (java.util.Objects.equals(uppercaseType, "LIMIT") || java.util.Objects.equals(uppercaseType, "STOP"))
             {
                 priceIsRequired = true;
             }
-            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "trigger_price", "stopPrice")), (Object) null);
+            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "trigger_price", "stopPrice")));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (java.util.Objects.equals(uppercaseType, "MARKET"))
@@ -1589,6 +1751,7 @@ public class Onetrading extends OnetradingApi
                 }
                 request.put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
                 request.put("type", "STOP");
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "trigger_price", "stopPrice")));
             } else if (java.util.Objects.equals(uppercaseType, "STOP"))
             {
                 throw new ArgumentsRequired((((this.id + " createOrder() requires a triggerPrice param for ") + type) + " orders")) ;
@@ -1601,13 +1764,12 @@ public class Onetrading extends OnetradingApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 request.put("client_id", clientOrderId);
+                parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             }
-            List<Object> triggerKeys = (((!java.util.Objects.equals(triggerPrice, null)))) ? new ArrayList<Object>(Arrays.asList("triggerPrice", "trigger_price", "stopPrice")) : new ArrayList<Object>(Arrays.asList());
-            List<Object> clientOrderIdKeys = (((!java.util.Objects.equals(clientOrderId, null)))) ? new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")) : new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, this.arrayConcat(this.arrayConcat(triggerKeys, clientOrderIdKeys), new ArrayList<Object>(Arrays.asList("timeInForce"))));
             String timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED");
+            parameters = (Map<String, Object>) this.omit(parameters, "timeInForce");
             request.put("time_in_force", timeInForce);
-            Map<String, Object> response = (this.privatePostAccountOrders(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.privatePostAccountOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1623,9 +1785,27 @@ public class Onetrading extends OnetradingApi
             //         "time_in_force": "GOOD_TILL_CANCELLED"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#createOrder
+     * @description create a trade order
+     * @see https://docs.onetrading.com/rest/trading/create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1639,17 +1819,17 @@ public class Onetrading extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-            Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+            parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             String method = "privateDeleteAccountOrdersOrderId";
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -1663,17 +1843,32 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(method, "privateDeleteAccountOrdersOrderId"))
             {
-                response = (this.privateDeleteAccountOrdersOrderId(this.extend(request, paramsOmitted))).join();
+                response = (this.privateDeleteAccountOrdersOrderId(this.extend(request, parameters))).join();
             } else
             {
-                response = (this.privateDeleteAccountOrdersClientClientId(this.extend(request, paramsOmitted))).join();
+                response = (this.privateDeleteAccountOrdersClientClientId(this.extend(request, parameters))).join();
             }
             //
             // responds with an empty body
             //
-            return this.parseOrder(response, (Map<String, Object>) null);
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
+     * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
+     * @param {string} id order id
+     * @param {string} symbol not used by cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1685,14 +1880,14 @@ public class Onetrading extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -1708,9 +1903,22 @@ public class Onetrading extends OnetradingApi
             //
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
-    }}, (Map<String, Object>) null)));
+    }})));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name onetrading#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1730,7 +1938,7 @@ public class Onetrading extends OnetradingApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ids", String.join(",", (List<String>)ids) );
@@ -1743,10 +1951,24 @@ public class Onetrading extends OnetradingApi
             //
             Object order = this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }}, (Map<String, Object>) null);
+            }});
             return new ArrayList<Object>(Arrays.asList(order));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name onetrading#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    {
+        return this.cancelOrders(ids, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1766,7 +1988,7 @@ public class Onetrading extends OnetradingApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1813,9 +2035,23 @@ public class Onetrading extends OnetradingApi
             //         ]
             //     }
             //
-            return this.parseOrder(response, (Map<String, Object>) null);
+            return this.parseOrder(response);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.onetrading.com/rest/trading/get-order-order-id
+     * @param {string} id the order id
+     * @param {string} symbol not used by onetrading fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1830,14 +2066,20 @@ public class Onetrading extends OnetradingApi
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -1851,16 +2093,16 @@ public class Onetrading extends OnetradingApi
                 request.put("from", this.iso8601(since));
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 request.put("to", this.iso8601(until));
             }
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("max_page_size", limit);
             }
-            Map<String, Object> response = (this.privateGetAccountOrders(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.privateGetAccountOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "order_history": [
@@ -1941,9 +2183,25 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             List<Object> orderHistory = (List<Object>) this.safeList(response, "order_history", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orderHistory, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orderHistory, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.onetrading.com/rest/trading/get-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1966,9 +2224,25 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "with_cancelled_and_rejected", true );
             }};
-            return (this.fetchOpenOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOpenOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.onetrading.com/rest/trading/get-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1983,14 +2257,16 @@ public class Onetrading extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol2, Long since, Long limit2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long limit = limit3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -2036,9 +2312,25 @@ public class Onetrading extends OnetradingApi
             {
                 market = (Map<String, Object>) this.market(symbol);
             }
-            return this.parseTrades(tradeHistory, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradeHistory, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.onetrading.com/rest/trading/get-trades-for-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2053,14 +2345,20 @@ public class Onetrading extends OnetradingApi
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long since = since3;
+            Long limit = limit3;
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
@@ -2074,16 +2372,16 @@ public class Onetrading extends OnetradingApi
                 request.put("from", this.iso8601(since));
             }
             Long until = this.safeInteger(parameters, "until");
-            Object paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(until, null))
             {
+                parameters = (Map<String, Object>) this.omit(parameters, "until");
                 request.put("to", this.iso8601(until));
             }
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("max_page_size", limit);
             }
-            Map<String, Object> response = (this.privateGetAccountTrades(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.privateGetAccountTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "trade_history": [
@@ -2115,32 +2413,53 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             List<Object> tradeHistory = (List<Object>) this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(tradeHistory, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(tradeHistory, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name onetrading#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.onetrading.com/rest/trading/get-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), "/"), this.version) + "/") + this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(api, "private"))
         {
-            this.checkRequiredCredentials(true);
-            Map<String, Object> headersSigned = new HashMap<String, Object>() {{
+            this.checkRequiredCredentials();
+            headers = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "Authorization", ("Bearer " + Onetrading.this.apiKey) );
             }};
-            String bodyJson = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? this.json(query) : body;
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
+            if (java.util.Objects.equals(method, "POST"))
             {
-                headersSigned.put("Content-Type", "application/json");
+                body = (String) (this.json(query));
+                ((Map<String, Object>)headers).put("Content-Type", "application/json");
             } else
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -2148,19 +2467,21 @@ public class Onetrading extends OnetradingApi
                     url = (url + ("?" + this.urlencode(query)));
                 }
             }
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyJson,
-                "headers", headersSigned
-            );
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        final String finalUrl = url;
+        final Object finalMethod = method;
+        final String finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", finalMethod );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

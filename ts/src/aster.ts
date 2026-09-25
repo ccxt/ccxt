@@ -873,7 +873,7 @@ export default class aster extends Exchange {
         const sapiResult = this.safeDict (results, 0, {});
         const sapiRows = this.safeList (sapiResult, 'symbols', []);
         const fapiResult = this.safeDict (results, 1, {});
-        const fapiRows = this.safeList (fapiResult, 'symbols', []);
+        const fapiRows: Dict[] = this.safeList (fapiResult, 'symbols', []);
         //
         // example:
         //
@@ -986,6 +986,9 @@ export default class aster extends Exchange {
         const quoteId = this.safeString (market, 'quoteAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const active = this.safeString (market, 'status') === 'TRADING';
         let spot: Bool = undefined;
         let symbol: Str = undefined;
@@ -2564,7 +2567,7 @@ export default class aster extends Exchange {
             request['symbol'] = market['id'];
         }
         if (symbol === undefined) {
-            if (this.options['fetchOpenOrders']['warnIfNoSymbol'] === true) {
+            if (this.safeBool (this.options['fetchOpenOrders'], 'warnIfNoSymbol') === true) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders(): WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         } else {
@@ -2690,7 +2693,7 @@ export default class aster extends Exchange {
     override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const ordersRequests: List = [];
-        const orderSymbols: List = [];
+        const orderSymbols: string[] = [];
         if (orders.length > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
@@ -3805,8 +3808,8 @@ export default class aster extends Exchange {
     }
 
     parseAccountPositions (account: Dict, filterClosed: boolean = false): Position[] {
-        const positions = this.safeList (account, 'positions', []);
-        const assets = this.safeList (account, 'assets', []);
+        const positions: Dict[] = this.safeList (account, 'positions', []);
+        const assets: Dict[] = this.safeList (account, 'assets', []);
         const balances: Dict = {};
         for (let i = 0; i < assets.length; i++) {
             const entry = this.safeDict (assets, i);
@@ -4074,7 +4077,7 @@ export default class aster extends Exchange {
                 const entry = this.safeDict (entries, i);
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
-                const brackets = this.safeList (entry, 'brackets', []);
+                const brackets: Dict[] = this.safeList (entry, 'brackets', []);
                 const result: List = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = this.safeDict (brackets, j);

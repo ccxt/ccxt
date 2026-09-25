@@ -356,7 +356,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 	for i := 0; i < len(codes); i++ {
 		var code string = GetValue(codes, i).(string)
 		var account map[string]any = this.Account()
-		var currency map[string]any = MapTyped(this.Currency(code))
+		var currency map[string]any = this.Currency(code)
 		var uppercase string = ToUpper(currency["id"])
 		if InOp(response, uppercase) {
 			account["free"] = this.SafeString(response, "AVAILABLE_"+uppercase)
@@ -464,7 +464,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -567,7 +567,7 @@ func (this *Bit2c) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -608,7 +608,7 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod") // kept here for backward compatibility #29154
 	var method any = this.HandleOption("fetchTrades", "method", optionValue)     // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
 	var request map[string]any = map[string]any{
@@ -744,7 +744,7 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"Amount": amount,
 		"Pair":   market["id"],
@@ -838,7 +838,7 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -878,7 +878,7 @@ func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
@@ -951,20 +951,20 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
 	// 0 = New
 	// 1 = Open
 	// 5 = Completed
-	var status any = nil
+	var status *string = nil
 	if isNewOrder {
 		var tempStatus *int64 = this.SafeInteger(orderUnified, "status_type")
 		if (tempStatus != nil && *tempStatus == 0) || (tempStatus != nil && *tempStatus == 1) {
-			status = "open"
+			status = SafeStringPtr("open")
 		} else if tempStatus != nil && *tempStatus == 5 {
-			status = "closed"
+			status = SafeStringPtr("closed")
 		}
 	} else {
 		var tempStatus *string = this.SafeString(orderUnified, "status")
 		if (tempStatus != nil && *tempStatus == "New") || (tempStatus != nil && *tempStatus == "Open") {
-			status = "open"
+			status = SafeStringPtr("open")
 		} else if tempStatus != nil && *tempStatus == "Completed" {
-			status = "closed"
+			status = SafeStringPtr("closed")
 		}
 	}
 	// bit2c order type:
@@ -1162,25 +1162,27 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId any = nil
 	var fee map[string]any = nil
 	var side any = nil
-	var makerOrTaker any = nil
+	var makerOrTaker *string = nil
 	var reference *string = this.SafeString(trade, "reference")
 	if reference != nil {
 		id = reference
 		timestamp = this.SafeTimestamp(trade, "ticks")
-		price = DerefScalar(this.SafeString(trade, "price"))
-		price = this.RemoveCommaFromValue(price)
+		var rawPrice *string = this.SafeString(trade, "price")
+		if rawPrice != nil {
+			price = this.RemoveCommaFromValue(rawPrice)
+		}
 		amount = this.SafeString(trade, "firstAmount")
 		var reference_parts []string = strings.Split(*reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId *string = this.SafeString(trade, "pair")
-		market = MapTyped(this.SafeMarket(marketId, market))
-		market = MapTyped(this.SafeMarket(GetValue(reference_parts, 0), market))
+		market = this.SafeMarket(marketId, market)
+		market = this.SafeMarket(GetValue(reference_parts, 0), market)
 		var isMaker *bool = this.SafeBool(trade, "isMaker")
-		makerOrTaker = func() string {
+		makerOrTaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker == true {
 				return "maker"
 			}
 			return "taker"
-		}()
+		}())
 		orderId = func() any {
 			if isMaker != nil && *isMaker == true {
 				return GetValue(reference_parts, 2)
@@ -1214,7 +1216,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	}
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -1258,7 +1260,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	if EvalTruthy(this.IsFiat(code)) {
 		panic(NotSupported(this.Id + " fetchDepositAddress() does not support fiat currencies"))
 	}
@@ -1311,7 +1313,11 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", this.ImplodeParams(path, params))
 	if IsEqual(api, "public") {
 		url = Add(url, ".json")
 	} else {
@@ -1357,7 +1363,7 @@ func (this *Bit2c) HandleErrors(httpCode any, reason any, url any, method any, h
 		error = this.SafeString(response, "Error")
 	}
 	if error != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

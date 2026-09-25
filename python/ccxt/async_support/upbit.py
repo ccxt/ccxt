@@ -530,6 +530,8 @@ class upbit(Exchange, ImplicitAPI):
         quoteId, baseId = id.split('-')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -848,7 +850,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbols)
 
-    def ids_query_strings(self, ids: Strings, maxQueryLength: float):
+    def ids_query_strings(self, ids: Strings, maxQueryLength: float) -> list[str]:
         if ids is None:
             return []
         idsString = ''
@@ -1275,13 +1277,13 @@ class upbit(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['identifier'] = clientOrderId
         if postOnly:
-            if request['ord_type'] != 'limit':
+            if self.safe_string(request, 'ord_type') != 'limit':
                 raise InvalidOrder(self.id + ' postOnly orders are only supported for limit orders')
             request['time_in_force'] = 'post_only'
         if timeInForce is not None:
             if timeInForce == 'ioc' or timeInForce == 'fok':
                 request['time_in_force'] = timeInForce
-        if request['ord_type'] == 'best' and timeInForce is None:
+        if self.safe_string(request, 'ord_type') == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
         response: dict
         params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
@@ -1423,13 +1425,13 @@ class upbit(Exchange, ImplicitAPI):
         if selfTradePrevention is not None:
             request['new_smp_type'] = selfTradePrevention
         if postOnly:
-            if request['new_ord_type'] != 'limit':
+            if self.safe_string(request, 'new_ord_type') != 'limit':
                 raise InvalidOrder(self.id + ' postOnly orders are only supported for limit orders')
             request['new_time_in_force'] = 'post_only'
         if timeInForce is not None:
             if timeInForce == 'ioc' or timeInForce == 'fok':
                 request['new_time_in_force'] = timeInForce
-        if request['new_ord_type'] == 'best' and timeInForce is None:
+        if self.safe_string(request, 'new_ord_type') == 'best' and timeInForce is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a timeInForce parameter for best type orders')
         params = self.omit(params, ['newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type'])
         # console.log ('check the each request params: ', request);

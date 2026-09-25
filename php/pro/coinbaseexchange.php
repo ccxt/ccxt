@@ -71,6 +71,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
     }
 
     private function do_subscribe(string $name, ?string $symbol = null, ?string $messageHashStart = null, $params = array()) {
+        if ($messageHashStart === null) {
+            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a $messageHashStart argument');
+        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -82,7 +85,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $messageHash .= ':' . $market['id'];
             $productIds[] = $market['id'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' urls.api.ws is not set');
+        }
         if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
             // need to distinguish between public trades and user trades
             $url = $url . '?';
@@ -103,6 +109,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
     }
 
     private function do_subscribe_multiple(string $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
+        if ($messageHashStart === null) {
+            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a $messageHashStart argument');
+        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -116,7 +125,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $productIds[] = $market['id'];
             $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' urls.api.ws is not set');
+        }
         if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
             // need to distinguish between public trades and user trades
             $url = $url . '?';

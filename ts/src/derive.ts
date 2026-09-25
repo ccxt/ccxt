@@ -676,6 +676,9 @@ export default class derive extends Exchange {
         const quoteId = this.safeString (market, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const marketId = this.safeString (market, 'instrument_name');
         let symbol = base + '/' + quote;
         let settleId: Str = undefined;
@@ -1010,7 +1013,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'trades', []);
+        const data: Dict[] = this.safeList (result, 'trades', []);
         return this.parseTrades (data, market, since, limitResolved);
     }
 
@@ -1131,7 +1134,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeList (result, 'funding_rate_history', []);
+        const data: Dict[] = this.safeList (result, 'funding_rate_history', []);
         const rates: List = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1465,7 +1468,7 @@ export default class derive extends Exchange {
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1860,7 +1863,7 @@ export default class derive extends Exchange {
                 return [];
             }
         }
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2142,7 +2145,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeList (result, 'trades', []);
+        const trades: Dict[] = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit, paramsDeriveSubaccountId);
     }
 
@@ -2230,7 +2233,7 @@ export default class derive extends Exchange {
                 return [];
             }
         }
-        const trades = this.safeList (result, 'trades', []);
+        const trades: Dict[] = this.safeList (result, 'trades', []);
         return this.parseTrades (trades, market, since, limit, paramsDeriveSubaccountId);
     }
 
@@ -2293,7 +2296,7 @@ export default class derive extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result', {});
-        const positions = this.safeList (result, 'positions', []);
+        const positions: Dict[] = this.safeList (result, 'positions', []);
         return this.parsePositions (positions, symbols);
     }
 
@@ -2452,7 +2455,7 @@ export default class derive extends Exchange {
                 return [];
             }
         }
-        const events = this.safeList (result, 'events', []);
+        const events: Dict[] = this.safeList (result, 'events', []);
         return this.parseIncomes (events, market, since, limit);
     }
 
@@ -2557,7 +2560,7 @@ export default class derive extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const subaccount = this.safeDict (response, i);
-            const collaterals = this.safeList (subaccount, 'collaterals', []);
+            const collaterals: Dict[] = this.safeList (subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = this.safeDict (collaterals, j);
                 const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
@@ -2621,7 +2624,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events', []);
+        const events: Dict[] = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, paramsDeriveSubaccountId);
     }
 
@@ -2669,7 +2672,7 @@ export default class derive extends Exchange {
         //
         const currency = this.safeCurrency (code);
         const result = this.safeDict (response, 'result', {});
-        const events = this.safeList (result, 'events', []);
+        const events: Dict[] = this.safeList (result, 'events', []);
         return this.parseTransactions (events, currency, since, limit, paramsDeriveSubaccountId);
     }
 
@@ -2771,7 +2774,11 @@ export default class derive extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const url = this.urls['api'][api] + '/' + path;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + '/' + path;
         if (method === 'POST') {
             const postHeaders: Dict = {
                 'Content-Type': 'application/json',

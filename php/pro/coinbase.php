@@ -281,7 +281,7 @@ class coinbase extends \ccxt\async\coinbase {
         return $res;
     }
 
-    public function create_ws_auth(string $name, array $productIds) {
+    public function create_ws_auth(string $name, array $productIds): array {
         $subscribe = array();
         $timestamp = $this->number_to_string($this->seconds());
         $this->check_required_credentials();
@@ -524,7 +524,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "type": "ticker",

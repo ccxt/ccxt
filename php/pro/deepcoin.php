@@ -121,9 +121,9 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $newValue;
     }
 
-    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
-        $marketId = $market['symbol']; // spot markets use symbol with slash
-        if ($market['type'] === 'swap') {
+    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false): array {
+        $marketId = $this->safe_string($market, 'symbol'); // spot markets use symbol with slash
+        if ($this->safe_string($market, 'type') === 'swap') {
             $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
         }
         $action = '1'; // subscribe
@@ -187,11 +187,11 @@ class deepcoin extends \ccxt\async\deepcoin {
 
     private function do_watch_private(string $messageHash, $params = array()) {
         $listenKey = Async\await($this->authenticate());
-        $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '?$listenKey=' . $listenKey;
         return Async\await($this->watch($url, $messageHash, null, 'private', $params));
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 
@@ -901,7 +901,8 @@ class deepcoin extends \ccxt\async\deepcoin {
         //     }
         //
         $timestamp = $this->safe_integer($message, 'mt', 0);
-        if ($timestamp > $orderbook['timestamp']) {
+        $currentTimestamp = $this->safe_integer($orderbook, 'timestamp');
+        if (($currentTimestamp !== null) && ($timestamp > $currentTimestamp)) {
             $response = $this->safe_list($message, 'r', array());
             $this->handle_deltas($orderbook, $response);
             $orderbook['timestamp'] = $timestamp;
@@ -1186,7 +1187,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         } else {
             $messageHashes[] = $messageHash;
         }
-        $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '?$listenKey=' . $listenKey;
         $positions = Async\await($this->watch_multiple($url, $messageHashes, $params, array( 'private' )));
         if ($this->newUpdates) {
             return $positions;
@@ -1237,7 +1238,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null): array {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "A": "9256245",

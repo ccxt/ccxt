@@ -6689,6 +6689,20 @@ export function csharpTypeOfValue (csharp, node, context) {
         if (arithmetic !== undefined) {
             return arithmetic;
         }
+        // a pair installCsharpNativeArithmetic prints as the C# operator (`(x + 10000)` over an
+        // `Int64?` left): the operator's own static type is the declaration (the lifted `+` of a
+        // nullable left stays nullable) — exactly the kind the emitted expression carries
+        const nativeOp = node.operatorToken.kind;
+        if (NATIVE_ARITHMETIC_SYMBOLS[nativeOp] !== undefined) {
+            const nativeLeft = nativeArithmeticOperandKind (csharp, node.left);
+            const nativeRight = nativeArithmeticOperandKind (csharp, node.right);
+            if (nativeLeft !== 'string' && nativeArithmeticIsProven (nativeOp, nativeLeft, nativeRight)) {
+                const kind = nativeArithmeticPairResultKind (nativeOp, nativeLeft, nativeRight);
+                if (NATIVE_ARITHMETIC_RESULT_DECLARATIONS.includes (kind)) {
+                    return kind;
+                }
+            }
+        }
         break;
     }
     case ts.SyntaxKind.ConditionalExpression: {
@@ -9597,6 +9611,15 @@ function stringBoxLeafProof (csharp, node) {
     }
     if (marketRowStringReadType (csharp, leaf) === 'string' || urlsDescribeStringProducer (leaf)) {
         return { type: 'string?', cast: 'string' };
+    }
+    // an `object` local whose initializer and every later write are proven string-or-null boxes
+    // (`const apiUrl = this.safeString (…)` kept `object` because it is itself a `+` LEFT
+    // operand over an unproven right): the box is the same string-or-null the leaves above name
+    if (leaf.kind === ts.SyntaxKind.Identifier) {
+        const box = localValueBoxType (csharp, leaf, undefined);
+        if (box === 'string' || box === 'string?') {
+            return { type: 'string?', cast: 'string' };
+        }
     }
     // the hand-written base declares these properties `public string <name> { get; set; }`
     // (Exchange.Options.cs, one declaration each, no shadowing anywhere in cs/**): the read's
@@ -14700,6 +14723,9 @@ const NATIVE_ARITHMETIC_KIND_BY_TYPE = {
 
 const NATIVE_ARITHMETIC_SMALL_INT_KINDS = [ 'int', 'uint', 'Int64' ];
 
+// the native-operator result kinds csharpTypeOfValue may name as a declaration type
+const NATIVE_ARITHMETIC_RESULT_DECLARATIONS = [ 'int', 'Int64', 'Int64?', 'double', 'double?' ];
+
 // `+` pairs whose LEFT operand is a nullable numeric: the helper returns null for a null
 // left and otherwise unboxes the same sum, so the lifted operator is the identical result
 const NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS = [ 'Int64?', 'double?' ];
@@ -15091,6 +15117,14 @@ export function installCsharpNumericComparisons (transpiler) {
 // at every listed position, 0 exceptions over 3220 declarations + the non-table ones).
 // Answering the same (method, position) pair here is therefore the declaration's own type, and the
 // existing operators / helpers can replace their runtime call with the native one.
+// `sign()` / `handleErrors()` positions every declaration prints narrowed (retypeSignatureArgs in
+// build/csharpTranspiler.ts, no shadow: every body write is a literal or a same-typed producer).
+// `sign` headers (4) stay object: prediction overrides write an `object existingHeaders` into it.
+export const SIGNATURE_ARG_TYPES = {
+    'sign': { 2: 'string' },
+    'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
+};
+
 function coreArgParamType (csharp, node) {
     if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
@@ -15112,6 +15146,13 @@ function coreArgParamType (csharp, node) {
         return undefined;
     }
     const name = owner.name?.escapedText;
+    const signature = SIGNATURE_ARG_TYPES[name];
+    if (signature !== undefined) {
+        const at = owner.parameters.indexOf (declaration);
+        if ((at >= 0) && (signature[at] !== undefined)) {
+            return signature[at];
+        }
+    }
     const strings = CORE_STRING_ARGS[name];
     const numerics = CORE_NUMERIC_ARGS[name];
     if (strings === undefined && numerics === undefined) {

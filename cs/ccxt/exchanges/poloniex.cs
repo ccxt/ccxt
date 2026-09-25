@@ -1069,15 +1069,19 @@ public partial class poloniex : Exchange
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseCurrencyName");
         string? quoteId = this.safeString(market, "quoteCurrencyName");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ((Dictionary<string, object>)((object)(null)));
+        }
         string? state = this.safeString(market, "state");
         bool active = state == "NORMAL";
         IDictionary<string, object> symbolTradeLimit = this.safeDict(market, "symbolTradeLimit");
         // these are known defaults
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -1162,20 +1166,24 @@ public partial class poloniex : Exchange
         string? baseId = this.safeString(market, "bCcy");
         string? quoteId = this.safeString(market, "qCcy");
         string? settleId = this.safeString(market, "sCcy");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ((Dictionary<string, object>)((object)(null)));
+        }
         string? settle = this.safeCurrencyCode(settleId);
         string? status = this.safeString(market, "status");
         bool active = status == "OPEN";
-        bool linear = isEqual(getValue(market, "ctType"), "LINEAR");
-        object symbol = add(add(bs, "/"), quote);
+        bool linear = (this.safeString(market, "ctType") == "LINEAR");
+        string symbol = ((bs + "/") + quote);
         if (linear)
         {
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
         } else
         {
             // actually, exchange does not have any inverse future now
-            symbol = add(symbol, (":" + (bs)));
+            symbol = symbol + (":" + bs);
         }
         string? alias = this.safeString(market, "alias");
         string type = "swap";
@@ -4106,7 +4114,7 @@ public partial class poloniex : Exchange
         //     "msg": "Success"
         // }
         //
-        if (isEqual(type, "reduce"))
+        if ((type == "reduce"))
         {
             amount = Precise.stringAbs(amount);
         }
@@ -4170,7 +4178,7 @@ public partial class poloniex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4180,7 +4188,7 @@ public partial class poloniex : Exchange
         {
             url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "swap");
         }
-        if (isEqual(method, "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
+        if ((method == "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
         {
             ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(((IDictionary<string,object>)parameters)["symbol"]); // handle symbols like 索拉拉/USDT'
         }
@@ -4197,25 +4205,25 @@ public partial class poloniex : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
-            object auth = add(method, "\n"); // eslint-disable-line quotes
+            string auth = (method + "\n"); // eslint-disable-line quotes
             url = add(url, ("/" + implodedPath));
-            auth = add(auth, ("/" + implodedPath));
-            if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE")))
+            auth = auth + ("/" + implodedPath);
+            if (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE")))
             {
-                auth = add(auth, "\n"); // eslint-disable-line quotes
+                auth = auth + "\n"; // eslint-disable-line quotes
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     body = this.json(query);
-                    auth = add(auth, (("requestBody=" + (body)) + "&"));
+                    auth = auth + (("requestBody=" + (body)) + "&");
                 }
-                auth = add(auth, ("signTimestamp=" + timestamp));
+                auth = auth + ("signTimestamp=" + timestamp);
             } else
             {
                 Dictionary<string, object> sortedQuery = this.extend(new Dictionary<string, object>() {
                     { "signTimestamp", timestamp },
                 }, query);
                 sortedQuery = this.keysort(sortedQuery);
-                auth = add(auth, ("\n" + this.urlencode(sortedQuery))); // eslint-disable-line quotes
+                auth = auth + ("\n" + this.urlencode(sortedQuery)); // eslint-disable-line quotes
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     url = add(url, ("?" + this.urlencode(query)));

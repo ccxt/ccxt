@@ -627,7 +627,7 @@ impl OnetradingCore {
         }
         trades = self.filter_by_symbol_since_limit(trades.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
         let mut numTrades: Value = get_array_length(&trades);
-        if is_equal(&numTrades, &Value::Int(0)) {
+        if (numTrades.as_f64() == Some(0.0)) {
             return Box::pin(self.watch_my_trades(&[symbol, since, limit, params])).await;
         }
         return trades;
@@ -817,7 +817,7 @@ impl OnetradingCore {
         }
         orders = self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
         let mut numOrders: Value = get_array_length(&orders);
-        if is_equal(&numOrders, &Value::Int(0)) {
+        if (numOrders.as_f64() == Some(0.0)) {
             return Box::pin(self.watch_orders(&[symbol, since, limit, params])).await;
         }
         return orders;
@@ -1387,7 +1387,7 @@ impl OnetradingCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_546: bool = true;
             while { if !__for_first_546 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_546 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceKeys.len() as i64) as f64) } {
-            let mut newBalance: Value = self.safe_value(update.clone(), balanceKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
+            let mut newBalance: Value = self.safe_dict(update.clone(), balanceKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             if (newBalance != Value::Null) {
                 self.update_balance(newBalance);
             }

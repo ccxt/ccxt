@@ -1486,8 +1486,11 @@ impl PhemexCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settleCurrency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-        base = replace_str(&base, &Value::Str(" ".into()), &Value::Str("".into())); // replace space for junction codes, eg. `1000 SHIB`
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
+        base = replace_str(&base, &Value::Str(" ".into()), &Value::Str("".into())); // replace space for junction codes, eg. `1000 SHIB`
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut inverse: Value = Value::Bool(false);
         if (settleId.as_str() != quoteId.as_str()) {
@@ -1634,6 +1637,9 @@ impl PhemexCore {
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut precisionAmount: Value = self.parse_safe_number(&[self.safe_string_k(market.clone(), "baseTickSize", &[])]);
         let mut precisionPrice: Value = self.parse_safe_number(&[self.safe_string_k(market.clone(), "quoteTickSize", &[])]);
@@ -1960,7 +1966,9 @@ impl PhemexCore {
                 })]);
                 market = self.parse_spot_market(market.clone());
             }
-            append_to_array(&mut result, market);
+            if (market != Value::Null) {
+                append_to_array(&mut result, market);
+            }
         }
         }
         return result;
@@ -2199,7 +2207,7 @@ impl PhemexCore {
         }
         let mut stringN: Value = self.number_to_string(n);
         let mut precise = Precise::new(stringN);
-        { let __sv_tmp = subtract(&get_value(&precise, &Value::Str("decimals".into())), &scale); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+        { let __sv_tmp = (match (&(get_value(&precise, &Value::Str("decimals".into()))), &(scale)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
         precise.reduce();
         let mut preciseString: Value = to_string_val(&precise);
         return self.parse_to_numeric(preciseString);
@@ -3790,7 +3798,7 @@ impl PhemexCore {
             if (qtyType.as_str() == Some("ByQuote")) {
                 let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".into()), &[]);
-                if is_equal(&self.options.as_map().and_then(|__m| __m.get("createOrderByQuoteRequiresPrice")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
+                if (self.safe_bool_k(self.options.clone(), "createOrderByQuoteRequiresPrice", &[]).as_bool() == Some(true)) {
                     if (price != Value::Null) {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());

@@ -129,7 +129,7 @@ func (this *Weex) subscribePublicBody(ch chan any, messageHashes any, channels a
 	if isContract == true {
 		typeVar = "contract"
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/public")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/public"))
 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(message, params), messageHashes, subscription)))
 	return nil
@@ -152,7 +152,7 @@ func (this *Weex) subscribePrivateBody(ch chan any, messageHash any, subscribeHa
 	if isContract == true {
 		typeVar = "contract"
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/private")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/private"))
 	this.Authenticate(url)
 	var method string = "SUBSCRIBE"
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
@@ -285,8 +285,7 @@ func (this *Weex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		channels = append(channels, channelName)
 	}
 
-	newTicker := (<-this.SubscribePublicAsync(messageHashes, channels, isContract, params))
-	ccxt.PanicOnError(newTicker)
+	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHashes, channels, isContract, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
@@ -705,16 +704,16 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		symbol = ccxt.GetValue(market, "symbol")
 	}
 	var isBuyerMaker *bool = this.SafeBool(trade, "m") // m is the isBuyerMaker flag of the REST trades, true means the taker sold
-	var side any = nil
-	var takerOrMaker any = nil
+	var side *string = nil
+	var takerOrMaker *string = nil
 	if isBuyerMaker != nil {
-		side = func() string {
+		side = ccxt.SafeStringPtr(func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
-		takerOrMaker = "taker" // a public trade is reported from the aggressor's side, same as parseTrade
+		}())
+		takerOrMaker = ccxt.SafeStringPtr("taker") // a public trade is reported from the aggressor's side, same as parseTrade
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -808,7 +807,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var messageHashes []any = []any{}
 	var firstEntry []any = ccxt.SafeListTyped(symbolsAndTimeframes, 0)
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
-	var firstMarket map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
+	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var priceType any = "LAST_PRICE"
 	if isContract != nil && *isContract == true {
@@ -827,7 +826,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@kline_"), interval), "_"), priceType)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unifiedTimeframe)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unifiedTimeframe))
 		channels = append(channels, channel)
 		messageHashes = append(messageHashes, messageHash)
 	}
@@ -904,7 +903,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var unSubHashes []any = []any{}
 	var firstEntry []any = ccxt.SafeListTyped(symbolsAndTimeframes, 0)
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
-	var firstMarket map[string]any = ccxt.MapTyped(this.Market(firstSymbol))
+	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var priceType any = "LAST_PRICE"
 	if isContract != nil && *isContract == true {
@@ -924,7 +923,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@kline_"), interval), "_"), priceType)
 		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unifiedTimeframe)
-		var unSubMessageHash any = ccxt.Add("unsubscribe::", messageHash)
+		var unSubMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", messageHash))
 		channels = append(channels, channel)
 		subHashes = append(subHashes, messageHash)
 		unSubHashes = append(unSubHashes, unSubMessageHash)
@@ -978,7 +977,7 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe *string = this.FindTimeframe(interval)
-	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -991,7 +990,7 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 		var parsed any = this.ParseWsOHLCV(entry)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", timeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
@@ -1284,8 +1283,7 @@ func (this *Weex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		channels = append(channels, channelName)
 	}
 
-	newTicker := (<-this.SubscribePublicAsync(messageHashes, channels, false, params))
-	ccxt.PanicOnError(newTicker)
+	var newTicker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribePublicAsync(messageHashes, channels, false, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
@@ -1374,7 +1372,7 @@ func (this *Weex) HandleBidAsk(client any, message any) {
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 	}
-	var messageHash any = ccxt.Add("bidask::", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask::", symbol))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Weex) ParseWsBidAsk(message any, optionalArgs ...any) any {
@@ -1420,7 +1418,7 @@ func (this *Weex) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1436,7 +1434,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
@@ -1448,7 +1446,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subscriptionHash any = messageHash
 	if symbol != nil {
-		messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
+		messageHash = ccxt.Add(messageHash, "::"+*symbol)
 	}
 	var channel string = "fill"
 
@@ -1612,7 +1610,7 @@ func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any 
 	if positionSide != nil {
 		marketType = "swap"
 	}
-	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var marketResolved map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	market = marketResolved
 	var side *string = this.SafeStringLower(trade, "orderSide")
 	var fee map[string]any = nil
@@ -1670,7 +1668,7 @@ func (this *Weex) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1685,7 +1683,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
@@ -1698,7 +1696,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subscriptionHash any = messageHash
 	if symbol != nil {
-		messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
+		messageHash = ccxt.Add(messageHash, "::"+*symbol)
 	}
 	var channel string = "orders"
 
@@ -1930,7 +1928,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	if positionSide != nil {
 		marketType = "swap"
 	}
-	var marketResolved map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var marketResolved map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	market = marketResolved
 	var side *string = this.SafeStringLower(order, "orderSide")
 	var fee map[string]any = nil
@@ -2022,7 +2020,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if isContract {
 		urlType = "contract"
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType), "/private")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType), "/private"))
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
@@ -2197,7 +2195,7 @@ func (this *Weex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/private")
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/private"))
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	symbols = this.MarketSymbols(symbols, "swap", true)
@@ -2387,7 +2385,7 @@ func (this *Weex) GetMarketFromClientAndMessage(client any, message any) any {
 		marketType = "swap"
 	}
 	var marketId *string = this.SafeString(message, "s")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 	return market
 }
 func (this *Weex) PongAsync(client any, message any) <-chan any {
@@ -2446,7 +2444,7 @@ func (this *Weex) HandleErrorMessage(client any, message any) any {
 	var result *bool = this.SafeBool(message, "result", true)
 	if result == nil || *result != true {
 		var msg *string = this.SafeString(message, "msg", "")
-		var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 
 		{
 			ret__ := func(this *Weex) (ret_ any) {

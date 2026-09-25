@@ -63,7 +63,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'orderbook:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.urls['api']['ws'] + '/orderbooks/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws') + '/orderbooks/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -143,7 +143,7 @@ export default class extended extends extendedRest {
 
     async watchPrivate (messageHash: string, subscription: NullableDict = undefined) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'] + '/account';
+        const url = this.safeString (this.urls['api'], 'ws') + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
             const defaultOptions = {
                 'ws': {
@@ -432,9 +432,9 @@ export default class extended extends extendedRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const stored = this.positions;
+        const stored: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         const newPositions: Position[] = [];
         const first = this.safeDict (rawPositions, 0);
         if (first === undefined) {
@@ -545,7 +545,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'fundingRate:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.urls['api']['ws'] + '/funding/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws') + '/funding/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -619,7 +619,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'markPrice:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.urls['api']['ws'] + '/prices/mark/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws') + '/prices/mark/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -682,7 +682,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'trades:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.urls['api']['ws'] + '/publicTrades/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws') + '/publicTrades/' + market['id'];
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -780,7 +780,7 @@ export default class extended extends extendedRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe + ':' + candleType;
         const query = this.urlencode (this.extend ({ 'interval': interval }, paramsOmitted));
-        const url = this.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query;
+        const url = this.safeString (this.urls['api'], 'ws') + '/candles/' + market['id'] + '/' + candleType + '?' + query;
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, undefined, messageHash, {
             'name': 'ohlcv',
             'symbol': symbolValue,

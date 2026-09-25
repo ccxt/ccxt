@@ -572,14 +572,14 @@ class pacifica(Exchange, ImplicitAPI):
             },
         })
 
-    async def initialize_client(self):
+    async def initialize_client(self) -> bool:
         try:
             await self.handle_builder_fee_approval()
         except Exception as e:
             return False
         return True
 
-    async def handle_builder_fee_approval(self):
+    async def handle_builder_fee_approval(self) -> bool:
         if self.isSandboxModeEnabled:  # At this stage, building codes are mostly only on the mainnet.
             return False
         buildFee = self.safe_bool(self.options, 'builderFee', True)
@@ -727,6 +727,8 @@ class pacifica(Exchange, ImplicitAPI):
             isolatedMargin = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
         if isSwap:
@@ -976,7 +978,7 @@ class pacifica(Exchange, ImplicitAPI):
             settings = await self.fetch_account_settings(params)
             self.options['settings'] = settings
 
-    def parse_account_settings(self, settings: list[object]) -> dict:
+    def parse_account_settings(self, settings: list[dict]) -> dict:
         settingsLen = len(settings)
         if settingsLen == 0:
             return {}
@@ -1599,10 +1601,7 @@ class pacifica(Exchange, ImplicitAPI):
         else:
             operationType = 'create_order'
             sigPayload['reduce_only'] = reduceOnly
-            if timeInForce is None:
-                sigPayload['tif'] = 'GTC'
-            else:
-                sigPayload['tif'] = timeInForce
+            sigPayload['tif'] = timeInForce
         if isTakeProfitOrder:
             tpPayload = {
                 'stop_price': self.price_to_precision(symbol, takeProfitPrice),
@@ -1666,7 +1665,7 @@ class pacifica(Exchange, ImplicitAPI):
         maxLen = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
         if maxLen is not None:
             if lenActions > maxLen:
-                raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen)
+                raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + self.number_to_string(maxLen))
         return {
             'actions': actions,
         }
@@ -2306,7 +2305,7 @@ class pacifica(Exchange, ImplicitAPI):
         orders = self.parse_orders(data, market, since, limit)
         return orders
 
-    def add_pagination_cursor_to_result(self, response: dict) -> list[object]:
+    def add_pagination_cursor_to_result(self, response: dict) -> list[dict]:
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
@@ -2403,7 +2402,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def map_time_in_force(self, tifRaw: Str):
+    def map_time_in_force(self, tifRaw: Str) -> str:
         tifMap = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -2416,7 +2415,7 @@ class pacifica(Exchange, ImplicitAPI):
         tif = None
         if tifRaw is not None:
             tif = tifRaw.upper()
-        return self.safe_string(tifMap, tif)
+        return self.safe_string(tifMap, tif, 'GTC')
 
     def map_side(self, sideRaw: Str):
         sideMap = {
@@ -3270,7 +3269,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountBuilderCodesApprove(self.extend(request, params))
 
-    async def fetch_builder_approvals(self, address: str):
+    async def fetch_builder_approvals(self, address: str) -> dict:
         request = {
             'account': address,
         }

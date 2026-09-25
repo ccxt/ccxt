@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -678,7 +679,7 @@ export default class phemex extends phemexRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 
@@ -1187,7 +1188,7 @@ export default class phemex extends phemexRest {
         //    ]
         //
         let trades: List = [];
-        const parsedOrders: List = [];
+        const parsedOrders: Dict[] = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeList (message, 'closed', []);
             const open = this.safeList (message, 'open', []);

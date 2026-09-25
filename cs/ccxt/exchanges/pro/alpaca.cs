@@ -692,7 +692,7 @@ public partial class alpaca : ccxt.alpaca
                 { "key", this.apiKey },
                 { "secret", this.secret },
             };
-            if (isEqual(url, getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "trading")))
+            if (isEqual(url, this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "trading")))
             {
                 // this auth request is being deprecated in test environment
                 request = ((object)new Dictionary<string, object>() {
@@ -718,8 +718,13 @@ public partial class alpaca : ccxt.alpaca
         //    }
         //
         string? code = this.safeString(message, "code");
-        object msg = this.safeValue(message, "msg", new Dictionary<string, object>() {});
-        throw new ExchangeError ((string)((((this.id + " code: ") + code) + " message: ") + (msg))) ;
+        string? msg = this.safeString(message, "msg");
+        object errorMessage = ((this.id + " code: ") + code);
+        if ((msg != null))
+        {
+            errorMessage = add(add(errorMessage, " message: "), msg);
+        }
+        throw new ExchangeError ((string)errorMessage) ;
     }
 
     public virtual object handleConnected(WebSocketClient client, object message)

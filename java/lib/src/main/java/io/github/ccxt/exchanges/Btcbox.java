@@ -288,7 +288,7 @@ public class Btcbox extends BtcboxApi
         return BaseExchange.supplyAsync(() -> {
 
             Object promise1 = this.publicGetTickers();
-            Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true, (String) null, (String) null);
+            Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true);
             var response1response2Variable = (CompletableFuture.allOf(((CompletableFuture<?>) promise1), ((CompletableFuture<?>) promise2)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) promise1).join(), ((CompletableFuture<?>) promise2).join())))).join();
             var response1 = ((List<Object>) response1response2Variable).get(0);
             var response2 = ((List<Object>) response1response2Variable).get(1);
@@ -309,33 +309,35 @@ public class Btcbox extends BtcboxApi
                 Double fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
                 Map<String, Object> details = (Map<String, Object>) this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> tradeDetails = (Map<String, Object>) this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
-                ((List<Object>)markets).add(this.safeMarketStructure(Helpers.newMap(
-                    "id", id,
-                    "uppercaseId", null,
-                    "symbol", symbol,
-                    "base", baseCurr,
-                    "baseId", id,
-                    "quote", quote,
-                    "quoteId", quoteId,
-                    "settle", null,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "taker", fee,
-                    "maker", fee,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "limits", new HashMap<String, Object>() {{
+    final String finalId = id;
+                final String finalBaseCurr = baseCurr;
+                            ((List<Object>)markets).add(this.safeMarketStructure(new HashMap<String, Object>() {{
+                    put( "id", finalId );
+                    put( "uppercaseId", null );
+                    put( "symbol", symbol );
+                    put( "base", finalBaseCurr );
+                    put( "baseId", finalId );
+                    put( "quote", quote );
+                    put( "quoteId", quoteId );
+                    put( "settle", null );
+                    put( "settleId", null );
+                    put( "type", "spot" );
+                    put( "spot", true );
+                    put( "margin", false );
+                    put( "swap", false );
+                    put( "future", false );
+                    put( "option", false );
+                    put( "taker", fee );
+                    put( "maker", fee );
+                    put( "contract", false );
+                    put( "linear", null );
+                    put( "inverse", null );
+                    put( "contractSize", null );
+                    put( "expiry", null );
+                    put( "expiryDatetime", null );
+                    put( "strike", null );
+                    put( "optionType", null );
+                    put( "limits", new HashMap<String, Object>() {{
                         put( "amount", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -352,56 +354,73 @@ public class Btcbox extends BtcboxApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }},
-                    "precision", new HashMap<String, Object>() {{
+                    }} );
+                    put( "precision", new HashMap<String, Object>() {{
                         put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(tradeDetails, "pricedecimal"))) );
                         put( "amount", null );
-                    }},
-                    "active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"),
-                    "created", null,
-                    "info", res
-                )));
+                    }} );
+                    put( "active", java.util.Objects.equals(Btcbox.this.safeString(tradeDetails, "enable"), "1") );
+                    put( "created", null );
+                    put( "info", res );
+                }}));
             }
             return markets;
         });
 
     }
+    /**
+     * @method
+     * @name btcbox#fetchMarkets
+     * @description retrieves data on all markets for ace
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", this.safeString(market, "symbol"),
-            "uppercaseId", null,
-            "symbol", symbol,
-            "base", base,
-            "baseId", baseId,
-            "quote", quote,
-            "quoteId", quoteId,
-            "settle", null,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "limits", new HashMap<String, Object>() {{
+        final String finalBase = base;
+        final String finalQuote = quote;
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
+            put( "id", Btcbox.this.safeString(market, "symbol") );
+            put( "uppercaseId", null );
+            put( "symbol", symbol );
+            put( "base", finalBase );
+            put( "baseId", baseId );
+            put( "quote", finalQuote );
+            put( "quoteId", quoteId );
+            put( "settle", null );
+            put( "settleId", null );
+            put( "type", "spot" );
+            put( "spot", true );
+            put( "margin", false );
+            put( "swap", false );
+            put( "future", false );
+            put( "option", false );
+            put( "contract", false );
+            put( "linear", null );
+            put( "inverse", null );
+            put( "contractSize", null );
+            put( "expiry", null );
+            put( "expiryDatetime", null );
+            put( "strike", null );
+            put( "optionType", null );
+            put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Btcbox.this.safeNumber(market, "minLimitBaseAmount", (Object) null) );
-                    put( "max", Btcbox.this.safeNumber(market, "maxLimitBaseAmount", (Object) null) );
+                    put( "min", Btcbox.this.safeNumber(market, "minLimitBaseAmount") );
+                    put( "max", Btcbox.this.safeNumber(market, "maxLimitBaseAmount") );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -415,15 +434,15 @@ public class Btcbox extends BtcboxApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "precision", new HashMap<String, Object>() {{
+            }} );
+            put( "precision", new HashMap<String, Object>() {{
                 put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "quotePrecision"))) );
                 put( "amount", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "basePrecision"))) );
-            }},
-            "active", null,
-            "created", null,
-            "info", market
-        ));
+            }} );
+            put( "active", null );
+            put( "created", null );
+            put( "info", market );
+        }});
     }
 
     public Object parseBalance(Object response)
@@ -465,12 +484,24 @@ public class Btcbox extends BtcboxApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privatePostBalance(parameters)).join();
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
+    }
+    /**
+     * @method
+     * @name btcbox#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://blog.btcbox.jp/en/archives/8762#toc13
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -490,24 +521,38 @@ public class Btcbox extends BtcboxApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Integer numSymbols = ((List<?>)this.symbols).size();
-            if (Helpers.isGreaterThan(numSymbols, 1))
+            if ((numSymbols != null && numSymbols > 1))
             {
                 request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
+            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name btcbox#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://blog.btcbox.jp/en/archives/8762#toc6
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
     {
-        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -532,6 +577,10 @@ public class Btcbox extends BtcboxApi
             put( "info", ticker );
         }}, market);
     }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     /**
      * @method
@@ -549,19 +598,32 @@ public class Btcbox extends BtcboxApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Integer numSymbols = ((List<?>)this.symbols).size();
-            if (Helpers.isGreaterThan(numSymbols, 1))
+            if ((numSymbols != null && numSymbols > 1))
             {
                 request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name btcbox#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://blog.btcbox.jp/en/archives/8762#toc5
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -579,12 +641,24 @@ public class Btcbox extends BtcboxApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            return this.parseTickers(response, symbols, new HashMap<String, Object>() {{}});
+            return this.parseTickers(response, symbols);
         }).thenApply(Tickers::new);
 
+    }
+    /**
+     * @method
+     * @name btcbox#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+        return this.fetchTickers(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -601,19 +675,20 @@ public class Btcbox extends BtcboxApi
         //      }
         //
         Long timestamp = this.safeTimestamp(trade, "date");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        market = (Map<String, Object>) (this.safeMarket(null, market));
         String id = this.safeString(trade, "tid");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         List<String> type = null;
         String side = this.safeString(trade, "type");
+        final Map<String, Object> finalMarket = market;
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
             put( "timestamp", timestamp );
             put( "datetime", Btcbox.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "type", type );
             put( "side", side );
             put( "takerOrMaker", null );
@@ -621,7 +696,11 @@ public class Btcbox extends BtcboxApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -642,12 +721,12 @@ public class Btcbox extends BtcboxApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Integer numSymbols = ((List<?>)this.symbols).size();
-            if (Helpers.isGreaterThan(numSymbols, 1))
+            if ((numSymbols != null && numSymbols > 1))
             {
                 request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
@@ -663,9 +742,24 @@ public class Btcbox extends BtcboxApi
             //          },
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name btcbox#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://blog.btcbox.jp/en/archives/8762#toc7
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -688,7 +782,7 @@ public class Btcbox extends BtcboxApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -704,9 +798,26 @@ public class Btcbox extends BtcboxApi
             //         "id":"12"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name btcbox#createOrder
+     * @description create a trade order
+     * @see https://blog.btcbox.jp/en/archives/8762#toc18
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -719,18 +830,21 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             // a special case for btcbox – default symbol is BTC/JPY
-            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
-            Map<String, Object> market = (Map<String, Object>) this.market(symbolResolved);
+            if (java.util.Objects.equals(symbol, null))
+            {
+                symbol = "BTC/JPY";
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", ((Map<String, Object>)market).get("baseId") );
@@ -739,9 +853,23 @@ public class Btcbox extends BtcboxApi
             //
             //     {"result":true, "id":"11"}
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name btcbox#cancelOrder
+     * @description cancels an open order
+     * @see https://blog.btcbox.jp/en/archives/8762#toc17
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOrderStatus(String status)
@@ -779,7 +907,7 @@ public class Btcbox extends BtcboxApi
         Long timestamp = null;
         if (!java.util.Objects.equals(datetimeString, null))
         {
-            timestamp = this.parse8601(Helpers.add(((Map<String, Object>)order).get("datetime"), "+09:00")); // Tokyo time
+            timestamp = this.parse8601((datetimeString + "+09:00")); // Tokyo time
         }
         String amount = this.safeString(order, "amount_original");
         String remaining = this.safeString(order, "amount_outstanding");
@@ -795,31 +923,38 @@ public class Btcbox extends BtcboxApi
             }
         }
         List<String> trades = null; // todo: this.parseTrades (order['trades']);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        market = (Map<String, Object>) (this.safeMarket(null, market));
         String side = this.safeString(order, "type");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "amount", amount,
-            "remaining", remaining,
-            "filled", null,
-            "side", side,
-            "type", null,
-            "timeInForce", null,
-            "postOnly", null,
-            "status", status,
-            "symbol", ((Map<String, Object>)marketResolved).get("symbol"),
-            "price", price,
-            "triggerPrice", null,
-            "cost", null,
-            "trades", trades,
-            "fee", null,
-            "info", order,
-            "average", null
-        ), Helpers.toMapArg(marketResolved));
+        final Long finalTimestamp = timestamp;
+        final String finalStatus = status;
+        final Map<String, Object> finalMarket = market;
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "clientOrderId", null );
+            put( "timestamp", finalTimestamp );
+            put( "datetime", Btcbox.this.iso8601(finalTimestamp) );
+            put( "lastTradeTimestamp", null );
+            put( "amount", amount );
+            put( "remaining", remaining );
+            put( "filled", null );
+            put( "side", side );
+            put( "type", null );
+            put( "timeInForce", null );
+            put( "postOnly", null );
+            put( "status", finalStatus );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "price", price );
+            put( "triggerPrice", null );
+            put( "cost", null );
+            put( "trades", trades );
+            put( "fee", null );
+            put( "info", order );
+            put( "average", null );
+        }}, market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -832,18 +967,21 @@ public class Btcbox extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             // a special case for btcbox – default symbol is BTC/JPY
-            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
-            Map<String, Object> market = (Map<String, Object>) this.market(symbolResolved);
+            if (java.util.Objects.equals(symbol, null))
+            {
+                symbol = "BTC/JPY";
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", ((Map<String, Object>)market).get("baseId") );
@@ -861,27 +999,47 @@ public class Btcbox extends BtcboxApi
             //          "trades":[]
             //      }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
-
-    public CompletableFuture<Object> fetchOrdersByType(String type, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    /**
+     * @method
+     * @name btcbox#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://blog.btcbox.jp/en/archives/8762#toc16
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
+    }
 
+    public CompletableFuture<Object> fetchOrdersByType(String type2, String symbol2, Long since, Long limit, Map<String, Object> parameters)
+    {
+        final String type3 = type2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            String type = type3;
+            String symbol = symbol3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             // a special case for btcbox – default symbol is BTC/JPY
-            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
-            Map<String, Object> market = (Map<String, Object>) this.market(symbolResolved);
-            Map<String, Object> request = Helpers.newMap(
-                "type", type,
-                "coin", ((Map<String, Object>)market).get("baseId")
-            );
+            if (java.util.Objects.equals(symbol, null))
+            {
+                symbol = "BTC/JPY";
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            final String finalType = type;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "type", finalType );
+                put( "coin", ((Map<String, Object>)market).get("baseId") );
+            }};
             List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
             //
             // [
@@ -895,7 +1053,7 @@ public class Btcbox extends BtcboxApi
             //      },
             // ]
             //
-            List<Object> orders = this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            List<Object> orders = this.parseOrders(response, market, since, limit);
             // status (open/closed/canceled) is undefined
             // btcbox does not return status, but we know it's 'open' as we queried for open orders
             if (java.util.Objects.equals(type, "open"))
@@ -908,6 +1066,10 @@ public class Btcbox extends BtcboxApi
             return orders;
         });
 
+    }
+    public CompletableFuture<Object> fetchOrdersByType(String type, Object... optionalArgs)
+    {
+        return this.fetchOrdersByType(type, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -930,6 +1092,21 @@ public class Btcbox extends BtcboxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name btcbox#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://blog.btcbox.jp/en/archives/8762#toc15
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -951,6 +1128,21 @@ public class Btcbox extends BtcboxApi
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name btcbox#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://blog.btcbox.jp/en/archives/8762#toc15
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
+    }
 
     public Long nonce()
     {
@@ -959,19 +1151,24 @@ public class Btcbox extends BtcboxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = Helpers.add((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.version) + "/"), path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((((apiUrl + "/") + this.version) + "/"), path);
+        if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webApi"))
+        } else if (java.util.Objects.equals(api, "webApi"))
         {
             url = Helpers.add((((Map<String, Object>)this.urls).get("www") + "/"), path);
         } else
         {
-            this.checkRequiredCredentials(true);
+            this.checkRequiredCredentials();
             String nonce = String.valueOf(this.nonce());
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "key", Btcbox.this.apiKey );
@@ -980,23 +1177,24 @@ public class Btcbox extends BtcboxApi
             String request = this.urlencode(query);
             Object secret = this.hash(this.encode(this.secret), md5());
             query.put("signature", this.hmac(this.encode(request), this.encode(secret), sha256()));
-            String signedBody = this.urlencode(query);
-            Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
+            body = (String) (this.urlencode(query));
+            headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        final String finalUrl = url;
+        final String finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", method );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -1010,7 +1208,7 @@ public class Btcbox extends BtcboxApi
         {
             return null;  // resort to defaultErrorHandler
         }
-        Boolean result = (Boolean) this.safeBool(response, "result", (Object) null);
+        Boolean result = (Boolean) this.safeBool(response, "result");
         if (java.util.Objects.equals(result, null) || java.util.Objects.equals(result, true))
         {
             return null;  // either public API (no error codes expected) or success
@@ -1026,7 +1224,7 @@ public class Btcbox extends BtcboxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            Object response = (this.fetch2(path, api, method, parameters, headers, body, config)).join();
             if ((response instanceof String))
             {
                 // sometimes the exchange returns whitespace prepended to json
@@ -1040,5 +1238,9 @@ public class Btcbox extends BtcboxApi
             return response;
         });
 
+    }
+    public CompletableFuture<Object> request(Object path, Object... optionalArgs)
+    {
+        return this.request(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null, optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : new HashMap<String, Object>() {{}});
     }
 }

@@ -5,6 +5,7 @@ import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.j
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -247,7 +248,7 @@ export default class hyperliquid extends hyperliquidRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -619,7 +620,7 @@ export default class hyperliquid extends hyperliquidRest {
         return true;
     }
 
-    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
@@ -659,7 +660,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
-        const data = this.safeList (entry, 'fills', []);
+        const data: Dict[] = this.safeList (entry, 'fills', []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -1259,7 +1260,7 @@ export default class hyperliquid extends hyperliquidRest {
         const message = this.extend (request, paramsValue);
         const client = this.client (url);
         this.setPositionsCache (client, symbolsNormalized);
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions = await this.watch (url, messageHash, message, topic);
         if (this.newUpdates) {
             return newPositions;
@@ -1278,11 +1279,11 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const data = this.safeDict (message, 'data', {});
         const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
         const newPositions: Position[] = [];
-        const rawPositions = this.safeList (clearinghouseState, 'assetPositions', []);
+        const rawPositions: Dict[] = this.safeList (clearinghouseState, 'assetPositions', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -1449,7 +1450,7 @@ export default class hyperliquid extends hyperliquidRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);

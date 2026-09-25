@@ -1035,6 +1035,9 @@ class hashkey extends Exchange {
             $suffix .= ':' . $settleId;
         }
         $base = $this->safe_currency_code($baseId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote . $suffix;
         $status = $this->safe_string($market, 'status');
         $active = $status === 'TRADING';
@@ -2347,7 +2350,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function parse_account_type(mixed $type) {
+    public function parse_account_type(?string $type) {
         $types = array(
             '1' => 'spot account',
             '3' => 'swap account',
@@ -4545,7 +4548,11 @@ class hashkey extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         $query = null;
         if ($api === 'private') {
             $this->check_required_credentials();

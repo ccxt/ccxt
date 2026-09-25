@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import bitrueRest from '../bitrue.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -400,7 +400,7 @@ export default class bitrue extends bitrueRest {
             const marketId = this.safeStringUpper (parts, 1);
             market = this.safeMarket (marketId);
         }
-        const symbol = (market as Dict)['symbol'];
+        const symbol: string = (market as Dict)['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
         const tick = this.safeDict (message, 'tick', {});
         let parseable = tick;
@@ -430,12 +430,15 @@ export default class bitrue extends bitrueRest {
         const symbols = Object.keys (markets);
         for (let i = 0; i < symbols.length; i++) {
             const candidate = markets[symbols[i]];
-            if (candidate['swap'] !== true) {
+            if (this.safeBool (candidate, 'swap') !== true) {
                 continue;
             }
-            const baseId = this.safeStringLower (candidate, 'baseId', '');
-            const quoteId = this.safeStringLower (candidate, 'quoteId', '');
-            if ((baseId as string) + quoteId === wsBaseQuote) {
+            const baseId = this.safeStringLower (candidate, 'baseId');
+            const quoteId = this.safeStringLower (candidate, 'quoteId');
+            if (baseId === undefined || quoteId === undefined) {
+                throw new ExchangeError (this.id + ' findSwapMarketByWsBaseQuote() market ' + symbols[i] + ' has no baseId or quoteId');
+            }
+            if (baseId + quoteId === wsBaseQuote) {
                 return candidate;
             }
         }
@@ -454,7 +457,7 @@ export default class bitrue extends bitrueRest {
         return result;
     }
 
-    convertFromRawQuantity (symbol: string, rawQuantity: any) {
+    convertFromRawQuantity (symbol: string, rawQuantity: Num) {
         if (rawQuantity === undefined) {
             return undefined;
         }
@@ -538,7 +541,7 @@ export default class bitrue extends bitrueRest {
         }
         const symbol = market['symbol'];
         const tick = this.safeDict (message, 'tick', {});
-        const data = this.safeList (tick, 'data', []);
+        const data: Dict[] = this.safeList (tick, 'data', []);
         let appended = false;
         let stored = this.safeValue (this.trades, symbol);
         for (let i = 0; i < data.length; i++) {
@@ -558,7 +561,7 @@ export default class bitrue extends bitrueRest {
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
-        const symbol = (market as Dict)['symbol'];
+        const symbol: string = (market as Dict)['symbol'];
         const timestamp = this.safeInteger (trade, 'ts');
         const sideLower = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
@@ -678,7 +681,7 @@ export default class bitrue extends bitrueRest {
     }
 
     override parseWsOHLCV (tick: any, market: Market = undefined): OHLCV {
-        const symbol = (market as Dict)['symbol'];
+        const symbol: string = (market as Dict)['symbol'];
         const idSeconds = this.safeInteger (tick, 'id');
         const timestamp = (idSeconds === undefined) ? undefined : idSeconds * 1000;
         const open = this.safeNumber (tick, 'open');
@@ -859,7 +862,7 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    async authenticate (params: Dict = {}) {
+    async authenticate (params: Dict = {}): Promise<Str> {
         const listenKey: Str = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
             // single-flight leader election on a never-dialed client, see
@@ -900,7 +903,11 @@ export default class bitrue extends bitrueRest {
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
                 this.options['listenKey'] = key;
-                this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+                const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+                if (wsUrl === undefined) {
+                    throw new ExchangeError (this.id + ' authenticate() has no private websocket url');
+                }
+                this.options['listenKeyUrl'] = wsUrl + '/stream?listenKey=' + key;
                 client.resolve (key, messageHash);
             } catch (e) {
                 // reject the flight - all waiters throw and the next caller

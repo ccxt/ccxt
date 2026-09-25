@@ -72,7 +72,7 @@ export default class hollaex extends hollaexRest {
         }
         const market = this.market (symbol);
         const messageHash = 'orderbook' + ':' + market['id'];
-        const orderbook = await this.watchPublic (messageHash, params);
+        const orderbook: Ob = await this.watchPublic (messageHash, params);
         return orderbook.limit ();
     }
 
@@ -244,7 +244,7 @@ export default class hollaex extends hollaexRest {
         const rawTrades = this.safeValue (message, 'data');
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        const dataLength = rawTrades.length;
+        const dataLength: number = rawTrades.length;
         if (dataLength === 0) {
             return;
         }
@@ -367,7 +367,7 @@ export default class hollaex extends hollaexRest {
         const channel = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data', {});
         // usually the first message is an empty array
-        const dataLength = data.length;
+        const dataLength: number = data.length;
         if (dataLength === 0) {
             return;
         }
@@ -462,7 +462,7 @@ export default class hollaex extends hollaexRest {
     }
 
     async watchPublic (messageHash: string, params: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url: string = this.urls['api']['ws'];
         const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
@@ -485,7 +485,7 @@ export default class hollaex extends hollaexRest {
             // that would trigger a new connection on each received message
             this.options['ws-expires'] = expires;
         }
-        const url = this.urls['api']['ws'];
+        const url: string = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         const authParams: Dict = {

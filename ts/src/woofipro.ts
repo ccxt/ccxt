@@ -596,6 +596,9 @@ export default class woofipro extends Exchange {
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (parts, 2);
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
@@ -696,7 +699,7 @@ export default class woofipro extends Exchange {
         //   }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseMarkets (rows);
     }
 
@@ -737,7 +740,7 @@ export default class woofipro extends Exchange {
         const chainPromise = this.v1PublicGetPublicChainInfo (params);
         const [ tokenResponse, chainResponse ] = await Promise.all ([ tokenPromise, chainPromise ]);
         const tokenData = this.safeDict (tokenResponse, 'data', {});
-        const tokenRows = this.safeList (tokenData, 'rows', []);
+        const tokenRows: Dict[] = this.safeList (tokenData, 'rows', []);
         const chainData = this.safeDict (chainResponse, 'data', {});
         const chainRows = this.safeList (chainData, 'rows', []);
         const indexedChains = this.indexBy (chainRows, 'chain_id');
@@ -755,7 +758,7 @@ export default class woofipro extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const token = this.safeDict (rawCurrency, '_token', {});
         const currencyId = this.safeString (token, 'token');
-        const networks = this.safeList (token, 'chain_details', []);
+        const networks: Dict[] = this.safeList (token, 'chain_details', []);
         const code = this.safeCurrencyCode (currencyId);
         const indexedChains = this.safeDict (rawCurrency, '_indexedChains', {});
         const resultingNetworks: Dict = {};
@@ -931,7 +934,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -1071,7 +1074,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseFundingRates (rows, symbolsNormalized);
     }
 
@@ -1208,9 +1211,9 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString (row, 'symbol', '');
@@ -1321,9 +1324,9 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString (row, 'symbol', '');
@@ -1391,7 +1394,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'rows', []);
+        const result: Dict[] = this.safeList (data, 'rows', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -1506,7 +1509,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseIncomes (rows, market, since, limit);
     }
 
@@ -1748,7 +1751,7 @@ export default class woofipro extends Exchange {
         const childOrders = this.safeList (order, 'childOrders');
         if (childOrders !== undefined) {
             const first = this.safeDict (childOrders, 0);
-            const innerChildOrders = this.safeList (first, 'childOrders', []);
+            const innerChildOrders: Dict[] = this.safeList (first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
                 const takeProfitOrder = this.safeDict (innerChildOrders, 0);
@@ -2062,7 +2065,7 @@ export default class woofipro extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseOrders (rows);
     }
 
@@ -2107,9 +2110,7 @@ export default class woofipro extends Exchange {
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         let response: NullableDict = undefined;
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('editOrder', side, 'side');
         if (isConditional) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, paramsOmitted));
         } else {
@@ -2591,7 +2592,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -2661,7 +2662,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'rows', []);
+        const trades: Dict[] = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, paramsUntil);
     }
 
@@ -2669,7 +2670,7 @@ export default class woofipro extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'holding', []);
+        const balances: Dict[] = this.safeList (response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
@@ -2952,7 +2953,8 @@ export default class woofipro extends Exchange {
     }
 
     hashMessage (message: any) {
-        return '0x' + this.hash (message, keccak, 'hex');
+        const hashed: string = this.hash (message, keccak, 'hex');
+        return '0x' + hashed;
     }
 
     signHash (hash: string, privateKey: string): string {
@@ -3094,7 +3096,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
+        const rows: Dict[] = this.safeList (data, 'rows', []);
         return this.parseMarginModes (rows, symbolsNormalized, 'symbol') as MarginModes;
     }
 
@@ -3493,7 +3495,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'data', {});
-        const positions = this.safeList (result, 'rows', []);
+        const positions: Dict[] = this.safeList (result, 'rows', []);
         return this.parsePositions (positions, symbols);
     }
 
@@ -3505,7 +3507,11 @@ export default class woofipro extends Exchange {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.urls['api'][access] + '/' + version + '/';
+        const apiUrl = this.safeString (this.urls['api'], access);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + version + '/';
         let requestParams: Dict = this.keysort (this.omit (params, this.extractParams (path)));
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;

@@ -7,6 +7,7 @@ import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, List, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -309,7 +310,7 @@ export default class onetrading extends onetradingRest {
             limitResolved = trades.getLimit (symbolResolved, limit);
         }
         trades = this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved);
-        const numTrades = trades.length;
+        const numTrades: number = trades.length;
         if (numTrades === 0) {
             return await this.watchMyTrades (symbolResolved, since, limitResolved, params);
         }
@@ -347,7 +348,7 @@ export default class onetrading extends onetradingRest {
                 },
             ],
         };
-        const orderbook = await this.watchMany (messageHash, request, subscriptionHash, [ symbolValue ], params);
+        const orderbook: Ob = await this.watchMany (messageHash, request, subscriptionHash, [ symbolValue ], params);
         return orderbook.limit ();
     }
 
@@ -478,7 +479,7 @@ export default class onetrading extends onetradingRest {
             limitResolved = orders.getLimit (symbolResolved, limit);
         }
         orders = this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved);
-        const numOrders = orders.length;
+        const numOrders: number = orders.length;
         if (numOrders === 0) {
             return await this.watchOrders (symbolResolved, since, limitResolved, params);
         }
@@ -731,7 +732,7 @@ export default class onetrading extends onetradingRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-        const rawOrders = this.safeList (message, 'orders', []);
+        const rawOrders: Dict[] = this.safeList (message, 'orders', []);
         const rawOrdersLength = rawOrders.length;
         if (rawOrdersLength === 0) {
             return;
@@ -742,7 +743,7 @@ export default class onetrading extends onetradingRest {
             let symbol = this.safeString (order, 'symbol', '');
             orders.append (order);
             client.resolve (this.orders, 'orders:' + symbol);
-            const rawTrades = this.safeList (rawOrders[i], 'trades', []);
+            const rawTrades: Dict[] = this.safeList (rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
                 const trade = this.parseTrade (rawTrades[ii]);
                 symbol = this.safeString (trade, 'symbol', symbol);
@@ -1017,7 +1018,7 @@ export default class onetrading extends onetradingRest {
         // update balance
         const balanceKeys = [ 'locked', 'unlocked', 'spent', 'spent_on_fees', 'credited', 'deducted' ];
         for (let i = 0; i < balanceKeys.length; i++) {
-            const newBalance = this.safeValue (update, balanceKeys[i]);
+            const newBalance = this.safeDict (update, balanceKeys[i]);
             if (newBalance !== undefined) {
                 this.updateBalance (newBalance);
             }

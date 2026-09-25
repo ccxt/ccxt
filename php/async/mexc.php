@@ -1259,7 +1259,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
             Async\await($this->load_time_difference());
         }
         $spotMarketPromise = $this->fetch_spot_markets($params);
@@ -1334,6 +1334,9 @@ class mexc extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $status = $this->safe_string($market, 'status');
             $isSpotTradingAllowed = $this->safe_bool($market, 'isSpotTradingAllowed');
             $active = false;
@@ -1471,6 +1474,9 @@ class mexc extends Exchange {
             $settleId = $this->safe_string($market, 'settleCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $state = $this->safe_string($market, 'state');
             $isLinear = $quote === $settle;
@@ -2445,8 +2451,11 @@ class mexc extends Exchange {
         }
     }
 
-    public function create_spot_order_request(mixed $market, mixed $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_spot_order_request(mixed $market, ?string $type, ?string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         $symbol = $market['symbol'];
+        if (($type === null) || ($side === null)) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $type and a $side argument');
+        }
         $orderSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
@@ -2566,11 +2575,11 @@ class mexc extends Exchange {
         return $order;
     }
 
-    public function create_swap_order(mixed $market, mixed $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_swap_order(mixed $market, mixed $type, ?string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_swap_order(...))($market, $type, $side, $amount, $price, $marginMode, $params);
     }
 
-    private function do_create_swap_order(mixed $market, mixed $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    private function do_create_swap_order(mixed $market, mixed $type, ?string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         /**
          * @ignore
          * create a trade order
@@ -3013,18 +3022,26 @@ class mexc extends Exchange {
         } else {
             if ($since !== null) {
                 $request['start_time'] = $since;
+                $maxTimeTillEnd = $this->safe_integer($this->options, 'maxTimeTillEnd');
+                if ($maxTimeTillEnd === null) {
+                    throw new ExchangeError($this->id . ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
+                }
                 $end = $this->safe_integer($params, 'end_time', $until);
                 if ($end === null) {
-                    $request['end_time'] = $this->sum($since, $this->options['maxTimeTillEnd']);
+                    $request['end_time'] = $this->sum($since, $maxTimeTillEnd);
                 } else {
-                    if (($end - $since) > $this->options['maxTimeTillEnd']) {
+                    if (($end - $since) > $maxTimeTillEnd) {
                         throw new BadRequest($this->id . ' $end is invalid, i.e. exceeds allowed 90 days.');
                     } else {
                         $request['end_time'] = $until;
                     }
                 }
             } elseif ($until !== null) {
-                $request['start_time'] = $this->sum($until, $this->options['maxTimeTillEnd'] * -1);
+                $maxTimeTillEnd = $this->safe_integer($this->options, 'maxTimeTillEnd');
+                if ($maxTimeTillEnd === null) {
+                    throw new ExchangeError($this->id . ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
+                }
+                $request['start_time'] = $this->sum($until, $maxTimeTillEnd * -1);
                 $request['end_time'] = $until;
             }
             if ($limit !== null) {
@@ -5191,7 +5208,7 @@ class mexc extends Exchange {
             $rawNetwork = $this->safe_string($params, 'network');
             if ($rawNetwork !== null) {
                 $params = $this->omit($params, 'network');
-                $request['coin'] = $request['coin'] . '-' . $rawNetwork;
+                $request['coin'] = $currency['id'] . '-' . $rawNetwork;
             }
         }
         if ($since !== null) {
@@ -6534,9 +6551,17 @@ class mexc extends Exchange {
         $url = null;
         if ($section === 'spot' || $section === 'broker') {
             if ($section === 'broker') {
-                $url = $this->urls['api'][$section][$access] . '/' . $path;
+                $apiUrl = $this->safe_string($this->urls['api'][$section], $access);
+                if ($apiUrl === null) {
+                    throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+                }
+                $url = $apiUrl . '/' . $path;
             } else {
-                $url = $this->urls['api'][$section][$access] . '/api/' . $this->version . '/' . $path;
+                $apiUrl = $this->safe_string($this->urls['api'][$section], $access);
+                if ($apiUrl === null) {
+                    throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+                }
+                $url = $apiUrl . '/api/' . $this->version . '/' . $path;
             }
             $urlParams = $params;
             if ($access === 'private') {
@@ -6570,7 +6595,11 @@ class mexc extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
         } elseif ($section === 'contract' || $section === 'spot2') {
-            $url = $this->urls['api'][$section][$access] . '/' . $this->implode_params($path, $params);
+            $apiUrl = $this->safe_string($this->urls['api'][$section], $access);
+            if ($apiUrl === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl . '/' . $this->implode_params($path, $params);
             $params = $this->omit($params, $this->extract_params($path));
             if ($access === 'public') {
                 if (count($params) > 0) {

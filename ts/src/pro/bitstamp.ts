@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -80,7 +81,7 @@ export default class bitstamp extends bitstampRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -480,7 +481,11 @@ export default class bitstamp extends bitstampRest {
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
         await this.authenticate ();
-        const channel = 'private-my_orders_' + market['id'] + '-' + this.options['userId'];
+        const userId = this.safeString (this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError (this.id + ' unWatchOrders() requires a userId from authenticate()');
+        }
+        const channel = 'private-my_orders_' + market['id'] + '-' + userId;
         return await this.unWatchChannel (channel, channel, 'orders', [ symbolValue ], params);
     }
 
@@ -539,7 +544,11 @@ export default class bitstamp extends bitstampRest {
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
         await this.authenticate ();
-        const channel = 'private-my_trades_' + market['id'] + '-' + this.options['userId'];
+        const userId = this.safeString (this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError (this.id + ' unWatchMyTrades() requires a userId from authenticate()');
+        }
+        const channel = 'private-my_trades_' + market['id'] + '-' + userId;
         return await this.unWatchChannel (channel, channel, 'myTrades', [ symbolValue ], params);
     }
 
@@ -582,7 +591,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (stored, channel);
     }
 
-    parseWsMyTrade (trade: any, market: Market = undefined): Trade {
+    parseWsMyTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "id": 635698396,
@@ -1048,7 +1057,11 @@ export default class bitstamp extends bitstampRest {
     async subscribePrivate (subscription: Dict, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws'];
         await this.authenticate ();
-        const messageHashValue: string = messageHash + ('-' + this.options['userId']);
+        const userId = this.safeString (this.options, 'userId');
+        if (userId === undefined) {
+            throw new AuthenticationError (this.id + ' subscribePrivate() requires a userId from authenticate()');
+        }
+        const messageHashValue: string = messageHash + ('-' + userId);
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {

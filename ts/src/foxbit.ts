@@ -384,7 +384,7 @@ export default class foxbit extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const depositInfo = this.safeDict (rawCurrency, 'deposit_info');
         const withdrawInfo = this.safeDict (rawCurrency, 'withdraw_info');
-        const networks = this.safeList (rawCurrency, 'networks', []);
+        const networks: Dict[] = this.safeList (rawCurrency, 'networks', []);
         const type = this.safeStringLower (rawCurrency, 'type');
         const parsedNetworks: Dict = {};
         for (let j = 0; j < networks.length; j++) {
@@ -650,7 +650,7 @@ export default class foxbit extends Exchange {
         //      }
         //    ]
         //  }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbolsNormalized);
     }
 
@@ -674,7 +674,7 @@ export default class foxbit extends Exchange {
         //         "taker": "0.005"
         //     }
         // ]
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -770,7 +770,7 @@ export default class foxbit extends Exchange {
         //     }
         // ]
         const response = await this.v3PublicGetMarketsMarketTradesHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -847,7 +847,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const accounts = this.safeList (response, 'data', []);
+        const accounts: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
         };
@@ -959,9 +959,7 @@ export default class foxbit extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.safeBool (params, 'postOnly', false);
         const triggerPrice = this.safeNumber (params, 'triggerPrice');
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'market_symbol': market['id'],
             'side': side.toUpperCase (),
@@ -1253,7 +1251,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const list = this.safeList (response, 'data', []);
+        const list: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (list, market, since, limit);
     }
 
@@ -1303,7 +1301,7 @@ export default class foxbit extends Exchange {
         //         "created_at": "2021-02-15T22:06:32.999Z"
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1389,7 +1387,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1454,7 +1452,7 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1533,9 +1531,7 @@ export default class foxbit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
+        this.checkRequiredArgument ('editOrder', symbol, 'symbol');
         const typeValue: OrderType = type.toUpperCase ();
         if (typeValue !== 'LIMIT' && typeValue !== 'MARKET' && typeValue !== 'STOP_MARKET' && typeValue !== 'INSTANT') {
             throw new InvalidOrder ('Invalid order type: ' + typeValue + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
@@ -1544,9 +1540,7 @@ export default class foxbit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('editOrder', side, 'side');
         const request: Dict = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1658,7 +1652,7 @@ export default class foxbit extends Exchange {
         const currency = this.currency (code);
         request['symbol'] = currency['id'];
         const response = await this.v3PrivateGetAccountsSymbolTransactions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -1670,6 +1664,9 @@ export default class foxbit extends Exchange {
         const quoteId = this.safeString (quoteAssets, 'symbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict (market, 'default_fees');
         return this.safeMarketStructure ({
@@ -2050,7 +2047,11 @@ export default class foxbit extends Exchange {
             fullPath = '/status';
             urlPath = 'status';
         }
-        let url = this.urls['api'][urlPath] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], urlPath);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + fullPath;
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const timestamp = this.milliseconds ();
         let query = '';

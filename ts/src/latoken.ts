@@ -357,7 +357,11 @@ export default class latoken extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        const timeDifference = this.safeInteger (this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds () - timeDifference;
     }
 
     /**
@@ -609,7 +613,7 @@ export default class latoken extends Exchange {
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
-        const balances = this.safeList (balancesByType, accountType, []);
+        const balances: Dict[] = this.safeList (balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency');
@@ -681,10 +685,10 @@ export default class latoken extends Exchange {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        const rawAsks = this.safeList (response, 'ask', []);
-        const rawBids = this.safeList (response, 'bid', []);
-        const asks = [];
-        const bids = [];
+        const rawAsks: Dict[] = this.safeList (response, 'ask', []);
+        const rawBids: Dict[] = this.safeList (response, 'bid', []);
+        const asks: Dict[] = [];
+        const bids: Dict[] = [];
         for (let i = 0; i < rawAsks.length; i++) {
             const askEntry = rawAsks[i];
             const askQuantity = this.safeString (askEntry, 'quantity');
@@ -888,11 +892,13 @@ export default class latoken extends Exchange {
         const quoteId = this.safeString (trade, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const symbolKnown = (this.markets !== undefined) && (symbol in this.markets);
+        let symbol: Str = undefined;
         let marketResolved: Market = market;
-        if (symbolKnown) {
-            marketResolved = this.market (symbol);
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market (symbol);
+            }
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
@@ -1433,9 +1439,7 @@ export default class latoken extends Exchange {
         }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
@@ -1617,7 +1621,7 @@ export default class latoken extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const content = this.safeList (response, 'content', []);
+        const content: Dict[] = this.safeList (response, 'content', []);
         return this.parseTransactions (content, currency, since, limit);
     }
 
@@ -1753,7 +1757,7 @@ export default class latoken extends Exchange {
         //         "hasContent": true
         //     }
         //
-        const transfers = this.safeList (response, 'content', []);
+        const transfers: Dict[] = this.safeList (response, 'content', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -1890,7 +1894,11 @@ export default class latoken extends Exchange {
                 requestBody = this.json (query);
             }
         }
-        const url = this.urls['api']['rest'] + requestString;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestString;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

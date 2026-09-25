@@ -415,7 +415,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "t": 1614815872000,             // Timestamp in milliseconds
@@ -749,7 +749,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             market = self.safe_market(marketId)
             symbol = market['symbol']
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+            stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -1199,7 +1199,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #    }
         #
         messageHash = self.safe_string(message, 'method')
-        params = self.safe_value(message, 'params')
+        params = self.safe_list(message, 'params')
         balance = self.parse_balance(params)
         self.balance = self.deep_extend(self.balance, balance)
         client.resolve(self.balance, messageHash)

@@ -493,7 +493,7 @@ public partial class gate : ccxt.gate
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = this.getUrlByMarket(market);
-        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
+        bool isEuUrl = (url?.IndexOf("gateeu", StringComparison.Ordinal) ?? -1) >= 0;
         bool isNonEuSpot = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEuUrl;
         string intervalDefault = "100ms";
         if (isNonEuSpot)
@@ -568,7 +568,7 @@ public partial class gate : ccxt.gate
         string? url = this.getUrlByMarket(market);
         symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
-        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
+        bool isEuUrl = (url?.IndexOf("gateeu", StringComparison.Ordinal) ?? -1) >= 0;
         bool isNonEuSpot = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEuUrl;
         string intervalDefault = "100ms";
         if (isNonEuSpot)
@@ -772,7 +772,11 @@ public partial class gate : ccxt.gate
                 cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             }
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
-            object waitAmount = isSpot ? snapshotDelay : 0;
+            object waitAmount = 0;
+            if (isSpot)
+            {
+                waitAmount = snapshotDelay;
+            }
             if (isEqual(cacheLength, waitAmount))
             {
                 // max limit is 100
@@ -1294,7 +1298,7 @@ public partial class gate : ccxt.gate
             string? symbol = this.safeSymbol(marketId, null, "_", marketType);
             IList<object> parsed = this.parseOHLCV(ohlcv);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1687,7 +1691,7 @@ public partial class gate : ccxt.gate
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }
@@ -1739,7 +1743,7 @@ public partial class gate : ccxt.gate
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object rawPosition = data[i];
+            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             object symbol = this.safeString(position, "symbol");
             string? side = this.safeString(position, "side");
@@ -1928,7 +1932,7 @@ public partial class gate : ccxt.gate
         //
         List<object> orders = this.safeList(message, "result", new List<object>() {});
         string? channel = this.safeString(message, "channel", "");
-        bool isTrigger = (getIndexOf(channel, "autoorders") >= 0) || (getIndexOf(channel, "priceorders") >= 0);
+        bool isTrigger = ((channel?.IndexOf("autoorders", StringComparison.Ordinal) ?? -1) >= 0) || ((channel?.IndexOf("priceorders", StringComparison.Ordinal) ?? -1) >= 0);
         string hashPrefix = "orders";
         if (isTrigger)
         {
@@ -2528,9 +2532,9 @@ public partial class gate : ccxt.gate
     public virtual string? getUrlByMarket(IDictionary<string, object> market)
     {
         object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null));
-        if (isEqual((market != null && market.ContainsKey("contract") ? market["contract"] : null), true))
+        if ((this.safeBool(market, "contract") == true))
         {
-            return ((string?)((object)((isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true)) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
+            return ((string?)((object)(((this.safeBool(market, "linear") == true)) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
         } else
         {
             return ((string?)((object)(baseUrl)));

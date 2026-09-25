@@ -1387,7 +1387,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             await self.load_time_difference()
         if self.check_required_credentials(False):
             await self.load_unified_status()
@@ -1395,7 +1395,7 @@ class gate(Exchange, ImplicitAPI):
         fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
         types = self.safe_list(fetchMarketsOptions, 'types', ['spot', 'swap', 'future', 'option'])
         for i in range(0, len(types)):
-            marketType = types[i]
+            marketType = self.safe_string(types, i)
             if marketType == 'spot':
                 # if (!sandboxMode) {
                 # gate doesn't have a sandbox for spot markets
@@ -1462,6 +1462,8 @@ class gate(Exchange, ImplicitAPI):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             takerPercent = self.safe_string(market, 'fee')
             makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision')))
@@ -1529,7 +1531,7 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
-        if self.options['sandboxMode'] is True:
+        if self.safe_bool(self.options, 'sandboxMode') is True:
             swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
@@ -1540,11 +1542,12 @@ class gate(Exchange, ImplicitAPI):
             for i in range(0, len(response)):
                 contract = self.safe_dict(response, i, {})
                 parsedMarket = self.parse_contract_market(contract, settleId)
-                result.append(parsedMarket)
+                if parsedMarket is not None:
+                    result.append(parsedMarket)
         return result
 
     async def fetch_future_markets(self, params: dict = {}) -> list[Market]:
-        if self.options['sandboxMode'] is True:
+        if self.safe_bool(self.options, 'sandboxMode') is True:
             return []  # right now sandbox does not have inverse swaps
         result = []
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
@@ -1557,10 +1560,11 @@ class gate(Exchange, ImplicitAPI):
             for i in range(0, len(response)):
                 contract = self.safe_dict(response, i, {})
                 parsedMarket = self.parse_contract_market(contract, settleId)
-                result.append(parsedMarket)
+                if parsedMarket is not None:
+                    result.append(parsedMarket)
         return result
 
-    def parse_contract_market(self, market: dict, settleId: Str) -> dict:
+    def parse_contract_market(self, market: dict, settleId: Str) -> Market:
         #
         #  Perpetual swap
         #
@@ -1671,6 +1675,8 @@ class gate(Exchange, ImplicitAPI):
         date = self.safe_string(parts, 2)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         expiry = self.safe_timestamp(market, 'expire_time')
         symbol = ''
@@ -1706,7 +1712,7 @@ class gate(Exchange, ImplicitAPI):
             'margin': False,
             'swap': marketType == 'swap',
             'future': marketType == 'future',
-            'option': marketType == 'option',
+            'option': False,
             'active': status == 'trading',
             'contract': True,
             'linear': isLinear,
@@ -1798,6 +1804,8 @@ class gate(Exchange, ImplicitAPI):
                 quoteId = self.safe_string(parts, 1)
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
+                if (base is None) or (quote is None):
+                    continue
                 symbol = base + '/' + quote
                 expiry = self.safe_timestamp(market, 'expiration_time')
                 strike = self.safe_string(market, 'strike_price')
@@ -1890,7 +1898,7 @@ class gate(Exchange, ImplicitAPI):
                 underlyings.append(name)
         return underlyings
 
-    def prepare_request(self, market: Market = None, type: Str = None, params: dict = {}):
+    def prepare_request(self, market: Market = None, type: Str = None, params: dict = {}) -> list:
         """
  @ignore
         Fills request params contract, settle, currency_pair, market and account where applicable
@@ -1920,7 +1928,7 @@ class gate(Exchange, ImplicitAPI):
                 request['settle'] = settle
         return [request, params]
 
-    def spot_order_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}):
+    def spot_order_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}) -> list:
         """
  @ignore
         Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -1938,7 +1946,7 @@ class gate(Exchange, ImplicitAPI):
             request['currency_pair'] = market['id']  # Should always be set for non-trigger
         return [request, query]
 
-    def multi_order_spot_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}):
+    def multi_order_spot_prepare_request(self, market: Market = None, trigger: Bool = False, params: dict = {}) -> list:
         """
  @ignore
         Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -2708,7 +2716,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_histories(response, symbol, since, limit)
 
-    def parse_funding_histories(self, response: object, symbol: object, since: Int, limit: Int) -> list[FundingHistory]:
+    def parse_funding_histories(self, response: object, symbol: Str, since: Int, limit: Int) -> list[FundingHistory]:
         result = []
         for i in range(0, len(response)):
             entry = self.safe_dict(response, i)
@@ -2897,7 +2905,7 @@ class gate(Exchange, ImplicitAPI):
         if market['option'] is True:
             for i in range(0, len(response)):
                 entry = response[i]
-                if entry['name'] == market['id']:
+                if self.safe_string(entry, 'name') == market['id']:
                     ticker = entry
                     break
         else:
@@ -6747,7 +6755,10 @@ class gate(Exchange, ImplicitAPI):
         }
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        timeDifference = self.safe_integer(self.options, 'timeDifference')
+        if timeDifference is None:
+            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
+        return self.milliseconds() - timeDifference
 
     def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         authentication = api[0]  # public, private
@@ -7796,7 +7807,7 @@ class gate(Exchange, ImplicitAPI):
             'info': greeks,
         }
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 

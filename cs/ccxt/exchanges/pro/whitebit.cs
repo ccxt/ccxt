@@ -224,7 +224,7 @@ public partial class whitebit : ccxt.whitebit
         //  }
         //
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
-        object isSnapshot = this.safeValue(parameters, 0);
+        bool? isSnapshot = this.safeBool(parameters, 0);
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -238,7 +238,7 @@ public partial class whitebit : ccxt.whitebit
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         orderbook["timestamp"] = timestamp;
         orderbook["datetime"] = this.iso8601(timestamp);
-        if (isEqual(isSnapshot, true))
+        if ((isSnapshot == true))
         {
             Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);
             (orderbook as IOrderBook).reset(snapshot);
@@ -366,7 +366,7 @@ public partial class whitebit : ccxt.whitebit
         for (int i = 0; i < messageHashes.Count; i++)
         {
             string? currentMessageHash = ((string)messageHashes[i]);
-            if (getIndexOf(currentMessageHash, "tickers") >= 0 && getIndexOf(currentMessageHash, symbol) >= 0)
+            if ((currentMessageHash?.IndexOf("tickers", StringComparison.Ordinal) ?? -1) >= 0 && (currentMessageHash?.IndexOf(symbol, StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'

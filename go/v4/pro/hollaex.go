@@ -87,8 +87,8 @@ func (this *Hollaex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("orderbook"+":", market["id"])
+	var market map[string]any = this.Market(symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook"+":", market["id"]))
 
 	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))).(ccxt.OrderBookInterface)
 
@@ -119,7 +119,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var channel *string = this.SafeString(message, "topic")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if symbol == nil {
 		return
@@ -139,7 +139,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 		}
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -172,9 +172,9 @@ func (this *Hollaex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("trade"+":", market["id"])
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade"+":", market["id"]))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, params))))
 	if this.NewUpdates {
@@ -202,7 +202,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	//
 	var channel *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(message, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -215,7 +215,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	for j := 0; j < ccxt.GetArrayLength(parsedTrades); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
@@ -255,7 +255,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
 	}
 
@@ -297,7 +297,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	// usually the first message is an empty array
 	// when the user does not have any trades yet
 	var dataLength int = ccxt.GetArrayLength(rawTrades)
-	if ccxt.IsEqual(dataLength, 0) {
+	if dataLength == 0 {
 		return
 	}
 	if ccxt.IsEqual(this.MyTrades, nil) {
@@ -311,7 +311,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 		var parsed map[string]any = ccxt.MapTyped(this.ParseTrade(trade))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(trade, "symbol")
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
 			ccxt.AddElementToObject(marketIds, marketId, true)
@@ -322,7 +322,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = ccxt.GetValue(keys, i).(string)
-		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 	}
 }
@@ -362,7 +362,7 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
 	}
 
@@ -438,7 +438,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	// usually the first message is an empty array
 	var dataLength int = ccxt.GetArrayLength(data)
-	if ccxt.IsEqual(dataLength, 0) {
+	if dataLength == 0 {
 		return
 	}
 	if ccxt.IsEqual(this.Orders, nil) {
@@ -458,7 +458,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 		var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(order))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(order, "symbol")
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		if marketId != nil {
 			ccxt.AddElementToObject(marketIds, marketId, true)
@@ -469,7 +469,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
 		var marketId string = ccxt.GetValue(keys, i).(string)
-		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, ":"), marketId))
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	}
 }
@@ -589,7 +589,7 @@ func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs
 		this.Options.Store("ws-expires", expires)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var auth any = ccxt.Add("CONNECT"+"/stream", expires)
+	var auth *string = ccxt.SafeStringPtr(ccxt.Add("CONNECT"+"/stream", expires))
 	var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 	var authParams map[string]any = map[string]any{
 		"api-key":       this.ApiKey,
@@ -631,7 +631,7 @@ func (this *Hollaex) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if error != nil {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), error, feedback)
 			}
 			return nil

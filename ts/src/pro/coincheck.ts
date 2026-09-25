@@ -6,6 +6,7 @@ import { AuthenticationError } from '../base/errors.js';
 import type { Int, Market, OrderBook, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -68,7 +69,7 @@ export default class coincheck extends coincheckRest {
             'channel': market['id'] + '-orderbook',
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 

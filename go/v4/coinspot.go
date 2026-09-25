@@ -703,7 +703,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"cointype": market["id"],
 	}
@@ -774,7 +774,7 @@ func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetLatest(params)).Raw))
 	var id *string = this.SafeString(market, "id", "")
@@ -847,7 +847,7 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var ids []string = ObjectKeys(prices)
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
-		var market map[string]any = MapTyped(this.SafeMarket(id))
+		var market map[string]any = this.SafeMarket(id)
 		if market["spot"] == true {
 			var symbol *string = SafeStringPtr(market["symbol"])
 			var ticker any = prices[id]
@@ -888,7 +888,7 @@ func (this *Coinspot) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"cointype": market["id"],
 	}
@@ -1089,14 +1089,12 @@ func (this *Coinspot) createOrderBody(ch chan any, symbol any, typeVar any, side
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var sideUpper string = ToUpper(side)
 	if IsEqual(typeVar, "market") {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"cointype": market["id"],
 		"amount":   amount,
@@ -1176,7 +1174,7 @@ func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any
 	}
 	var status *string = this.SafeString(response, "status")
 	if status != nil && *status == "error" {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", this.Json(response)))
 		panic(ExchangeError(feedback))
 	}
 	return nil
@@ -1214,7 +1212,11 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 	if !IsEqual(version, nil) {
 		fullPath = Add(Add("/", version), endpoint)
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), accessType), fullPath)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), accessType)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(apiUrl, fullPath))
 	if IsEqual(accessType, "private") {
 		this.CheckRequiredCredentials()
 		// coinspot requires an increasing nonce

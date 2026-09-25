@@ -726,7 +726,10 @@ class gate extends \ccxt\async\gate {
                 $cacheLength = count($storedOrderBook->cache);
             }
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 10);
-            $waitAmount = $isSpot ? $snapshotDelay : 0;
+            $waitAmount = 0;
+            if ($isSpot) {
+                $waitAmount = $snapshotDelay;
+            }
             if ($cacheLength === $waitAmount) {
                 // max limit is 100
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash);
@@ -1189,7 +1192,7 @@ class gate extends \ccxt\async\gate {
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+            $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -1517,7 +1520,7 @@ class gate extends \ccxt\async\gate {
         return $this->filter_by_symbols_since_limit($this->safe_value($this->positions, $type), $symbols, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, string $type, ?array $symbols = null) {
         if ($this->positions === null) {
             $this->positions = array();
         }
@@ -1536,11 +1539,11 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function load_positions_snapshot(Client $client, string $messageHash, mixed $type) {
+    public function load_positions_snapshot(Client $client, string $messageHash, string $type) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_positions_snapshot(Client $client, string $messageHash, mixed $type) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, string $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type )));
         $this->positions[$type] = new ArrayCacheBySymbolBySide();
         $cache = $this->positions[$type];
@@ -2306,16 +2309,16 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function get_url_by_market(mixed $market) {
+    public function get_url_by_market(mixed $market): string {
         $baseUrl = $this->urls['api'][$market['type']];
-        if ($market['contract'] === true) {
-            return ($market['linear'] === true) ? $baseUrl['usdt'] : $baseUrl['btc'];
+        if ($this->safe_bool($market, 'contract') === true) {
+            return ($this->safe_bool($market, 'linear') === true) ? $baseUrl['usdt'] : $baseUrl['btc'];
         } else {
             return $baseUrl;
         }
     }
 
-    public function get_type_by_market(array $market) {
+    public function get_type_by_market(array $market): ?string {
         if ($market === null) {
             return null;
         }
@@ -2338,7 +2341,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function get_market_type_by_url(string $url) {
+    public function get_market_type_by_url(string $url): string {
         $findBy = array(
             'op-' => 'option',
             'delivery' => 'future',

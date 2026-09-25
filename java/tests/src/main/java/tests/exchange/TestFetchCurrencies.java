@@ -39,12 +39,12 @@ public class TestFetchCurrencies extends BaseTest {
             Integer currenciesLength = ((List<?>)values).size();
             // ensure exchange returns enough length of currencies
             Boolean skipAmount = (Helpers.inOp(skippedProperties, "amountOfCurrencies"));
-            Assert(Boolean.TRUE.equals(skipAmount) || Helpers.isGreaterThan(currenciesLength, 5), ((((exchange.id + " ") + method) + " must return at least several currencies, but it returned ") + String.valueOf(currenciesLength)));
+            Assert(Boolean.TRUE.equals(skipAmount) || (currenciesLength != null && currenciesLength > 5), ((((exchange.id + " ") + method) + " must return at least several currencies, but it returned ") + String.valueOf(currenciesLength)));
             // allow skipped exchanges
             Boolean skipActive = (Helpers.inOp(skippedProperties, "activeCurrenciesQuota"));
             Boolean skipMajorCurrencyCheck = (Helpers.inOp(skippedProperties, "activeMajorCurrencies"));
             // loop
-            for (var i = 0; Helpers.isLessThan(i, currenciesLength); i++)
+            for (var i = 0; (currenciesLength != null && i < currenciesLength); i++)
             {
                 Object currency = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
                 TestCurrency.testCurrency(exchange, skippedProperties, method, currency);

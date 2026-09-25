@@ -100,11 +100,11 @@ class kucoin extends \ccxt\async\kucoin {
         ));
     }
 
-    public function negotiate(mixed $privateChannel, bool $isFuturesMethod = false, $params = array()) {
+    public function negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()) {
         return Async\async(self::do_negotiate(...))($privateChannel, $isFuturesMethod, $params);
     }
 
-    private function do_negotiate(mixed $privateChannel, bool $isFuturesMethod = false, $params = array()) {
+    private function do_negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()) {
         $connectId = 'public';
         if ($privateChannel === true) {
             $connectId = 'private';
@@ -271,16 +271,20 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, array( $subscribeHash ), $subscription));
     }
 
-    public function get_uta_url() {
+    public function get_uta_url(): PromiseInterface {
         return Async\async(self::do_get_uta_url(...))();
     }
 
     private function do_get_uta_url() {
         $utaToken = Async\await($this->authenticate_uta());
-        return $this->urls['api']['ws']['private'] . '?token=' . $utaToken;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' getUtaUrl() has no private websocket url');
+        }
+        return $wsUrl . '?token=' . $utaToken;
     }
 
-    public function authenticate_uta() {
+    public function authenticate_uta(): PromiseInterface {
         return Async\async(self::do_authenticate_uta(...))();
     }
 
@@ -545,7 +549,7 @@ class kucoin extends \ccxt\async\kucoin {
     private function do_subscribe_public_multiple_uta(array $messageHashes, string $channel, array $symbols, $params = array(), ?array $subscription = null) {
         $requestId = (string) $this->request_id();
         $market = $this->get_market_from_symbols($symbols);
-        $isContract = ($market['contract'] === true);
+        $isContract = ($this->safe_bool($market, 'contract') === true);
         $urlType = 'spot';
         if ($isContract) {
             $urlType = 'futures';
@@ -827,7 +831,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $symbols = $this->market_symbols($symbols, null, false, true, false);
         $firstMarket = $this->get_market_from_symbols($symbols);
-        $isFuturesMethod = ($firstMarket['contract'] === true);
+        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
         $channelName = '/spotMarket/level1:';
         if ($isFuturesMethod) {
             $channelName = '/contractMarket/tickerV2:';
@@ -1249,7 +1253,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $symbols = $this->market_symbols($symbols, null, false, true);
         $firstMarket = $this->get_market_from_symbols($symbols);
-        $isFuturesMethod = ($firstMarket['contract'] === true);
+        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
         $marketIds = $this->market_ids($symbols);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $messageHashes = array();
@@ -1295,7 +1299,7 @@ class kucoin extends \ccxt\async\kucoin {
         $symbols = $this->market_symbols($symbols, null, false, true);
         $marketIds = $this->market_ids($symbols);
         $firstMarket = $this->get_market_from_symbols($symbols);
-        $isFuturesMethod = ($firstMarket['contract'] === true);
+        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $messageHashes = array();
         $subscriptionHashes = array();
@@ -1624,7 +1628,7 @@ class kucoin extends \ccxt\async\kucoin {
         $symbols = $this->market_symbols($symbols);
         $marketIds = $this->market_ids($symbols);
         $firstMarket = $this->get_market_from_symbols($symbols);
-        $isFuturesMethod = ($firstMarket['contract'] === true);
+        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $method = '/market/level2';
         if ($isFuturesMethod) {
@@ -1692,7 +1696,7 @@ class kucoin extends \ccxt\async\kucoin {
         $symbols = $this->market_symbols($symbols, null, false, true);
         $marketIds = $this->market_ids($symbols);
         $firstMarket = $this->get_market_from_symbols($symbols);
-        $isFuturesMethod = ($firstMarket['contract'] === true);
+        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $method = '/market/level2';
         if ($isFuturesMethod) {
@@ -2378,7 +2382,7 @@ class kucoin extends \ccxt\async\kucoin {
         $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
         $order = $this->safe_dict($orders, $orderId);
         if ($order !== null) {
-            if ($order['status'] === 'closed') {
+            if ($this->safe_string($order, 'status') === 'closed') {
                 $parsed['status'] = 'closed';
             }
             // carry the accumulated fill state forward, the raw feed only
@@ -2551,7 +2555,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function get_my_trades_message_hash_suffix(mixed $topic) {
+    public function get_my_trades_message_hash_suffix(mixed $topic): string {
         $suffix = '-spot';
         if (mb_strpos($topic, 'contractMarket') !== false) {
             $suffix = '-contract';

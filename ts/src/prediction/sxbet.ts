@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -877,7 +877,7 @@ export default class sxbet extends Exchange {
      * @param {string} [params.externalUserId] partner attribution id echoed back on order, fill and trade reads
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1148,7 +1148,7 @@ export default class sxbet extends Exchange {
             if (end > idsLength) {
                 end = idsLength;
             }
-            const orderItems = [];
+            const orderItems: Dict[] = [];
             for (let i = start; i < end; i++) {
                 orderItems.push ({ 'orderId': ids[i] });
             }
@@ -1542,7 +1542,7 @@ export default class sxbet extends Exchange {
         //         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
         //
         const data = this.safeDict (response, 'data', {});
-        const balances = this.safeList (data, 'balances', []);
+        const balances: Dict[] = this.safeList (data, 'balances', []);
         const result: Dict = { 'info': response };
         const usdcDecimals = '1000000';
         const balancesLength = balances.length;
@@ -1595,7 +1595,7 @@ export default class sxbet extends Exchange {
         const rest = this.omit (params, [ 'status' ]);
         const response = await this.sxbetPrivateGetPositionsV3 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         const result: PredictionPosition[] = [];
         const rawPositionsLength = rawPositions.length;
         for (let i = 0; i < rawPositionsLength; i++) {

@@ -645,6 +645,18 @@ public class Bullish extends BullishApi
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
+    /**
+     * @method
+     * @name bullish#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    {
+        return this.fetchTime(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -708,11 +720,23 @@ public class Bullish extends BullishApi
         });
 
     }
+    /**
+     * @method
+     * @name bullish#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    {
+        return this.fetchCurrencies(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
+        String code = this.safeCurrencyCode(id);
         String name = this.safeString(rawCurrency, "name");
         String precision = this.safeString(rawCurrency, "precision");
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -722,7 +746,7 @@ public class Bullish extends BullishApi
             put( "active", null );
             put( "deposit", null );
             put( "withdraw", null );
-            put( "fee", Bullish.this.safeNumber(rawCurrency, "minFee", (Object) null) );
+            put( "fee", Bullish.this.safeNumber(rawCurrency, "minFee") );
             put( "precision", Bullish.this.parseNumber(Bullish.this.parsePrecision(precision)) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
@@ -753,14 +777,26 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
-                (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
+                (this.loadTimeDifference()).join();
             }
             List<Object> response = (this.publicGetV1Markets(parameters)).join();
             return this.parseMarkets(response);
         });
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchMarkets
+     * @description retrieves data on all markets for ace
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    {
+        return this.fetchMarkets(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseMarket(Object market)
@@ -983,8 +1019,12 @@ public class Bullish extends BullishApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
-        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         String basePrecision = this.safeString(market, "basePrecision");
         String quotePrecision = this.safeString(market, "quotePrecision");
@@ -998,7 +1038,7 @@ public class Bullish extends BullishApi
         String minCostLimit = this.safeString(market, "minCostLimit");
         String maxCostLimit = this.safeString(market, "maxCostLimit");
         String settleId = this.safeString(market, "settlementAssetSymbol");
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String settle = this.safeCurrencyCode(settleId);
         String type = this.parseMarketType(this.safeString(market, "marketType"), "spot");
         Boolean spot = false;
         Boolean swap = false;
@@ -1016,10 +1056,10 @@ public class Bullish extends BullishApi
         {
             spot = true;
             contract = false;
-            margin = this.safeBool(market, "marginTradingEnabled", (Object) null);
+            margin = this.safeBool(market, "marginTradingEnabled");
         } else
         {
-            contractSize = this.safeNumber(market, "contractMultiplier", (Object) null);
+            contractSize = this.safeNumber(market, "contractMultiplier");
             symbol = (symbol + (":" + settle));
             linear = java.util.Objects.equals(settle, quote);
             inverse = !Boolean.TRUE.equals(linear);
@@ -1045,32 +1085,49 @@ public class Bullish extends BullishApi
                 }
             }
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "baseId", baseId,
-            "quote", quote,
-            "quoteId", quoteId,
-            "settle", settle,
-            "settleId", settleId,
-            "type", type,
-            "spot", spot,
-            "margin", margin,
-            "swap", swap,
-            "future", future,
-            "option", option,
-            "contract", contract,
-            "linear", linear,
-            "inverse", inverse,
-            "taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"),
-            "maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"),
-            "contractSize", contractSize,
-            "expiry", this.parse8601(expiryDatetime),
-            "expiryDatetime", expiryDatetime,
-            "strike", strike,
-            "optionType", optionType,
-            "limits", new HashMap<String, Object>() {{
+        final String finalSymbol = symbol;
+        final String finalBase = base;
+        final String finalQuote = quote;
+        final String finalSettle = settle;
+        final String finalType = type;
+        final Boolean finalSpot = spot;
+        final Object finalMargin = margin;
+        final Boolean finalSwap = swap;
+        final Boolean finalFuture = future;
+        final Boolean finalOption = option;
+        final Boolean finalContract = contract;
+        final Boolean finalLinear = linear;
+        final Boolean finalInverse = inverse;
+        final Double finalContractSize = contractSize;
+        final String finalExpiryDatetime = expiryDatetime;
+        final Object finalStrike = strike;
+        final String finalOptionType = optionType;
+        return this.safeMarketStructure(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "symbol", finalSymbol );
+            put( "base", finalBase );
+            put( "baseId", baseId );
+            put( "quote", finalQuote );
+            put( "quoteId", quoteId );
+            put( "settle", finalSettle );
+            put( "settleId", settleId );
+            put( "type", finalType );
+            put( "spot", finalSpot );
+            put( "margin", finalMargin );
+            put( "swap", finalSwap );
+            put( "future", finalFuture );
+            put( "option", finalOption );
+            put( "contract", finalContract );
+            put( "linear", finalLinear );
+            put( "inverse", finalInverse );
+            put( "taker", Helpers.GetValue(Helpers.GetValue(Bullish.this.fees, "trading"), "taker") );
+            put( "maker", Helpers.GetValue(Helpers.GetValue(Bullish.this.fees, "trading"), "maker") );
+            put( "contractSize", finalContractSize );
+            put( "expiry", Bullish.this.parse8601(finalExpiryDatetime) );
+            put( "expiryDatetime", finalExpiryDatetime );
+            put( "strike", finalStrike );
+            put( "optionType", finalOptionType );
+            put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Bullish.this.parseNumber(minQuantityLimit) );
                     put( "max", Bullish.this.parseNumber(maxQuantityLimit) );
@@ -1087,18 +1144,18 @@ public class Bullish extends BullishApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "precision", new HashMap<String, Object>() {{
+            }} );
+            put( "precision", new HashMap<String, Object>() {{
                 put( "amount", Bullish.this.parseNumber(Bullish.this.parsePrecision(amountPrecision)) );
                 put( "price", Bullish.this.parseNumber(Bullish.this.parsePrecision(pricePrecision)) );
                 put( "cost", Bullish.this.parseNumber(Bullish.this.parsePrecision(costPrecision)) );
                 put( "base", Bullish.this.parseNumber(Bullish.this.parsePrecision(basePrecision)) );
                 put( "quote", Bullish.this.parseNumber(Bullish.this.parsePrecision(quotePrecision)) );
-            }},
-            "active", this.safeBool(market, "marketEnabled", (Object) null),
-            "created", null,
-            "info", market
-        ));
+            }} );
+            put( "active", Bullish.this.safeBool(market, "marketEnabled") );
+            put( "created", null );
+            put( "info", market );
+        }});
     }
 
     public String parseMarketType(String type, String defaultType)
@@ -1110,6 +1167,10 @@ public class Bullish extends BullishApi
             put( "OPTION", "option" );
         }};
         return this.safeString(types, ((String)type), defaultType);
+    }
+    public String parseMarketType(Object... optionalArgs)
+    {
+        return this.parseMarketType(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgString(optionalArgs, 1, null));
     }
 
     /**
@@ -1129,7 +1190,7 @@ public class Bullish extends BullishApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1156,9 +1217,23 @@ public class Bullish extends BullishApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, symbol, Helpers.toLongOrNull(timestamp), "bids", "asks", "price", "priceLevelQuantity", 2);
+            return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity");
         }).thenApply(OrderBook::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/orderbook/hybrid
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOrderBook(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1175,36 +1250,37 @@ public class Bullish extends BullishApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Long limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTrades", since, Helpers.toMapArg(paramsPaginate));
-                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
+                parameters = this.handlePaginationParams("fetchTrades", since, parameters);
+                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, maxLimit)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsPaginate), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            parameters = this.handleSinceAndUntil(since, parameters);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
             }
-            List<Object> response = (this.publicGetV1HistoryMarketsSymbolTrades(this.extend(request, paramsSinceAndUntil))).join();
+            List<Object> response = (this.publicGetV1HistoryMarketsSymbolTrades(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1220,9 +1296,27 @@ public class Bullish extends BullishApi
             //         }, ...
             //     ]
             //
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/trades
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTrades(symbol, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1240,12 +1334,16 @@ public class Bullish extends BullishApi
      * @param {string} [params.tradingAccountId] the trading account id to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String symbol = symbol3;
+            Long limit = limit3;
+            Object parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
@@ -1264,16 +1362,15 @@ public class Bullish extends BullishApi
             } else
             {
                 Boolean paginate = false;
-                Object paramsPaginate = new HashMap<String, Object>() {{}};
-                List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-                paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-                paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+                List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+                paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+                parameters = ((List<Object>) paginateparametersVariable).get(1);
                 if (Boolean.TRUE.equals(paginate))
                 {
-                    Object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, Helpers.toMapArg(paramsPaginate));
-                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(100), true)).join();
+                    parameters = this.handlePaginationParams("fetchMyTrades", since, parameters);
+                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
                 }
-                Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsPaginate), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+                parameters = this.handleSinceAndUntil(since, parameters);
                 if (!java.util.Objects.equals(limit, null))
                 {
                     request.put("_pageSize", this.getClosestLimit(limit));
@@ -1298,11 +1395,30 @@ public class Bullish extends BullishApi
                 //         }, ...
                 //     ]
                 //
-                response = (this.privateGetV1HistoryTrades(this.extend(request, paramsSinceAndUntil))).join();
+                response = (this.privateGetV1HistoryTrades(this.extend(request, parameters))).join();
             }
-            return this.parseTrades(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTrades(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.orderId] the order id to fetch trades for
+     * @param {string} [params.clientOrderId] the client order id to fetch trades for
+     * @param {string} [params.tradingAccountId] the trading account id to fetch trades for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    {
+        return this.fetchMyTrades(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1318,26 +1434,42 @@ public class Bullish extends BullishApi
      * @param {string} [params.clientOrderId] the client order id to fetch trades for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object paramsExtended = parameters;
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                paramsExtended = this.extend(new HashMap<String, Object>() {{
+                parameters = this.extend(new HashMap<String, Object>() {{
                     put( "orderId", id );
                 }}, parameters);
             }
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(paramsExtended))).join();
+            return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/trades
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the client order id to fetch trades for
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
+    {
+        return this.fetchOrderTrades(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1392,23 +1524,24 @@ public class Bullish extends BullishApi
         //     ]
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(trade, "createdAtTimestamp");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = this.safeStringLower(trade, "side");
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
-        String currency = (String) ((Map<String, Object>)marketResolved).get("quote");
-        String code = this.safeCurrencyCode(currency, (Map<String, Object>) null);
-        Double feeCost = this.safeNumber(trade, "quoteFee", (Object) null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
+        String currency = (String) ((Map<String, Object>)market).get("quote");
+        String code = this.safeCurrencyCode(currency);
+        Double feeCost = this.safeNumber(trade, "quoteFee");
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            final Double finalFeeCost = feeCost;
+            fee = new HashMap<String, Object>() {{
+                put( "currency", code );
+                put( "cost", finalFeeCost );
+            }};
         }
         String takerOrMaker = null;
         if (java.util.Objects.equals(isTaker, true))
@@ -1419,21 +1552,27 @@ public class Bullish extends BullishApi
             takerOrMaker = "maker";
         }
         String orderId = this.safeString(trade, "orderId");
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", this.safeString(trade, "tradeId"),
-            "order", orderId,
-            "type", null,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        final String finalTakerOrMaker = takerOrMaker;
+        final Map<String, Object> finalFee = fee;
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "info", trade );
+            put( "timestamp", timestamp );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
+            put( "symbol", symbol );
+            put( "id", Bullish.this.safeString(trade, "tradeId") );
+            put( "order", orderId );
+            put( "type", null );
+            put( "takerOrMaker", finalTakerOrMaker );
+            put( "side", side );
+            put( "price", price );
+            put( "amount", amount );
+            put( "cost", null );
+            put( "fee", finalFee );
+        }}, market);
+    }
+    public Object parseTrade(Object trade, Object... optionalArgs)
+    {
+        return this.parseTrade(trade, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1452,7 +1591,7 @@ public class Bullish extends BullishApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1497,9 +1636,22 @@ public class Bullish extends BullishApi
             //         ]
             //     }
             //
-            return this.parseTicker(response, Helpers.toMapArg(market));
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+        return this.fetchTicker(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1543,10 +1695,11 @@ public class Bullish extends BullishApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        market = (Map<String, Object>) (this.safeMarket(marketId, market));
         Long timestamp = this.safeInteger(ticker, "createdAtTimestamp");
+        final Map<String, Object> finalMarket = market;
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Bullish.this.iso8601(timestamp) );
             put( "high", Bullish.this.safeString(ticker, "high") );
@@ -1567,23 +1720,30 @@ public class Bullish extends BullishApi
             put( "quoteVolume", Bullish.this.safeString(ticker, "quoteVolume") );
             put( "markPrice", Bullish.this.safeString(ticker, "markPrice") );
             put( "info", ticker );
-        }}, Helpers.toMapArg(marketResolved));
+        }}, market);
+    }
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        return this.parseTicker(ticker, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
-    public CompletableFuture<Object> safeDeterministicCall(Object method, String symbol, Long since, Long limit, String timeframe, Map<String, Object> parameters)
+    public CompletableFuture<Object> safeDeterministicCall(Object method2, String symbol, Long since, Long limit, String timeframe, Map<String, Object> parameters2)
     {
-
+        final Object method3 = method2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            List<Object> maxRetriesparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", Helpers.toLongOrNull(3));
-            Long maxRetries = (Long) ((List<Object>) maxRetriesparamsMaxRetriesVariable).get(0);
-            var paramsMaxRetries = ((List<Object>) maxRetriesparamsMaxRetriesVariable).get(1);
+            Object method = method3;
+            Map<String, Object> parameters = parameters3;
+            Long maxRetries = null;
+            List<Object> maxRetriesparametersVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", 3);
+            maxRetries = (Long) ((List<Object>) maxRetriesparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) maxRetriesparametersVariable).get(1);
             if ((!java.util.Objects.equals(method, "fetchOHLCV")) && (!java.util.Objects.equals(method, "fetchFundingRateHistory")) && (!java.util.Objects.equals(method, "fetchTrades")))
             {
                 throw new NotSupported((((this.id + " safeDeterministicCall() does not support the ") + method) + " method")) ;
             }
             Object errors = 0;
-            Object paramsOmitted = this.omit(paramsMaxRetries, "until");
+            parameters = (Map<String, Object>) this.omit(parameters, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
             // the correct util value will be calculated inside of the method
             while (Helpers.isLessThanOrEqual(errors, maxRetries))
@@ -1592,13 +1752,13 @@ public class Bullish extends BullishApi
                 {
                     if (java.util.Objects.equals(method, "fetchOHLCV"))
                     {
-                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, Helpers.toMapArg(paramsOmitted))).join();
+                        return (this.fetchOHLCV((Object)(((String)symbol)), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                     } else if (java.util.Objects.equals(method, "fetchFundingRateHistory"))
                     {
-                        return (this.fetchFundingRateHistory(symbol, since, limit, Helpers.toMapArg(paramsOmitted))).join();
+                        return (this.fetchFundingRateHistory(symbol, since, limit, parameters)).join();
                     } else
                     {
-                        return (this.fetchTrades(((String)symbol), since, limit, Helpers.toMapArg(paramsOmitted))).join();
+                        return (this.fetchTrades(((String)symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
                     }
                 } catch(Exception e)
                 {
@@ -1617,6 +1777,10 @@ public class Bullish extends BullishApi
         });
 
     }
+    public CompletableFuture<Object> safeDeterministicCall(Object method, Object... optionalArgs)
+    {
+        return this.safeDeterministicCall(method, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgString(optionalArgs, 3, null), Helpers.getArgMap(optionalArgs, 4, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -1632,36 +1796,35 @@ public class Bullish extends BullishApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object timeframe, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Integer maxLimit = 100;
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", Helpers.toStringArg(symbol), since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+                put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, timeframe, timeframe) );
                 put( "_pageSize", maxLimit );
             }};
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            Object until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
+            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Object until = this.safeInteger(request, "createdAtDatetime[lte]");
+            int duration = this.parseTimeframe(timeframe);
             Long maxDelta = ((1000L * ((long) duration)) * ((long) maxLimit));
             Object startTime = since;
             // both of since and until are required
@@ -1676,9 +1839,9 @@ public class Bullish extends BullishApi
             {
                 until = this.sum(startTime, maxDelta);
             }
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(startTime));
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
-            List<Object> response = (this.publicGetV1MarketsSymbolCandle(this.extend(requestUntil, paramsUntil))).join();
+            request.put("createdAtDatetime[gte]", this.iso8601(startTime));
+            request.put("createdAtDatetime[lte]", this.iso8601(until));
+            List<Object> response = (this.publicGetV1MarketsSymbolCandle(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1694,14 +1857,36 @@ public class Bullish extends BullishApi
             //     ]
             //
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
+            return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/candle
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    {
+        return this.fetchOHLCV(symbol, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m", Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "createdAtTimestamp"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "createdAtTimestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
+    }
+    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    {
+        return this.parseOHLCV(ohlcv, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -1715,29 +1900,32 @@ public class Bullish extends BullishApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            String symbol = symbol3;
+            Long limit = limit3;
+            Object parameters = parameters3;
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Integer maxLimit = 100;
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, Helpers.toMapArg(paramsPaginate));
-                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
+                parameters = this.handlePaginationParams("fetchFundingRateHistory", since, parameters);
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, maxLimit)).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -1751,8 +1939,8 @@ public class Bullish extends BullishApi
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsPaginate), "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
-            List<Object> response = (this.publicGetV1HistoryMarketsSymbolFundingRate(this.extend(request, paramsSinceAndUntil))).join();
+            parameters = this.handleSinceAndUntil(since, parameters, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
+            List<Object> response = (this.publicGetV1HistoryMarketsSymbolFundingRate(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1771,18 +1959,34 @@ public class Bullish extends BullishApi
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String datetime = this.safeString(entry, "updatedAtDatetime");
-                ((List<Object>)rates).add(Helpers.newMap(
-                    "info", entry,
-                    "symbol", symbol,
-                    "fundingRate", this.safeNumber(entry, "fundingRate", (Object) null),
-                    "timestamp", this.parse8601(datetime),
-                    "datetime", datetime
-                ));
+    final String finalSymbol = symbol;
+                            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+                    put( "info", entry );
+                    put( "symbol", finalSymbol );
+                    put( "fundingRate", Bullish.this.safeNumber(entry, "fundingRate") );
+                    put( "timestamp", Bullish.this.parse8601(datetime) );
+                    put( "datetime", datetime );
+                }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(((Map<String, Object>)market).get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, ((Map<String, Object>)market).get("symbol"), since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    {
+        return this.fetchFundingRateHistory(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1803,18 +2007,22 @@ public class Bullish extends BullishApi
      * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol2, Long since, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String symbol3 = symbol2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String symbol = symbol3;
+            Long limit = limit3;
+            Object parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchOrders", since, parameters);
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(100), true)).join();
+                parameters = this.handlePaginationParams("fetchOrders", since, parameters);
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, 100)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1825,16 +2033,15 @@ public class Bullish extends BullishApi
                 market = (Map<String, Object>) this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, parameters, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            parameters = this.handleSinceAndUntil(since, parameters);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
             }
             String method = "privateGetV2HistoryOrders";
-            Object paramsMethod = null;
-            List<Object> methodparamsMethodVariable = (List<Object>) this.handleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", method);
-            method = (String) ((List<Object>) methodparamsMethodVariable).get(0);
-            paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
+            List<Object> methodparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOrders", "method", method);
+            method = (String) ((List<Object>) methodparametersVariable).get(0);
+            parameters = ((List<Object>) methodparametersVariable).get(1);
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "privateGetV2Orders"))
             {
@@ -1867,17 +2074,39 @@ public class Bullish extends BullishApi
                 //         }
                 //     ]
                 //
-                response = (this.privateGetV2Orders(this.extend(request, paramsMethod))).join();
+                response = (this.privateGetV2Orders(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(method, "privateGetV2HistoryOrders"))
             {
-                response = (this.privateGetV2HistoryOrders(this.extend(request, paramsMethod))).join();
+                response = (this.privateGetV2HistoryOrders(this.extend(request, parameters))).join();
             } else
             {
                 throw new BadRequest((this.id + " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")) ;
             }
-            return this.parseOrders(response, Helpers.toMapArg(market), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve (5, 25, 50, 100, default is 25)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest order to fetch
+     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
+     * @param {string} [params.orderId] the id of the order to fetch for
+     * @param {string} [params.clientOrderId] the client id of the order to fetch for
+     * @param {string} [params.status] filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
+     * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    {
+        return this.fetchOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     public Object handlePaginationParams(Object method, Long since, Map<String, Object> parameters)
@@ -1889,38 +2118,35 @@ public class Bullish extends BullishApi
         {
             throw new BadRequest((((this.id + " ") + method) + "() only allows fetching entries up to 90 days in the past")) ;
         }
-        Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "paginate");
-        Map<String, Object> paramsExtended = this.extend(paramsOmitted, new HashMap<String, Object>() {{
+        parameters = (Map<String, Object>) (this.omit(parameters, "paginate"));
+        parameters = (Map<String, Object>) (this.extend(parameters, new HashMap<String, Object>() {{
             put( "paginationDirection", "backward" );
-        }});
-        Long until = this.safeInteger(paramsExtended, "until");
+        }}));
+        Long until = this.safeInteger(parameters, "until");
         if (java.util.Objects.equals(until, null))
         {
-            return this.extend(paramsExtended, Helpers.newMap(
-                "until", now
-            ));
+            parameters = (Map<String, Object>) (this.extend(parameters, new HashMap<String, Object>() {{
+                put( "until", now );
+            }}));
         }
-        return paramsExtended;
+        return parameters;
+    }
+    public Object handlePaginationParams(Object method, Object... optionalArgs)
+    {
+        return this.handlePaginationParams(method, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object handleSinceAndUntil(Long since, Map<String, Object> parameters, String sinceKey, String untilKey)
     {
         Object until = this.safeInteger(parameters, "until");
-        Boolean sinceFromUntil = (java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(until, null));
-        Object paramsResult = parameters;
-        if (Boolean.TRUE.equals(sinceFromUntil))
-        {
-            paramsResult = this.omit(parameters, "until");
-        }
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
         {
             Long timeDelta = ((((7L * 24L) * 60L) * 60L) * 1000L); // 7 days
-            Object sinceResolved = since;
             if (java.util.Objects.equals(since, null))
             {
-                sinceResolved = Helpers.subtract(until, timeDelta);
-            }
-            if ((!java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
+                since = Helpers.toLongOrNull(Helpers.subtract(until, timeDelta));
+                parameters = (Map<String, Object>) (this.omit(parameters, "until"));
+            } else if (java.util.Objects.equals(until, null))
             {
                 until = this.sum(since, timeDelta);
                 Long now = this.milliseconds();
@@ -1929,12 +2155,16 @@ public class Bullish extends BullishApi
                     until = now;
                 }
             }
-            String sinceDate = this.iso8601(sinceResolved);
+            String sinceDate = this.iso8601(since);
             String untilDate = this.iso8601(until);
-            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(sinceKey, "createdAtDatetime[gte]"), sinceDate);
-            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(untilKey, "createdAtDatetime[lte]"), untilDate);
+            ((Map<String, Object>)parameters).put((String)sinceKey, sinceDate);
+            ((Map<String, Object>)parameters).put((String)untilKey, untilDate);
         }
-        return paramsResult;
+        return parameters;
+    }
+    public Object handleSinceAndUntil(Object... optionalArgs)
+    {
+        return this.handleSinceAndUntil(Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}), Helpers.getArgString(optionalArgs, 2, "createdAtDatetime[gte]"), Helpers.getArgString(optionalArgs, 3, "createdAtDatetime[lte]"));
     }
 
     public Object getClosestLimit(Object limit)
@@ -1973,9 +2203,25 @@ public class Bullish extends BullishApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "OPEN" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    {
+        return this.fetchOpenOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -1999,9 +2245,25 @@ public class Bullish extends BullishApi
                 put( "status", "CANCELLED" );
                 put( "method", "privateGetV2Orders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+     * @param {string} symbol unified market symbol of the canceled orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of canceled orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
+    {
+        return this.fetchCanceledOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2025,9 +2287,25 @@ public class Bullish extends BullishApi
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2Orders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--orders
+     * @param {string} symbol unified market symbol of the closed orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of closed orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2051,9 +2329,25 @@ public class Bullish extends BullishApi
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2HistoryOrders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--history
+     * @param {string} symbol unified market symbol of the closed orders
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the max number of closed orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
+    {
+        return this.fetchCanceledAndClosedOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2067,12 +2361,12 @@ public class Bullish extends BullishApi
      * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String symbol = symbol3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -2111,9 +2405,24 @@ public class Bullish extends BullishApi
             //         "createdAtTimestamp": "1621490985000",
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v2/orders/-orderId-
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    {
+        return this.fetchOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2135,12 +2444,14 @@ public class Bullish extends BullishApi
      * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-
+        final String type3 = type2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String type = type3;
+            Map<String, Object> parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2151,23 +2462,24 @@ public class Bullish extends BullishApi
                 put( "tradingAccountId", tradingAccountId );
             }};
             Boolean isMarketOrder = ((java.util.Objects.equals(type, "market")) || java.util.Objects.equals(type, "MARKET"));
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "POST_ONLY"), parameters);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-            String orderType = type;
-            if (Helpers.isTrue(postOnly))
+            Boolean postOnly = false;
+            List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "POST_ONLY"), parameters);
+            postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
+            if (Boolean.TRUE.equals(postOnly))
             {
-                orderType = "POST_ONLY";
+                type = "POST_ONLY";
             }
-            List<Object> timeInForceparamsTimeInForceVariable = (List<Object>) this.handleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC");
-            String timeInForce = (String) ((List<Object>) timeInForceparamsTimeInForceVariable).get(0);
-            var paramsTimeInForce = ((List<Object>) timeInForceparamsTimeInForceVariable).get(1); // is mandatory
-            ((Map<String, Object>)paramsTimeInForce).put("timeInForce", ((String)timeInForce).toUpperCase());
+            String timeInForce = "GTC"; // is mandatory
+            List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", timeInForce);
+            timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) timeInForceparametersVariable).get(1);
+            ((Map<String, Object>)parameters).put("timeInForce", timeInForce.toUpperCase());
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
             }
-            String triggerPrice = this.safeString(paramsTimeInForce, "triggerPrice");
+            String triggerPrice = this.safeString(parameters, "triggerPrice");
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (Boolean.TRUE.equals(isMarketOrder))
@@ -2175,11 +2487,11 @@ public class Bullish extends BullishApi
                     throw new NotSupported((this.id + " createOrder() does not support market trigger orders")) ;
                 }
                 request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
-                orderType = "STOP_LIMIT";
+                type = "STOP_LIMIT";
+                parameters = (Map<String, Object>) this.omit(parameters, "triggerPrice");
             }
-            Object paramsOmitted = (((!java.util.Objects.equals(triggerPrice, null)))) ? this.omit(paramsTimeInForce, "triggerPrice") : paramsTimeInForce;
-            request.put("type", orderType.toUpperCase());
-            Map<String, Object> response = (this.privatePostV2Orders(this.extend(request, paramsOmitted))).join();
+            request.put("type", ((String)type).toUpperCase());
+            Map<String, Object> response = (this.privatePostV2Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "message": "Command acknowledged - CreateOrder",
@@ -2188,9 +2500,32 @@ public class Bullish extends BullishApi
             //         "clientOrderId": "1234567"
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#createOrder
+     * @description create a trade order
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/orders
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or 'STOP_LIMIT' or 'POST_ONLY'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a custom client order id
+     * @param {float} [params.triggerPrice] the price at which a stop order is triggered at
+     * @param {string} [params.timeInForce] the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
+     * @param {bool} [params.allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
+     * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object... optionalArgs)
+    {
+        return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2210,12 +2545,18 @@ public class Bullish extends BullishApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type2, String side, Object amount2, Object price2, Map<String, Object> parameters2)
     {
-
+        final String type3 = type2;
+        final Object amount3 = amount2;
+        final Object price3 = price2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String type = type3;
+            Object amount = amount3;
+            Object price = price3;
+            Map<String, Object> parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2235,6 +2576,7 @@ public class Bullish extends BullishApi
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             if (java.util.Objects.equals(postOnly, true))
             {
+                parameters = (Map<String, Object>) this.omit(parameters, "postOnly");
                 request.put("type", "POST_ONLY");
             }
             if (!java.util.Objects.equals(amount, null))
@@ -2245,11 +2587,31 @@ public class Bullish extends BullishApi
             {
                 request.put("price", this.priceToPrecision(symbol, price));
             }
-            Object paramsOmitted = (((java.util.Objects.equals(postOnly, true)))) ? this.omit(parameters, "postOnly") : parameters;
-            Map<String, Object> response = (this.privatePostV2Command(this.extend(request, paramsOmitted))).join();
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            Map<String, Object> response = (this.privatePostV2Command(this.extend(request, parameters))).join();
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#editOrder
+     * @description edit a trade limit order
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-amend
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market to create an order in
+     * @param {string} [type] 'limit' or 'POST_ONLY'
+     * @param {string} [side] not used by bullish editOrder
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
+     * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object... optionalArgs)
+    {
+        return this.editOrder(id, symbol, type, side, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null, Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2264,12 +2626,12 @@ public class Bullish extends BullishApi
      * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Order> cancelOrder(Object id, String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String symbol = symbol3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             if (java.util.Objects.equals(symbol, null))
             {
@@ -2291,9 +2653,25 @@ public class Bullish extends BullishApi
             //         "clientOrderId": null
             //     }
             //
-            return this.parseOrder(response, Helpers.toMapArg(market));
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#cancelOrder
+     * @description cancels an open order
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+     * @param {string} [id] order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.commandType the command type, default is 'V3CancelOrder' (mandatory parameter)
+     * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    {
+        return this.cancelOrder(id, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2306,12 +2684,12 @@ public class Bullish extends BullishApi
      * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol2, Map<String, Object> parameters)
     {
-
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String symbol = symbol3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
@@ -2334,9 +2712,23 @@ public class Bullish extends BullishApi
             //     }
             //
             List<Object> orders = new ArrayList<Object>(Arrays.asList(response));
-            return this.parseOrders(orders, Helpers.toMapArg(market), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            return this.parseOrders(orders, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v2/command-cancellations
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    {
+        return this.cancelAllOrders(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOrder(Object order, Map<String, Object> market)
@@ -2391,8 +2783,11 @@ public class Bullish extends BullishApi
         //     }
         //
         String marketId = this.safeString(order, "symbol");
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
-        String symbol = this.safeSymbol(marketId, Helpers.toMapArg(marketResolved), (String) null, (String) null);
+        if (java.util.Objects.equals(market, null))
+        {
+            market = (Map<String, Object>) (this.safeMarket(marketId));
+        }
+        String symbol = this.safeSymbol(marketId, market);
         String id = this.safeString(order, "orderId");
         Long timestamp = this.safeInteger(order, "createdAtTimestamp");
         String type = this.safeString(order, "type");
@@ -2413,36 +2808,42 @@ public class Bullish extends BullishApi
         String stopPrice = this.safeString(order, "stopPrice");
         String cost = this.safeString(order, "quoteAmount");
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
-        Double quoteFee = this.safeNumber(order, "quoteFee", (Object) null);
+        Double quoteFee = this.safeNumber(order, "quoteFee");
         if (!java.util.Objects.equals(quoteFee, null))
         {
             fee.put("cost", quoteFee);
-            fee.put("currency", ((Map<String, Object>)marketResolved).get("quote"));
+            fee.put("currency", ((Map<String, Object>)market).get("quote"));
         }
         String average = this.safeString(order, "averageFillPrice");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", this.safeString(order, "clientOrderId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", this.parseOrderType(type),
-            "timeInForce", timeInForce,
-            "postOnly", java.util.Objects.equals(type, "POST_ONLY"),
-            "side", side,
-            "price", price,
-            "triggerPrice", stopPrice,
-            "amount", amount,
-            "filled", filled,
-            "remaining", null,
-            "cost", cost,
-            "trades", null,
-            "fee", fee,
-            "info", order,
-            "average", average
-        ), Helpers.toMapArg(marketResolved));
+        final String finalStatus = status;
+        final String finalType = type;
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "clientOrderId", Bullish.this.safeString(order, "clientOrderId") );
+            put( "timestamp", timestamp );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", null );
+            put( "status", finalStatus );
+            put( "symbol", symbol );
+            put( "type", Bullish.this.parseOrderType((String) (finalType)) );
+            put( "timeInForce", timeInForce );
+            put( "postOnly", java.util.Objects.equals(finalType, "POST_ONLY") );
+            put( "side", side );
+            put( "price", price );
+            put( "triggerPrice", stopPrice );
+            put( "amount", amount );
+            put( "filled", filled );
+            put( "remaining", null );
+            put( "cost", cost );
+            put( "trades", null );
+            put( "fee", fee );
+            put( "info", order );
+            put( "average", average );
+        }}, market);
+    }
+    public Object parseOrder(Object order, Object... optionalArgs)
+    {
+        return this.parseOrder(order, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseOrderStatus(String status)
@@ -2478,26 +2879,30 @@ public class Bullish extends BullishApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code2, Long since2, Long limit, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String code = code3;
+            Long since = since3;
+            Map<String, Object> parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
+            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Long until = this.safeInteger(request, "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
+                request.put("createdAtDatetime[lte]", this.iso8601(until));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(since));
+                request.put("createdAtDatetime[gte]", this.iso8601(since));
             }
-            Map<String, Object> response = (this.privateGetV1WalletsTransactions(this.extend(requestUntil, paramsUntil))).join();
+            Map<String, Object> response = (this.privateGetV1WalletsTransactions(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -2538,9 +2943,24 @@ public class Bullish extends BullishApi
             {
                 currency = (Map<String, Object>) this.currency((String) (code));
             }
-            return this.parseTransactions(data, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/transactions
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
+    {
+        return this.fetchDepositsWithdrawals(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -2558,12 +2978,12 @@ public class Bullish extends BullishApi
      * @param {string} params.network network for withdraw (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            Map<String, Object> parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             // todo check this method properly
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2571,12 +2991,13 @@ public class Bullish extends BullishApi
                     put( "commandType", "V1Withdraw" );
                     put( "destinationId", address );
                     put( "symbol", ((Map<String, Object>)currency).get("id") );
-                    put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount, (String) null) );
+                    put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount) );
                 }} );
             }};
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
-            String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-            Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
+            String networkCode = null;
+            List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 request.put("network", this.networkCodeToId(networkCode, code));
@@ -2584,7 +3005,7 @@ public class Bullish extends BullishApi
             {
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
             }
-            Map<String, Object> response = (this.privatePostV1WalletsWithdrawal(this.extend(request, paramsNetworkCode))).join();
+            Map<String, Object> response = (this.privatePostV1WalletsWithdrawal(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -2595,9 +3016,28 @@ public class Bullish extends BullishApi
             //         }
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), Helpers.toMapArg(currency));
+            return this.parseTransaction((Map<String, Object>) (response), currency);
         }).thenApply(Transaction::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#withdraw
+     * @description make a withdrawal
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/wallets/withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
+     * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
+     * @param {string} params.network network for withdraw (mandatory)
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Object... optionalArgs)
+    {
+        return this.withdraw(code, amount, address, Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -2632,10 +3072,10 @@ public class Bullish extends BullishApi
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAtDateTime"));
         Long updated = this.parse8601(this.safeString(transaction, "updatedAtDateTime"));
         String network = this.safeString(transaction, "network");
-        Map<String, Object> transactionDetails = (Map<String, Object>) this.safeDict(transaction, "transactionDetails", (Object) null);
+        Map<String, Object> transactionDetails = (Map<String, Object>) this.safeDict(transaction, "transactionDetails");
         String txid = this.safeString(transactionDetails, "blockchainTxId");
         String address = this.safeString(transactionDetails, "address");
-        Double amount = this.safeNumber(transaction, "quantity", (Object) null);
+        Double amount = this.safeNumber(transaction, "quantity");
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
@@ -2647,7 +3087,7 @@ public class Bullish extends BullishApi
             put( "cost", null );
             put( "rate", null );
         }};
-        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
             fee.put("cost", feeCost);
@@ -2676,6 +3116,10 @@ public class Bullish extends BullishApi
             put( "info", transaction );
         }};
     }
+    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    {
+        return this.parseTransaction(transaction, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public String parseTransactionType(String type)
     {
@@ -2697,23 +3141,22 @@ public class Bullish extends BullishApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public CompletableFuture<Object> loadAccount(Map<String, Object> parameters)
+    public CompletableFuture<Object> loadAccount(Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
+            Map<String, Object> parameters = parameters3;
             String tradingAccountId = null;
-            Object paramsTradingAccountId = null;
-            List<Object> tradingAccountIdparamsTradingAccountIdVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId", (String) null);
-            tradingAccountId = (String) ((List<Object>) tradingAccountIdparamsTradingAccountIdVariable).get(0);
-            paramsTradingAccountId = ((List<Object>) tradingAccountIdparamsTradingAccountIdVariable).get(1);
+            List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
+            tradingAccountId = (String) ((List<Object>) tradingAccountIdparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) tradingAccountIdparametersVariable).get(1);
             if (java.util.Objects.equals(tradingAccountId, null))
             {
-                List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();
+                List<Object> response = (this.privateGetV1AccountsTradingAccounts(parameters)).join();
                 List<Object> accounts = this.toArray(response);
                 for (var i = 0; i < ((List<?>)accounts).size(); i++)
                 {
-                    Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
+                    Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i);
                     String name = this.safeString(account, "tradingAccountName");
                     if (java.util.Objects.equals(name, "Primary Account"))
                     {
@@ -2731,6 +3174,10 @@ public class Bullish extends BullishApi
         });
 
     }
+    public CompletableFuture<Object> loadAccount(Object... optionalArgs)
+    {
+        return this.loadAccount(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     /**
      * @method
@@ -2745,7 +3192,7 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             List<Object> response = (this.privateGetV1AccountsTradingAccounts(parameters)).join();
             //
             //     [
@@ -2830,6 +3277,18 @@ public class Bullish extends BullishApi
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
+    /**
+     * @method
+     * @name bullish#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
+     */
+    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    {
+        return this.fetchAccounts(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
     public Object parseAccount(Object account)
     {
@@ -2851,12 +3310,12 @@ public class Bullish extends BullishApi
      * @param {string} [params.network] network for deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            Map<String, Object> parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)currency).get("id") );
@@ -2875,9 +3334,11 @@ public class Bullish extends BullishApi
             Integer length = ((List<?>)safeResponse).size();
             Object data = this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
             Object network = null;
-            network = Helpers.GetValue(this.handleNetworkCodeAndParams(parameters), 0);
+            List<Object> networkparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+            network = ((List<Object>) networkparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) networkparametersVariable).get(1);
             Boolean networkDefinedByUser = !java.util.Objects.equals(network, null);
-            if ((Helpers.isGreaterThan(length, 1)) || Boolean.TRUE.equals(networkDefinedByUser))
+            if (((length != null && length > 1)) || Boolean.TRUE.equals(networkDefinedByUser))
             {
                 // some currencies have multiple networks
                 if (java.util.Objects.equals(network, null))
@@ -2905,9 +3366,23 @@ public class Bullish extends BullishApi
                     }
                 }
             }
-            return this.parseDepositAddress((Map<String, Object>) (data), Helpers.toMapArg(currency));
+            return this.parseDepositAddress((Map<String, Object>) (data), currency);
         }).thenApply(DepositAddress::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/wallets/deposit-instructions/crypto/-symbol-
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    {
+        return this.fetchDepositAddress(code, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
@@ -2922,6 +3397,10 @@ public class Bullish extends BullishApi
             put( "address", Bullish.this.safeString(depositAddress, "address") );
             put( "tag", null );
         }};
+    }
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Object... optionalArgs)
+    {
+        return this.parseDepositAddress(depositAddress, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     /**
@@ -2940,7 +3419,7 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
@@ -2951,7 +3430,7 @@ public class Bullish extends BullishApi
             {
                 request.put("symbol", ((Map<String, Object>)this.currency(code)).get("id"));
                 response = (this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters))).join();
-                return this.parseBalanceForSingleCurrency(response, code);
+                return this.parseBalanceForSingleCurrency((Map<String, Object>) (response), code);
             } else
             {
                 response = (this.privateGetV1AccountsAsset(this.extend(request, parameters))).join();
@@ -2976,8 +3455,23 @@ public class Bullish extends BullishApi
         }).thenApply(Balances::new);
 
     }
+    /**
+     * @method
+     * @name bullish#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/accounts/asset/-symbol-
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
+     * @param {string} [params.code] unified currency code, default is undefined
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    {
+        return this.fetchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
+    }
 
-    public Object parseBalanceForSingleCurrency(Object response, String code)
+    public Object parseBalanceForSingleCurrency(Map<String, Object> response, String code)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -2996,9 +3490,9 @@ public class Bullish extends BullishApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String symbol = this.safeString(balance, "assetSymbol");
-            String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(symbol);
             Map<String, Object> account = (Map<String, Object>) this.account();
             account.put("total", this.safeString(balance, "availableQuantity"));
             account.put("used", this.safeString(balance, "lockedQuantity"));
@@ -3025,7 +3519,7 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
@@ -3052,10 +3546,24 @@ public class Bullish extends BullishApi
             //         }
             //     ]
             //
-            Object results = this.parsePositions(response, symbols, new HashMap<String, Object>() {{}});
+            Object results = this.parsePositions(response, symbols);
             return this.filterByArrayPositions(results, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchPositions
+     * @description fetch all open positions
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/derivatives-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.tradingAccountId the trading account id
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    {
+        return this.fetchPositions(Helpers.getArgStringList(optionalArgs, 0, null), Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3081,8 +3589,8 @@ public class Bullish extends BullishApi
         //         }
         //     ]
         //
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(this.safeString(position, "symbol"), market, (String) null, (String) null);
-        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
+        market = (Map<String, Object>) (this.safeMarket(this.safeString(position, "symbol"), market));
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(position, "createdAtTimestamp");
         String side = this.safeString(position, "side");
         return this.safePosition(new HashMap<String, Object>() {{
@@ -3094,12 +3602,12 @@ public class Bullish extends BullishApi
             put( "lastUpdateTimestamp", Bullish.this.safeInteger(position, "updatedAtTimestamp") );
             put( "hedged", null );
             put( "side", Bullish.this.parsePositionSide(side) );
-            put( "contracts", Bullish.this.safeNumber(position, "quantity", (Object) null) );
+            put( "contracts", Bullish.this.safeNumber(position, "quantity") );
             put( "contractSize", null );
             put( "entryPrice", null );
             put( "markPrice", null );
             put( "lastPrice", null );
-            put( "notional", Bullish.this.safeNumber(position, "notional", (Object) null) );
+            put( "notional", Bullish.this.safeNumber(position, "notional") );
             put( "leverage", null );
             put( "collateral", null );
             put( "initialMargin", null );
@@ -3114,6 +3622,10 @@ public class Bullish extends BullishApi
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
         }});
+    }
+    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    {
+        return this.parsePosition(position, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public Object parsePositionSide(String side)
@@ -3138,23 +3650,28 @@ public class Bullish extends BullishApi
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code2, Long since2, Long limit2, Map<String, Object> parameters2)
     {
-
+        final String code3 = code2;
+        final Long since3 = since2;
+        final Long limit3 = limit2;
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            String code = code3;
+            Long since = since3;
+            Long limit = limit3;
+            Object parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Integer maxLimit = 100;
             Boolean paginate = false;
-            Object paramsPaginate = new HashMap<String, Object>() {{}};
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-            paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) paginateparamsPaginateVariable).get(1);
+            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+            paginate = (Boolean) ((List<Object>) paginateparametersVariable).get(0);
+            parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTransfers", since, Helpers.toMapArg(paramsPaginate));
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
+                parameters = this.handlePaginationParams("fetchTransfers", since, parameters);
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
@@ -3165,22 +3682,21 @@ public class Bullish extends BullishApi
                 currency = (Map<String, Object>) this.currency((String) (code));
                 request.put("assetSymbol", ((Map<String, Object>)currency).get("id"));
             }
-            Long until = this.safeInteger(paramsPaginate, "until");
-            // since and until are mandatory for this endpoint, set until to now if both are undefined
-            Boolean untilMissing = (java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null));
-            Object paramsUntil = paramsPaginate;
-            if (Boolean.TRUE.equals(untilMissing))
+            Long until = this.safeInteger(parameters, "until");
+            if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
             {
-                paramsUntil = this.extend(paramsPaginate, new HashMap<String, Object>() {{
-                    put( "until", Bullish.this.milliseconds() );
+                // since and until are mandatory for this endpoint, set until to now if both are undefined
+                Long now = this.milliseconds();
+                parameters = this.extend(parameters, new HashMap<String, Object>() {{
+                    put( "until", now );
                 }});
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, Helpers.toMapArg(paramsUntil), "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            parameters = this.handleSinceAndUntil(since, parameters);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
             }
-            List<Object> response = (this.privateGetV1HistoryTransfer(this.extend(request, paramsSinceAndUntil))).join();
+            List<Object> response = (this.privateGetV1HistoryTransfer(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -3197,9 +3713,26 @@ public class Bullish extends BullishApi
             //         }
             //     ]
             //
-            return this.parseTransfers(response, Helpers.toMapArg(currency), since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransfers(response, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/transfer
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} params.until the latest time in ms to fetch transfers for (default time now)
+     * @param {string} params.tradingAccountId the trading account id
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    {
+        return this.fetchTransfers(Helpers.getArgString(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgLong(optionalArgs, 2, null), Helpers.getArgMap(optionalArgs, 3, new HashMap<String, Object>() {{}}));
     }
 
     /**
@@ -3219,13 +3752,13 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             // todo check this method properly
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "commandType", "V2TransferAsset" );
                 put( "assetSymbol", ((Map<String, Object>)currency).get("id") );
-                put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount, (String) null) );
+                put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount) );
                 put( "fromTradingAccountId", fromAccount );
                 put( "toTradingAccountId", toAccount );
             }};
@@ -3238,7 +3771,7 @@ public class Bullish extends BullishApi
             //
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            Object transfer = this.parseTransfer(response, Helpers.toMapArg(currency));
+            Object transfer = this.parseTransfer(response, currency);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
@@ -3249,6 +3782,22 @@ public class Bullish extends BullishApi
             return transfer;
         }).thenApply(TransferEntry::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#post-/v1/command-commandType-V1TransferAsset
+     * @param {string} code unified currency codeåå
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account ID to transfer from
+     * @param {string} toAccount account ID to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Object... optionalArgs)
+    {
+        return this.transfer(code, amount, fromAccount, toAccount, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
@@ -3281,17 +3830,22 @@ public class Bullish extends BullishApi
         {
             status = this.safeString(transfer, "message");
         }
-        return Helpers.newMap(
-            "id", this.safeString(transfer, "requestId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", this.safeNumber(transfer, "quantity", (Object) null),
-            "fromAccount", this.safeString(transfer, "fromTradingAccountId"),
-            "toAccount", this.safeString(transfer, "toTradingAccountId"),
-            "status", this.parseTransferStatus(status),
-            "info", transfer
-        );
+        final String finalStatus = status;
+        return new HashMap<String, Object>() {{
+            put( "id", Bullish.this.safeString(transfer, "requestId") );
+            put( "timestamp", timestamp );
+            put( "datetime", Bullish.this.iso8601(timestamp) );
+            put( "currency", Bullish.this.safeCurrencyCode(currencyId, currency) );
+            put( "amount", Bullish.this.safeNumber(transfer, "quantity") );
+            put( "fromAccount", Bullish.this.safeString(transfer, "fromTradingAccountId") );
+            put( "toAccount", Bullish.this.safeString(transfer, "toTradingAccountId") );
+            put( "status", Bullish.this.parseTransferStatus((String) (finalStatus)) );
+            put( "info", transfer );
+        }};
+    }
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        return this.parseTransfer(transfer, Helpers.getArgMap(optionalArgs, 0, null));
     }
 
     public String parseTransferStatus(String status)
@@ -3318,12 +3872,12 @@ public class Bullish extends BullishApi
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public CompletableFuture<Object> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters2)
     {
-
+        final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
+            Map<String, Object> parameters = parameters3;
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3332,10 +3886,10 @@ public class Bullish extends BullishApi
             }};
             Long now = this.milliseconds();
             Object startTimestamp = since;
-            List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            var requestUntil = ((List<Object>) requestUntilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) requestUntilparamsUntilVariable).get(1);
-            Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
+            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters));
+            request = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(0);
+            parameters = (Map<String, Object>) ((List<Object>) requestparametersVariable).get(1);
+            Long until = this.safeInteger(request, "createdAtDatetime[lte]");
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(startTimestamp, null))
             {
@@ -3345,9 +3899,9 @@ public class Bullish extends BullishApi
             {
                 until = now;
             }
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[gte]", this.iso8601(startTimestamp));
-            Helpers.addElementToObject(requestUntil, "createdAtDatetime[lte]", this.iso8601(until));
-            List<Object> response = (this.privateGetV1HistoryBorrowInterest(this.extend(requestUntil, paramsUntil))).join();
+            request.put("createdAtDatetime[gte]", this.iso8601(startTimestamp));
+            request.put("createdAtDatetime[lte]", this.iso8601(until));
+            List<Object> response = (this.privateGetV1HistoryBorrowInterest(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -3363,6 +3917,23 @@ public class Bullish extends BullishApi
             return this.parseBorrowRateHistory(response, (String) (code), since, limit);
         });
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchBorrowRateHistory
+     * @description retrieves a history of a currencies borrow interest rate at specific time slots
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/borrow-interest
+     * @param {string} code unified currency code
+     * @param {int} [since] timestamp for the earliest borrow rate
+     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} params.until the latest time in ms to fetch entries for
+     * @param {string} params.tradingAccountId the trading account id
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    public CompletableFuture<Object> fetchBorrowRateHistory(String code, Object... optionalArgs)
+    {
+        return this.fetchBorrowRateHistory(code, Helpers.getArgLong(optionalArgs, 0, null), Helpers.getArgLong(optionalArgs, 1, null), Helpers.getArgMap(optionalArgs, 2, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseBorrowRate(Object info, Map<String, Object> currency)
@@ -3381,17 +3952,21 @@ public class Bullish extends BullishApi
         String currencyId = this.safeString(info, "assetSymbol");
         return new HashMap<String, Object>() {{
             put( "currency", Bullish.this.safeCurrencyCode(currencyId, currency) );
-            put( "rate", Bullish.this.safeNumber(info, "borrowedQuantity", (Object) null) );
+            put( "rate", Bullish.this.safeNumber(info, "borrowedQuantity") );
             put( "period", 86400000 );
             put( "timestamp", timestamp );
             put( "datetime", Bullish.this.iso8601(timestamp) );
             put( "info", info );
         }};
     }
+    public Object parseBorrowRate(Object info, Object... optionalArgs)
+    {
+        return this.parseBorrowRate(info, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public Object getTimestamp()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**
@@ -3410,7 +3985,7 @@ public class Bullish extends BullishApi
 
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3455,9 +4030,22 @@ public class Bullish extends BullishApi
             //         ]
             //     }
             //
-            return this.parseOpenInterest(response, Helpers.toMapArg(market));
+            return this.parseOpenInterest(response, market);
         }).thenApply(OpenInterest::new);
 
+    }
+    /**
+     * @method
+     * @name bullish#fetchOpenInterest
+     * @description fetches the open interest of a specific market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+     * @param {string} symbol unified symbol of the market to fetch the open interest for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
+    {
+        return this.fetchOpenInterest(symbol, Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
@@ -3512,51 +4100,60 @@ public class Bullish extends BullishApi
             put( "quoteVolume", null );
         }}, market);
     }
+    public Object parseOpenInterest(Object interest, Object... optionalArgs)
+    {
+        return this.parseOpenInterest(interest, Helpers.getArgMap(optionalArgs, 0, null));
+    }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public")), endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
         {
-            this.checkRequiredCredentials(true);
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + endpoint);
+        if (java.util.Objects.equals(api, "private"))
+        {
+            this.checkRequiredCredentials();
             String nonce = String.valueOf(this.microseconds());
             String timestamp = String.valueOf(this.getTimestamp());
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+            if (java.util.Objects.equals(method, "GET"))
             {
-                Object payload = Helpers.add((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/"), path);
+                Object payload = Helpers.add((((timestamp + nonce) + method) + "/trading-api/"), path);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
-                requestHeaders = Helpers.newMap(
-                    "BX-TIMESTAMP", timestamp,
-                    "BX-NONCE", nonce,
-                    "BX-SIGNATURE", signature
-                );
-            } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
+                final String finalTimestamp = timestamp;
+                headers = new HashMap<String, Object>() {{
+                    put( "BX-TIMESTAMP", finalTimestamp );
+                    put( "BX-NONCE", nonce );
+                    put( "BX-SIGNATURE", signature );
+                }};
+            } else if (java.util.Objects.equals(method, "POST"))
             {
-                requestBody = this.json(parameters);
-                String payload = (Helpers.add((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/"), path) + requestBody);
+                body = (String) (this.json(parameters));
+                Object payload = Helpers.add(Helpers.add((((timestamp + nonce) + method) + "/trading-api/"), path), body);
                 Object digest = this.hash(this.encode(payload), sha256(), "hex");
                 String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
-                requestHeaders = Helpers.newMap(
-                    "BX-TIMESTAMP", timestamp,
-                    "BX-NONCE", nonce,
-                    "BX-SIGNATURE", signature,
-                    "Content-Type", "application/json"
-                );
-                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
+                final String finalTimestamp_2 = timestamp;
+                headers = new HashMap<String, Object>() {{
+                    put( "BX-TIMESTAMP", finalTimestamp_2 );
+                    put( "BX-NONCE", nonce );
+                    put( "BX-SIGNATURE", signature );
+                    put( "Content-Type", "application/json" );
+                }};
+                ((Map<String, Object>)headers).put("Content-Type", "application/json");
                 String rateLimitToken = this.safeString(request, "rateLimitToken");
                 if (!java.util.Objects.equals(rateLimitToken, null))
                 {
-                    ((Map<String, Object>)requestHeaders).put("BX-RATE-LIMIT-TOKEN", rateLimitToken);
+                    ((Map<String, Object>)headers).put("BX-RATE-LIMIT-TOKEN", rateLimitToken);
                 }
             }
             if (java.util.Objects.equals(path, "v1/users/hmac/login"))
             {
-                requestHeaders = (((java.util.Objects.equals(requestHeaders, null)))) ? new HashMap<String, Object>() {{}} : requestHeaders;
-                ((Map<String, Object>)requestHeaders).put("BX-PUBLIC-KEY", this.apiKey);
+                headers = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
+                ((Map<String, Object>)headers).put("BX-PUBLIC-KEY", this.apiKey);
             } else
             {
                 Object token = this.token;
@@ -3564,11 +4161,11 @@ public class Bullish extends BullishApi
                 {
                     throw new AuthenticationError((this.id + " requires a token, please call signIn() first")) ;
                 }
-                requestHeaders = (((java.util.Objects.equals(requestHeaders, null)))) ? new HashMap<String, Object>() {{}} : requestHeaders;
-                ((Map<String, Object>)requestHeaders).put("Authorization", ("Bearer " + token));
+                headers = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
+                ((Map<String, Object>)headers).put("Authorization", ("Bearer " + token));
             }
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        if (java.util.Objects.equals(method, "GET"))
         {
             String query = this.urlencode(request);
             if (query.length() > 0)
@@ -3576,12 +4173,20 @@ public class Bullish extends BullishApi
                 url = (url + ("?" + query));
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        final String finalUrl = url;
+        final Object finalMethod = method;
+        final String finalBody = body;
+        final Object finalHeaders = headers;
+        return new HashMap<String, Object>() {{
+            put( "url", finalUrl );
+            put( "method", finalMethod );
+            put( "body", finalBody );
+            put( "headers", finalHeaders );
+        }};
+    }
+    public Object sign(Object path, Object... optionalArgs)
+    {
+        return this.sign(path, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public", optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET", optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}}, optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null, Helpers.getArgString(optionalArgs, 4, null));
     }
 
     /**
@@ -3614,6 +4219,18 @@ public class Bullish extends BullishApi
         });
 
     }
+    /**
+     * @method
+     * @name bullish#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--add-authenticated-request-header
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
+    public CompletableFuture<Object> signIn(Object... optionalArgs)
+    {
+        return this.signIn(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
+    }
 
     public CompletableFuture<String> handleToken(Map<String, Object> parameters)
     {
@@ -3623,15 +4240,19 @@ public class Bullish extends BullishApi
             Long now = this.milliseconds();
             Object token = this.token;
             Long tokenExpires = this.safeInteger(this.options, "tokenExpires");
-            if ((java.util.Objects.equals(token, null)) || (java.util.Objects.equals(tokenExpires, null)) || (Helpers.isGreaterThan(now, tokenExpires)))
+            if ((java.util.Objects.equals(token, null)) || (java.util.Objects.equals(tokenExpires, null)) || ((now != null && (tokenExpires == null || now > tokenExpires))))
             {
-                return (this.signIn(new HashMap<String, Object>() {{}})).join();
+                return (this.signIn()).join();
             } else
             {
                 return this.token;
             }
         }).thenApply(res -> (String) res);
 
+    }
+    public CompletableFuture<String> handleToken(Object... optionalArgs)
+    {
+        return this.handleToken(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

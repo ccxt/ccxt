@@ -8,6 +8,7 @@ import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers
 import { jwt } from '../base/functions/rsa.js';
 import Client from '../base/ws/Client.js';
 import { NotSupported } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -163,7 +164,7 @@ export default class upbit extends upbitRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const orderbook = await this.watchPublicMultiple ([ symbol ], 'orderbook');
+        const orderbook: Ob = await this.watchPublicMultiple ([ symbol ], 'orderbook');
         return orderbook.limit ();
     }
 
@@ -271,7 +272,7 @@ export default class upbit extends upbitRest {
         orderbook['symbol'] = symbol;
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
-        const data = this.safeList (message, 'orderbook_units', []);
+        const data: Dict[] = this.safeList (message, 'orderbook_units', []);
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i);
             const ask_price = this.safeFloat (entry, 'ask_price');
@@ -360,7 +361,7 @@ export default class upbit extends upbitRest {
             };
             this.options['ws'] = wsOptions;
         }
-        const url = this.urls['api']['ws'] + '/private';
+        const url = this.safeString (this.urls['api'], 'ws') + '/private';
         const client = this.client (url);
         return client;
     }
@@ -630,7 +631,7 @@ export default class upbit extends upbitRest {
             if (fee !== undefined) {
                 parsed['fee'] = fee;
             }
-            const fees = this.safeValue (order, 'fees');
+            const fees = this.safeList (order, 'fees');
             if (fees !== undefined) {
                 (parsed as Dict)['fees'] = fees;
             }
@@ -679,7 +680,7 @@ export default class upbit extends upbitRest {
         //     "stream_type": "REALTIME"
         // }
         //
-        const data = this.safeList (message, 'assets', []);
+        const data: Dict[] = this.safeList (message, 'assets', []);
         const timestamp = this.safeInteger (message, 'timestamp');
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);

@@ -437,16 +437,20 @@ public partial class independentreserve : Exchange
         for (int i = 0; i < (baseCurrencyIds?.Count ?? 0); i++)
         {
             object baseId = baseCurrencyIds[i];
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             double? minAmount = this.safeNumber(limits, baseId);
             for (int j = 0; j < (quoteCurrencyIds?.Count ?? 0); j++)
             {
                 object quoteId = quoteCurrencyIds[j];
                 string? quote = this.safeCurrencyCode(quoteId);
+                if (((bs == null)) || ((quote == null)))
+                {
+                    continue;
+                }
                 object id = add(add(baseId, "/"), quoteId);
                 result.Add(new Dictionary<string, object>() {
                     { "id", id },
-                    { "symbol", add(add(bs, "/"), quote) },
+                    { "symbol", ((bs + "/") + quote) },
                     { "base", bs },
                     { "quote", quote },
                     { "settle", null },
@@ -710,7 +714,10 @@ public partial class independentreserve : Exchange
         {
             bs = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = add(add(bs, "/"), quote);
+            if (((bs != null)) && ((quote != null)))
+            {
+                symbol = add(add(bs, "/"), quote);
+            }
         } else if ((market != null))
         {
             symbol = getValue(market, "symbol");
@@ -920,7 +927,7 @@ public partial class independentreserve : Exchange
             await this.loadMarkets();
         }
         Int64? pageIndex = this.safeInteger(parameters, "pageIndex", 1);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = ((Int64?)50);
         }
@@ -1328,17 +1335,22 @@ public partial class independentreserve : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + (path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = url + ("?" + this.urlencode(parameters));
             }
         } else
         {

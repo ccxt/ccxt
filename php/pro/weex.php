@@ -115,7 +115,7 @@ class weex extends \ccxt\async\weex {
         if ($isContract) {
             $type = 'contract';
         }
-        $url = $this->urls['api']['ws'][$type] . '/public';
+        $url = $this->safe_string($this->urls['api']['ws'], $type) . '/public';
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $subscription));
     }
 
@@ -128,7 +128,7 @@ class weex extends \ccxt\async\weex {
         if ($isContract) {
             $type = 'contract';
         }
-        $url = $this->urls['api']['ws'][$type] . '/private';
+        $url = $this->safe_string($this->urls['api']['ws'], $type) . '/private';
         $this->authenticate($url);
         $method = 'SUBSCRIBE';
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
@@ -801,7 +801,7 @@ class weex extends \ccxt\async\weex {
         $firstEntry = $this->safe_dict($data, 0, array());
         $interval = $this->safe_string($firstEntry, 'i');
         $timeframe = $this->find_timeframe($interval);
-        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -1726,7 +1726,7 @@ class weex extends \ccxt\async\weex {
         if ($isContract) {
             $urlType = 'contract';
         }
-        $url = $this->urls['api']['ws'][$urlType] . '/private';
+        $url = $this->safe_string($this->urls['api']['ws'], $urlType) . '/private';
         $this->authenticate($url);
         $client = $this->client($url);
         $this->set_balance_cache($client, $type);
@@ -1883,7 +1883,7 @@ class weex extends \ccxt\async\weex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws']['contract'] . '/private';
+        $url = $this->safe_string($this->urls['api']['ws'], 'contract') . '/private';
         $this->authenticate($url);
         $client = $this->client($url);
         $symbols = $this->market_symbols($symbols, 'swap', true);

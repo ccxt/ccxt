@@ -635,6 +635,9 @@ export default class paradex extends Exchange {
         const baseId = this.safeString (market, 'base_currency');
         const quote = this.safeCurrencyCode (quoteId);
         const base = this.safeCurrencyCode (baseId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString (market, 'settlement_currency');
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote + ':' + settle;
@@ -781,7 +784,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
@@ -862,7 +865,7 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {
-                request['end_at'] = this.sum (since, duration * (limit + 1) * 1000) - 1;
+                request['end_at'] = since + duration * (limit + 1) * 1000 - 1;
             } else {
                 request['end_at'] = until;
             }
@@ -953,7 +956,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         return this.parseTickers (data, symbolsNormalized);
     }
 
@@ -996,7 +999,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -1081,7 +1084,7 @@ export default class paradex extends Exchange {
             'market': target,
         };
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         return this.parseFundingRates (data, symbolsNormalized);
     }
 
@@ -1378,7 +1381,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         const interest = this.safeDict (data, 0, {});
         return this.parseOpenInterest (interest, market);
     }
@@ -1416,7 +1419,8 @@ export default class paradex extends Exchange {
     }
 
     hashMessage (message: any) {
-        return '0x' + this.hash (message, keccak, 'hex');
+        const hashed: string = this.hash (message, keccak, 'hex');
+        return '0x' + hashed;
     }
 
     signHash (hash: string, privateKey: string): string {
@@ -1431,7 +1435,7 @@ export default class paradex extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    async getSystemConfig () {
+    async getSystemConfig (): Promise<Dict> {
         const cachedConfig = this.safeDict (this.options, 'systemConfig');
         if (cachedConfig !== undefined) {
             return cachedConfig;
@@ -1487,7 +1491,7 @@ export default class paradex extends Exchange {
         return domain;
     }
 
-    async retrieveAccount () {
+    async retrieveAccount (): Promise<Dict> {
         const cachedAccount = this.safeDict (this.options, 'paradexAccount');
         if (cachedAccount !== undefined) {
             return cachedAccount;
@@ -1534,7 +1538,7 @@ export default class paradex extends Exchange {
         return response;
     }
 
-    async authenticateRest (params: Dict = {}) {
+    async authenticateRest (params: Dict = {}): Promise<Str> {
         const cachedToken = this.safeString (this.options, 'authToken');
         const now = this.nonce ();
         if (cachedToken !== undefined) {
@@ -1809,7 +1813,7 @@ export default class paradex extends Exchange {
         const orderReq: Dict = {
             'timestamp': now * 1000,
             'market': this.stringToBase16 (request['market']),
-            'side': (request['side'] === 'BUY') ? '1' : '2',
+            'side': (this.safeString (request, 'side') === 'BUY') ? '1' : '2',
             'orderType': this.stringToBase16 (request['type']),
             'size': this.scaleNumber (request['size']),
             'price': (isMarket) ? '0' : this.scaleNumber (request['price']),
@@ -2025,7 +2029,7 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const responseOrders = this.safeList (response, 'orders', []);
+        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (responseOrders);
         const errors = this.safeList (response, 'errors', []) as List;
         for (let i = 0; i < errors.length; i++) {
@@ -2126,7 +2130,7 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const results = this.safeList (response, 'results', []) as List;
+        const results: Dict[] = this.safeList (response, 'results', []) as List;
         const orders: List = [];
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
@@ -2310,7 +2314,7 @@ export default class paradex extends Exchange {
         //     ]
         //   }
         //
-        const orders = this.safeList (response, 'results', []) as List;
+        const orders: Dict[] = this.safeList (response, 'results', []) as List;
         const paginationCursor = this.safeString (response, 'next');
         const ordersLength = orders.length;
         if ((paginationCursor !== undefined) && (ordersLength > 0)) {
@@ -2738,7 +2742,7 @@ export default class paradex extends Exchange {
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (row['kind'] === 'DEPOSIT') {
+            if (this.safeString (row, 'kind') === 'DEPOSIT') {
                 deposits.push (row);
             }
         }
@@ -2803,7 +2807,7 @@ export default class paradex extends Exchange {
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (row['kind'] === 'WITHDRAWAL') {
+            if (this.safeString (row, 'kind') === 'WITHDRAWAL') {
                 deposits.push (row);
             }
         }
@@ -3186,7 +3190,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []);
+        const data: Dict[] = this.safeList (response, 'results', []);
         const greeks = this.safeDict (data, 0, {});
         return this.parseGreeks (greeks, market);
     }
@@ -3367,7 +3371,7 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseIncomes (results, market, since, limit);
     }
 
@@ -3454,7 +3458,7 @@ export default class paradex extends Exchange {
         // every row is one observation of a rate quoted for a whole funding period,
         // not a settled payment: paradex recomputes it each second and accrues it
         // into funding_index, so the series cannot be summed
-        const results = this.safeList (response, 'results', []) as List;
+        const results: Dict[] = this.safeList (response, 'results', []) as List;
         const rates: List = [];
         for (let i = 0; i < results.length; i++) {
             const rate = results[i];
@@ -3509,7 +3513,10 @@ export default class paradex extends Exchange {
                     'public_key': query['public_key'],
                 });
             } else {
-                const token = this.options['authToken'];
+                const token = this.safeString (this.options, 'authToken');
+                if (token === undefined) {
+                    throw new AuthenticationError (this.id + ' sign() requires an authToken, call authenticateRest() first');
+                }
                 privateHeaders['Authorization'] = 'Bearer ' + token;
                 if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (pathValue === 'orders/batch'))) {
                     privateHeaders['Content-Type'] = 'application/json';

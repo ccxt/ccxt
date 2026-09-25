@@ -681,7 +681,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object>() {};
         promises.Add(this.publicGetAssetPairs(parameters));
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
         {
             promises.Add(this.loadTimeDifference());
         }
@@ -742,7 +742,7 @@ public partial class kraken : Exchange
         {
             string? id = ((string)keys[i]);
             bool isSynthetic = false;
-            if (getIndexOf(id, ":BTNL") >= 0)
+            if ((id?.IndexOf(":BTNL", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 isSynthetic = true;
             }
@@ -753,6 +753,10 @@ public partial class kraken : Exchange
             string? quoteId = this.safeCurrencyCode(quoteIdRaw);
             string? bs = baseId;
             string? quote = quoteId;
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             List<object> makerFees = this.safeList(market, "fees_maker", new List<object>() {});
             List<object> firstMakerFee = this.safeList(makerFees, 0, new List<object>() {});
             string? firstMakerFeeRate = this.safeString(firstMakerFee, 1);
@@ -775,10 +779,6 @@ public partial class kraken : Exchange
             double? precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
             bool spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if ((bs == null))
-            {
-                throw new ExchangeError ((this.id + " method() missing base")) ;
-            }
             if (spot && (((bs != null) && (cachedCurrencies?.ContainsKey(bs) == true))))
             {
                 IDictionary<string, object> currency = this.safeDict(cachedCurrencies, bs);
@@ -1648,8 +1648,8 @@ public partial class kraken : Exchange
         if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             timestamp = this.safeTimestamp(trade, 2);
-            side = (isEqual(getValue(trade, 3), "s")) ? "sell" : "buy";
-            type = (isEqual(getValue(trade, 4), "l")) ? "limit" : "market";
+            side = ((this.safeString(trade, 3) == "s")) ? "sell" : "buy";
+            type = ((this.safeString(trade, 4) == "l")) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
             int tradeLength = getArrayLength(trade);
@@ -1939,7 +1939,7 @@ public partial class kraken : Exchange
         };
         List<object> orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
         string? flags = this.safeString((orderRequest != null && 0 < orderRequest.Count ? orderRequest[0] : null), "oflags", "");
-        bool isUsingCost = getIndexOf(flags, "viqc") > -1;
+        bool isUsingCost = (flags?.IndexOf("viqc", StringComparison.Ordinal) ?? -1) > -1;
         Dictionary<string, object> response = await this.privatePostAddOrder(this.extend((orderRequest != null && 0 < orderRequest.Count ? orderRequest[0] : null), (orderRequest != null && 1 < orderRequest.Count ? orderRequest[1] : null)));
         //
         //     {
@@ -2059,7 +2059,7 @@ public partial class kraken : Exchange
         {
             return id;
         }
-        object market = this.safeValue((this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null), id);
+        IDictionary<string, object> market = this.safeDict((this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null), id);
         if ((market != null))
         {
             return market;
@@ -2303,7 +2303,7 @@ public partial class kraken : Exchange
             price = this.safeString2(order, "limitprice", "price", price);
         }
         string? flags = this.safeString(order, "oflags", "");
-        bool? isPostOnly = getIndexOf(flags, "post") > -1;
+        bool? isPostOnly = (flags?.IndexOf("post", StringComparison.Ordinal) ?? -1) > -1;
         double? average = this.safeNumber(order, "price");
         if ((market != null))
         {
@@ -2315,10 +2315,10 @@ public partial class kraken : Exchange
                     { "cost", feeCost },
                     { "rate", null },
                 };
-                if (getIndexOf(flags, "fciq") >= 0)
+                if ((flags?.IndexOf("fciq", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     fee["currency"] = getValue(market, "quote");
-                } else if (getIndexOf(flags, "fcib") >= 0)
+                } else if ((flags?.IndexOf("fcib", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     fee["currency"] = getValue(market, "base");
                 }
@@ -2529,7 +2529,7 @@ public partial class kraken : Exchange
         }
         if ((reduceOnly == true))
         {
-            if (isEqual(method, "createOrderWs"))
+            if ((method == "createOrderWs"))
             {
                 ((IDictionary<string,object>)request)["reduce_only"] = true; // ws request can't have stringified bool
             } else
@@ -4084,7 +4084,7 @@ public partial class kraken : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4143,7 +4143,12 @@ public partial class kraken : Exchange
         {
             url = ("/" + (path));
         }
-        url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), url);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        url = add(apiUrl, url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -4154,14 +4159,14 @@ public partial class kraken : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (isEqual(code, 520))
         {
-            throw new ExchangeNotAvailable ((string)((((this.id + " ") + code.ToString()) + " ") + (reason))) ;
+            throw new ExchangeNotAvailable (((((this.id + " ") + code.ToString()) + " ") + reason)) ;
         }
         if ((response == null))
         {

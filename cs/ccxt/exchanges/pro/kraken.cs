@@ -701,7 +701,7 @@ public partial class kraken : ccxt.kraken
         Int64? interval = this.safeInteger(first, "interval");
         string timeframe = this.findTimeframe(interval);
         string? messageHash = this.getMessageHash("ohlcv", null, symbol);
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if ((stored == null))
         {
@@ -1523,7 +1523,7 @@ public partial class kraken : ccxt.kraken
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
                 int length = getArrayLength(stored);
-                if (isEqual(length, limit) && ((previousOrder == null)))
+                if ((length == limit) && ((previousOrder == null)))
                 {
                     object first = getValue(stored, 0);
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});

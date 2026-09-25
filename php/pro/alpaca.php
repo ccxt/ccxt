@@ -665,7 +665,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'key' => $this->apiKey,
                 'secret' => $this->secret,
             );
-            if ($url === $this->urls['api']['ws']['trading']) {
+            if ($url === $this->safe_string($this->urls['api']['ws'], 'trading')) {
                 // this auth request is being deprecated in test environment
                 $request = array(
                     'action' => 'authenticate',
@@ -689,8 +689,12 @@ class alpaca extends \ccxt\async\alpaca {
         //    }
         //
         $code = $this->safe_string($message, 'code');
-        $msg = $this->safe_value($message, 'msg', array());
-        throw new ExchangeError($this->id . ' $code => ' . $code . ' $message => ' . $msg);
+        $msg = $this->safe_string($message, 'msg');
+        $errorMessage = $this->id . ' $code => ' . $code;
+        if ($msg !== null) {
+            $errorMessage = $errorMessage . ' $message => ' . $msg;
+        }
+        throw new ExchangeError($errorMessage);
     }
 
     public function handle_connected(Client $client, array $message): array {

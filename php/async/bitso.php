@@ -512,6 +512,9 @@ class bitso extends Exchange {
             $quote = strtoupper($quoteId);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $fees = $this->safe_dict($market, 'fees', array());
             $flatRate = $this->safe_dict($fees, 'flat_rate', array());
             $takerString = $this->safe_string($flatRate, 'taker');
@@ -2063,7 +2066,11 @@ class bitso extends Exchange {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $endpoint;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)

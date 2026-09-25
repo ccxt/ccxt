@@ -2055,10 +2055,7 @@ public partial class coinbaseinternational : Exchange
         string clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
         string? clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
         clientOrderId = ((clientOrderId == null) ? null : clientOrderId.Substring(0, Math.Min(17, clientOrderId.Length)));
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
             { "side", side.ToUpper() },
@@ -2223,7 +2220,7 @@ public partial class coinbaseinternational : Exchange
 
     public virtual string? parseOrderType(string? type)
     {
-        if (isEqual(type, "UNKNOWN_ORDER_TYPE"))
+        if ((type == "UNKNOWN_ORDER_TYPE"))
         {
             return null;
         }
@@ -2493,7 +2490,7 @@ public partial class coinbaseinternational : Exchange
         }
         if ((limit != null))
         {
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 throw new BadRequest ((this.id + " fetchOpenOrders() maximum limit is 100")) ;
             }
@@ -2587,7 +2584,7 @@ public partial class coinbaseinternational : Exchange
         };
         if ((limit != null))
         {
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 throw new BadRequest ((this.id + " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
             }
@@ -2715,30 +2712,35 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object version = getValue(api, 0);
-        bool signed = isEqual(getValue(api, 1), "private");
-        string fullPath = ((("/" + (version)) + "/") + this.implodeParams(path, parameters));
+        string? version = this.safeString(api, 0);
+        bool signed = (this.safeString(api, 1) == "private");
+        string fullPath = ((("/" + version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string savedPath = ("/api" + fullPath);
-        if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+        if ((method == "GET") || (method == "DELETE"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 fullPath = fullPath + ("?" + this.urlencodeWithArrayRepeat(query));
             }
         }
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), fullPath);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + fullPath);
         if (signed)
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             object payload = "";
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -2746,7 +2748,7 @@ public partial class coinbaseinternational : Exchange
                     payload = body;
                 }
             }
-            object auth = (((nonce + (method)) + savedPath) + (payload));
+            string? auth = ((string)(((nonce + method) + savedPath) + (payload)));
             string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-TIMESTAMP", nonce },

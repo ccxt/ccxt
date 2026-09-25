@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import mexcRest from '../mexc.js';
-import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, List, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, NullableDict, Tickers, Strings, FundingRate, Fee, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -326,7 +326,7 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        const data = this.safeList2 (message, 'data', 'd', []);
+        const data: Dict[] = this.safeList2 (message, 'data', 'd', []);
         const channel = this.safeString (message, 'c', '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
@@ -359,7 +359,7 @@ export default class mexc extends mexcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         // protobuf ticker
         // "bidprice": "93387.28",  // Best bid price
         // "bidquantity": "3.73485", // Best bid quantity
@@ -525,7 +525,11 @@ export default class mexc extends mexcRest {
     async watchSpotPrivate (channel: string, messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (channel);
-        const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'spot');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchSpotPrivate() has no spot websocket url');
+        }
+        const url = wsUrl + '?listenKey=' + listenKey;
         const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
@@ -915,7 +919,7 @@ export default class mexc extends mexcRest {
         let shouldReturn = false;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
+            const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
@@ -2022,7 +2026,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    async authenticate (subscriptionHash: Str, params: Dict = {}) {
+    async authenticate (subscriptionHash: Str, params: Dict = {}): Promise<Str> {
         // we only need one listenKey since ccxt shares connections
         let listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey !== undefined) {
@@ -2075,7 +2079,11 @@ export default class mexc extends mexcRest {
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
         } catch (error) {
-            const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
+            const wsUrl = this.safeString (this.urls['api']['ws'], 'spot');
+            if (wsUrl === undefined) {
+                throw new ExchangeError (this.id + ' keepAliveListenKey() has no spot websocket url');
+            }
+            const url = wsUrl + '?listenKey=' + listenKey;
             const client = this.client (url);
             this.options['listenKey'] = undefined;
             client.reject (error);

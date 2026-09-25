@@ -245,7 +245,7 @@ class coinbase(ccxt.async_support.coinbase):
         self.options['unSubscription'] = None
         return res
 
-    def create_ws_auth(self, name: str, productIds: list[Str]):
+    def create_ws_auth(self, name: str, productIds: list[Str]) -> dict:
         subscribe = {}
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
@@ -452,7 +452,7 @@ class coinbase(ccxt.async_support.coinbase):
                 client.resolve(result, messageHash)
                 self.try_resolve_usdc(client, messageHash, result)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "type": "ticker",

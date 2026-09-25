@@ -5,6 +5,7 @@ import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/er
 import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -101,7 +102,7 @@ export default class derive extends deriveRest {
             'limit': limitResolved,
             'params': params,
         };
-        const orderbook = await this.watchPublic (topic, request, subscription);
+        const orderbook: Ob = await this.watchPublic (topic, request, subscription);
         return orderbook.limit ();
     }
 
@@ -605,7 +606,7 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
-        const rawOrders = this.safeList (params, 'data', []);
+        const rawOrders: Dict[] = this.safeList (params, 'data', []);
         for (let i = 0; i < rawOrders.length; i++) {
             const data = rawOrders[i];
             const parsed = this.parseOrder (data);
@@ -624,7 +625,7 @@ export default class derive extends deriveRest {
                     if (fee !== undefined) {
                         parsed['fee'] = fee;
                     }
-                    const fees = this.safeValue (order, 'fees');
+                    const fees = this.safeList (order, 'fees');
                     if (fees !== undefined) {
                         (parsed as Dict)['fees'] = fees;
                     }
@@ -776,9 +777,9 @@ export default class derive extends deriveRest {
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = (id === undefined) ? {} : this.safeDict (subscriptionsById, id, {});
             if ('method' in subscription) {
-                if (subscription['method'] === 'public/login') {
+                if (this.safeString (subscription, 'method') === 'public/login') {
                     this.handleAuth (client, message);
-                } else if (subscription['method'] === 'unsubscribe') {
+                } else if (this.safeString (subscription, 'method') === 'unsubscribe') {
                     this.handleUnSubscribe (client, message);
                 }
                 // could handleSubscribe

@@ -227,7 +227,7 @@ class whitebit extends \ccxt\async\whitebit {
         //  }
         //
         $params = $this->safe_list($message, 'params', array());
-        $isSnapshot = $this->safe_value($params, 0);
+        $isSnapshot = $this->safe_bool($params, 0);
         $marketId = $this->safe_string($params, 2);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -759,7 +759,7 @@ class whitebit extends \ccxt\async\whitebit {
         ), $market);
     }
 
-    public function parse_ws_order_type(mixed $status) {
+    public function parse_ws_order_type(mixed $status): string {
         $statuses = array(
             '1' => 'limit',
             '2' => 'market',
@@ -820,7 +820,7 @@ class whitebit extends \ccxt\async\whitebit {
         return Async\await($this->watch_private($messageHash, $method, array(), $params));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, mixed $subscriptionHash) {
+    public function set_balance_cache(Client $client, ?string $type, mixed $subscriptionHash) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -1030,7 +1030,7 @@ class whitebit extends \ccxt\async\whitebit {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 

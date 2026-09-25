@@ -715,7 +715,7 @@ export default class weex extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -892,7 +892,7 @@ export default class weex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
         const networks: Dict = {};
-        const chains = this.safeList (rawCurrency, 'networkList', []);
+        const chains: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'network');
@@ -964,7 +964,7 @@ export default class weex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const promises = [
@@ -1041,6 +1041,9 @@ export default class weex extends Exchange {
         const settleId = this.safeString (market, 'marginAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         let active = true;
         let symbol = base + '/' + quote;
@@ -1237,7 +1240,7 @@ export default class weex extends Exchange {
         if (!Array.isArray (response)) {
             response = [ response ];
         }
-        const results = [];
+        const results: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const rawTicker = response[i];
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -2082,7 +2085,7 @@ export default class weex extends Exchange {
             'info': response,
         };
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const balances = this.safeList (response, 'balances', response);
+        const balances: Dict[] = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
             let currencyId = this.safeString (entry, 'asset');
@@ -2654,7 +2657,7 @@ export default class weex extends Exchange {
         } else {
             response = await this.contractPrivateDeleteCapiV3BatchOrders (this.extend (request, paramsOmitted));
         }
-        const ordersResponse = this.safeList (response, 'orderList', []);
+        const ordersResponse: Dict[] = this.safeList (response, 'orderList', []);
         const extendedParams: Dict = {
             'status': 'canceled',
         };
@@ -3639,7 +3642,7 @@ export default class weex extends Exchange {
         //         ]
         //     }
         //
-        const items = this.safeList (response, 'items', []);
+        const items: Dict[] = this.safeList (response, 'items', []);
         return this.parseIncomes (items, market, since, limit);
     }
 
@@ -3892,7 +3895,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4406,7 +4409,8 @@ export default class weex extends Exchange {
                 'User-Agent': 'ccxt',
             };
         }
-        const url = this.urls['api'][api] + '/' + endpoint;
+        const baseUrl: string = this.urls['api'][api];
+        const url = baseUrl + '/' + endpoint;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

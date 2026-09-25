@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
@@ -446,11 +447,14 @@ class bitrue extends \ccxt\async\bitrue {
         $symbols = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $candidate = $markets[$symbols[$i]];
-            if ($candidate['swap'] !== true) {
+            if ($this->safe_bool($candidate, 'swap') !== true) {
                 continue;
             }
-            $baseId = $this->safe_string_lower($candidate, 'baseId', '');
-            $quoteId = $this->safe_string_lower($candidate, 'quoteId', '');
+            $baseId = $this->safe_string_lower($candidate, 'baseId');
+            $quoteId = $this->safe_string_lower($candidate, 'quoteId');
+            if ($baseId === null || $quoteId === null) {
+                throw new ExchangeError($this->id . ' findSwapMarketByWsBaseQuote() market ' . $symbols[$i] . ' has no $baseId or quoteId');
+            }
             if ($baseId . $quoteId === $wsBaseQuote) {
                 return $candidate;
             }
@@ -470,7 +474,7 @@ class bitrue extends \ccxt\async\bitrue {
         return $result;
     }
 
-    public function convert_from_raw_quantity(string $symbol, mixed $rawQuantity) {
+    public function convert_from_raw_quantity(string $symbol, ?float $rawQuantity) {
         if ($rawQuantity === null) {
             return null;
         }
@@ -889,7 +893,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 
@@ -934,7 +938,11 @@ class bitrue extends \ccxt\async\bitrue {
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
                 $this->options['listenKey'] = $key;
-                $this->options['listenKeyUrl'] = $this->urls['api']['ws']['private'] . '/stream?$listenKey=' . $key;
+                $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+                if ($wsUrl === null) {
+                    throw new ExchangeError($this->id . ' authenticate() has no private websocket url');
+                }
+                $this->options['listenKeyUrl'] = $wsUrl . '/stream?$listenKey=' . $key;
                 $client->resolve($key, $messageHash);
             } catch (Exception $e) {
                 // reject the flight - all waiters throw and the next caller

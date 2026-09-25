@@ -1729,8 +1729,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
         clientOrderId = clientOrderIdprefix + '-' + self.uuid()
         clientOrderId = clientOrderId[0:17]
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'client_order_id': clientOrderId,
             'side': side.upper(),
@@ -2252,15 +2251,18 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        version = api[0]
-        signed = api[1] == 'private'
+        version = self.safe_string(api, 0)
+        signed = self.safe_string(api, 1) == 'private'
         fullPath = '/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         savedPath = '/api' + fullPath
         if method == 'GET' or method == 'DELETE':
             if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
-        url = self.urls['api']['rest'] + fullPath
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + fullPath
         if signed:
             self.check_required_credentials()
             nonce = str(self.nonce())

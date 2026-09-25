@@ -201,7 +201,7 @@ public partial class testMainClass : BaseTest
                         assert(false, (("datetime is not parseable: " + (dt)) + (logText)));
                     }
                     double diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
-                    if (isGreaterThanOrEqual(diff, 500))
+                    if ((diff >= 500))
                     {
                         string? dtParsedString = exchange.iso8601(dtParsed);
                         string? dtEntryString = exchange.iso8601(tsMs);
@@ -528,7 +528,7 @@ public partial class testMainClass : BaseTest
             object fetchedOrder = null;
             object originalId = orderId;
             // set 'since' to 5 minute ago for optimal results
-            object sinceTime = subtract(exchange.milliseconds(), (multiply(1000, 60) * 5));
+            object sinceTime = subtract(exchange.milliseconds(), ((1000L * 60L) * 5));
             // iterate
             List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
             for (int i = 0; i < (methods_singular?.Count ?? 0); i++)

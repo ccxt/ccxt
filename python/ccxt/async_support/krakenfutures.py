@@ -487,6 +487,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             quoteId = 'usd'  # always USD
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             # swap == perpetual
             settle = None
             settleId = None
@@ -3418,7 +3420,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             return account
 
-    async def transfer_out(self, code: str, amount: float, params: dict = {}):
+    async def transfer_out(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         """
         transfer from futures wallet to spot wallet
         :param str code: Unified currency code
@@ -3428,7 +3430,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         return await self.transfer(code, amount, 'future', 'spot', params)
 
-    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
 
         https://docs.kraken.com/api/docs/futures-api/trading/transfer
@@ -3613,7 +3615,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             else:
                 postData = self.urlencode(params)
             query += '?' + postData
-        url = self.urls['api'][api] + query
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + query
         if api == 'private' or access == 'private':
             self.check_required_credentials()
             auth = postData + '/api/'

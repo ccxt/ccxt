@@ -927,7 +927,7 @@ class BaseExchange(SyncExchange):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    async def fetch_web_endpoint(self, method: object, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
+    async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
         errorMessage = ''
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
@@ -935,7 +935,7 @@ class BaseExchange(SyncExchange):
             # if it was not explicitly disabled, then don't fetch
             if not self.safe_bool(options, 'webApiEnable', True):
                 return None
-            maxRetries = self.safe_value(options, 'webApiRetries', 10)
+            maxRetries = self.safe_integer(options, 'webApiRetries', 10)
             response = None
             retry = 0
             shouldBreak = False
@@ -1530,7 +1530,7 @@ class BaseExchange(SyncExchange):
             if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
-            currentSince = self.sum(currentSince, step) - 1
+            currentSince = currentSince + step - 1
         results = await asyncio.gather(*tasks)
         result = []
         for i in range(0, len(results)):
@@ -1722,7 +1722,7 @@ class BaseExchange(SyncExchange):
 
 class Exchange(BaseExchange):
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}):
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}):
         raise NotSupported(self.id + ' closePosition() is not supported yet')
 
     async def close_all_positions(self, params: dict = {}):

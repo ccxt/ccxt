@@ -708,8 +708,11 @@ class phemex extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $settleId = $this->safe_string($market, 'settleCurrency');
         $base = $this->safe_currency_code($baseId);
-        $base = str_replace(' ', '', $base); // replace space for junction codes, eg. `1000 SHIB`
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
+        $base = str_replace(' ', '', $base); // replace space for junction codes, eg. `1000 SHIB`
         $settle = $this->safe_currency_code($settleId);
         $inverse = false;
         if ($settleId !== $quoteId) {
@@ -840,6 +843,9 @@ class phemex extends Exchange {
         $baseId = $this->safe_string($market, 'baseCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $status = $this->safe_string($market, 'status');
         $precisionAmount = $this->parse_safe_number($this->safe_string($market, 'baseTickSize'));
         $precisionPrice = $this->parse_safe_number($this->safe_string($market, 'quoteTickSize'));
@@ -1125,7 +1131,9 @@ class phemex extends Exchange {
                 $market = $this->extend($market, array( 'valueScale' => $valueScale ));
                 $market = $this->parse_spot_market($market);
             }
-            $result[] = $market;
+            if ($market !== null) {
+                $result[] = $market;
+            }
         }
         return $result;
     }
@@ -1296,7 +1304,7 @@ class phemex extends Exchange {
         return $orderbook;
     }
 
-    public function to_en(mixed $n, mixed $scale) {
+    public function to_en(mixed $n, ?int $scale) {
         if (($n === null) || ($scale === null)) {
             return null;
         }
@@ -2752,7 +2760,7 @@ class phemex extends Exchange {
             if ($qtyType === 'ByQuote') {
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
-                if ($this->options['createOrderByQuoteRequiresPrice'] === true) {
+                if ($this->safe_bool($this->options, 'createOrderByQuoteRequiresPrice') === true) {
                     if ($price !== null) {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);

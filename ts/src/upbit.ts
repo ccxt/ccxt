@@ -535,6 +535,9 @@ export default class upbit extends Exchange {
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -821,7 +824,7 @@ export default class upbit extends Exchange {
                     quoteIds.push (quoteId);
                 }
             }
-            const sortedQuoteIds = this.sort (quoteIds); // market iteration order differs per language
+            const sortedQuoteIds: string[] = this.sort (quoteIds); // market iteration order differs per language
             let quoteCurrencies = '';
             for (let i = 0; i < sortedQuoteIds.length; i++) {
                 if (quoteCurrencies !== '') {
@@ -875,12 +878,12 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbolsNormalized);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: number) {
+    idsQueryStrings (ids: Strings, maxQueryLength: number): string[] {
         if (ids === undefined) {
             return [];
         }
         let idsString = '';
-        const queries: List = [];
+        const queries: string[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (idsString !== '') {
@@ -1342,7 +1345,7 @@ export default class upbit extends Exchange {
             request['identifier'] = clientOrderId;
         }
         if (postOnly) {
-            if (request['ord_type'] !== 'limit') {
+            if (this.safeString (request, 'ord_type') !== 'limit') {
                 throw new InvalidOrder (this.id + ' postOnly orders are only supported for limit orders');
             }
             request['time_in_force'] = 'post_only';
@@ -1352,7 +1355,7 @@ export default class upbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (request['ord_type'] === 'best' && timeInForce === undefined) {
+        if (this.safeString (request, 'ord_type') === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a timeInForce parameter for best type orders');
         }
         let response: Dict;
@@ -1511,7 +1514,7 @@ export default class upbit extends Exchange {
             request['new_smp_type'] = selfTradePrevention;
         }
         if (postOnly) {
-            if (request['new_ord_type'] !== 'limit') {
+            if (this.safeString (request, 'new_ord_type') !== 'limit') {
                 throw new InvalidOrder (this.id + ' postOnly orders are only supported for limit orders');
             }
             request['new_time_in_force'] = 'post_only';
@@ -1521,7 +1524,7 @@ export default class upbit extends Exchange {
                 request['new_time_in_force'] = timeInForce;
             }
         }
-        if (request['new_ord_type'] === 'best' && timeInForce === undefined) {
+        if (this.safeString (request, 'new_ord_type') === 'best' && timeInForce === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a timeInForce parameter for best type orders');
         }
         const paramsRequest = this.omit (paramsOrdType, [ 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type' ]);

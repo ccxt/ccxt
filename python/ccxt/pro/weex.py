@@ -106,14 +106,14 @@ class weex(ccxt.async_support.weex):
         type = 'spot'
         if isContract:
             type = 'contract'
-        url = self.urls['api']['ws'][type] + '/public'
+        url = self.safe_string(self.urls['api']['ws'], type) + '/public'
         return await self.watch_multiple(url, messageHashes, self.deep_extend(message, params), messageHashes, subscription)
 
     async def subscribe_private(self, messageHash: str, subscribeHash: str, channel: Str, isContract: bool = False, params: dict = {}, subscription: dict = {}):
         type = 'spot'
         if isContract:
             type = 'contract'
-        url = self.urls['api']['ws'][type] + '/private'
+        url = self.safe_string(self.urls['api']['ws'], type) + '/private'
         self.authenticate(url)
         method = 'SUBSCRIBE'
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
@@ -700,7 +700,7 @@ class weex(ccxt.async_support.weex):
         firstEntry = self.safe_dict(data, 0, {})
         interval = self.safe_string(firstEntry, 'i')
         timeframe = self.find_timeframe(interval)
-        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
@@ -1505,7 +1505,7 @@ class weex(ccxt.async_support.weex):
         urlType = 'spot'
         if isContract:
             urlType = 'contract'
-        url = self.urls['api']['ws'][urlType] + '/private'
+        url = self.safe_string(self.urls['api']['ws'], urlType) + '/private'
         self.authenticate(url)
         client = self.client(url)
         self.set_balance_cache(client, type)
@@ -1640,7 +1640,7 @@ class weex(ccxt.async_support.weex):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']['contract'] + '/private'
+        url = self.safe_string(self.urls['api']['ws'], 'contract') + '/private'
         self.authenticate(url)
         client = self.client(url)
         symbols = self.market_symbols(symbols, 'swap', True)

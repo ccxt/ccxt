@@ -631,7 +631,7 @@ export default class coinsph extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.safeBool (rawCurrency, 'isLegalMoney');
-        const networkList = this.safeList (rawCurrency, 'networkList', []);
+        const networkList: Dict[] = this.safeList (rawCurrency, 'networkList', []);
         const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkItem = networkList[j];
@@ -809,7 +809,7 @@ export default class coinsph extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeList (response, 'symbols', []);
+        const markets: Dict[] = this.safeList (response, 'symbols', []);
         const result: Dict[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -818,6 +818,9 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const limits = this.indexBy (this.safeList (market, 'filters', []), 'filterType');
             const amountLimits = this.safeDict (limits, 'LOT_SIZE', {});
             const priceLimits = this.safeDict (limits, 'PRICE_FILTER', {});
@@ -1370,7 +1373,7 @@ export default class coinsph extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeList (response, 'balances', []);
+        const balances: Dict[] = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1524,7 +1527,7 @@ export default class coinsph extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
@@ -1608,7 +1611,7 @@ export default class coinsph extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
@@ -2280,7 +2283,11 @@ export default class coinsph extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url: string = apiUrl;
         const query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
         url = url + '/' + endpoint;

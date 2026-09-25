@@ -416,7 +416,7 @@ public partial class bittrade : ccxt.bittrade
         {
             string? symbol = this.safeString(subscription, "symbol");
             Int64? limit = this.safeInteger(subscription, "limit");
-            object parameters = this.safeValue(subscription, "params");
+            IDictionary<string, object> parameters = this.safeDict(subscription, "params");
             string? api = this.safeString(this.options, "api", "api");
             Dictionary<string, object> hostname = new Dictionary<string, object>() {
                 { "hostname", this.hostname },

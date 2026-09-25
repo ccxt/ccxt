@@ -520,6 +520,8 @@ class dydx(Exchange, ImplicitAPI):
         baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving as is
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settleId = 'USDC'
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
@@ -1192,7 +1194,7 @@ class dydx(Exchange, ImplicitAPI):
 
     def sign_onboarding_action(self) -> object:
         message = {'action': 'dYdX Chain Onboarding'}
-        chainId = self.options['chainId']
+        chainId = self.safe_integer(self.options, 'chainId')
         domain = {
             'chainId': chainId,
             'name': 'dYdX Chain',
@@ -1227,7 +1229,7 @@ class dydx(Exchange, ImplicitAPI):
         self.options['dydxCredentials'] = credentials
         return credentials
 
-    def fetch_dydx_account(self):
+    def fetch_dydx_account(self) -> dict:
         # required in js
         self.load_dydx_protos()
         dydxAccount = self.safe_dict(self.options, 'dydxAccount')
@@ -1456,7 +1458,7 @@ class dydx(Exchange, ImplicitAPI):
         orderRequestRes = self.create_order_request(symbol, type, side, amount, price, newParams)
         orderId = orderRequestRes[0]
         orderRequest = orderRequestRes[1]
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], orderRequest, '', chainName, account, None)
         request = {
             'tx': signedTx,
@@ -1553,7 +1555,7 @@ class dydx(Exchange, ImplicitAPI):
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         }
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
@@ -1619,7 +1621,7 @@ class dydx(Exchange, ImplicitAPI):
             'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
             'value': cancelPayload,
         }
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
@@ -1763,7 +1765,7 @@ class dydx(Exchange, ImplicitAPI):
         response = self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
         return self.parse_ledger(response, currency, since, limit)
 
-    def estimate_tx_fee(self, message: object, memo: Str, account: object) -> object:
+    def estimate_tx_fee(self, message: object, memo: Str, account: object) -> dict:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
         request = {
             'txBytes': txBytes,
@@ -1875,7 +1877,7 @@ class dydx(Exchange, ImplicitAPI):
                 'value': payload,
             }
         txFee = self.estimate_tx_fee(signingPayload, '', account)
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, '', chainName, account, None, txFee)
         request = {
             'tx': signedTx,
@@ -2053,7 +2055,7 @@ class dydx(Exchange, ImplicitAPI):
             'value': payload,
         }
         txFee = self.estimate_tx_fee(signingPayload, tag, account)
-        chainName = self.options['chainName']
+        chainName = self.safe_string(self.options, 'chainName')
         signedTx = self.sign_dydx_tx(credentials['privateKey'], signingPayload, tag, chainName, account, None, txFee)
         request = {
             'tx': signedTx,
@@ -2351,7 +2353,10 @@ class dydx(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        timeDifference = self.safe_integer(self.options, 'timeDifference')
+        if timeDifference is None:
+            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
+        return self.milliseconds() - timeDifference
 
     def get_wallet_address(self):
         if self.walletAddress is not None and self.walletAddress != '':
@@ -2366,7 +2371,10 @@ class dydx(Exchange, ImplicitAPI):
 
     def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         pathWithParams = self.implode_params(path, params)
-        url = self.urls['api'][section]
+        apiUrl = self.safe_string(self.urls['api'], section)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         url += '/' + pathWithParams

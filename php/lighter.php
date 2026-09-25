@@ -388,7 +388,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function load_account(mixed $chainId, mixed $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
+    public function load_account(mixed $chainId, ?string $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
         $this->init_auth_object($accountIndex, $apiKeyIndex);
         $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
         $signer = $this->safe_value($cachedAuths, 'signer');
@@ -613,7 +613,7 @@ class lighter extends Exchange {
         return $r;
     }
 
-    public function hash_message(string $message) {
+    public function hash_message(string $message): string {
         $binaryMessage = $this->encode($message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
@@ -622,7 +622,7 @@ class lighter extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -631,7 +631,7 @@ class lighter extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, mixed $privateKey) {
+    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, mixed $privateKey): string {
         $hashMessage = $this->hash_message($message);
         $signature = $this->sign_hash($hashMessage, $privateKey);
         $decTxInfo = $this->parse_json($txInfo);
@@ -639,7 +639,7 @@ class lighter extends Exchange {
         return $this->json($decTxInfo);
     }
 
-    public function handle_builder_fee_approval(float $accountIndex, float $apiKeyIndex) {
+    public function handle_builder_fee_approval(float $accountIndex, float $apiKeyIndex): bool {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
         if ($buildFee !== true) {
             return false;
@@ -1209,6 +1209,9 @@ class lighter extends Exchange {
             $settleId = ($type === 'swap') ? 'USDC' : null;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote;
             if ($settle !== null) {
@@ -2422,7 +2425,7 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'limit' => 'limit',
             'market' => 'market',
@@ -2437,7 +2440,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order_type_integer(mixed $typeInteger) {
+    public function parse_order_type_integer(?int $typeInteger): ?string {
         if ($typeInteger === null) {
             return null;
         }
@@ -2455,7 +2458,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, (string) $typeInteger);
     }
 
-    public function parse_order_time_in_force(mixed $tif) {
+    public function parse_order_time_in_force(?string $tif): ?string {
         $timeInForces = array(
             'immediate-or-cancel' => 'IOC',
             'good-till-time' => 'GTC',

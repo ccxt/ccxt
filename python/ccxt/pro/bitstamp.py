@@ -436,7 +436,10 @@ class bitstamp(ccxt.async_support.bitstamp):
         market = self.market(symbol)
         symbol = market['symbol']
         await self.authenticate()
-        channel = 'private-my_orders_' + market['id'] + '-' + self.options['userId']
+        userId = self.safe_string(self.options, 'userId')
+        if userId is None:
+            raise AuthenticationError(self.id + ' unWatchOrders() requires a userId from authenticate()')
+        channel = 'private-my_orders_' + market['id'] + '-' + userId
         return await self.un_watch_channel(channel, channel, 'orders', [symbol], params)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -487,7 +490,10 @@ class bitstamp(ccxt.async_support.bitstamp):
         market = self.market(symbol)
         symbol = market['symbol']
         await self.authenticate()
-        channel = 'private-my_trades_' + market['id'] + '-' + self.options['userId']
+        userId = self.safe_string(self.options, 'userId')
+        if userId is None:
+            raise AuthenticationError(self.id + ' unWatchMyTrades() requires a userId from authenticate()')
+        channel = 'private-my_trades_' + market['id'] + '-' + userId
         return await self.un_watch_channel(channel, channel, 'myTrades', [symbol], params)
 
     def handle_my_trades(self, client: Client, message: dict):
@@ -526,7 +532,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         stored.append(trade)
         client.resolve(stored, channel)
 
-    def parse_ws_my_trade(self, trade: object, market: Market = None) -> Trade:
+    def parse_ws_my_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "id": 635698396,
@@ -955,7 +961,10 @@ class bitstamp(ccxt.async_support.bitstamp):
     async def subscribe_private(self, subscription: dict, messageHash: str, params: dict = {}):
         url = self.urls['api']['ws']
         await self.authenticate()
-        messageHash += '-' + self.options['userId']
+        userId = self.safe_string(self.options, 'userId')
+        if userId is None:
+            raise AuthenticationError(self.id + ' subscribePrivate() requires a userId from authenticate()')
+        messageHash += '-' + userId
         request = {
             'event': 'bts:subscribe',
             'data': {

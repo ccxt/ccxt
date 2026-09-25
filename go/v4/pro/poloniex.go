@@ -221,12 +221,12 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} data from the websocket stream
  */
-func (this *Poloniex) TradeRequestAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) TradeRequestAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.tradeRequestBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) tradeRequestBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Poloniex) tradeRequestBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -283,7 +283,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	}
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var uppercaseType string = ccxt.ToUpper(typeVar)
 	if ccxt.IsEqual(side, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
@@ -893,17 +893,17 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var channel *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(symbol))
+	var market map[string]any = this.SafeMarket(symbol)
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
-	var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(channel, "::"), symbol))
 	var parsed any = this.ParseWsOHLCV(data, market)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = func() any {
 		if timeframe == nil {
 			return nil
 		}
-		return this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+		return this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	}()
 	if symbol != nil {
 		if ccxt.IsEqual(stored, nil) {
@@ -944,7 +944,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 			var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(item))
 			var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 			var typeVar string = "trades"
-			var messageHash any = ccxt.Add(typeVar+"::", symbol)
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(typeVar+"::", symbol))
 			var tradesArray any = func() any {
 				if symbol == nil {
 					return nil
@@ -1010,7 +1010,7 @@ func (this *Poloniex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = ccxt.MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "createTime")
 	var takerMaker *string = this.SafeStringLower2(trade, "matchRole", "taker")
 	return this.SafeTrade(map[string]any{
@@ -1167,8 +1167,8 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes89120 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes89120, trade)
+				retRes89220 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes89220, trade)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"
@@ -1222,7 +1222,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 			}
 			return nil
 		}())
-		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
+		var market map[string]any = this.Market(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash string = "orders::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -1420,7 +1420,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var item map[string]any = ccxt.SafeMapTyped(data, i)
 		var marketId *string = this.SafeString(item, "symbol")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var name string = "book_lv2"
 		var messageHash string = name + "::" + *symbol
@@ -1535,7 +1535,7 @@ func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 	var trades any = this.MyTrades
 	trades.(ccxt.Appender).Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", symbol))
 	client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 }
 func (this *Poloniex) HandlePong(client any) {
@@ -1657,7 +1657,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 				// try block:
 				var error *string = this.SafeString(first, "message")
 				var code *string = this.SafeString(first, "code")
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", this.Json(message)))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 				panic(ccxt.ExchangeError(feedback))

@@ -539,7 +539,12 @@ public partial class mexc : ccxt.mexc
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? listenKey = await this.authenticate(channel);
-        string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"), "?listenKey="), listenKey));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchSpotPrivate() has no spot websocket url")) ;
+        }
+        string url = ((wsUrl + "?listenKey=") + listenKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIPTION" },
             { "params", new List<object>() {channel} },
@@ -2254,7 +2259,12 @@ public partial class mexc : ccxt.mexc
             this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
         } catch(Exception error)
         {
-            string? url = ((string)add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"), "?listenKey="), listenKey));
+            string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
+            if ((wsUrl == null))
+            {
+                throw new ExchangeError ((this.id + " keepAliveListenKey() has no spot websocket url")) ;
+            }
+            string url = ((wsUrl + "?listenKey=") + (listenKey));
             var client = this.client(url);
             this.options["listenKey"] = null;
             client.reject(error);
@@ -2281,7 +2291,7 @@ public partial class mexc : ccxt.mexc
         if (msg == "PONG")
         {
             this.handlePong(client, message);
-        } else if (getIndexOf(msg, "@") > -1)
+        } else if ((msg?.IndexOf("@", StringComparison.Ordinal) ?? -1) > -1)
         {
             List<object> parts = msg.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
             string? channel = this.safeString(parts, 1);

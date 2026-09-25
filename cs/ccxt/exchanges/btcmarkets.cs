@@ -607,9 +607,13 @@ public partial class btcmarkets : Exchange
         string? baseId = this.safeString(market, "baseAssetName");
         string? quoteId = this.safeString(market, "quoteAssetName");
         string? id = this.safeString(market, "marketId");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         IDictionary<string, object> fees = this.safeDict(this.safeDict(this.options, "fees", new Dictionary<string, object>() {}), quote, this.fees);
         double? pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         double? minAmount = this.safeNumber(market, "minOrderAmount");
@@ -1593,7 +1597,7 @@ public partial class btcmarkets : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -1605,8 +1609,8 @@ public partial class btcmarkets : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             byte[] secret = this.base64ToBinary(this.secret);
-            object auth = add(add(method, request), nonce);
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+            object auth = ((method + request) + nonce);
+            if (((method == "GET")) || ((method == "DELETE")))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -1633,7 +1637,12 @@ public partial class btcmarkets : Exchange
                 request = request + ("?" + this.urlencode(query));
             }
         }
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), request);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + request);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

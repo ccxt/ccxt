@@ -316,6 +316,9 @@ export default class bitbank extends Exchange {
         const quoteId = this.safeString (entry, 'quote_asset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -510,7 +513,7 @@ export default class bitbank extends Exchange {
         };
         const response = await this.publicGetPairTransactions (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'transactions', []);
+        const trades: Dict[] = this.safeList (data, 'transactions', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -556,7 +559,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const pairs = this.safeList (data, 'pairs', []);
+        const pairs: Dict[] = this.safeList (data, 'pairs', []);
         const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -656,7 +659,7 @@ export default class bitbank extends Exchange {
             'datetime': undefined,
         };
         const data = this.safeDict (response, 'data', {});
-        const assets = this.safeList (data, 'assets', []);
+        const assets: Dict[] = this.safeList (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = this.safeDict (assets, i);
             const currencyId = this.safeString (balance, 'asset');
@@ -922,7 +925,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders: Dict[] = this.safeList (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -955,7 +958,7 @@ export default class bitbank extends Exchange {
         }
         const response = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const trades = this.safeList (data, 'trades', []);
+        const trades: Dict[] = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1088,7 +1091,11 @@ export default class bitbank extends Exchange {
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.implodeHostname (this.urls['api'][api]) + '/';
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (apiUrl) + '/';
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         if ((api === 'public') || (api === 'markets')) {

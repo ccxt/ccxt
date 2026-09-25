@@ -127,12 +127,12 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		messageHash = ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol"))
 		productIds = []any{ccxt.GetValue(market, "id")}
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
 	var timestamp string = ccxt.ToString(this.Nonce())
-	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
+	var auth *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password))
 	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	var subscribe map[string]any = map[string]any{
 		"type":       "SUBSCRIBE",
@@ -165,12 +165,12 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-func (this *Coinbaseinternational) SubscribeMultipleAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseinternational) SubscribeMultipleAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeMultipleBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -193,14 +193,14 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 		var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
 		var symbol any = this.Symbol(marketId)
 		productIds = append(productIds, marketId)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
+		messageHashes = append(messageHashes, ccxt.Add(name+"::", symbol))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 	if url == nil {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
 	var timestamp *string = this.NumberToString(this.Seconds())
-	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
+	var auth *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password))
 	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	var subscribe map[string]any = map[string]any{
 		"type":        "SUBSCRIBE",
@@ -321,7 +321,7 @@ func (this *Coinbaseinternational) GetActiveSymbols() any {
 	var output []any = []any{}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = ccxt.GetValue(symbols, i).(string)
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		if ccxt.GetValue(market, "active") == true {
 			output = append(output, symbol)
 		}
@@ -360,8 +360,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.MapTyped(ccxt.GetValue(channelparamsVariable, 1))
 
-	ticker := (<-this.SubscribeAsync(channel, symbols, params))
-	ccxt.PanicOnError(ticker)
+	var ticker map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SubscribeAsync(channel, symbols, params))))
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
@@ -589,7 +588,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(options, timeframe, timeframe)
@@ -623,7 +622,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 	//
 	var messageHash *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(message, "product_id")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timeframe *string = this.FindTimeframe(messageHash)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
@@ -930,7 +929,7 @@ func (this *Coinbaseinternational) HandleSubscriptionStatus(client any, message 
 	//
 	return message
 }
-func (this *Coinbaseinternational) HandleFundingRate(client any, message any) {
+func (this *Coinbaseinternational) HandleFundingRate(client any, message map[string]any) {
 	//
 	// snapshot
 	//    {
@@ -989,7 +988,7 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) a
 				}
 			}()
 			// try block:
-			var feedback any = ccxt.Add(ccxt.Add(this.Id+" ", errMsg), reason)
+			var feedback *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.Id+" ", errMsg), reason))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], reason, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], reason, feedback)
 			panic(ccxt.ExchangeError(feedback))

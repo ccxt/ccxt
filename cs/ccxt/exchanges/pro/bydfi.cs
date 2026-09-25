@@ -299,7 +299,7 @@ public partial class bydfi : ccxt.bydfi
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((getIndexOf(key, "ticker::") == 0))
+            if (((key?.IndexOf("ticker::", StringComparison.Ordinal) ?? -1) == 0))
             {
                 messageHashes.Add(key);
             }

@@ -118,8 +118,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
-                Object currencyCode = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-                channels.add(Helpers.add("user.portfolio.", currencyCode));
+                String currencyCode = this.safeString(currencies, i);
+                channels.add(("user.portfolio." + currencyCode));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -618,7 +618,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         List<Object> trades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
-        Object cachedTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -629,7 +629,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
             Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
-            Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
+            cachedTrades.append(trade);
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             marketIds.put((String)((String)symbol), true);
         }
@@ -781,8 +781,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
-        this.handleDeltas(Helpers.GetValue(storedOrderBook, "bids"), bids);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
+        this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
         Helpers.addElementToObject(storedOrderBook, "nonce", timestamp);
         Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
         Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
@@ -815,10 +815,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     {
         Object price = Helpers.GetValue(delta, 1);
         Object amount = Helpers.GetValue(delta, 2);
-        if (java.util.Objects.equals(Helpers.GetValue(delta, 0), "new") || java.util.Objects.equals(Helpers.GetValue(delta, 0), "change"))
+        String action = this.safeString(delta, 0);
+        if (java.util.Objects.equals(action, "new") || java.util.Objects.equals(action, "change"))
         {
             Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount, 1))});
-        } else if (java.util.Objects.equals(Helpers.GetValue(delta, 0), "delete"))
+        } else if (java.util.Objects.equals(action, "delete"))
         {
             Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount, 0))});
         }
@@ -933,10 +934,10 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
             orders = new ArrayList<Object>(Arrays.asList(order));
         }
-        Object cachedOrders = this.orders;
+        io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{(orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i))});
+            cachedOrders.append((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)));
         }
         client.resolve(this.orders, channel);
     }
@@ -1121,7 +1122,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Map<String,Object> extendedRequest = this.deepExtend(request, parameters);
             Long maxMessageByteLimit = (32768L - 1L); // 'Message Too Big: limit 32768B'
             String jsonedText = this.json(extendedRequest);
-            if (Helpers.isGreaterThanOrEqual(jsonedText.length(), maxMessageByteLimit))
+            if ((maxMessageByteLimit == null || jsonedText.length() >= maxMessageByteLimit))
             {
                 throw new ExchangeError((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
             }

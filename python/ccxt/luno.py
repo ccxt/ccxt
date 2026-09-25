@@ -587,6 +587,8 @@ class luno(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             status = self.safe_string(market, 'trading_status')
             # Luno's published schedule is categorical, not a single pair. Entry-tier
             # rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -1053,14 +1055,14 @@ class luno(Exchange, ImplicitAPI):
                 side = 'sell'
             elif (type == 'BID') or (type == 'BUY'):
                 side = 'buy'
-            if (side == 'sell') and (trade['is_buy'] is True):
+            if (side == 'sell') and (self.safe_bool(trade, 'is_buy') is True):
                 takerOrMaker = 'maker'
-            elif (side == 'buy') and (trade['is_buy'] is not True):
+            elif (side == 'buy') and (self.safe_bool(trade, 'is_buy') is not True):
                 takerOrMaker = 'maker'
             else:
                 takerOrMaker = 'taker'
         else:
-            side = 'buy' if (trade['is_buy'] is True) else 'sell'
+            side = 'buy' if (self.safe_bool(trade, 'is_buy') is True) else 'sell'
         feeBaseString = self.safe_string(trade, 'fee_base')
         feeCounterString = self.safe_string(trade, 'fee_counter')
         feeCurrency = None
@@ -1298,8 +1300,7 @@ class luno(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = None
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         if type == 'market':
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1634,7 +1635,10 @@ class luno(Exchange, ImplicitAPI):
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if len(query) > 0:
             url += '?' + self.urlencode(query)

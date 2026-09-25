@@ -434,15 +434,15 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var quote string = "USDT"
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
-	var base any = nil
+	var base *string = nil
 	var expiry any = nil
-	var optionType any = nil
+	var optionType *string = nil
 	if GetIndexOf(symbol, "/") > -1 {
-		base = DerefScalar(this.SafeString(symbolBase, 0))
+		base = this.SafeString(symbolBase, 0)
 		expiry = DerefScalar(this.SafeString(optionParts, 1))
 		optionType = this.SafeString(optionParts, 3)
 	} else {
-		base = DerefScalar(this.SafeString(optionParts, 1))
+		base = this.SafeString(optionParts, 1)
 		expiry = DerefScalar(this.SafeString(optionParts, 3))
 		optionType = this.SafeString(optionParts, 0)
 	}
@@ -454,7 +454,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var optionTypeUnified string = "put"
-	if IsEqual(optionType, "C") {
+	if optionType != nil && *optionType == "C" {
 		optionTypeUnified = "call"
 	}
 	return this.SafeMarketStructure(map[string]any{
@@ -502,7 +502,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		"info": nil,
 	})
 }
-func (this *Delta) SafeMarket(optionalArgs ...any) any {
+func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
 	marketId := GetArg(optionalArgs, 0, nil)
 	_ = marketId
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
@@ -514,7 +514,7 @@ func (this *Delta) SafeMarket(optionalArgs ...any) any {
 	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")) || (StartsWith(marketId, "C-")) || (StartsWith(marketId, "P-")))
 	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
-		return this.CreateExpiredOptionMarket(marketId)
+		return MapTyped(this.CreateExpiredOptionMarket(marketId))
 	}
 	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
@@ -1040,6 +1040,9 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var numericId *int64 = this.SafeInteger(market, "id")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var callOptions bool = (typeVar != nil && *typeVar == "call_options")
 		var putOptions bool = (typeVar != nil && *typeVar == "put_options")
@@ -1060,8 +1063,8 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			amountPrecision = this.ParseNumber("1")
 		}
 		var linear bool = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
-		var optionType any = nil
-		var symbol any = Add(Add(base, "/"), quote)
+		var optionType *string = nil
+		var symbol any = *base + "/" + *quote
 		if swap || future || option {
 			symbol = Add(Add(symbol, ":"), settle)
 			if future || option {
@@ -1069,13 +1072,13 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				if option {
 					typeVar = SafeStringPtr("option")
 					var letter string = "C"
-					optionType = "call"
+					optionType = SafeStringPtr("call")
 					if putOptions {
 						letter = "P"
-						optionType = "put"
+						optionType = SafeStringPtr("put")
 					} else if moveOptions {
 						letter = "M"
-						optionType = "move"
+						optionType = SafeStringPtr("move")
 					}
 					symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
 				} else {
@@ -1278,8 +1281,8 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.001)
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	market = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "close")
 	var quotes map[string]any = SafeMapTyped(ticker, "quotes")
 	// turnover_symbol names the currency turnover is denominated in, and on
@@ -1340,7 +1343,7 @@ func (this *Delta) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1680,7 +1683,7 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1841,7 +1844,7 @@ func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1914,7 +1917,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -2071,7 +2074,7 @@ func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
@@ -2175,16 +2178,16 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "product_symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	market = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(position, "timestamp", 0.001)
 	var sizeString *string = this.SafeString(position, "size")
-	var side any = nil
+	var side *string = nil
 	if sizeString != nil {
 		if Precise.StringGt(sizeString, "0") {
-			side = "buy"
+			side = SafeStringPtr("buy")
 		} else if Precise.StringLt(sizeString, "0") {
-			side = "sell"
+			side = SafeStringPtr("sell")
 		}
 	}
 	return this.SafePosition(map[string]any{
@@ -2384,7 +2387,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol any, typeVar any, side an
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var orderType any = Add(typeVar, "_order")
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 		"size":       this.AmountToPrecision(market["symbol"], amount),
@@ -2478,7 +2481,7 @@ func (this *Delta) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id":         ParseInt(id),
 		"product_id": market["numericId"],
@@ -2545,7 +2548,7 @@ func (this *Delta) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"id":         ParseInt(id),
 		"product_id": market["numericId"],
@@ -2620,7 +2623,7 @@ func (this *Delta) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
@@ -2739,8 +2742,8 @@ func (this *Delta) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes232915 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes232915)
+	var retRes233215 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrders", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes233215)
 	return nil
 }
 
@@ -2772,16 +2775,16 @@ func (this *Delta) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes234415 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes234415)
+	var retRes234715 []any = ListTyped(PanicOnError((<-this.FetchOrdersWithMethodAsync("privateGetOrdersHistory", symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes234715)
 	return nil
 }
-func (this *Delta) FetchOrdersWithMethodAsync(method any, optionalArgs ...any) <-chan any {
+func (this *Delta) FetchOrdersWithMethodAsync(method string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrdersWithMethodBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalArgs ...any) any {
+func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2807,10 +2810,10 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method any, optionalAr
 		request["page_size"] = limit
 	}
 	var response map[string]any = nil
-	if IsEqual(method, "privateGetOrders") {
+	if method == "privateGetOrders" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
-	} else if IsEqual(method, "privateGetOrdersHistory") {
+	} else if method == "privateGetOrdersHistory" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw))
 	}
@@ -2969,7 +2972,7 @@ func (this *Delta) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["asset_id"] = GetValue(currency, "numericId")
 	}
 	if limit != nil {
@@ -3034,16 +3037,16 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(item, "uuid")
-	var direction any = nil
+	var direction *string = nil
 	var account any = nil
 	var metaData map[string]any = SafeMapTyped(item, "meta_data")
 	var referenceId *string = this.SafeString(metaData, "transaction_id")
 	var referenceAccount any = nil
 	var typeVar *string = this.SafeString(item, "transaction_type")
 	if (typeVar != nil && *typeVar == "deposit") || (typeVar != nil && *typeVar == "commission_rebate") || (typeVar != nil && *typeVar == "referral_bonus") || (typeVar != nil && *typeVar == "pnl") || (typeVar != nil && *typeVar == "withdrawal_cancellation") || (typeVar != nil && *typeVar == "promo_credit") {
-		direction = "in"
+		direction = SafeStringPtr("in")
 	} else if (typeVar != nil && *typeVar == "withdrawal") || (typeVar != nil && *typeVar == "commission") || (typeVar != nil && *typeVar == "conversion") || (typeVar != nil && *typeVar == "perpetual_futures_funding") {
-		direction = "out"
+		direction = SafeStringPtr("out")
 	}
 	typeVar = this.ParseLedgerEntryType(typeVar)
 	var currencyId *string = this.SafeString(item, "asset_id")
@@ -3100,7 +3103,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset_symbol": currency["id"],
 	}
@@ -3185,7 +3188,7 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
@@ -3418,8 +3421,8 @@ func (this *Delta) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes289915 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
-	ch <- BoxAbsent(retRes289915)
+	var retRes290215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))))
+	ch <- BoxAbsent(retRes290215)
 	return nil
 }
 
@@ -3444,25 +3447,25 @@ func (this *Delta) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes291315 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
-	ch <- BoxAbsent(retRes291315)
+	var retRes291615 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
+	ch <- BoxAbsent(retRes291615)
 	return nil
 }
-func (this *Delta) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+func (this *Delta) ModifyMarginHelperAsync(symbol any, amount any, typeVar string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	amount = ToString(amount)
-	if IsEqual(typeVar, "reduce") {
+	if typeVar == "reduce" {
 		amount = Precise.StringMul(amount, "-1")
 	}
 	var request map[string]any = map[string]any{
@@ -3523,7 +3526,7 @@ func (this *Delta) ParseMarginModification(data any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "product_symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	return map[string]any{
 		"info":       data,
 		"symbol":     GetValue(market, "symbol"),
@@ -3559,7 +3562,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
@@ -3712,7 +3715,7 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 	}
@@ -3777,7 +3780,7 @@ func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	}
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 		"leverage":   leverage,
@@ -4002,7 +4005,7 @@ func (this *Delta) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4345,7 +4348,7 @@ func (this *Delta) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4463,7 +4466,7 @@ func (this *Delta) ParseOption(chain any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
 	var marketId *string = this.SafeString(chain, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var quotes map[string]any = SafeMapTyped(chain, "quotes")
 	var timestamp *int64 = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return map[string]any{
@@ -4881,7 +4884,11 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestPath any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
@@ -4926,7 +4933,7 @@ func (this *Delta) HandleErrors(code any, reason any, url any, method any, heade
 	var error map[string]any = SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorCode, feedback)
 		panic(ExchangeError(feedback))
@@ -5373,7 +5380,7 @@ func (this *Delta) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Ord
 	}
 	return res.Value, nil
 }
-func (this *Delta) FetchOrdersWithMethod(method any, options ...FetchOrdersWithMethodOptions) ([]Order, error) {
+func (this *Delta) FetchOrdersWithMethod(method string, options ...FetchOrdersWithMethodOptions) ([]Order, error) {
 
 	opts := FetchOrdersWithMethodOptionsStruct{}
 

@@ -1334,7 +1334,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: use private endpoint for fetching markets
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             await self.load_time_difference()
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
         if method == 'fetchMarketsV3':
@@ -1353,6 +1353,8 @@ class coinbase(Exchange, ImplicitAPI):
         for i in range(0, len(baseIds)):
             baseId = baseIds[i]
             base = self.safe_currency_code(baseId)
+            if base is None:
+                continue
             type = 'crypto'
             if baseId in dataById:
                 type = 'fiat'
@@ -1362,6 +1364,8 @@ class coinbase(Exchange, ImplicitAPI):
                     quoteCurrency = data[j]
                     quoteId = self.safe_string(quoteCurrency, 'id')
                     quote = self.safe_currency_code(quoteId)
+                    if quote is None:
+                        continue
                     result.append(self.safe_market_structure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
@@ -1535,13 +1539,19 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_list(spot, 'products', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_spot_market(data[i], feeTier))
+            spotMarket = self.parse_spot_market(data[i], feeTier)
+            if spotMarket is not None:
+                result.append(spotMarket)
         futureData = self.safe_list(expiringFutures, 'products', [])
         for i in range(0, len(futureData)):
-            result.append(self.parse_contract_market(futureData[i], expiringFeeTier))
+            futureMarket = self.parse_contract_market(futureData[i], expiringFeeTier)
+            if futureMarket is not None:
+                result.append(futureMarket)
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
-            result.append(self.parse_contract_market(perpetualData[i], perpetualFeeTier))
+            perpetualMarket = self.parse_contract_market(perpetualData[i], perpetualFeeTier)
+            if perpetualMarket is not None:
+                result.append(perpetualMarket)
         newMarkets = []
         for i in range(0, len(result)):
             market = result[i]
@@ -1592,6 +1602,8 @@ class coinbase(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote_currency_id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         marketType = self.safe_string_lower(market, 'product_type')
         tradingDisabled = self.safe_bool(market, 'trading_disabled')
         stablePairs = self.safe_list(self.options, 'stablePairs', [])
@@ -1781,6 +1793,8 @@ class coinbase(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quote_currency_id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         tradingDisabled = self.safe_bool(market, 'is_disabled')
         symbol = base + '/' + quote
         type = None
@@ -2858,7 +2872,7 @@ class coinbase(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    async def find_account_id(self, code: Str, params: dict = {}):
+    async def find_account_id(self, code: Str, params: dict = {}) -> Str:
         if self.markets is None:
             await self.load_markets()
         await self.load_accounts(False, params)
@@ -4617,7 +4631,7 @@ class coinbase(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         *futures only* closes open positions for a market
 
@@ -5023,11 +5037,14 @@ class coinbase(Exchange, ImplicitAPI):
             return self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        timeDifference = self.safe_integer(self.options, 'timeDifference')
+        if timeDifference is None:
+            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
+        return self.milliseconds() - timeDifference
 
     def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        version = api[0]
-        signed = api[1] == 'private'
+        version = self.safe_string(api, 0)
+        signed = self.safe_string(api, 1) == 'private'
         isV3 = version == 'v3'
         pathPart = 'v2'
         if isV3:
@@ -5038,7 +5055,10 @@ class coinbase(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
-        url = self.urls['api']['rest'] + fullPath
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + fullPath
         if signed:
             authorization = self.safe_string(self.headers, 'Authorization')
             authorizationString = None
@@ -5171,7 +5191,7 @@ class coinbase(Exchange, ImplicitAPI):
                         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                         self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
-        advancedTrade = self.options['advanced']
+        advancedTrade = self.safe_bool(self.options, 'advanced')
         if not ('data' in response) and (advancedTrade is not True):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
         return None

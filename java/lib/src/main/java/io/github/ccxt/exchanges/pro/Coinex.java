@@ -196,12 +196,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Map<String, Object> tickers = (Map<String, Object>) this.filterByArray(newTickers, "symbol", symbols, true);
             List<String> tickersSymbols = new ArrayList<String>(tickers.keySet());
             Integer numTickers = ((List<?>)tickersSymbols).size();
-            if (Helpers.isGreaterThan(numTickers, 0))
+            if ((numTickers != null && numTickers > 0))
             {
                 client.resolve(tickers, messageHash);
             }
@@ -1071,8 +1071,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         {
             List<Object> asks = (List<Object>) this.safeList(depth, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(depth, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(currentOrderBook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(currentOrderBook, "bids"), bids);
+            this.handleDeltas((currentOrderBook == null ? null : currentOrderBook.get("asks")), asks);
+            this.handleDeltas((currentOrderBook == null ? null : currentOrderBook.get("bids")), bids);
             Helpers.addElementToObject(currentOrderBook, "nonce", timestamp);
             Helpers.addElementToObject(currentOrderBook, "timestamp", timestamp);
             Helpers.addElementToObject(currentOrderBook, "datetime", this.iso8601(timestamp));
@@ -1292,8 +1292,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(parsedOrder);
         String messageHash = "orders";
         String messageWithType = ((messageHash + ":") + ((Map<String, Object>)market).get("type"));
         client.resolve(this.orders, messageWithType);

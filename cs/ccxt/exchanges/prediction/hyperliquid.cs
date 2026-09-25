@@ -224,7 +224,7 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; i < parts.Count; i++)
         {
             string? part = ((string)parts[i]);
-            int colonIndex = getIndexOf(part, ":");
+            int colonIndex = (part?.IndexOf(":", StringComparison.Ordinal) ?? -1);
             if (colonIndex > -1)
             {
                 string? key = slice(part, 0, colonIndex);
@@ -347,10 +347,10 @@ public partial class hyperliquid : PredictionExchange
                         if (isLessThanOrEqual(index, 0))
                         {
                             bucketLabel = ("BELOW_" + ((thresholds != null && 0 < thresholds.Count ? thresholds[0] : null)));
-                        } else if (isGreaterThanOrEqual(index, thresholdsLength))
+                        } else if ((index >= thresholdsLength))
                         {
-                            object lastIdx = (thresholdsLength - 1);
-                            bucketLabel = ("ABOVE_" + (getValue(thresholds, lastIdx)));
+                            int lastIdx = (thresholdsLength - 1);
+                            bucketLabel = ("ABOVE_" + ((thresholds != null && lastIdx < thresholds.Count ? thresholds[lastIdx] : null)));
                         } else
                         {
                             bucketLabel = ((("BETWEEN_" + (getValue(thresholds, subtract(index, 1)))) + "_") + (getValue(thresholds, index)));
@@ -1156,7 +1156,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> balance = this.safeDict(balances, i, new Dictionary<string, object>() {});
             string? coin = this.safeString(balance, "coin", "");
             // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
-            if ((getIndexOf(coin, "+") != 0))
+            if (((coin?.IndexOf("+", StringComparison.Ordinal) ?? -1) != 0))
             {
                 continue;
             }
@@ -1950,7 +1950,7 @@ public partial class hyperliquid : PredictionExchange
             { "stop limit", "limit" },
             { "stop market", "market" },
         };
-        string? statusLower = ((status != null) && !isEqual(status, "")) ? status.ToLower() : null;
+        string? statusLower = ((status != null) && !(status == "")) ? status.ToLower() : null;
         return this.safeString(statuses, statusLower, statusLower);
     }
 
@@ -1962,7 +1962,7 @@ public partial class hyperliquid : PredictionExchange
             { "fok", "FOK" },
             { "alo", "PO" },
         };
-        string? tifLower = ((timeInForce != null) && !isEqual(timeInForce, "")) ? timeInForce.ToLower() : null;
+        string? tifLower = ((timeInForce != null) && !(timeInForce == "")) ? timeInForce.ToLower() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 
@@ -2357,7 +2357,7 @@ public partial class hyperliquid : PredictionExchange
         {
             throw new ExchangeError ((this.id + " amountToPrecision() missing prec")) ;
         }
-        if (isGreaterThan(prec, 0))
+        if ((prec > 0))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -2373,7 +2373,7 @@ public partial class hyperliquid : PredictionExchange
         {
             throw new ExchangeError ((this.id + " priceToPrecision() missing prec")) ;
         }
-        if (isGreaterThan(prec, 0))
+        if ((prec > 0))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -2600,7 +2600,7 @@ public partial class hyperliquid : PredictionExchange
         return ((string)normalized).ToLower();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "POST";
@@ -2618,7 +2618,7 @@ public partial class hyperliquid : PredictionExchange
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
         object url = add(add(baseUrl, "/"), path);
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

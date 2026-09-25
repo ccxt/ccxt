@@ -573,6 +573,9 @@ export default class bithumb extends Exchange {
                     }
                     const market = data[currencyId];
                     const base = this.safeCurrencyCode (currencyId);
+                    if (base === undefined) {
+                        continue;
+                    }
                     let active = true;
                     if (Array.isArray (market)) {
                         const numElements = market.length;
@@ -784,9 +787,9 @@ export default class bithumb extends Exchange {
             //
             const result = this.safeDict (response, 0, {});
             timestamp = this.safeInteger (result, 'timestamp');
-            const orderBookUnits = this.safeList (result, 'orderbook_units', []);
-            const bids = [];
-            const asks = [];
+            const orderBookUnits: Dict[] = this.safeList (result, 'orderbook_units', []);
+            const bids: Dict[] = [];
+            const asks: Dict[] = [];
             for (let i = 0; i < orderBookUnits.length; i++) {
                 const entry = this.safeDict (orderBookUnits, i);
                 bids.push ({
@@ -1073,7 +1076,7 @@ export default class bithumb extends Exchange {
                 if ((firstMarketId !== undefined) && (this.safeString (marketIdsChunk, 1) === undefined)) {
                     expectedMarketId = firstMarketId;
                 }
-                let tickers = [];
+                let tickers: Dict[] = [];
                 if (Array.isArray (response)) {
                     tickers = response;
                 } else if (this.isDictionary (response)) {
@@ -1627,7 +1630,7 @@ export default class bithumb extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        let orderSymbols: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1669,7 +1672,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'batch_orders_response', []);
+        const data: Dict[] = this.safeList (response, 'batch_orders_response', []);
         return this.parseOrders (data, market);
     }
 
@@ -2355,7 +2358,7 @@ export default class bithumb extends Exchange {
             //     }
             //
         }
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limitResolved);
     }
 
@@ -2585,7 +2588,7 @@ export default class bithumb extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
             }
             let side: Str = undefined;
-            if (paramsRequest['side'] === 'buy') {
+            if (this.safeString (paramsRequest, 'side') === 'buy') {
                 side = 'bid';
             } else {
                 side = 'ask';
@@ -2651,7 +2654,7 @@ export default class bithumb extends Exchange {
         //         "fail": []
         //     }
         //
-        const data = this.safeList (response, 'success', []);
+        const data: Dict[] = this.safeList (response, 'success', []);
         return this.parseOrders (data, market);
     }
 
@@ -3326,7 +3329,11 @@ export default class bithumb extends Exchange {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = this.implodeHostname (apiUrl) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryKeysLength = queryKeys.length;

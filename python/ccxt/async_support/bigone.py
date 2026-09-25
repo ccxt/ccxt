@@ -679,6 +679,8 @@ class bigone(Exchange, ImplicitAPI):
             quoteId = self.safe_string(quoteAsset, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             result.append(self.safe_market_structure({
                 'id': self.safe_string(market, 'name'),
                 'uuid': self.safe_string(market, 'id'),
@@ -738,6 +740,8 @@ class bigone(Exchange, ImplicitAPI):
             marketId = self.safe_string(market, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             inverse = self.safe_bool(market, 'isInverse')
             result.append(self.safe_market_structure({
@@ -1102,7 +1106,7 @@ class bigone(Exchange, ImplicitAPI):
             result.append([self.parse_number(price), self.parse_number(amount)])
         return result
 
-    def parse_contract_order_book(self, orderbook: object, symbol: str, limit: Int = None) -> OrderBook:
+    def parse_contract_order_book(self, orderbook: dict, symbol: str, limit: Int = None) -> OrderBook:
         responseBids = self.safe_dict(orderbook, 'bids')
         responseAsks = self.safe_dict(orderbook, 'asks')
         bids = self.parse_contract_bids_asks(responseBids)
@@ -1879,7 +1883,10 @@ class bigone(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
-        baseUrl = self.implode_hostname(self.urls['api'][api])
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
         if api == 'public' or api == 'webExchange' or api == 'contractPublic':

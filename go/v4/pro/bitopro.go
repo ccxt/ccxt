@@ -55,15 +55,19 @@ func (this *Bitopro) Describe() any {
 		},
 	})
 }
-func (this *Bitopro) WatchPublicAsync(path any, messageHash any, marketId any) <-chan any {
+func (this *Bitopro) WatchPublicAsync(path string, messageHash any, marketId any) <-chan any {
 	ch := make(chan any, 1)
 	go this.watchPublicBody(ch, path, messageHash, marketId)
 	return ch
 }
-func (this *Bitopro) watchPublicBody(ch chan any, path any, messageHash any, marketId any) any {
+func (this *Bitopro) watchPublicBody(ch chan any, path string, messageHash any, marketId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "public"), "/"), path), "/"), marketId)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "ws"), "public")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"/"+path+"/", marketId))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))
 	return nil
@@ -102,7 +106,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("ORDER_BOOK"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ORDER_BOOK"+":", symbol))
 	var endPart any = nil
 	if limit == nil {
 		endPart = market["id"]
@@ -138,10 +142,10 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(map[string]any{})
@@ -181,9 +185,9 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("TRADE"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("TRADE"+":", symbol))
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.WatchPublicAsync("trades", messageHash, market["id"]))))
 	if this.NewUpdates {
@@ -214,10 +218,10 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var rawData []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var trades any = this.ParseTrades(rawData, market)
 	var tradesCache any = this.SafeValue(this.Trades, symbol)
@@ -266,10 +270,14 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = "USER_TRADE"
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "ws"), "private")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchMyTrades() has no private websocket url"))
+	}
+	var url string = *wsUrl + "/" + "user-trades"
 	this.Authenticate(url)
 
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash))))
@@ -349,8 +357,11 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var quoteId *string = this.SafeString(trade, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
-	market = ccxt.MapTyped(this.SafeMarket(symbol, market))
+	var symbol any = nil
+	if (base != nil) && (quote != nil) {
+		symbol = this.Symbol(*base + "/" + *quote)
+	}
+	market = this.SafeMarket(symbol, market)
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "orderType")
 	var side *string = this.SafeString(trade, "side")
@@ -373,12 +384,12 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if isMaker != nil {
 		if isMaker != nil && *isMaker == true {
-			takerOrMaker = "maker"
+			takerOrMaker = ccxt.SafeStringPtr("maker")
 		} else {
-			takerOrMaker = "taker"
+			takerOrMaker = ccxt.SafeStringPtr("taker")
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -421,9 +432,9 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("TICKER"+":", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("TICKER"+":", symbol))
 
 	ch <- ccxt.PanicOnError((<-this.WatchPublicAsync("tickers", messageHash, market["id"])))
 	return nil
@@ -452,10 +463,10 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 		return // some TICKER frames arrive without a pair - nothing to resolve them against
 	}
 	// market-ids are lowercase in REST API and uppercase in WS API
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "_"))
+	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(event, ":"), symbol))
 	var result map[string]any = ccxt.MapTyped(this.ParseTicker(message, market))
 	result["symbol"] = this.SafeString(market, "symbol") // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
@@ -464,7 +475,7 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Tickers, symbol, result)
 	client.(ccxt.ClientInterface).Resolve(result, messageHash)
 }
-func (this *Bitopro) Authenticate(url any) {
+func (this *Bitopro) Authenticate(url string) {
 	if (!ccxt.IsEqual(this.Clients, nil)) && (ccxt.InOp(this.Clients, url)) {
 		return
 	}
@@ -522,7 +533,11 @@ func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash string = "ACCOUNT_BALANCE"
-	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "ws"), "private")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchBalance() has no private websocket url"))
+	}
+	var url string = *wsUrl + "/" + "account-balance"
 	this.Authenticate(url)
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, messageHash)))

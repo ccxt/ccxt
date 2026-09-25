@@ -568,7 +568,7 @@ export default class luno extends Exchange {
         //     }
         //
         const result: List = [];
-        const markets = this.safeList (response, 'markets', []);
+        const markets: Dict[] = this.safeList (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market_id');
@@ -576,6 +576,9 @@ export default class luno extends Exchange {
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'trading_status');
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -668,7 +671,7 @@ export default class luno extends Exchange {
      */
     override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         const response = await this.privateGetBalance (params);
-        const wallets = this.safeList (response, 'balance', []);
+        const wallets: Dict[] = this.safeList (response, 'balance', []);
         const result: Account[] = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
@@ -686,7 +689,7 @@ export default class luno extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const wallets = this.safeList (response, 'balance', []);
+        const wallets: Dict[] = this.safeList (response, 'balance', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -886,7 +889,7 @@ export default class luno extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders (this.extend (request, params));
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1076,15 +1079,15 @@ export default class luno extends Exchange {
             } else if ((type === 'BID') || (type === 'BUY')) {
                 side = 'buy';
             }
-            if ((side === 'sell') && (trade['is_buy'] === true)) {
+            if ((side === 'sell') && (this.safeBool (trade, 'is_buy') === true)) {
                 takerOrMaker = 'maker';
-            } else if ((side === 'buy') && (trade['is_buy'] !== true)) {
+            } else if ((side === 'buy') && (this.safeBool (trade, 'is_buy') !== true)) {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = (trade['is_buy'] === true) ? 'buy' : 'sell';
+            side = (this.safeBool (trade, 'is_buy') === true) ? 'buy' : 'sell';
         }
         const feeBaseString = this.safeString (trade, 'fee_base');
         const feeCounterString = this.safeString (trade, 'fee_counter');
@@ -1159,7 +1162,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1280,7 +1283,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1342,9 +1345,7 @@ export default class luno extends Exchange {
             'pair': market['id'],
         };
         let response: NullableDict = undefined;
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         if (type === 'market') {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1463,7 +1464,7 @@ export default class luno extends Exchange {
             'max_row': max_row,
         };
         const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
-        const entries = this.safeList (response, 'transactions', []);
+        const entries: Dict[] = this.safeList (response, 'transactions', []);
         return this.parseLedger (entries, currency, since, limit);
     }
 
@@ -1706,7 +1707,11 @@ export default class luno extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let requestHeaders: NullableDict = undefined;
         if (Object.keys (query).length > 0) {

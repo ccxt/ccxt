@@ -1048,7 +1048,7 @@ class backpack(ccxt.async_support.backpack):
             'info': order,
         }, market)
 
-    def parse_ws_order_status(self, status: Str, market: Market = None):
+    def parse_ws_order_status(self, status: Str, market: Market = None) -> Str:
         statuses = {
             'New': 'open',
             'Filled': 'closed',
@@ -1060,7 +1060,7 @@ class backpack(ccxt.async_support.backpack):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order_side(self, side: Str):
+    def parse_ws_order_side(self, side: Str) -> Str:
         sides = {
             'Bid': 'buy',
             'Ask': 'sell',

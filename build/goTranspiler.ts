@@ -1062,6 +1062,119 @@ function goTextReadIsHazard (maskedLine: string, name: string): boolean {
 // `var x any = [ccxt.]GetValue(s, i)` -> `var x string = s[i]` when `s` is a `[]string`
 // local and the declaration heads a counting loop bounded by `len(s)` (directly or via an
 // unwritten int local); any write to the counter or slice, or a hazard read, keeps `any`.
+// Container helpers on a local/parameter printed `[]any`/`[]string`/`map[string]any` (the only
+// declaration of that name in its top-level func) become native Go where the helper adds nothing:
+// len(x); x["k"] as the first argument of a helper that derefs it at entry; x["k"] = v on a proven non-nil map.
+const GO_ACCESS_DEREF_CONSUMERS = [ 'SafeStringPtr', 'IsEqual', 'EvalTruthy', 'IsString', 'ToString', 'ParseInt', 'Add', 'GetValue' ];
+const GO_ACCESS_NON_NIL_MAP_INIT = /^(?:map\[string\]any\{|GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\()/;
+const GO_ACCESS_SCALAR_TYPES = [ 'string', 'int64', 'float64', 'bool', 'int' ];
+
+function goAccessEscape (name: string): string {
+    return name.replace (/[^\w]/g, '');
+}
+
+// the Go type of `name` when the func text declares it exactly once (a `var` or a parameter
+// of the top-level signature), with its initializer text for a `var`; undefined otherwise
+function goAccessSingleDeclaration (maskedFunc: string, signature: string, name: string): any {
+    const n = goAccessEscape (name);
+    const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ];
+    const shortDecls = maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
+    const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + n + '\\b').test (m[1]));
+    const rangeDecls = maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? [];
+    const sigParam = new RegExp ('[(,]\\s*' + n + '\\s+([^,()]+?)\\s*[,)]').exec (signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0)));
+    const count = vars.length + shortDecls.length + literalParams.length + rangeDecls.length + (sigParam ? 1 : 0);
+    if (count !== 1) {
+        return undefined;
+    }
+    if (sigParam) {
+        return { 'type': sigParam[1].trim (), 'init': undefined };
+    }
+    if (vars.length === 1) {
+        const line = maskedFunc.substring (vars[0].index).split ('\n')[0];
+        return { 'type': vars[0][1].trim (), 'index': vars[0].index, 'line': line };
+    }
+    return undefined;
+}
+
+function nativeTypedContainerAccess (content: string): string {
+    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+            continue;
+        }
+        if ((start >= 0) && (lines[k] === '}')) {
+            rewriteTypedContainerFunc (lines, masked, start, k);
+            start = -1;
+        }
+    }
+    return lines.join ('\n');
+}
+
+function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const lineOffsets: number[] = [];
+    let offset = 0;
+    for (let k = start; k <= end; k++) {
+        lineOffsets.push (offset);
+        offset += masked[k].length + 1;
+    }
+    const cache = new Map<string, any> ();
+    const declOf = (name: string) => {
+        if (!cache.has (name)) {
+            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name));
+        }
+        return cache.get (name);
+    };
+    // declared before this line (a parameter always is)
+    const typeAt = (name: string, k: number): string | undefined => {
+        const decl = declOf (name);
+        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= lineOffsets[k - start]))) {
+            return undefined;
+        }
+        return decl.type;
+    };
+    const notRebound = (name: string): boolean => !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc);
+    const consumers = GO_ACCESS_DEREF_CONSUMERS.join ('|');
+    for (let k = start + 1; k < end; k++) {
+        let line = lines[k];
+        const m = masked[k];
+        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (m)) {
+            continue;
+        }
+        const isCode = (text: string, at: number) => m.substr (at, text.length) === text;
+        line = line.replace (/(?<![\w.])(?:ccxt\.)?GetArrayLength\((\w+)\)/g, (all: string, name: string, at: number) => {
+            const t = typeAt (name, k);
+            return (isCode (all, at) && ((t === '[]any') || (t === '[]string'))) ? 'len(' + name + ')' : all;
+        });
+        if (line.length === lines[k].length) {
+            line = line.replace (new RegExp ('((?<![\\w.])(?:ccxt\\.)?(?:' + consumers + ')\\()(?:ccxt\\.)?GetValue\\((\\w+), ("[^"\\\\\\n]*")\\)', 'g'), (all: string, head: string, name: string, key: string, at: number) =>
+                ((isCode (head, at) && (typeAt (name, k) === 'map[string]any')) ? head + name + '[' + key + ']' : all));
+        }
+        const write = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), ("[^"\\\n]*"), (.+)\)$/.exec (line);
+        if ((write !== null) && (line === lines[k]) && isCode (line.trimStart (), line.length - line.trimStart ().length)) {
+            const decl = declOf (write[2]);
+            const init = (decl?.line ?? '').replace (/^\s*var\s+\w+\s+map\[string\]any\s*=\s*/, '');
+            const value = write[4];
+            const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
+            const plainValue = /^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false)$/.test (value) || (valueType !== undefined && GO_ACCESS_SCALAR_TYPES.indexOf (valueType) >= 0);
+            if ((typeAt (write[2], k) === 'map[string]any') && (decl.index !== undefined) && GO_ACCESS_NON_NIL_MAP_INIT.test (init.trim ())
+                && notRebound (write[2]) && plainValue) {
+                line = write[1] + write[2] + '[' + write[3] + '] = ' + value;
+            }
+        }
+        lines[k] = line;
+    }
+}
+
 function retagLoopBoundedElementReads (content: string): string {
     if (content.indexOf ('GetValue(') < 0) {
         return content; // no candidate line anywhere in this file
@@ -1196,6 +1309,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = guardMultiSendCores (content);
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
+    content = nativeTypedContainerAccess (content);
     return goGofmtSplicedText (content);
 }
 
@@ -2228,6 +2342,61 @@ export function collapseRedundantNilChecks (content: string): string {
         .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)');
 }
 
+// Methods whose generated Go signature already returns map[string]any: MapTyped around their call is
+// the identity and a `.(map[string]any)` assertion on it does not compile, so both are dropped.
+const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook' ];
+
+function dropNoOpMapTyped (content: string): string {
+    const callee = new RegExp ('^this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:' + GO_MAP_RETURNING_METHODS.join ('|') + ')\\(');
+    // index of the paren closing the one opened at `open`, -1 when unbalanced
+    const close = (text: string, open: number): number => {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"' || c === '`' || c === "'") {
+                i = goSkipLiteralText (text, i);
+            } else if (c === '(') {
+                depth += 1;
+            } else if (c === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    };
+    let out = '';
+    let cursor = 0;
+    const wrapper = /\b(?:ccxt\.)?MapTyped\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
+    for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
+        if (m.index < cursor) {
+            continue;
+        }
+        const open = m.index + m[0].length - 1;
+        const end = close (content, open);
+        if (end < 0) {
+            continue;
+        }
+        if (m[0].startsWith ('this.')) {
+            if (content.startsWith ('.(map[string]any)', end + 1)) {
+                out += content.substring (cursor, end + 1);
+                cursor = end + 1 + '.(map[string]any)'.length;
+            }
+            continue;
+        }
+        const inner = content.substring (open + 1, end);
+        const innerOpen = inner.indexOf ('(');
+        if (!callee.test (inner) || (close (inner, innerOpen) !== inner.length - 1)) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + dropNoOpMapTyped (inner);
+        cursor = end + 1;
+        wrapper.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -2241,7 +2410,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
-    content = goGofmtSplicedText (content);
+    content = goGofmtSplicedText (dropNoOpMapTyped (content));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -5313,8 +5482,35 @@ ${caseStatements.join('\n')}
             const line = lines[i];
             const trimmed = line.trim ();
             if (!inLiteral[offset] && /^return([ \t]|$)/.test (trimmed)) {
-                const expr = trimmed.substring ('return'.length).trim ();
+                let expr = trimmed.substring ('return'.length).trim ();
                 if (expr.length === 0) {
+                    return undefined;
+                }
+                // a multi-line expression (e.g. a map literal argument) ends where its delimiters balance;
+                // an expression that never balances leaves the whole method untyped
+                const depthOf = (text: string): number => {
+                    let depth = 0;
+                    for (let k = 0; k < text.length; k++) {
+                        const c = text[k];
+                        if (c === '"' || c === '`' || c === "'") {
+                            k = goSkipLiteralText (text, k);
+                        } else if (c === '(' || c === '[' || c === '{') {
+                            depth += 1;
+                        } else if (c === ')' || c === ']' || c === '}') {
+                            depth -= 1;
+                        }
+                    }
+                    return depth;
+                };
+                while ((depthOf (expr) > 0) && (i + 1 < lines.length)) {
+                    if (/func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) {
+                        return undefined;
+                    }
+                    offset += lines[i].length + 1;
+                    i += 1;
+                    expr += '\n' + lines[i];
+                }
+                if (depthOf (expr) !== 0) {
                     return undefined;
                 }
                 const indent = line.substring (0, line.length - line.trimStart ().length);
@@ -5323,8 +5519,8 @@ ${caseStatements.join('\n')}
             } else {
                 out.push (line);
             }
-            offset += line.length + 1;
-            if (!inLiteral[offset - 1] && /func\s*\(/.test (line) && (line.indexOf ('{', line.search (/func\s*\(/)) < 0)) {
+            offset += lines[i].length + 1;
+            if (!inLiteral[offset - 1] && /func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) {
                 return undefined; // a func literal that opens its brace on a later line
             }
         }
@@ -5396,6 +5592,10 @@ ${caseStatements.join('\n')}
             [ 'BaseExchange', 'Market',
               (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'market') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),
               true ],
+            // TS returns a dictionary on every path (currency panics, the safe forms build a structure)
+            [ 'BaseExchange', 'Currency', (expr: string) => expr.length > 0, true ],
+            [ 'BaseExchange', 'SafeCurrency', (expr: string) => expr.length > 0, true ],
+            [ 'BaseExchange', 'SafeMarket', (expr: string) => expr.length > 0, true ],
         ];
         for (let i = 0; i < rows.length; i++) {
             content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]);
@@ -5420,6 +5620,12 @@ ${caseStatements.join('\n')}
         ];
         for (let i = 0; i < rows.length; i++) {
             content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], undefined, true);
+        }
+        // every exchange override of a base map accessor carries the base's map signature
+        const overrides = content.match (/func\s+\(this \*\w+\)\s+(?:Currency|SafeCurrency|SafeMarket)\(/g) || [];
+        for (let i = 0; i < overrides.length; i++) {
+            const parts = /\*(\w+)\)\s+(\w+)\(/.exec (overrides[i]);
+            content = this.retypeGoMapMethod (content, parts[1], parts[2], undefined, true);
         }
         return content;
     }
@@ -6070,7 +6276,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // that change, because test code compares such locals against untyped bool
                 // constants (`local != true`) -- always true for an interface holding a *bool.
                 // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-                [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+                [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 // the markers sit inside `// ` comments: drop the marker text and the space
@@ -6145,7 +6351,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // because test code compares such locals against untyped bool constants
             // (`local != true`) -- always true for an interface holding a *bool. Mirrors the
             // DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-            [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+            [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
             // the (?!=) guard keeps the assignment rewrite off == comparisons
             [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
@@ -6272,7 +6478,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // that change, because these tests compare such locals against untyped bool
                 // constants (`local != true`) -- always true for an interface holding a *bool.
                 // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-                [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+                [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],

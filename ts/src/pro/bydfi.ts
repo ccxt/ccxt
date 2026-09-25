@@ -7,6 +7,7 @@ import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import type { Balances, Dict, Int, Market, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -497,7 +498,7 @@ export default class bydfi extends bydfiRest {
             channels.push (market['id'] + '@depth' + depthOption + channelSuffix);
             messageHashes.push ('orderbook::' + symbol);
         }
-        const orderbook = await this.watchPublic (messageHashes, channels, paramsFrequency);
+        const orderbook: Ob = await this.watchPublic (messageHashes, channels, paramsFrequency);
         return orderbook.limit ();
     }
 
@@ -816,7 +817,7 @@ export default class bydfi extends bydfiRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const parsedPosition = this.parseWsPosition (rawPosition, market);
         const timestamp = this.safeInteger (message, 'T');
         parsedPosition['timestamp'] = timestamp;
@@ -982,7 +983,7 @@ export default class bydfi extends bydfiRest {
         const messageHash = 'balance';
         if (messageHash in client.futures) {
             const data = this.safeDict (message, 'a', {});
-            const balances = this.safeList (data, 'B', []);
+            const balances: Dict[] = this.safeList (data, 'B', []);
             const timestamp = this.safeInteger (message, 'T');
             const result: Dict = {
                 'info': message,

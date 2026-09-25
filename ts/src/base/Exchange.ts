@@ -1660,7 +1660,7 @@ export class BaseExchange {
         }
     }
 
-    remove0xPrefix (hexData: any) {
+    remove0xPrefix (hexData: any): string {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2);
         } else {
@@ -3817,7 +3817,11 @@ export class BaseExchange {
     parseMarkets (markets: any): Market[] {
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
+            const market = this.parseMarket (markets[i]);
+            // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
+            if (market !== undefined) {
+                result.push (market);
+            }
         }
         return result;
     }
@@ -4297,6 +4301,9 @@ export class BaseExchange {
     }
 
     orderbookChecksumMessage (symbol:Str): string {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' orderbookChecksumMessage() requires a symbol argument');
+        }
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
@@ -4651,10 +4658,17 @@ export class BaseExchange {
                 let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
                 for (let j = 1; j < groupedCurrenciesCode.length; j++) {
                     const currentCurrency = groupedCurrenciesCode[j];
+                    const currentPrecision = this.safeNumber (currentCurrency, 'precision');
+                    const highestPrecision = this.safeNumber (highestPrecisionCurrency, 'precision');
+                    if ((currentPrecision === undefined) || (highestPrecision === undefined)) {
+                        continue;
+                    }
                     if (this.precisionMode === TICK_SIZE) {
-                        highestPrecisionCurrency = (currentCurrency['precision'] < highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
-                    } else {
-                        highestPrecisionCurrency = (currentCurrency['precision'] > highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                        if (currentPrecision < highestPrecision) {
+                            highestPrecisionCurrency = currentCurrency;
+                        }
+                    } else if (currentPrecision > highestPrecision) {
+                        highestPrecisionCurrency = currentCurrency;
                     }
                 }
                 resultingCurrencies.push (highestPrecisionCurrency);
@@ -5181,7 +5195,7 @@ export class BaseExchange {
         return trade as Trade;
     }
 
-    createCcxtTradeId (timestamp: Int = undefined, side: OrderSide = undefined, amount: Str = undefined, price: Str = undefined, takerOrMaker: Str = undefined): Str {
+    createCcxtTradeId (timestamp: Int = undefined, side: Str = undefined, amount: Str = undefined, price: Str = undefined, takerOrMaker: Str = undefined): Str {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         let id: Str = undefined;
         if (timestamp !== undefined) {
@@ -5584,7 +5598,7 @@ export class BaseExchange {
         return result;
     }
 
-    async fetchWebEndpoint (method: any, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
+    async fetchWebEndpoint (method: string, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
         let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
@@ -5593,7 +5607,7 @@ export class BaseExchange {
             if (!this.safeBool (options, 'webApiEnable', true)) {
                 return undefined;
             }
-            const maxRetries = this.safeValue (options, 'webApiRetries', 10);
+            const maxRetries = this.safeInteger (options, 'webApiRetries', 10);
             let response: any = undefined;
             let retry = 0;
             let shouldBreak = false;
@@ -5740,9 +5754,9 @@ export class BaseExchange {
             if (type !== undefined && market['type'] !== type) {
                 throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
             if (market['spot'] !== true) {
-                isLinearSubType = market['linear'];
+                isLinearSubType = this.safeBool (market, 'linear');
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
             result.push (symbol);
@@ -5959,7 +5973,7 @@ export class BaseExchange {
         return preferredChain;
     }
 
-    handleNetworkCodeAndParams (params: any): any[] {
+    handleNetworkCodeAndParams (params: any): [Str, Dict] {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         const paramsOmitted = (networkCodeInParams !== undefined) ? this.omit (params, [ 'networkCode', 'network' ]) : params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
@@ -5982,15 +5996,15 @@ export class BaseExchange {
         return defaultNetworkCode;
     }
 
-    selectNetworkCodeFromUnifiedNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any): Str {
+    selectNetworkCodeFromUnifiedNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
         return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
     }
 
-    selectNetworkIdFromRawNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any): Str {
+    selectNetworkIdFromRawNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
         return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
     }
 
-    selectNetworkKeyFromNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
+    selectNetworkKeyFromNetworks (currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId: Str = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
@@ -6001,6 +6015,9 @@ export class BaseExchange {
             } else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 const networkIdOrCode = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkIdOrCode === undefined) {
+                    throw new NotSupported (this.id + ' - ' + networkCode + ' network was not found for ' + currencyCode);
+                }
                 if (networkIdOrCode in indexedNetworkEntries) {
                     chosenNetworkId = networkIdOrCode;
                 } else {
@@ -6563,8 +6580,15 @@ export class BaseExchange {
             if ((skipZeroPrices === true) && !(price > 0) && !(price < 0)) {
                 continue;
             }
-            const isFirstCandle = candle === -1;
-            if (isFirstCandle || openingTime >= this.sum (ohlcvs[candle][i_timestamp], ms)) {
+            let isNewCandle = candle === -1;
+            if (!isNewCandle) {
+                const candleTimestamp = ohlcvs[candle][i_timestamp];
+                if (candleTimestamp === undefined) {
+                    throw new ExchangeError (this.id + ' buildOHLCVC() missing candle timestamp');
+                }
+                isNewCandle = openingTime >= candleTimestamp + ms;
+            }
+            if (isNewCandle) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push ([
                     openingTime, // timestamp
@@ -6794,7 +6818,10 @@ export class BaseExchange {
         return this.safeValue (fees, code);
     }
 
-    getSupportedMapping (key: any, mapping: Dict = {}) {
+    getSupportedMapping (key: Str, mapping: Dict = {}) {
+        if (key === undefined) {
+            throw new ArgumentsRequired (this.id + ' getSupportedMapping() requires a key argument');
+        }
         if (key in mapping) {
             return mapping[key];
         } else {
@@ -7048,7 +7075,7 @@ export class BaseExchange {
         }
     }
 
-    findBroadlyMatchedKey (broad: any, string: any): Str {
+    findBroadlyMatchedKey (broad: any, string: Str): Str {
         // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
@@ -7468,7 +7495,11 @@ export class BaseExchange {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+            const pricePrecision = this.numberToString (market['precision']['price']);
+            if (pricePrecision === undefined) {
+                throw new BadSymbol (this.id + ' priceToPrecision() market ' + market['symbol'] + ' has no price precision');
+            }
+            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + pricePrecision);
         }
         return result;
     }
@@ -7480,7 +7511,11 @@ export class BaseExchange {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+            const amountPrecision = this.numberToString (market['precision']['amount']);
+            if (amountPrecision === undefined) {
+                throw new BadSymbol (this.id + ' amountToPrecision() market ' + market['symbol'] + ' has no amount precision');
+            }
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + amountPrecision);
         }
         return result;
     }
@@ -8159,7 +8194,7 @@ export class BaseExchange {
         }
     }
 
-    checkRequiredArgument (methodName: string, argument: any, argumentName: any, options: string[] = []) {
+    checkRequiredArgument (methodName: string, argument: any, argumentName: string, options: string[] = []) {
         /**
          * @ignore
          * @method
@@ -8416,7 +8451,7 @@ export class BaseExchange {
                         paramsMaxEntriesPerRequest['until'] = paginationTimestamp - 1;
                     }
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
-                    const responseLength = response.length;
+                    const responseLength: number = response.length;
                     if (this.verbose) {
                         let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
                         if (paginationTimestamp !== undefined) {
@@ -8440,7 +8475,7 @@ export class BaseExchange {
                 } else {
                     // do it forwards, starting from the since
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
-                    const responseLength = response.length;
+                    const responseLength: number = response.length;
                     if (this.verbose) {
                         let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
                         if (paginationTimestamp !== undefined) {
@@ -8549,7 +8584,7 @@ export class BaseExchange {
                 break;
             }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
-            currentSince = this.sum (currentSince, step) - 1;
+            currentSince = currentSince + step - 1;
         }
         const results = await Promise.all (tasks);
         let result: any[] = [];
@@ -8604,7 +8639,7 @@ export class BaseExchange {
                 if (response === undefined) {
                     throw new NullResponse (this.id + ' fetchPaginatedCallCursor() returned empty response');
                 }
-                const responseLength = response.length;
+                const responseLength: number = response.length;
                 if (this.verbose) {
                     const cursorString = (cursorValue === undefined) ? '' : cursorValue;
                     const iteration = (i + 1);
@@ -8667,7 +8702,7 @@ export class BaseExchange {
                 paramsMaxEntriesPerRequest[pageKey as string] = i + 1;
                 const response = await this[method] (symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                 errors = 0;
-                const responseLength = response.length;
+                const responseLength: number = response.length;
                 if (this.verbose) {
                     const iteration = (i + 1).toString ();
                     const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString ();
@@ -8735,7 +8770,19 @@ export class BaseExchange {
                 if (timestamp === undefined) {
                     throw new ExchangeError (this.id + ' removeRepeatedTradesFromArray() missing timestamp');
                 }
-                id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
+                // optional parts are appended only when present, separators keep positions distinct
+                id = 't_' + timestamp.toString () + '_';
+                if (side !== undefined) {
+                    id = id + side;
+                }
+                id = id + '_';
+                if (price !== undefined) {
+                    id = id + price;
+                }
+                id = id + '_';
+                if (amount !== undefined) {
+                    id = id + amount;
+                }
             }
             if (id !== undefined && !(id in uniqueResult)) {
                 uniqueResult[id] = entry;
@@ -8757,7 +8804,7 @@ export class BaseExchange {
         return newDict;
     }
 
-    handleUntilOption (key: string, request: Dict, params: Dict, multiplier = 1): [Dict, Dict] {
+    handleUntilOption (key: string, request: Dict, params: Dict, multiplier: number = 1): [Dict, Dict] {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.parseToInt (until * multiplier);
@@ -8979,6 +9026,9 @@ export class BaseExchange {
         } else if (monthRaw === '12') {
             month = 'DEC';
         }
+        if (month === undefined) {
+            throw new BadSymbol (this.id + ' invalid expiry date ' + date);
+        }
         const reconstructedDate = day + month + year;
         return reconstructedDate;
     }
@@ -9011,6 +9061,9 @@ export class BaseExchange {
         const monthName = datePadded.slice (2, 5);
         const month = this.safeString (monthMappping, monthName);
         const day = datePadded.slice (5, 7);
+        if (month === undefined) {
+            throw new BadSymbol (this.id + ' invalid expiry date ' + date);
+        }
         const reconstructedDate = day + month + year;
         return reconstructedDate;
     }
@@ -9281,7 +9334,7 @@ export class BaseExchange {
 // independent sibling — so a prediction instance is NOT `instanceof Exchange`, while still reusing
 // every base helper via BaseExchange.
 export default class Exchange extends BaseExchange {
-    async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         throw new NotSupported (this.id + ' closePosition() is not supported yet');
     }
 

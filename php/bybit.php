@@ -1458,7 +1458,7 @@ class bybit extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function add_pagination_cursor_to_result(array $response): array {
@@ -1490,7 +1490,7 @@ class bybit extends Exchange {
         $enableUnifiedMargin = $this->safe_bool($this->options, 'enableUnifiedMargin');
         $enableUnifiedAccount = $this->safe_bool($this->options, 'enableUnifiedAccount');
         if ($enableUnifiedMargin === null || $enableUnifiedAccount === null) {
-            if ($this->options['enableDemoTrading'] === true) {
+            if ($this->safe_bool($this->options, 'enableDemoTrading', false)) {
                 // info endpoint is not available in demo trading
                 // so we're assuming UTA is enabled
                 $this->options['enableUnifiedMargin'] = false;
@@ -1825,7 +1825,7 @@ class bybit extends Exchange {
         if (!$this->check_required_credentials(false)) {
             return array();
         }
-        if ($this->options['enableDemoTrading'] === true) {
+        if ($this->safe_bool($this->options, 'enableDemoTrading', false)) {
             return array();
         }
         $response = $this->privateGetV5AssetCoinQueryInfo($params);
@@ -1935,7 +1935,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
         $promisesUnresolved = array();
@@ -2040,6 +2040,9 @@ class bybit extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Trading');
@@ -2212,6 +2215,9 @@ class bybit extends Exchange {
             $settleId = $this->safe_string($market, 'settleCoin', $defaultSettledId);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = null;
             if ($linearPerpetual && ($settleId === 'USD')) {
                 $settle = 'USDC';
@@ -2380,6 +2386,9 @@ class bybit extends Exchange {
             $settleId = $this->safe_string($market, 'settleCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $lotSizeFilter = $this->safe_dict($market, 'lotSizeFilter', array());
             $priceFilter = $this->safe_dict($market, 'priceFilter', array());
@@ -2838,8 +2847,7 @@ class bybit extends Exchange {
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $rounded = $this->parse_to_int($since / $duration) * $duration;
-            $request['start'] = ($rounded === $since) ? $since : $this->sum($rounded, $duration);
+            $request['start'] = $this->parse_to_int((int) ceil($since / $duration)) * $duration;
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000, default 1000
@@ -4766,9 +4774,7 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
-        }
+        $this->check_required_argument('editOrder', $symbol, 'symbol');
         $market = $this->market($symbol);
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePostV5OrderAmend($this->extend($request, $params));
@@ -10061,7 +10067,11 @@ class bybit extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($apiUrl) . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);

@@ -321,7 +321,10 @@ export default class btcturk extends Exchange {
         const quoteId = this.safeString (entry, 'denominator');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const filters = this.safeList (entry, 'filters', []);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        const filters: Dict[] = this.safeList (entry, 'filters', []);
         let minPrice: Num = undefined;
         let maxPrice: Num = undefined;
         let minAmount: Num = undefined;
@@ -391,7 +394,7 @@ export default class btcturk extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1081,7 +1084,11 @@ export default class btcturk extends Exchange {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        let url = this.urls['api'][api] + '/' + path;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
         const isQueryMethod = (method === 'GET') || (method === 'DELETE');
         if (isQueryMethod) {
             if (Object.keys (params).length > 0) {

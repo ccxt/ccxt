@@ -595,6 +595,8 @@ class woofipro(Exchange, ImplicitAPI):
         quoteId = self.safe_string(parts, 2)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
@@ -2009,8 +2011,7 @@ class woofipro(Exchange, ImplicitAPI):
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
         response = None
-        if side is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a side argument')
+        self.check_required_argument('editOrder', side, 'side')
         if isConditional:
             response = await self.v1PrivatePutAlgoOrder(self.extend(request, params))
         else:
@@ -2782,7 +2783,8 @@ class woofipro(Exchange, ImplicitAPI):
         return self.safe_number(data, 'withdraw_nonce')
 
     def hash_message(self, message: object):
-        return '0x' + self.hash(message, 'keccak', 'hex')
+        hashed = self.hash(message, 'keccak', 'hex')
+        return '0x' + hashed
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
@@ -3299,7 +3301,10 @@ class woofipro(Exchange, ImplicitAPI):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
-        url = self.urls['api'][access] + '/' + version + '/'
+        apiUrl = self.safe_string(self.urls['api'], access)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + version + '/'
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':

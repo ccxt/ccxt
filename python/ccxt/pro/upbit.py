@@ -332,7 +332,7 @@ class upbit(ccxt.async_support.upbit):
                 },
             }
             self.options['ws'] = wsOptions
-        url = self.urls['api']['ws'] + '/private'
+        url = self.safe_string(self.urls['api'], 'ws') + '/private'
         client = self.client(url)
         return client
 
@@ -568,7 +568,7 @@ class upbit(ccxt.async_support.upbit):
             fee = self.safe_value(order, 'fee')
             if fee is not None:
                 parsed['fee'] = fee
-            fees = self.safe_value(order, 'fees')
+            fees = self.safe_list(order, 'fees')
             if fees is not None:
                 parsed['fees'] = fees
             parsed['trades'] = self.safe_value(order, 'trades')

@@ -588,10 +588,14 @@ public partial class bitso : Exchange
             var baseIdquoteIdVariable = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             var baseId = baseIdquoteIdVariable[0];
             var quoteId = baseIdquoteIdVariable[1];
-            object bs = ((string)baseId).ToUpper();
+            string? bs = ((string)baseId).ToUpper();
             string? quote = ((string)quoteId).ToUpper();
             bs = this.safeCurrencyCode(bs);
             quote = this.safeCurrencyCode(quote);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             IDictionary<string, object> fees = this.safeDict(market, "fees", new Dictionary<string, object>() {});
             IDictionary<string, object> flatRate = this.safeDict(fees, "flat_rate", new Dictionary<string, object>() {});
             string? takerString = this.safeString(flatRate, "taker");
@@ -629,7 +633,7 @@ public partial class bitso : Exchange
             IDictionary<string, object> baseCurrency = this.safeDict(currencies, bs);
             result.Add(this.safeMarketStructure(this.extend(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -2160,21 +2164,26 @@ public partial class bitso : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+        if ((method == "GET") || (method == "DELETE"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 endpoint = endpoint + ("?" + this.urlencode(query));
             }
         }
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), endpoint));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + endpoint);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2183,7 +2192,7 @@ public partial class bitso : Exchange
             endpoint = ("/api" + endpoint);
             List<object> content = new List<object>() {nonce, method, endpoint};
             object request = String.Join("", content.ToArray());
-            if (!isEqual(method, "GET") && !isEqual(method, "DELETE"))
+            if ((method != "GET") && (method != "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {

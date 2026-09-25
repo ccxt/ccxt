@@ -107,7 +107,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             market = self.market(symbols[0])
             messageHash = name + '::' + market['symbol']
             productIds = [(market['id'])]
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         if url is None:
             raise NotSupported(self.id + ' is not supported in sandbox environment')
         timestamp = str(self.nonce())
@@ -154,7 +154,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             symbol = self.symbol(marketId)
             productIds.append(marketId)
             messageHashes.append(name + '::' + symbol)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         if url is None:
             raise NotSupported(self.id + ' is not supported in sandbox environment')
         timestamp = self.number_to_string(self.seconds())
@@ -222,7 +222,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channel, params = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'LEVEL1')
         return await self.subscribe(channel, [symbol], params)
 
-    def get_active_symbols(self):
+    def get_active_symbols(self) -> list[object]:
         symbols = self.symbols
         output = []
         for i in range(0, len(symbols)):
@@ -285,7 +285,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client.resolve(ticker, channel)
         client.resolve(ticker, channel + '::' + ticker['symbol'])
 
-    def parse_ws_instrument(self, ticker: dict, market: Market = None):
+    def parse_ws_instrument(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "sequence": 1,
@@ -710,7 +710,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #
         return message
 
-    def handle_funding_rate(self, client: Client, message: object):
+    def handle_funding_rate(self, client: Client, message: dict):
         #
         # snapshot
         #    {

@@ -721,6 +721,9 @@ export default class grvt extends Exchange {
         const settleId = quoteId;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         let type: Str = undefined;
@@ -1408,7 +1411,7 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const spotBalances = this.safeList (response, 'spot_balances', []);
+        const spotBalances: Dict[] = this.safeList (response, 'spot_balances', []);
         const availableBalance = this.safeString (response, 'available_balance');
         for (let i = 0; i < spotBalances.length; i++) {
             const balance = this.safeDict (spotBalances, i);
@@ -1576,7 +1579,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const rows = this.safeList (response, 'result', []);
+        const rows: Dict[] = this.safeList (response, 'result', []);
         const transfers = this.parseTransfers (rows, currency, since, limit);
         return transfers;
     }
@@ -1756,7 +1759,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const rows = this.safeList (response, 'result', []);
+        const rows: Dict[] = this.safeList (response, 'result', []);
         const transfers = this.parseTransfers (rows, currency, since, limit);
         const filteredResults = this.filterTransfersByType (transfers, 'internal', false);
         return filteredResults[1];
@@ -1767,7 +1770,7 @@ export default class grvt extends Exchange {
         const nonMatchedResults: List = [];
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
-            if ((onlyMainAccount && transfer['fromAccount'] === '0' && transfer['toAccount'] === '0') || (!onlyMainAccount && (transfer['fromAccount'] !== '0' || transfer['toAccount'] !== '0'))) {
+            if ((onlyMainAccount && this.safeString (transfer, 'fromAccount') === '0' && this.safeString (transfer, 'toAccount') === '0') || (!onlyMainAccount && (this.safeString (transfer, 'fromAccount') !== '0' || this.safeString (transfer, 'toAccount') !== '0'))) {
                 const metadata = this.safeString (transfer['info'], 'transfer_metadata');
                 const parsedMetadata = this.parseJson (metadata);
                 const direction = this.safeString (parsedMetadata, 'direction');
@@ -1895,7 +1898,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    async loadAccountInfos () {
+    async loadAccountInfos (): Promise<boolean> {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return false;
         }
@@ -2213,7 +2216,7 @@ export default class grvt extends Exchange {
 
     eipMessageForOrder (order: Dict, structureType: Str): Dict {
         const priceMultiplier = '1000000000';
-        const orderLegs = this.safeList (order, 'legs', []);
+        const orderLegs: Dict[] = this.safeList (order, 'legs', []);
         const legs: List = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
@@ -2485,7 +2488,7 @@ export default class grvt extends Exchange {
         //                "margin_type": "CROSS"
         //            },
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseLeverages (results, symbols);
     }
 
@@ -2575,7 +2578,7 @@ export default class grvt extends Exchange {
         //                "margin_type": "CROSS"
         //            },
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseLeverages (results, symbols);
     }
 
@@ -3313,7 +3316,11 @@ export default class grvt extends Exchange {
         let requestBody: Str = body;
         let requestPath: any = path;
         const query = this.omit (params, this.extractParams (requestPath));
-        let url = this.urls['api'][api] + requestPath;
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + requestPath;
         let queryString = '';
         if (method === 'GET') {
             if (Object.keys (query).length > 0) {
@@ -3369,7 +3376,7 @@ export default class grvt extends Exchange {
                 const cookieValue = cookie.split (';')[0];
                 this.options['AuthCookieValue'] = cookieValue;
             }
-            if (this.options['AuthCookieValue'] === undefined || this.options['AuthAccountId'] === undefined) {
+            if (this.safeString (this.options, 'AuthCookieValue') === undefined || this.safeString (this.options, 'AuthAccountId') === undefined) {
                 throw new AuthenticationError (this.id + ' signIn() failed to receive auth-cookie or account-id');
             }
         } else {

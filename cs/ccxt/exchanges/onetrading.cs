@@ -588,12 +588,16 @@ public partial class onetrading : Exchange
         string? baseId = this.safeString(baseAsset, "code");
         string? quoteId = this.safeString(quoteAsset, "code");
         string? id = this.safeString(market, "id");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? state = this.safeString(market, "state");
         string? type = this.safeString(market, "type");
         bool isPerp = type == "PERP";
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = ((bs + "/") + quote);
         if (isPerp)
         {
             symbol = add(add(symbol, ":"), quote);
@@ -1497,10 +1501,7 @@ public partial class onetrading : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = type.ToUpper();
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", uppercaseType },
@@ -2016,18 +2017,23 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradeHistory, market, since, limit));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else if (isEqual(api, "private"))
         {
@@ -2036,7 +2042,7 @@ public partial class onetrading : Exchange
                 { "Accept", "application/json" },
                 { "Authorization", ("Bearer " + this.apiKey) },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 body = this.json(query);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
@@ -2044,7 +2050,7 @@ public partial class onetrading : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             }
         }

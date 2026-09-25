@@ -245,7 +245,7 @@ func (this *Bitrue) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
 	}
 
@@ -382,9 +382,9 @@ func (this *Bitrue) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var url any = nil
 	var channel any = nil
 	var cbId any = nil
@@ -476,7 +476,7 @@ func (this *Bitrue) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
@@ -487,12 +487,15 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	var symbols []string = ccxt.ObjectKeys(markets)
 	for i := 0; i < len(symbols); i++ {
 		var candidate any = ccxt.GetValue(markets, ccxt.GetValue(symbols, i))
-		if !ccxt.IsEqual(ccxt.GetValue(candidate, "swap"), true) {
+		if !ccxt.IsEqual(this.SafeBool(candidate, "swap"), true) {
 			continue
 		}
-		var baseId *string = this.SafeStringLower(candidate, "baseId", "")
-		var quoteId *string = this.SafeStringLower(candidate, "quoteId", "")
-		if ccxt.Add(baseId, quoteId) == wsBaseQuote {
+		var baseId *string = this.SafeStringLower(candidate, "baseId")
+		var quoteId *string = this.SafeStringLower(candidate, "quoteId")
+		if (baseId == nil) || (quoteId == nil) {
+			panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id+" findSwapMarketByWsBaseQuote() market ", ccxt.GetValue(symbols, i)), " has no baseId or quoteId")))
+		}
+		if *baseId+*quoteId == wsBaseQuote {
 			return candidate
 		}
 	}
@@ -513,7 +516,7 @@ func (this *Bitrue) ConvertFromRawQuantity(symbol any, rawQuantity any) any {
 	if ccxt.IsEqual(rawQuantity, nil) {
 		return nil
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if ccxt.GetValue(market, "contract") != true {
 		return rawQuantity
 	}
@@ -550,7 +553,7 @@ func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchTrades is only supported for swap markets"))
@@ -558,8 +561,8 @@ func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
-	var channel any = ccxt.Add(ccxt.Add("market_", wsId), "_trade_ticker")
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market_", wsId), "_trade_ticker"))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
@@ -627,7 +630,7 @@ func (this *Bitrue) HandleTrades(client any, message any) {
 		appended = true
 	}
 	if appended {
-		var messageHash any = ccxt.Add("trades:", symbol)
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -689,7 +692,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV is only supported for swap markets"))
@@ -702,8 +705,8 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("market_", wsId), "_kline_"), interval)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market_", wsId), "_kline_"), interval))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
@@ -766,7 +769,7 @@ func (this *Bitrue) HandleOHLCV(client any, message any) {
 	}
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
@@ -812,7 +815,7 @@ func (this *Bitrue) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " watchTicker is only supported for swap markets"))
@@ -820,8 +823,8 @@ func (this *Bitrue) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
 	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
-	var channel any = ccxt.Add(ccxt.Add("market_", wsId), "_ticker")
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market_", wsId), "_ticker"))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "futurePublic"))
 	var message map[string]any = map[string]any{
 		"event": "sub",
@@ -867,7 +870,7 @@ func (this *Bitrue) HandleTicker(client any, message any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsTicker(tick, market, timestamp))
 	ccxt.AddElementToObject(this.Tickers, symbol, parsed)
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 }
 func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs ...any) any {
@@ -1048,7 +1051,11 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
 				this.Options.Store("listenKey", key)
-				this.Options.Store("listenKeyUrl", ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/stream?listenKey="), key))
+				var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+				if wsUrl == nil {
+					panic(ccxt.ExchangeError(this.Id + " authenticate() has no private websocket url"))
+				}
+				this.Options.Store("listenKeyUrl", *wsUrl+"/stream?listenKey="+*key)
 				client.(ccxt.ClientInterface).Resolve(key, messageHash)
 				return nil
 			}(this)

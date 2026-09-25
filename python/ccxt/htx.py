@@ -1543,7 +1543,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             self.load_time_difference()
         types = None
         types, params = self.handle_option_and_params(params, 'fetchMarkets', 'types', {})
@@ -1743,6 +1743,8 @@ class htx(Exchange, ImplicitAPI):
                 lowercaseId = id.lower()
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
             expiry = None
@@ -1883,6 +1885,8 @@ class htx(Exchange, ImplicitAPI):
             info = self.safe_dict(market, 'info', {})
             contractType = self.safe_string(info, 'contract_type')
             contractSuffix = self.safe_string(futuresCharsMaps, contractType)
+            if contractSuffix is None:
+                continue  # unknown contract_type: no id to construct
             # see comment on formats a bit above
             constructedId = None
             if market['linear'] is True:
@@ -3042,7 +3046,7 @@ class htx(Exchange, ImplicitAPI):
         #
         typeId = self.safe_string(account, 'type')
         accountsById = self.safe_dict(self.options, 'accountsById', {})
-        type = self.safe_value(accountsById, typeId, typeId)
+        type = self.safe_string(accountsById, typeId, typeId)
         return {
             'info': account,
             'id': self.safe_string(account, 'id'),
@@ -3217,7 +3221,7 @@ class htx(Exchange, ImplicitAPI):
         keysLength = len(keys)
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkIdToCode() - markets need to be loaded at first')
-        networkTitle = self.safe_value(self.options['networkNamesByChainIds'], networkId, networkId)
+        networkTitle = self.safe_string(self.options['networkNamesByChainIds'], networkId, networkId)
         return super(htx, self).network_id_to_code(networkTitle, currencyCode)
 
     def network_code_to_id(self, networkCode: Str, currencyCode: Str = None) -> Str:
@@ -3234,7 +3238,7 @@ class htx(Exchange, ImplicitAPI):
             return uniqueNetworkIds[networkCode]
         else:
             networkTitle = super(htx, self).network_code_to_id(networkCode, currencyCode)
-            return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
+            return self.safe_string(uniqueNetworkIds, networkTitle, networkTitle)
 
     def fetch_balance(self, params: dict = {}) -> Balances:
         """
@@ -3705,11 +3709,11 @@ class htx(Exchange, ImplicitAPI):
             account = self.account()
         if account is None:
             raise ExchangeError(self.id + ' parseMarginBalanceHelper() could not resolve account')
-        if balance['type'] == 'trade':
+        if self.safe_string(balance, 'type') == 'trade':
             account['free'] = self.safe_string(balance, 'balance')
         if account is None:
             raise ExchangeError(self.id + ' parseMarginBalanceHelper() could not resolve account')
-        if balance['type'] == 'frozen':
+        if self.safe_string(balance, 'type') == 'frozen':
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
@@ -5736,7 +5740,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
-    def parse_cancel_orders(self, orders: object):
+    def parse_cancel_orders(self, orders: dict):
         #
         #    {
         #        "success": [
@@ -6074,8 +6078,8 @@ class htx(Exchange, ImplicitAPI):
         addresses = []
         for i in range(0, len(allAddresses)):
             address = allAddresses[i]
-            noteMatch = (note is None) or (address['note'] == note)
-            networkMatch = (networkCode is None) or (address['network'] == networkCode)
+            noteMatch = (note is None) or (self.safe_string(address, 'note') == note)
+            networkMatch = (networkCode is None) or (self.safe_string(address, 'network') == networkCode)
             if noteMatch and networkMatch:
                 addresses.append(address)
         return addresses
@@ -7086,7 +7090,7 @@ class htx(Exchange, ImplicitAPI):
         }
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         pathString = path
@@ -7877,7 +7881,7 @@ class htx(Exchange, ImplicitAPI):
         if (market['future'] is True) and (market['inverse'] is True):
             for i in range(0, len(positions)):
                 entry = positions[i]
-                if entry['contract_code'] == market['id']:
+                if self.safe_string(entry, 'contract_code') == market['id']:
                     position = entry
                     break
         else:
@@ -9104,7 +9108,7 @@ class htx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a contract market
 

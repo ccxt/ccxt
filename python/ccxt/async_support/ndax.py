@@ -621,6 +621,8 @@ class ndax(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'Product2')
         base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
         quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
+        if (base is None) or (quote is None):
+            return None
         sessionStatus = self.safe_string(market, 'SessionStatus')
         isDisable = self.safe_bool(market, 'IsDisable')
         sessionRunning = (sessionStatus == 'Running')
@@ -1294,7 +1296,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'Trade': 'trade',
             'Deposit': 'transaction',
@@ -2585,7 +2587,10 @@ class ndax(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if path == 'Authenticate':

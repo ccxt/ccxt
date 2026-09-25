@@ -534,7 +534,12 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         await this.authenticate();
-        string channel = ((("private-my_orders_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + ((this.options.ContainsKey("userId") ? this.options["userId"] : null)));
+        string? userId = this.safeString(this.options, "userId");
+        if ((userId == null))
+        {
+            throw new AuthenticationError ((this.id + " unWatchOrders() requires a userId from authenticate()")) ;
+        }
+        string channel = ((("private-my_orders_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + userId);
         return await this.unWatchChannel(channel, channel, "orders", new List<object>() {symbolVar}, parameters);
     }
 
@@ -604,7 +609,12 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         await this.authenticate();
-        string channel = ((("private-my_trades_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + ((this.options.ContainsKey("userId") ? this.options["userId"] : null)));
+        string? userId = this.safeString(this.options, "userId");
+        if ((userId == null))
+        {
+            throw new AuthenticationError ((this.id + " unWatchMyTrades() requires a userId from authenticate()")) ;
+        }
+        string channel = ((("private-my_trades_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + userId);
         return await this.unWatchChannel(channel, channel, "myTrades", new List<object>() {symbolVar}, parameters);
     }
 
@@ -1161,7 +1171,12 @@ public partial class bitstamp : ccxt.bitstamp
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         await this.authenticate();
-        messageHash = add(messageHash, ("-" + ((this.options.ContainsKey("userId") ? this.options["userId"] : null))));
+        string? userId = this.safeString(this.options, "userId");
+        if ((userId == null))
+        {
+            throw new AuthenticationError ((this.id + " subscribePrivate() requires a userId from authenticate()")) ;
+        }
+        messageHash = add(messageHash, ("-" + userId));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {

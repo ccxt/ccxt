@@ -583,7 +583,7 @@ class derive(ccxt.async_support.derive):
                     fee = self.safe_value(order, 'fee')
                     if fee is not None:
                         parsed['fee'] = fee
-                    fees = self.safe_value(order, 'fees')
+                    fees = self.safe_list(order, 'fees')
                     if fees is not None:
                         parsed['fees'] = fees
                     parsed['trades'] = self.safe_value(order, 'trades')
@@ -712,9 +712,9 @@ class derive(ccxt.async_support.derive):
             subscriptionsById = self.index_by(client.subscriptions, 'id')
             subscription = {} if (id is None) else self.safe_dict(subscriptionsById, id, {})
             if 'method' in subscription:
-                if subscription['method'] == 'public/login':
+                if self.safe_string(subscription, 'method') == 'public/login':
                     self.handle_auth(client, message)
-                elif subscription['method'] == 'unsubscribe':
+                elif self.safe_string(subscription, 'method') == 'unsubscribe':
                     self.handle_un_subscribe(client, message)
                 # could handleSubscribe
 

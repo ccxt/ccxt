@@ -1248,7 +1248,7 @@ public partial class opinion : PredictionExchange
             { "side", sideInt.ToString() },
             { "signatureType", signatureType.ToString() },
             { "signature", signature },
-            { "sign", slice(signatureNo0x, 0, 64) },
+            { "sign", ((signatureNo0x == null) ? null : signatureNo0x.Substring(0, Math.Min(64, signatureNo0x.Length))) },
             { "contractAddress", "" },
             { "currencyAddress", quoteTokenAddress },
             { "topicId", topicId },
@@ -1506,7 +1506,7 @@ public partial class opinion : PredictionExchange
         int tradesLength = trades.Count;
         for (int i = 0; i < tradesLength; i++)
         {
-            object trade = (trades != null && i < trades.Count ? trades[i] : null);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)(trades != null && i < trades.Count ? trades[i] : null));
             string? tokenId = this.safeString(trade, "tokenId");
             Int64? marketId = this.safeInteger(trade, "marketId");
             if (((tokenId == null)) && ((marketId != null)))
@@ -1514,7 +1514,7 @@ public partial class opinion : PredictionExchange
                 object tradeMarket = await this.loadTradeMarket(marketId);
                 IDictionary<string, object> info = this.safeDict(tradeMarket, "info", new Dictionary<string, object>() {});
                 bool isYes = ((this.safeStringLower(trade, "outcomeSideEnum") == "yes"));
-                ((IDictionary<string,object>)trade)["tokenId"] = isYes ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
+                trade["tokenId"] = isYes ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
             }
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
@@ -2483,7 +2483,7 @@ public partial class opinion : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "opinion";
         method ??= "GET";
@@ -2531,7 +2531,7 @@ public partial class opinion : PredictionExchange
                 ((IDictionary<string,object>)headers)["apikey"] = apiKey;
             }
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

@@ -904,13 +904,17 @@ public partial class bitfinex : Exchange
                 baseId = ((id == null) ? null : id.Substring(0, Math.Min(3, id.Length)));
                 quoteId = ((id == null) ? null : id.Substring(Math.Min(3, id.Length), Math.Min(6, id.Length) - Math.Min(3, id.Length)));
             }
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            List<object> splitBase = ((string)bs).Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
+            List<object> splitBase = bs.Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
             List<object> splitQuote = quote.Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
             bs = this.safeString(splitBase, 0);
             quote = this.safeString(splitQuote, 0);
-            object symbol = add(add(bs, "/"), quote);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            object symbol = ((bs + "/") + quote);
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
             string? settle = null;
@@ -3528,7 +3532,7 @@ public partial class bitfinex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3542,12 +3546,17 @@ public partial class bitfinex : Exchange
         {
             request = (this.version + (request));
         }
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), request);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + (request));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         }
         if (isEqual(api, "private"))

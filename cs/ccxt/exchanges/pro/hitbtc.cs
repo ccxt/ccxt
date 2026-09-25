@@ -868,7 +868,7 @@ public partial class hitbtc : ccxt.hitbtc
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe));
+            ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1014,12 +1014,12 @@ public partial class hitbtc : ccxt.hitbtc
             Int64? limit = this.safeInteger(this.options, "ordersLimit");
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object data = this.safeValue(message, "params", new List<object>() {});
+        List<object> data = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(data); i++)
+            for (int i = 0; i < (data?.Count ?? 0); i++)
             {
-                object order = getValue(data, i);
+                object order = data[i];
                 this.handleOrderHelper(client, message, order);
             }
         } else
@@ -1421,7 +1421,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         string? messageHash = this.safeString(message, "method");
-        object parameters = this.safeValue(message, "params");
+        List<object> parameters = this.safeList(message, "params");
         Dictionary<string, object> balance = this.parseBalance(parameters);
         this.balance = this.deepExtend(this.balance, balance);
         client.resolve(this.balance, messageHash);

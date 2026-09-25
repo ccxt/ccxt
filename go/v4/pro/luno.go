@@ -75,14 +75,18 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(wsUrl, subscriptionHash))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
@@ -119,8 +123,8 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 		return
 	}
 	var symbol any = subscription["symbol"]
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var market map[string]any = this.Market(symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -205,14 +209,18 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var subscriptionHash any = ccxt.Add("/stream/", market["id"])
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 	}
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), subscriptionHash)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
+	}
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(wsUrl, subscriptionHash))
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var subscribe map[string]any = map[string]any{
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
@@ -258,7 +266,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	//     }
 	//
 	var symbol any = subscription["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))

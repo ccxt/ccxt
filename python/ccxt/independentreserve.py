@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
 from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -349,6 +350,8 @@ class independentreserve(Exchange, ImplicitAPI):
             for j in range(0, len(quoteCurrencyIds)):
                 quoteId = quoteCurrencyIds[j]
                 quote = self.safe_currency_code(quoteId)
+                if (base is None) or (quote is None):
+                    continue
                 id = baseId + '/' + quoteId
                 result.append({
                     'id': id,
@@ -578,7 +581,8 @@ class independentreserve(Exchange, ImplicitAPI):
         if (baseId is not None) and (quoteId is not None):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            if (base is not None) and (quote is not None):
+                symbol = base + '/' + quote
         elif market is not None:
             symbol = market['symbol']
             base = market['base']
@@ -1068,7 +1072,10 @@ class independentreserve(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
         if api == 'public':
             if len(params) > 0:
                 url += '?' + self.urlencode(params)

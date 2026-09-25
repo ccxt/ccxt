@@ -673,7 +673,7 @@ class bitrue extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function fetch_status($params = array()): PromiseInterface {
@@ -952,7 +952,7 @@ class bitrue extends Exchange {
         //         }
         //     ]
         //
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         return $this->parse_markets($markets);
@@ -990,6 +990,9 @@ class bitrue extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         if ($settle !== null) {
             $symbol .= ':' . $settle;
@@ -3386,9 +3389,17 @@ class bitrue extends Exchange {
         $access = $this->safe_string($api, 2);
         $url = null;
         if (($type === 'api' && $version === 'kline') || ($type === 'open' && mb_strpos($path, 'listenKey') !== false)) {
-            $url = $this->urls['api'][$type];
+            $apiUrl2 = $this->safe_string($this->urls['api'], $type);
+            if ($apiUrl2 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl2;
         } else {
-            $url = $this->urls['api'][$type] . '/' . $version;
+            $apiUrl = $this->safe_string($this->urls['api'], $type);
+            if ($apiUrl === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl . '/' . $version;
         }
         $url = $url . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
@@ -3512,7 +3523,7 @@ class bitrue extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (($error === '-2015') && ($this->options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
+            if (($error === '-2015') && $this->safe_bool($this->options, 'hasAlreadyAuthenticatedSuccessfully', false)) {
                 throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
             }
             $feedback = $this->id . ' ' . $body;

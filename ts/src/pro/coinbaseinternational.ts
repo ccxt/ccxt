@@ -103,7 +103,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             messageHash = name + '::' + market['symbol'];
             productIds = [ (market['id'] as string) ];
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
             throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }
@@ -157,7 +157,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             productIds.push (marketId);
             messageHashes.push (name + '::' + symbol);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
             throw new NotSupported (this.id + ' is not supported in sandbox environment');
         }
@@ -233,7 +233,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.subscribe ((channel as string), [ symbol ], paramsChannel);
     }
 
-    getActiveSymbols () {
+    getActiveSymbols (): any[] {
         const symbols = this.symbols;
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -302,7 +302,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
-    parseWsInstrument (ticker: Dict, market: Market = undefined) {
+    parseWsInstrument (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "sequence": 1,
@@ -511,7 +511,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.ohlcvs[symbol][(timeframe as string)];
-        const data = this.safeList (message, 'candles', []);
+        const data: Dict[] = this.safeList (message, 'candles', []);
         for (let i = 0; i < data.length; i++) {
             const tick = this.safeDict (data, i);
             const parsed = this.parseOHLCV (tick, market);
@@ -757,7 +757,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    handleFundingRate (client: Client, message: any) {
+    handleFundingRate (client: Client, message: Dict) {
         //
         // snapshot
         //    {

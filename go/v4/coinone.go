@@ -575,9 +575,12 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		result = append(result, map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -705,7 +708,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -849,7 +852,7 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -982,16 +985,16 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
-	var side any = nil
+	var side *string = nil
 	if isSellerMaker != nil {
-		side = func() string {
+		side = SafeStringPtr(func() string {
 			if isSellerMaker != nil && *isSellerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()
+		}())
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
@@ -1003,7 +1006,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 		var feeRateString *string = this.SafeString(trade, "feeRate")
 		feeRateString = Precise.StringAbs(feeRateString)
 		var feeCurrencyCode any = nil
-		if IsEqual(side, "sell") {
+		if side != nil && *side == "sell" {
 			feeCurrencyCode = GetValue(market, "quote")
 		} else {
 			feeCurrencyCode = GetValue(market, "base")
@@ -1060,7 +1063,7 @@ func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -1131,7 +1134,7 @@ func (this *Coinone) createOrderBody(ch chan any, symbol any, typeVar any, side 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	// the v1 order/limit_buy and order/limit_sell endpoints were retired by
 	// the exchange and return 404, the v2.1 order endpoint replaces them,
 	// see https://github.com/ccxt/ccxt/issues/23174
@@ -1185,7 +1188,7 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 		"currency": market["id"],
@@ -1287,7 +1290,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
 		symbol = Add(Add(base, "/"), quote)
-		market = MapTyped(this.SafeMarket(symbol, market, "/"))
+		market = this.SafeMarket(symbol, market, "/")
 	}
 	var timestamp *int64 = this.SafeTimestamp2(order, "timestamp", "updatedAt")
 	if timestamp == nil {
@@ -1388,7 +1391,7 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quoteId"],
 		"target_currency": market["baseId"],
@@ -1451,7 +1454,7 @@ func (this *Coinone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency": market["id"],
 	}
@@ -1582,8 +1585,8 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var value any = walletAddress[key]
-		if (IsEqual(value, nil)) || (IsEqual(value, nil)) || (IsEqual(value, "")) || (IsEqual(value, "-1")) {
+		var value *string = this.SafeString(walletAddress, key)
+		if (value == nil) || (value != nil && *value == "") || (value != nil && *value == "-1") {
 			continue
 		}
 		var parts []string = strings.Split(key, "_")
@@ -1629,14 +1632,30 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var request any = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/")
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = *apiUrl + "/"
 	if IsEqual(api, "v2Public") {
-		url = Add(GetValue(GetValue(this.Urls, "api"), "v2Public"), "/")
+		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Public")
+		if apiUrl2 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = *apiUrl2 + "/"
 		api = "public"
 	} else if IsEqual(api, "v2Private") {
-		url = Add(GetValue(GetValue(this.Urls, "api"), "v2Private"), "/")
+		var apiUrl3 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Private")
+		if apiUrl3 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = *apiUrl3 + "/"
 	} else if IsEqual(api, "v2_1Private") {
-		url = Add(GetValue(GetValue(this.Urls, "api"), "v2_1Private"), "/")
+		var apiUrl4 *string = this.SafeString(GetValue(this.Urls, "api"), "v2_1Private")
+		if apiUrl4 == nil {
+			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		}
+		url = *apiUrl4 + "/"
 	}
 	if IsEqual(api, "public") {
 		url = Add(url, request)
@@ -1647,11 +1666,11 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		url = Add(url, request)
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
-		var nonce any = nil
+		var nonce *string = nil
 		if IsEqual(api, "v2_1Private") {
-			nonce = this.Uuid()
+			nonce = SafeStringPtr(this.Uuid())
 		} else {
-			nonce = ToString(this.Nonce())
+			nonce = SafeStringPtr(ToString(this.Nonce()))
 		}
 		var json any = this.Json(this.Extend(map[string]any{
 			"access_token": this.ApiKey,
@@ -1684,7 +1703,7 @@ func (this *Coinone) HandleErrors(code any, reason any, url any, method any, hea
 	//
 	var errorCode *string = this.SafeString(response, "error_code")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

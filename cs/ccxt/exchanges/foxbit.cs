@@ -817,7 +817,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if (isGreaterThan(limit, 200))
+            if ((limit > 200))
             {
                 request["page_size"] = 200;
             }
@@ -870,7 +870,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["limit"] = limit;
-            if (isGreaterThan(limit, 500))
+            if ((limit > 500))
             {
                 request["limit"] = 500;
             }
@@ -1008,7 +1008,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 request["page_size"] = 100;
             }
@@ -1045,23 +1045,20 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         typeVar = typeVar.ToUpper();
-        if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "STOP_LIMIT") && !isEqual(typeVar, "INSTANT"))
+        if (!(typeVar == "LIMIT") && !(typeVar == "MARKET") && !(typeVar == "STOP_MARKET") && !(typeVar == "STOP_LIMIT") && !(typeVar == "INSTANT"))
         {
             throw new InvalidOrder ((("Invalid order type: " + (typeVar)) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
         double? triggerPrice = this.safeNumber(parameters, "triggerPrice");
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side.ToUpper() },
             { "type", typeVar },
         };
-        if (isEqual(typeVar, "STOP_MARKET") || isEqual(typeVar, "STOP_LIMIT"))
+        if ((typeVar == "STOP_MARKET") || (typeVar == "STOP_LIMIT"))
         {
             if ((triggerPrice == null))
             {
@@ -1086,14 +1083,14 @@ public partial class foxbit : Exchange
         {
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        if (isEqual(typeVar, "INSTANT"))
+        if ((typeVar == "INSTANT"))
         {
             request["amount"] = this.priceToPrecision(symbol, amount);
         } else
         {
             request["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "STOP_LIMIT"))
+        if ((typeVar == "LIMIT") || (typeVar == "STOP_LIMIT"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1361,7 +1358,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 request["page_size"] = 100;
             }
@@ -1427,7 +1424,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 request["page_size"] = 100;
             }
@@ -1520,7 +1517,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 request["page_size"] = 100;
             }
@@ -1577,7 +1574,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 request["page_size"] = 100;
             }
@@ -1698,12 +1695,9 @@ public partial class foxbit : Exchange
     {
         string typeVar = type;
         parameters ??= new Dictionary<string, object>();
-        if ((symbol == null))
-        {
-            throw new ArgumentsRequired ((this.id + " editOrder() requires a symbol argument")) ;
-        }
+        this.checkRequiredArgument("editOrder", symbol, "symbol");
         typeVar = typeVar.ToUpper();
-        if (!isEqual(typeVar, "LIMIT") && !isEqual(typeVar, "MARKET") && !isEqual(typeVar, "STOP_MARKET") && !isEqual(typeVar, "INSTANT"))
+        if (!(typeVar == "LIMIT") && !(typeVar == "MARKET") && !(typeVar == "STOP_MARKET") && !(typeVar == "INSTANT"))
         {
             throw new InvalidOrder ((("Invalid order type: " + (typeVar)) + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")) ;
         }
@@ -1712,10 +1706,7 @@ public partial class foxbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " editOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("editOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "mode", "ALLOW_FAILURE" },
             { "cancel", new Dictionary<string, object>() {
@@ -1728,20 +1719,20 @@ public partial class foxbit : Exchange
                 { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
-        if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "MARKET"))
+        if ((typeVar == "LIMIT") || (typeVar == "MARKET"))
         {
             ((IDictionary<string,object>)request["create"])["quantity"] = this.amountToPrecision(symbol, amount);
-            if (isEqual(typeVar, "LIMIT"))
+            if ((typeVar == "LIMIT"))
             {
                 ((IDictionary<string,object>)request["create"])["price"] = this.priceToPrecision(symbol, price);
             }
         }
-        if (isEqual(typeVar, "STOP_MARKET"))
+        if ((typeVar == "STOP_MARKET"))
         {
             ((IDictionary<string,object>)request["create"])["stop_price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request["create"])["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (isEqual(typeVar, "INSTANT"))
+        if ((typeVar == "INSTANT"))
         {
             ((IDictionary<string,object>)request["create"])["amount"] = this.priceToPrecision(symbol, amount);
         }
@@ -1837,7 +1828,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if (isGreaterThan(limit, 100))
+            if ((limit > 100))
             {
                 request["page_size"] = 100;
             }
@@ -1860,9 +1851,13 @@ public partial class foxbit : Exchange
         string? baseId = this.safeString(baseAssets, "symbol");
         IDictionary<string, object> quoteAssets = this.safeDict(market, "quote");
         string? quoteId = this.safeString(quoteAssets, "symbol");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         IDictionary<string, object> fees = this.safeDict(market, "default_fees");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -2246,7 +2241,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2259,19 +2254,24 @@ public partial class foxbit : Exchange
             fullPath = "/status";
             urlPath = "status";
         }
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), urlPath), fullPath);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), urlPath);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
         Int64 timestamp = this.milliseconds();
         string query = "";
         object signatureQuery = "";
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             List<object> paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             int paramKeysLength = paramKeys.Count;
             if (paramKeysLength > 0)
             {
                 query = this.urlencode(parameters);
-                url = add(url, ("?" + query));
+                url = url + ("?" + query);
             }
             for (int i = 0; i < paramKeys.Count; i++)
             {
@@ -2287,7 +2287,7 @@ public partial class foxbit : Exchange
                 }
             }
         }
-        if (isEqual(method, "POST") || isEqual(method, "PUT"))
+        if ((method == "POST") || (method == "PUT"))
         {
             body = this.json(parameters);
         }
@@ -2304,7 +2304,7 @@ public partial class foxbit : Exchange
         if (isEqual(urlPath, "private"))
         {
             this.checkRequiredCredentials();
-            string preHash = ((((this.numberToString(timestamp) + (method)) + fullPath) + (signatureQuery)) + (bodyToSignature));
+            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + (bodyToSignature));
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);

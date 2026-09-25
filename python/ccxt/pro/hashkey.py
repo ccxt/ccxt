@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
@@ -67,8 +68,11 @@ class hashkey(ccxt.async_support.hashkey):
         url = self.get_private_url(listenKey)
         return await self.watch(url, messageHash, None, messageHash)
 
-    def get_private_url(self, listenKey: object):
-        return self.urls['api']['ws']['private'] + '/' + listenKey
+    def get_private_url(self, listenKey: Str) -> str:
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' getPrivateUrl() has no private websocket url')
+        return wsUrl + '/' + listenKey
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -639,7 +643,7 @@ class hashkey(ccxt.async_support.hashkey):
         symbol = parsed['symbol']
         client.resolve(parsed, messageHash + ':' + symbol)
 
-    def parse_ws_position(self, position: object, market: Market = None) -> Position:
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 's')
         market = self.safe_market(marketId)
         timestamp = self.safe_integer(position, 'E')

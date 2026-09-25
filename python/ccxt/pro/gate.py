@@ -639,7 +639,9 @@ class gate(ccxt.async_support.gate):
             if storedOrderBook is not None:
                 cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 10)
-            waitAmount = snapshotDelay if isSpot else 0
+            waitAmount = 0
+            if isSpot:
+                waitAmount = snapshotDelay
             if cacheLength == waitAmount:
                 # max limit is 100
                 subscription = self.safe_dict(client.subscriptions, messageHash)
@@ -1032,7 +1034,7 @@ class gate(ccxt.async_support.gate):
             symbol = self.safe_symbol(marketId, None, '_', marketType)
             parsed = self.parse_ohlcv(ohlcv)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+            stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -1319,7 +1321,7 @@ class gate(ccxt.async_support.gate):
             return positions
         return self.filter_by_symbols_since_limit(self.safe_value(self.positions, type), symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type: object, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type: str, symbols: Strings = None):
         if self.positions is None:
             self.positions = {}
         if type in self.positions:
@@ -1333,7 +1335,7 @@ class gate(ccxt.async_support.gate):
         else:
             self.positions[type] = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: str, type: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str, type: str):
         positions = await self.fetch_positions(None, {'type': type})
         self.positions[type] = ArrayCacheBySymbolBySide()
         cache = self.positions[type]
@@ -2021,14 +2023,14 @@ class gate(ccxt.async_support.gate):
             if ack is not True:
                 client.resolve(result, requestId)
 
-    def get_url_by_market(self, market: object):
+    def get_url_by_market(self, market: object) -> str:
         baseUrl = self.urls['api'][market['type']]
-        if market['contract'] is True:
-            return baseUrl['usdt'] if (market['linear'] is True) else baseUrl['btc']
+        if self.safe_bool(market, 'contract') is True:
+            return baseUrl['usdt'] if (self.safe_bool(market, 'linear') is True) else baseUrl['btc']
         else:
             return baseUrl
 
-    def get_type_by_market(self, market: Market):
+    def get_type_by_market(self, market: Market) -> Str:
         if market is None:
             return None
         if market['spot'] is True:
@@ -2046,7 +2048,7 @@ class gate(ccxt.async_support.gate):
         else:
             return url
 
-    def get_market_type_by_url(self, url: str):
+    def get_market_type_by_url(self, url: str) -> str:
         findBy = {
             'op-': 'option',
             'delivery': 'future',

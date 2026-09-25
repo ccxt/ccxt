@@ -640,6 +640,8 @@ class blofin(Exchange, ImplicitAPI):
         settle = self.safe_currency_code(settleId)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         if swap:
             symbol = symbol + ':' + settle
@@ -2663,7 +2665,7 @@ class blofin(Exchange, ImplicitAPI):
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
         return response
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -2976,7 +2978,10 @@ class blofin(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api']['rest'] + request
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + request
         # const type = this.getPathAuthenticationType (path);
         if api == 'public':
             if not self.is_empty(query):

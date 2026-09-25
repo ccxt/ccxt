@@ -562,6 +562,9 @@ class bittrade extends Exchange {
             $quoteId = $this->safe_string($market, 'quote-currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $state = $this->safe_string($market, 'state');
             $leverageRatio = $this->safe_string($market, 'leverage-ratio', '1');
             $superLeverageRatio = $this->safe_string($market, 'super-$margin-leverage-ratio', '1');
@@ -1215,13 +1218,13 @@ class bittrade extends Exchange {
             if ($account === null) {
                 throw new ExchangeError($this->id . ' parseBalance() could not resolve account');
             }
-            if ($balance['type'] === 'trade') {
+            if ($this->safe_string($balance, 'type') === 'trade') {
                 $account['free'] = $this->safe_string($balance, 'balance');
             }
             if ($account === null) {
                 throw new ExchangeError($this->id . ' parseBalance() could not resolve account');
             }
-            if ($balance['type'] === 'frozen') {
+            if ($this->safe_string($balance, 'type') === 'frozen') {
                 $account['used'] = $this->safe_string($balance, 'balance');
             }
             if ($code !== null) {

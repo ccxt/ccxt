@@ -850,6 +850,8 @@ class hitbtc(Exchange, ImplicitAPI):
             feeCurrencyId = self.safe_string(market, 'fee_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             settleId = None
             settle = None
@@ -3592,7 +3594,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 }
         return result
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -3678,7 +3680,10 @@ class hitbtc(Exchange, ImplicitAPI):
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
-        url = self.urls['api'][api] + '/' + implodedPath
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + implodedPath
         getRequest = None
         keys = list(query.keys())
         queryLength = len(keys)

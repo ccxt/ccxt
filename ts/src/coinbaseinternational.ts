@@ -666,7 +666,7 @@ export default class coinbaseinternational extends Exchange {
             request['result_limit'] = 100;
         }
         const response = await this.v1PrivateGetTransfers (this.extend (request, paramsPortfolios));
-        const fundings = this.safeList (response, 'results', []);
+        const fundings: Dict[] = this.safeList (response, 'results', []);
         return this.parseIncomes (fundings, market, since, limit);
     }
 
@@ -746,7 +746,7 @@ export default class coinbaseinternational extends Exchange {
             request['result_limit'] = 100;
         }
         const response = await this.v1PrivateGetTransfers (this.extend (request, paramsPortfolios));
-        const transfers = this.safeList (response, 'results', []);
+        const transfers: Dict[] = this.safeList (response, 'results', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
@@ -1594,7 +1594,7 @@ export default class coinbaseinternational extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const instruments = await this.v1PublicGetInstruments (params);
         const tickers: Dict = {};
-        let rows: List = [];
+        let rows: Dict[] = [];
         if (Array.isArray (instruments)) {
             rows = instruments;
         }
@@ -1813,9 +1813,7 @@ export default class coinbaseinternational extends Exchange {
         const clientOrderIdprefix = this.safeString (this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid ();
         clientOrderId = clientOrderId.slice (0, 17);
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const request: Dict = {
             'client_order_id': clientOrderId,
             'side': side.toUpperCase (),
@@ -2232,7 +2230,7 @@ export default class coinbaseinternational extends Exchange {
         //        ]
         //    }
         //
-        const rawOrders = this.safeList (response, 'results', []);
+        const rawOrders: Dict[] = this.safeList (response, 'results', []);
         return this.parseOrders (rawOrders, market, since, limit);
     }
 
@@ -2325,7 +2323,7 @@ export default class coinbaseinternational extends Exchange {
         //        ]
         //    }
         //
-        const trades = this.safeList (response, 'results', []);
+        const trades: Dict[] = this.safeList (response, 'results', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2381,8 +2379,8 @@ export default class coinbaseinternational extends Exchange {
     }
 
     override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const version = api[0];
-        const signed = api[1] === 'private';
+        const version = this.safeString (api, 0);
+        const signed = this.safeString (api, 1) === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const savedPath = '/api' + fullPath;
@@ -2391,7 +2389,11 @@ export default class coinbaseinternational extends Exchange {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
-        const url = this.urls['api']['rest'] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         const hasSignedBody = signed && (method !== 'GET') && (Object.keys (query).length > 0);
         let signedBody: string = '';
         if (hasSignedBody) {

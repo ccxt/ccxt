@@ -364,8 +364,12 @@ public partial class bitbns : Exchange
             string? id = this.safeString(market, "id");
             object baseId = this.safeString(market, "base");
             string? quoteId = this.safeString(market, "quote");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             IDictionary<string, object> marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
             IDictionary<string, object> marketLimits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
             IDictionary<string, object> amountLimits = this.safeDict(marketLimits, "amount", new Dictionary<string, object>() {});
@@ -381,7 +385,7 @@ public partial class bitbns : Exchange
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", uppercaseId },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -785,10 +789,7 @@ public partial class bitbns : Exchange
         string? targetRate = this.safeString(parameters, "target_rate");
         string? trailRate = this.safeString(parameters, "trail_rate");
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", side.ToUpper() },
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
@@ -1344,7 +1345,7 @@ public partial class bitbns : Exchange
             {
                 type = "deposit";
                 status = "ok";
-            } else if (type.IndexOf("withdraw", StringComparison.Ordinal) >= 0 || getIndexOf(expTime, "withdraw") >= 0)
+            } else if (type.IndexOf("withdraw", StringComparison.Ordinal) >= 0 || (expTime?.IndexOf("withdraw", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 type = "withdrawal";
             }
@@ -1426,7 +1427,7 @@ public partial class bitbns : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "www";
         method ??= "GET";
@@ -1447,13 +1448,13 @@ public partial class bitbns : Exchange
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string nonce = this.nonce().ToString();
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
-        } else if (isEqual(method, "POST"))
+        } else if ((method == "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

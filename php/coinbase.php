@@ -1366,7 +1366,7 @@ class coinbase extends Exchange {
          * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
             $this->load_time_difference();
         }
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1388,6 +1388,9 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($baseIds); $i++) {
             $baseId = $baseIds[$i];
             $base = $this->safe_currency_code($baseId);
+            if ($base === null) {
+                continue;
+            }
             $type = 'crypto';
             if (is_array($dataById) && array_key_exists($baseId ?? '', $dataById)) {
                 $type = 'fiat';
@@ -1398,6 +1401,9 @@ class coinbase extends Exchange {
                     $quoteCurrency = $data[$j];
                     $quoteId = $this->safe_string($quoteCurrency, 'id');
                     $quote = $this->safe_currency_code($quoteId);
+                    if ($quote === null) {
+                        continue;
+                    }
                     $result[] = $this->safe_market_structure(array(
                         'id' => $baseId . '-' . $quoteId,
                         'symbol' => $base . '/' . $quote,
@@ -1579,15 +1585,24 @@ class coinbase extends Exchange {
         $data = $this->safe_list($spot, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_spot_market($data[$i], $feeTier);
+            $spotMarket = $this->parse_spot_market($data[$i], $feeTier);
+            if ($spotMarket !== null) {
+                $result[] = $spotMarket;
+            }
         }
         $futureData = $this->safe_list($expiringFutures, 'products', array());
         for ($i = 0; $i < count($futureData); $i++) {
-            $result[] = $this->parse_contract_market($futureData[$i], $expiringFeeTier);
+            $futureMarket = $this->parse_contract_market($futureData[$i], $expiringFeeTier);
+            if ($futureMarket !== null) {
+                $result[] = $futureMarket;
+            }
         }
         $perpetualData = $this->safe_list($perpetualFutures, 'products', array());
         for ($i = 0; $i < count($perpetualData); $i++) {
-            $result[] = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
+            $perpetualMarket = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
+            if ($perpetualMarket !== null) {
+                $result[] = $perpetualMarket;
+            }
         }
         $newMarkets = array();
         for ($i = 0; $i < count($result); $i++) {
@@ -1642,6 +1657,9 @@ class coinbase extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency_id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $marketType = $this->safe_string_lower($market, 'product_type');
         $tradingDisabled = $this->safe_bool($market, 'trading_disabled');
         $stablePairs = $this->safe_list($this->options, 'stablePairs', array());
@@ -1832,6 +1850,9 @@ class coinbase extends Exchange {
         $quoteId = $this->safe_string($market, 'quote_currency_id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $tradingDisabled = $this->safe_bool($market, 'is_disabled');
         $symbol = $base . '/' . $quote;
         $type = null;
@@ -2969,7 +2990,7 @@ class coinbase extends Exchange {
         ), $currency);
     }
 
-    public function find_account_id(?string $code, $params = array()) {
+    public function find_account_id(?string $code, $params = array()): ?string {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5320,12 +5341,16 @@ class coinbase extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
     public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $version = $api[0];
-        $signed = $api[1] === 'private';
+        $version = $this->safe_string($api, 0);
+        $signed = $this->safe_string($api, 1) === 'private';
         $isV3 = $version === 'v3';
         $pathPart = 'v2';
         if ($isV3) {
@@ -5339,7 +5364,11 @@ class coinbase extends Exchange {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $fullPath;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
         if ($signed) {
             $authorization = $this->safe_string($this->headers, 'Authorization');
             $authorizationString = null;
@@ -5491,7 +5520,7 @@ class coinbase extends Exchange {
                 }
             }
         }
-        $advancedTrade = $this->options['advanced'];
+        $advancedTrade = $this->safe_bool($this->options, 'advanced');
         if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && ($advancedTrade !== true)) {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }

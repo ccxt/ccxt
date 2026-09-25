@@ -273,6 +273,8 @@ class zaif(Exchange, ImplicitAPI):
         baseId, quoteId = name.split('/')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         return self.safe_market_structure({
             'id': id,
@@ -809,7 +811,8 @@ class zaif(Exchange, ImplicitAPI):
         return format(nonce, '.8f')
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api']['rest'] + '/'
+        baseUrl = self.urls['api']['rest']
+        url = baseUrl + '/'
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
         elif api == 'fapi':

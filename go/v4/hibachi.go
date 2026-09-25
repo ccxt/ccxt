@@ -343,9 +343,12 @@ func (this *Hibachi) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "settlementSymbol")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var settleId *string = this.SafeString(market, "settlementSymbol")
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
 	var created *int64 = this.SafeIntegerProduct(market, "marketCreationTimestamp", 1000)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -621,22 +624,22 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	market = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var id *string = this.SafeString(trade, "id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
 	var timestamp *int64 = this.SafeIntegerProduct(trade, "timestamp", 1000)
 	var cost *string = Precise.StringMul(price, amount)
-	var side any = nil
+	var side *string = nil
 	var fee map[string]any = nil
 	var orderType *string = nil
 	var orderId *string = nil
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if id == nil {
 		// public trades
 		side = this.SafeStringLower(trade, "takerSide")
-		takerOrMaker = "taker"
+		takerOrMaker = SafeStringPtr("taker")
 	} else {
 		// private trades
 		side = this.SafeStringLower(trade, "side")
@@ -645,7 +648,7 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": "USDT",
 		}
 		orderType = this.SafeStringLower(trade, "orderType")
-		if IsEqual(side, "buy") {
+		if side != nil && *side == "buy" {
 			orderId = this.SafeString(trade, "bidOrderId")
 		} else {
 			orderId = this.SafeString(trade, "askOrderId")
@@ -697,7 +700,7 @@ func (this *Hibachi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -716,9 +719,9 @@ func (this *Hibachi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	// }
 	//
 	var trades any = this.SafeList(response, "trades", []any{})
-	var tradesList any = []any{}
+	var tradesList []any = []any{}
 	if !IsEqual(trades, nil) {
-		tradesList = trades
+		tradesList = ArrayTyped(trades)
 	}
 
 	ch <- this.ParseTrades(tradesList, market)
@@ -749,7 +752,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -808,16 +811,16 @@ func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var status *string = this.SafeString(order, "status")
 	var typeVar *string = this.SafeStringLower(order, "orderType")
 	var price *string = this.SafeString2(order, "price", "avgFillPrice")
 	var rawSide *string = this.SafeString(order, "side")
-	var side any = nil
+	var side *string = nil
 	if rawSide != nil && *rawSide == "BID" {
-		side = "buy"
+		side = SafeStringPtr("buy")
 	} else if rawSide != nil && *rawSide == "ASK" {
-		side = "sell"
+		side = SafeStringPtr("sell")
 	}
 	var amount *string = this.SafeString(order, "totalQuantity")
 	var remaining *string = this.SafeString(order, "availableQuantity")
@@ -988,8 +991,8 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	var amountStr *string = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
 	var feeRateStr *string = this.NumberToString(feeRate)
 	var info map[string]any = SafeMapTyped(market, "info")
-	var underlying any = Add("1e", this.SafeString(info, "underlyingDecimals"))
-	var settlement any = Add("1e", this.SafeString(info, "settlementDecimals"))
+	var underlying *string = SafeStringPtr(Add("1e", this.SafeString(info, "underlyingDecimals")))
+	var settlement *string = SafeStringPtr(Add("1e", this.SafeString(info, "settlementDecimals")))
 	var one string = "1"
 	var feeRateFactor string = "100000000" // 10^8
 	var priceFactor string = "4294967296"  // 2^32
@@ -1034,7 +1037,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045))
 	var makerFee *float64 = this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015))
 	var takerFeeValue float64 = func() float64 {
@@ -1120,8 +1123,8 @@ func (this *Hibachi) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var nonce any = this.IncrementingNonce()
-	var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
-	AddElementToObject(request, "accountId", this.GetAccountId())
+	var request map[string]any = MapTyped(this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params))
+	request["accountId"] = this.GetAccountId()
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeOrder(request)).Raw))
 
@@ -1170,8 +1173,8 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams)
-		AddElementToObject(orderRequest, "action", "place")
+		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams))
+		orderRequest["action"] = "place"
 		requestOrders = append(requestOrders, orderRequest)
 	}
 	var request map[string]any = map[string]any{
@@ -1215,7 +1218,7 @@ func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", 0)
 	var makerFee *float64 = this.SafeNumber(market, "maker", 0)
 	var takerFeeValue float64 = func() float64 {
@@ -1504,7 +1507,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"signature": signature,
 	}
 	if symbol != nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		request["contractId"] = this.SafeInteger(market, "numericId")
 	}
 
@@ -1520,7 +1523,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	})}
 	return nil
 }
-func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees any, address any) any {
+func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees any, address string) any {
 	// Converting them to internal representation:
 	// - Quantity: Internal = External * (10^6)
 	// - maxFees: Internal = External * (10^6)
@@ -1677,7 +1680,7 @@ func (this *Hibachi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1791,9 +1794,9 @@ func (this *Hibachi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var trades any = this.SafeList(response, "trades")
-	var tradesList any = []any{}
+	var tradesList []any = []any{}
 	if !IsEqual(trades, nil) {
-		tradesList = trades
+		tradesList = ArrayTyped(trades)
 	}
 
 	ch <- this.ParseTrades(tradesList, market, since, limit, params)
@@ -2088,7 +2091,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	timeframe = DerefScalar(this.SafeString(this.Timeframes, timeframe, timeframe))
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
@@ -2218,8 +2221,8 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
-	var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+	market = this.SafeMarket(marketId, market)
+	var symbol *string = SafeStringPtr(market["symbol"])
 	var side *string = this.SafeStringLower(position, "direction")
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
@@ -2263,7 +2266,11 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), endpoint)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, endpoint)
 	headers = map[string]any{
 		"Hibachi-Client": "HibachiCCXT/unversioned",
 	}
@@ -2300,7 +2307,7 @@ func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any,
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "failed" {
 			var code *string = this.SafeString(response, "errorCode")
-			var feedback any = Add(this.Id+" ", body)
+			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			var message *string = this.SafeString(response, "message")
@@ -2333,17 +2340,17 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	_ = currency
 	var transactionType *string = this.SafeString(item, "transactionType")
 	var timestamp *int64 = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	var direction string
 	var amount any = nil
 	var fee map[string]any = nil
 	var referenceId *string = nil
 	var referenceAccount *string = nil
-	var status any = nil
+	var status *string = nil
 	if transactionType == nil {
 		// response from TradeAccountTradingHistory
 		timestamp = this.SafeIntegerProduct(item, "timestamp", 1000)
-		typeVar = "trade"
+		typeVar = SafeStringPtr("trade")
 		var amountStr *string = this.SafeString(item, "realizedPnl")
 		if Precise.StringLt(amountStr, "0") {
 			direction = "out"
@@ -2356,7 +2363,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 			"currency": "USDT",
 			"cost":     this.SafeNumber(item, "fee"),
 		}
-		status = "ok"
+		status = SafeStringPtr("ok")
 	} else {
 		// response from CapitalHistory
 		timestamp = this.SafeIntegerProduct(item, "timestampSec", 1000)
@@ -2426,7 +2433,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency("USDT"))
+	var currency map[string]any = this.Currency("USDT")
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
@@ -2622,7 +2629,7 @@ func (this *Hibachi) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
+	var currency map[string]any = this.SafeCurrency(code)
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
@@ -2810,7 +2817,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["contractId"] = GetValue(market, "numericId")
-		symbol = SafeStringPtr(GetValue(market, "symbol"))
+		symbol = SafeStringPtr(market["symbol"])
 	}
 	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))
@@ -2901,7 +2908,7 @@ func (this *Hibachi) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2947,7 +2954,7 @@ func (this *Hibachi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3025,7 +3032,7 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

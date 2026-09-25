@@ -219,7 +219,8 @@ export default class revolutx extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryLength = queryKeys.length;
-        let url = this.urls['api'][api] + '/' + implodedPath;
+        const baseUrl: string = this.urls['api'][api];
+        let url = baseUrl + '/' + implodedPath;
         let queryString = '';
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -564,7 +565,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816 }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const metadata = this.safeDict (response, 'metadata', {});
         const timestamp = this.safeInteger (metadata, 'timestamp');
         const result: Dict = {};
@@ -814,7 +815,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Trade[] = [];
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});
@@ -1179,7 +1180,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict (data, i, {});
@@ -1242,7 +1243,7 @@ export default class revolutx extends Exchange {
             request['order_types'] = orderTypes.join (',');
         }
         const response = await this.privateGet10OrdersHistorical (this.extend (request, this.omit (params, [ 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types' ])));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict (data, i, {});
@@ -1367,7 +1368,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Trade[] = [];
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});

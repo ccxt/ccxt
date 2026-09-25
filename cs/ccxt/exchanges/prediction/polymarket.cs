@@ -1079,7 +1079,7 @@ public partial class polymarket : PredictionExchange
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
-                    if (isGreaterThanOrEqual(outcomePrice, 0.99))
+                    if ((outcomePrice >= 0.99))
                     {
                         winnerRaw = true;
                         settleFractionRaw = 1;
@@ -1702,7 +1702,7 @@ public partial class polymarket : PredictionExchange
         IList<object> history = (IList<object>)(this.safeList(response, "history", new List<object>() {}));
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
-        object resolutionMs = ((fidelityMin * 60) * 1000);
+        Int64? resolutionMs = ((fidelityMin * 60) * 1000);
         Dictionary<string, object> buckets = new Dictionary<string, object>() {};
         for (int i = 0; i < (history?.Count ?? 0); i++)
         {
@@ -1714,7 +1714,7 @@ public partial class polymarket : PredictionExchange
                 continue;
             }
             Int64? rawMs = (t * 1000);
-            object snappedMs = multiply((Math.Floor(Double.Parse((divide(rawMs, resolutionMs)).ToString()))), resolutionMs);
+            object snappedMs = multiply((Math.Floor(Double.Parse(((rawMs / resolutionMs)).ToString()))), resolutionMs);
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             double? vol = this.safeNumber(item, "s");
@@ -2581,7 +2581,7 @@ public partial class polymarket : PredictionExchange
         if ((builderRaw != null))
         {
             object builderHex = this.remove0xPrefix(builderRaw);
-            if (getArrayLength(builderHex) <= 40)
+            if (((string)builderHex).Length <= 40)
             {
                 bool? builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 object feeRate = 0;
@@ -2727,7 +2727,7 @@ public partial class polymarket : PredictionExchange
         string rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
         string? makerRaw = null;
         string? takerRaw = null;
-        if (((cost != null)) && (isEqual(side, "BUY")))
+        if (((cost != null)) && ((side == "BUY")))
         {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
@@ -2735,7 +2735,7 @@ public partial class polymarket : PredictionExchange
             string? costStr = this.numberToString(cost);
             makerRaw = this.decimalToPrecision(costStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
             takerRaw = this.decimalToPrecision(Precise.stringDiv(makerRaw, rawPrice), TRUNCATE, amountDecimals, DECIMAL_PLACES);
-        } else if (isEqual(side, "BUY"))
+        } else if ((side == "BUY"))
         {
             string? sizeStr = this.numberToString(size);
             takerRaw = this.decimalToPrecision(sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
@@ -3310,7 +3310,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         // api is either a string ('gamma') or array (['gamma', 'public'])
         api ??= "gamma";
@@ -3335,7 +3335,7 @@ public partial class polymarket : PredictionExchange
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -3425,7 +3425,7 @@ public partial class polymarket : PredictionExchange
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 string requestPath = ("/" + this.implodeParams(path, parameters));
-                object auth = ((timestamp + (method)) + requestPath);
+                object auth = ((timestamp + method) + requestPath);
                 if ((body != null))
                 {
                     auth = add(auth, body);
@@ -3715,16 +3715,16 @@ public partial class polymarket : PredictionExchange
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, outcome);
         Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
-        IList<object> rawBids = (IList<object>)(this.safeList(eventVar, "bids", new List<object>() {}));
-        IList<object> rawAsks = (IList<object>)(this.safeList(eventVar, "asks", new List<object>() {}));
+        List<object> rawBids = this.safeList(eventVar, "bids", new List<object>() {});
+        List<object> rawAsks = this.safeList(eventVar, "asks", new List<object>() {});
         List<object> bids = new List<object>() {};
-        for (int i = 0; i < (rawBids?.Count ?? 0); i++)
+        for (int i = 0; i < rawBids.Count; i++)
         {
             IDictionary<string, object> b = this.safeDict(rawBids, i);
             bids.Add(new List<object> {this.safeNumber(b, "price"), this.safeNumber(b, "size")});
         }
         List<object> asks = new List<object>() {};
-        for (int j = 0; j < (rawAsks?.Count ?? 0); j++)
+        for (int j = 0; j < rawAsks.Count; j++)
         {
             IDictionary<string, object> a = this.safeDict(rawAsks, j);
             asks.Add(new List<object> {this.safeNumber(a, "price"), this.safeNumber(a, "size")});
@@ -3746,9 +3746,9 @@ public partial class polymarket : PredictionExchange
     public virtual void handleOrderBookDelta(WebSocketClient client, object eventVar)
     {
         Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
-        IList<object> changes = (IList<object>)(this.safeList(eventVar, "price_changes", new List<object>() {}));
+        List<object> changes = this.safeList(eventVar, "price_changes", new List<object>() {});
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
-        for (int i = 0; i < (changes?.Count ?? 0); i++)
+        for (int i = 0; i < changes.Count; i++)
         {
             IDictionary<string, object> change = this.safeDict(changes, i);
             string? tokenId = this.safeString(change, "asset_id");

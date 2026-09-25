@@ -94,7 +94,7 @@ class woofipro extends \ccxt\async\woofipro {
         if ($this->accountId !== null && $this->accountId !== '') {
             $id = $this->accountId;
         }
-        $url = $this->urls['api']['ws']['public'] . '/' . $id;
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . '/' . $id;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -199,7 +199,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\await($this->watch_public($topic, $message));
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -661,7 +661,7 @@ class woofipro extends \ccxt\async\woofipro {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->accountId;
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $event = 'auth';
@@ -696,7 +696,7 @@ class woofipro extends \ccxt\async\woofipro {
 
     private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->accountId;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -711,7 +711,7 @@ class woofipro extends \ccxt\async\woofipro {
 
     private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->accountId;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -982,7 +982,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
     }
 
-    public function handle_order(Client $client, array $message, mixed $topic) {
+    public function handle_order(Client $client, array $message, ?string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -1095,7 +1095,7 @@ class woofipro extends \ccxt\async\woofipro {
         } else {
             $messageHashes[] = 'positions';
         }
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->accountId;
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);

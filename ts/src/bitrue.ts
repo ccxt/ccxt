@@ -666,7 +666,7 @@ export default class bitrue extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -780,7 +780,7 @@ export default class bitrue extends Exchange {
         const id = this.safeString (rawCurrency, 'coin');
         const name = this.safeString (rawCurrency, 'coinFulName');
         const code = this.safeCurrencyCode (id);
-        const networkDetails = this.safeList (rawCurrency, 'chainDetail', []);
+        const networkDetails: Dict[] = this.safeList (rawCurrency, 'chainDetail', []);
         const networks: Dict = {};
         for (let j = 0; j < networkDetails.length; j++) {
             const entry = networkDetails[j];
@@ -931,7 +931,7 @@ export default class bitrue extends Exchange {
         //         }
         //     ]
         //
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         return this.parseMarkets (markets);
@@ -969,6 +969,9 @@ export default class bitrue extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         if (settle !== undefined) {
             symbol += ':' + settle;
@@ -2693,7 +2696,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -2755,7 +2758,7 @@ export default class bitrue extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency);
     }
 
@@ -2969,7 +2972,7 @@ export default class bitrue extends Exchange {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        const chainDetails = this.safeList (fee, 'chainDetail', []);
+        const chainDetails: Dict[] = this.safeList (fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
         const result: Dict = {
             'info': fee,
@@ -3113,7 +3116,7 @@ export default class bitrue extends Exchange {
         //         }]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         return this.parseTransfers (data, currency, since, limitResolved);
     }
 
@@ -3264,9 +3267,17 @@ export default class bitrue extends Exchange {
         const access = this.safeString (api, 2);
         let url: Str = undefined;
         if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
-            url = this.urls['api'][type];
+            const apiUrl2 = this.safeString (this.urls['api'], type);
+            if (apiUrl2 === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl2;
         } else {
-            url = this.urls['api'][type as string] + '/' + version;
+            const apiUrl = this.safeString (this.urls['api'], type);
+            if (apiUrl === undefined) {
+                throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+            }
+            url = apiUrl + '/' + version;
         }
         url = url + '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
@@ -3390,7 +3401,7 @@ export default class bitrue extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && (this.options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
+            if ((error === '-2015') && this.safeBool (this.options, 'hasAlreadyAuthenticatedSuccessfully', false)) {
                 throw new DDoSProtection (this.id + ' temporary banned: ' + body);
             }
             const feedback = this.id + ' ' + body;

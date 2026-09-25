@@ -426,10 +426,10 @@ public partial class derive : ccxt.derive
             for (int i = 0; i < topics.Count; i++)
             {
                 string? topic = ((string)topics[i]);
-                if (getIndexOf(topic, "orderbook") >= 0)
+                if ((topic?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     this.handleOrderBookUnSubscription(client, topic);
-                } else if (getIndexOf(topic, "trades") >= 0)
+                } else if ((topic?.IndexOf("trades", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     this.handleTradesUnSubscription(client, topic);
                 }
@@ -675,7 +675,7 @@ public partial class derive : ccxt.derive
                     {
                         parsed["fee"] = fee;
                     }
-                    object fees = this.safeValue(order, "fees");
+                    List<object> fees = this.safeList(order, "fees");
                     if ((fees != null))
                     {
                         parsed["fees"] = fees;
@@ -857,10 +857,10 @@ public partial class derive : ccxt.derive
             IDictionary<string, object> subscription = ((id == null)) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
             if (subscription.ContainsKey("method"))
             {
-                if (isEqual(((IDictionary<string,object>)subscription)["method"], "public/login"))
+                if ((this.safeString(subscription, "method") == "public/login"))
                 {
                     this.handleAuth(client, message);
-                } else if (isEqual(((IDictionary<string,object>)subscription)["method"], "unsubscribe"))
+                } else if ((this.safeString(subscription, "method") == "unsubscribe"))
                 {
                     this.handleUnSubscribe(client, message);
                 }

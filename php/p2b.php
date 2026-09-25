@@ -377,6 +377,9 @@ class p2b extends Exchange {
         $quoteId = $this->safe_string($market, 'money');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $limits = $this->safe_dict($market, 'limits');
         $maxAmount = $this->safe_string($limits, 'max_amount');
         $maxPrice = $this->safe_string($limits, 'max_price');
@@ -1352,7 +1355,8 @@ class p2b extends Exchange {
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $baseUrl = $this->urls['api'][$api];
+        $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             if (count($params) > 0) {
