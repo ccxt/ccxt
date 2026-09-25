@@ -2379,7 +2379,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Latoken) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Latoken) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -2390,7 +2390,7 @@ func (this *Latoken) HandleErrors(code any, reason any, url any, method any, hea
 	// {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
 	//
 	var message *string = this.SafeString(response, "message")
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

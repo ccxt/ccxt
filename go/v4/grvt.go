@@ -4288,7 +4288,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Grvt) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Grvt) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if EndsWith(url, "auth/api_key/login") || EndsWith(url, "auth/wallet/login") {
 		var accountId *string = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
 		this.Options.Store("AuthAccountId", accountId)
@@ -4303,19 +4303,19 @@ func (this *Grvt) HandleErrors(code any, reason any, url any, method any, header
 	} else {
 		var errorCode *string = this.SafeString(response, "code")
 		if errorCode != nil {
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 			panic(ExchangeError(feedback))
 		} else {
 			var message *string = this.SafeString(response, "message")
 			if message != nil {
-				var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+				var feedback string = this.Id + " " + body
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 				panic(ExchangeError(feedback))
 			} else {
 				var status *string = this.SafeString(response, "status")
 				if (status != nil) && (status == nil || *status != "success") {
-					var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+					var feedback string = this.Id + " " + body
 					panic(ExchangeError(feedback))
 				}
 			}

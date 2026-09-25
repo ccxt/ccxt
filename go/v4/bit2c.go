@@ -1365,7 +1365,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResult,
 	}
 }
-func (this *Bit2c) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bit2c) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1379,7 +1379,7 @@ func (this *Bit2c) HandleErrors(httpCode any, reason any, url any, method any, h
 		error = this.SafeString(response, "Error")
 	}
 	if error != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

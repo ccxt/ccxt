@@ -4702,7 +4702,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Poloniex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Poloniex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -4715,7 +4715,7 @@ func (this *Poloniex) HandleErrors(code any, reason any, url any, method any, he
 	var responseCode *string = this.SafeString(response, "code")
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") {
 		var message *string = this.SafeString2(response, "message", "msg")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

@@ -2898,14 +2898,14 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 		"headers": headersValue,
 	}
 }
-func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	var status *string = this.SafeString(response, "status", "")
 	if status != nil && *status == "err" {
 		var message *string = this.SafeString(response, "response", body)
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))
@@ -2922,7 +2922,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 			return nil
 		}(), "error")
 		if message != nil {
-			var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ccxt.ExchangeError(feedback))

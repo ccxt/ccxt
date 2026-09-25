@@ -5141,7 +5141,7 @@ func (this *Myriad) WalletAddressFromKeys() string {
 	}
 	return ccxt.ToLower(address)
 }
-func (this *Myriad) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Myriad) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
 	if response == nil {
 		return nil
@@ -5150,7 +5150,7 @@ func (this *Myriad) HandleErrors(code any, reason any, url any, method any, head
 	if (error == nil) || (error != nil && *error == "") {
 		return nil
 	}
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 	panic(ccxt.ExchangeError(feedback))

@@ -7853,7 +7853,7 @@ func (this *Bingx) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options.Store("sandboxMode", enable)
 }
-func (this *Bingx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bingx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -7872,7 +7872,7 @@ func (this *Bingx) HandleErrors(httpCode any, reason any, url any, method any, h
 		if transferErrorMsg != nil {
 			message = transferErrorMsg
 		}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

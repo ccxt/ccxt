@@ -2887,14 +2887,14 @@ func (this *Opinion) HandleMyTrade(client any, message any) {
 	stored.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 }
-func (this *Opinion) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Opinion) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	var errno *int64 = this.SafeInteger(response, "errno")
 	if (errno != nil) && (errno == nil || *errno != 0) {
 		var errmsg *string = this.SafeString(response, "errmsg", "")
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], this.NumberToString(errno), feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errmsg, feedback)
 		panic(ccxt.ExchangeError(feedback))

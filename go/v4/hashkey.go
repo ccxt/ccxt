@@ -5145,7 +5145,7 @@ func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
 	result = strings.Replace(result, "%2C", ",", 1)
 	return result
 }
-func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -5164,7 +5164,7 @@ func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, hea
 		}
 	}
 	if (!IsEqual(code, 200)) || errorInArray {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], responseCodeString, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCodeString, feedback)
 		panic(ExchangeError(feedback))

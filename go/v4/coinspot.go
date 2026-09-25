@@ -1168,7 +1168,7 @@ func (this *Coinspot) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	})
 	return nil
 }
-func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

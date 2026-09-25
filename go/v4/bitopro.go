@@ -2406,14 +2406,14 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitopro) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bitopro) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to the default error handler
 	}
 	if IsGreaterThanOrEqual(code, 200) && IsLessThan(code, 300) {
 		return nil
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	var error *string = this.SafeString(response, "error")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)

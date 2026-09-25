@@ -5495,7 +5495,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Weex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Weex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
 	//     {
 	//         "code": -1140,
@@ -5505,11 +5505,11 @@ func (this *Weex) HandleErrors(code any, reason any, url any, method any, header
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
 		var errorCode *string = this.SafeString(response, "code")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		panic(ExchangeError(Add(this.Id+" ", body)))
+		panic(ExchangeError(this.Id + " " + body))
 	}
 	return nil
 }

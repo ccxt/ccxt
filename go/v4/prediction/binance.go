@@ -2377,14 +2377,14 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	ch <- orders
 	return nil
 }
-func (this *Binance) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Binance) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	var errorCode *string = this.SafeString(response, "code")
 	if (errorCode != nil) && ccxt.Precise.StringLt(errorCode, "0") {
 		var message *string = this.SafeString(response, "msg", "")
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))

@@ -3452,9 +3452,9 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Ndax) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Ndax) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 404) {
-		panic(AuthenticationError(Add(this.Id+" ", body)))
+		panic(AuthenticationError(this.Id + " " + body))
 	}
 	if response == nil {
 		return nil
@@ -3465,7 +3465,7 @@ func (this *Ndax) HandleErrors(code any, reason any, url any, method any, header
 	//
 	var message *string = this.SafeString(response, "errormsg")
 	if (message != nil) && (message == nil || *message != "") {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		panic(ExchangeError(feedback))

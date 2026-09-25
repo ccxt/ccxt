@@ -3964,7 +3964,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var msg *string = this.SafeString(response, "msg")
 	var messageCode *string = this.SafeString(response, "code")
@@ -3981,7 +3981,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 			errorCode = this.SafeString(entry, "errorCode")
 		}
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	if (sCode == nil) && (errorCode != nil) {
 		sCode = errorCode
 	}

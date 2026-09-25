@@ -3879,14 +3879,14 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Toobit) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Toobit) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	var errorCode *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "200") && (errorCode == nil || *errorCode != "0") {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

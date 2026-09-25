@@ -3574,7 +3574,7 @@ func (this *Sxbet) HandleOrder(client any, rows any) {
 		}
 	}
 }
-func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
 	// map the known codes to ccxt errors so callers can distinguish a rejected order or a
 	// validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -3593,7 +3593,7 @@ func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, heade
 	} else {
 		messageString = message
 	}
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], messageString, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 	// a 400 is a client-side bad request (bad params, invalid order), not a transport outage —

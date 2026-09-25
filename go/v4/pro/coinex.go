@@ -1614,7 +1614,7 @@ func (this *Coinex) HandleMessage(client any, message any) {
 	}
 	this.HandleSubscriptionStatus(client, message)
 }
-func (this *Coinex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Coinex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if ccxt.IsEqual(response, nil) {
 		return nil
 	}
@@ -1628,7 +1628,7 @@ func (this *Coinex) HandleErrors(code any, reason any, url any, method any, head
 	var errorCode *string = this.SafeString(response, "code")
 	var isErrorCode bool = (errorCode != nil) && (errorCode == nil || *errorCode != "0")
 	if isErrorCode || isErrorMessage {
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))

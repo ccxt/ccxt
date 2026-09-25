@@ -4639,12 +4639,12 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Cryptocom) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Cryptocom) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code")
 	if errorCode == nil || *errorCode != "0" {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
-		panic(ExchangeError(Add(this.Id+" ", body)))
+		panic(ExchangeError(this.Id + " " + body))
 	}
 	return nil
 }

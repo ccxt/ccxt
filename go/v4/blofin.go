@@ -3972,7 +3972,7 @@ func (this *Blofin) ParseADLRank(info any, optionalArgs ...any) any {
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -3981,7 +3981,7 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	//
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	if (code != nil) && (code == nil || *code != "0") {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

@@ -24,7 +24,7 @@ func testFetchLedgerEntryBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 		var id *string = SafeStringPtr(firstItem["id"])
 		if id != nil {
 
-			item := (<-exchange.FetchLedgerEntryAsync(StringArg(id)))
+			item := (<-exchange.FetchLedgerEntryAsync(*id))
 			PanicOnError(item)
 			var now int64 = exchange.Milliseconds()
 			TestLedgerEntry(exchange, skippedProperties, method, item, code, now)

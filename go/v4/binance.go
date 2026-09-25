@@ -16133,22 +16133,22 @@ func (this *Binance) GetExceptionsByUrl(url any, exactOrBroad string) any {
 	}
 	return map[string]any{}
 }
-func (this *Binance) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Binance) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (IsEqual(code, 418)) || (IsEqual(code, 429)) {
 		panic(DDoSProtection(Add(Add(Add(this.Id+" "+ToString(code)+" ", reason), " "), body)))
 	}
 	// error response in a form: { "code": -1013, "msg": "Invalid quantity." }
 	// following block contains legacy checks against message patterns in "msg" property
 	// will switch "code" checks eventually, when we know all of them
-	if (IsGreaterThanOrEqual(code, 400)) && (!IsEqual(body, nil)) {
-		if GetIndexOf(body, "Price * QTY is zero or less") >= 0 {
-			panic(InvalidOrder(Add(this.Id+" order cost = amount * price is zero or less ", body)))
+	if (IsGreaterThanOrEqual(code, 400)) && (true) {
+		if strings.Index(body, "Price * QTY is zero or less") >= 0 {
+			panic(InvalidOrder(this.Id + " order cost = amount * price is zero or less " + body))
 		}
-		if GetIndexOf(body, "LOT_SIZE") >= 0 {
-			panic(InvalidOrder(Add(this.Id+" order amount should be evenly divisible by lot size ", body)))
+		if strings.Index(body, "LOT_SIZE") >= 0 {
+			panic(InvalidOrder(this.Id + " order amount should be evenly divisible by lot size " + body))
 		}
-		if GetIndexOf(body, "PRICE_FILTER") >= 0 {
-			panic(InvalidOrder(Add(this.Id+" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ", body)))
+		if strings.Index(body, "PRICE_FILTER") >= 0 {
+			panic(InvalidOrder(this.Id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) " + body))
 		}
 	}
 	if response == nil {
@@ -16209,9 +16209,9 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
 		if (error != nil && *error == "-2015") && (*this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
-			panic(DDoSProtection(Add(this.Id+" ", body)))
+			panic(DDoSProtection(this.Id + " " + body))
 		}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		if message != nil && *message == "No need to change margin type." {
 			panic(MarginModeAlreadySet(feedback))
 		}
@@ -16220,7 +16220,7 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 		panic(ExchangeError(feedback))
 	}
 	if success == nil || *success != true {
-		panic(ExchangeError(Add(this.Id+" ", body)))
+		panic(ExchangeError(this.Id + " " + body))
 	}
 	if IsArray(responseParsed) {
 		// cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
@@ -16229,8 +16229,8 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 			var element map[string]any = SafeMapTyped(responseParsed, 0)
 			var errorCode *string = this.SafeString(element, "code")
 			if errorCode != nil {
-				this.ThrowExactlyMatchedException(this.GetExceptionsByUrl(url, "exact"), errorCode, Add(this.Id+" ", body))
-				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, Add(this.Id+" ", body))
+				this.ThrowExactlyMatchedException(this.GetExceptionsByUrl(url, "exact"), errorCode, this.Id+" "+body)
+				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, this.Id+" "+body)
 			}
 		}
 	}

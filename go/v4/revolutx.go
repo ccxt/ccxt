@@ -1861,12 +1861,12 @@ func (this *Revolutx) editOrderBody(ch chan any, id string, symbol any, typeVar 
 	ch <- order
 	return nil
 }
-func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if IsGreaterThanOrEqual(code, 400) {
 		if response == nil {
 			return nil
 		}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var errorMessage any = nil
 		if IsObject(response) {
 			errorMessage = DerefScalar(this.SafeString2(response, "message", "error"))

@@ -1494,13 +1494,13 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	if InOp(response, "code") {
 		var code *string = this.SafeString(response, "code")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		panic(ExchangeError(feedback))
 	} else if InOp(response, "message") {
@@ -1508,7 +1508,7 @@ func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method an
 		//      {"message":"Minimum amount 15 USDT","state":1}
 		//
 		var message *string = this.SafeString(response, "message")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

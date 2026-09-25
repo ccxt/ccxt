@@ -2454,6 +2454,9 @@ func (this *Bitvavo) HandleErrorMessage(client any, message any) any {
 	//    }
 	//
 	var error *string = this.SafeString(message, "error")
+	if error == nil {
+		return nil
+	}
 	var code *int64 = this.SafeInteger(error, "errorCode")
 	var action *string = this.SafeString(message, "action")
 	var buildMessage any = this.BuildMessageHash(action, message)
@@ -2476,7 +2479,7 @@ func (this *Bitvavo) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			this.HandleErrors(code, error, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, error, message, map[string]any{}, map[string]any{})
+			this.HandleErrors(code, error, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, *error, message, map[string]any{}, map[string]any{})
 			return nil
 		}(this)
 

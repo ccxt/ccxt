@@ -2621,7 +2621,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 		"headers": headersValue,
 	}
 }
-func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

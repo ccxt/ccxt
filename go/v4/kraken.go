@@ -4618,7 +4618,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 func (this *Kraken) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Kraken) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Kraken) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 520) {
 		panic(ExchangeNotAvailable(Add(this.Id+" "+ToString(code)+" ", reason)))
 	}
@@ -4627,7 +4627,7 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 	}
 	if GetValue(body, 0) == "{" {
 		if !IsString(response) {
-			var message *string = SafeStringPtr(Add(this.Id+" ", body))
+			var message string = this.Id + " " + body
 			if InOp(response, "error") {
 				var numErrors int = GetArrayLength(GetValue(response, "error"))
 				if numErrors > 0 {

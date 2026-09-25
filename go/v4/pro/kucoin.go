@@ -4255,7 +4255,7 @@ func (this *Kucoin) HandleErrorMessage(client any, message any) bool {
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "urls"), typeVar, nil)
 	}
-	this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, data, message, map[string]any{}, map[string]any{})
+	this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, *data, message, map[string]any{}, map[string]any{})
 	return false
 }
 func (this *Kucoin) HandleMessage(client any, message any) {

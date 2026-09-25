@@ -1095,7 +1095,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // resort to defaultErrorHandler
 	}
@@ -1108,7 +1108,7 @@ func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, 
 		return nil // either public API (no error codes expected) or success
 	}
 	var code *string = this.SafeString(response, "code")
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
 	panic(ExchangeError(feedback))
 }

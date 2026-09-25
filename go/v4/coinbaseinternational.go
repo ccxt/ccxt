@@ -3086,7 +3086,7 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Coinbaseinternational) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Coinbaseinternational) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
 	//    {
 	//        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
@@ -3096,7 +3096,7 @@ func (this *Coinbaseinternational) HandleErrors(code any, reason any, url any, m
 	if response == nil {
 		return nil // fallback to default error handler
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	var errMsg *string = this.SafeString(response, "title")
 	if errMsg != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errMsg, feedback)

@@ -3100,7 +3100,7 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -3119,7 +3119,7 @@ func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, h
 	if error != nil {
 		var message *string = this.SafeString(error, "message")
 		var name *string = this.SafeString(error, "name")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], name, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

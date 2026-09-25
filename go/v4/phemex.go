@@ -6742,7 +6742,7 @@ func (this *Phemex) ParseADLRank(info any, optionalArgs ...any) any {
 		"datetime":   nil,
 	}
 }
-func (this *Phemex) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Phemex) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -6756,7 +6756,7 @@ func (this *Phemex) HandleErrors(httpCode any, reason any, url any, method any, 
 	var errorCode *string = this.SafeString(error, "code")
 	var message *string = this.SafeString(error, "msg")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

@@ -4640,7 +4640,7 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	}
 	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)
 }
-func (this *Hitbtc) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Hitbtc) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
 	//     {
 	//       "error": {
@@ -4660,7 +4660,7 @@ func (this *Hitbtc) HandleErrors(code any, reason any, url any, method any, head
 	var error map[string]any = SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var message *string = this.SafeString2(error, "message", "description")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

@@ -2323,19 +2323,19 @@ func (this *Cex) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// in some cases, like from createOrder, exchange returns nested escaped JSON string:
 	//      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
 	// and because of `.parseJson` bug, we need extra fix
 	var responseFixed any = nil
 	if response == nil {
-		if IsEqual(body, nil) {
+		if false {
 			panic(NullResponse(this.Id + " returned empty response"))
 		} else if GetValue(body, 0) == "{" {
 			var fixed string = this.FixStringifiedJsonMembers(body)
 			responseFixed = this.ParseJson(fixed)
 		} else {
-			panic(NullResponse(Add(this.Id+" returned unparsed response: ", body)))
+			panic(NullResponse(this.Id + " returned unparsed response: " + body))
 		}
 	}
 	var responseParsed any = func() any {
@@ -2346,7 +2346,7 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 	}()
 	var error *string = this.SafeString(responseParsed, "error")
 	if error != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

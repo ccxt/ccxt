@@ -3754,7 +3754,7 @@ func (this *Polymarket) ParseEvents(rawEvents []any) any {
 	}
 	return result
 }
-func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg")
 	// map the known messages so callers can distinguish a dead book or a rejected order
 	// from a transport outage (the base otherwise maps a bare 404 to a retryable error)
@@ -3763,7 +3763,7 @@ func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, 
 	}
 	var errorMessage *string = this.SafeString2(response, "error", "errorMsg")
 	if errorMessage != nil {
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	}

@@ -726,7 +726,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 	ch <- this.Outcomes
 	return nil
 }
-func (this *Kalshi) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Kalshi) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
 	// errors (e.g. not_found -> ccxt.BadSymbol) so callers can distinguish them from a transport
 	// outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -737,14 +737,14 @@ func (this *Kalshi) HandleErrors(code any, reason any, url any, method any, head
 	var error map[string]any = ccxt.SafeMapTyped(response, "error")
 	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorCode, feedback)
 	}
 	// a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
 	// throw ccxt.BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
 	if ccxt.IsEqual(code, 400) {
-		var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		panic(ccxt.BadRequest(feedback))
 	}
 	return nil

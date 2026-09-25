@@ -1732,11 +1732,11 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitflyer) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bitflyer) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to the default error handler
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	// i.e. {"status":-2,"error_message":"Under maintenance","data":null}
 	var errorMessage *string = this.SafeString(response, "error_message")
 	var statusCode *int64 = this.SafeInteger(response, "status")

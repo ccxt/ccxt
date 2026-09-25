@@ -7099,7 +7099,7 @@ func (this *Xt) editOrderBody(ch chan any, id string, symbol any, typeVar any, s
 	ch <- this.ParseOrder(result, market)
 	return nil
 }
-func (this *Xt) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Xt) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
 	// spot: error
 	//
@@ -7154,7 +7154,7 @@ func (this *Xt) HandleErrors(code any, reason any, url any, method any, headers 
 	//
 	var status *string = this.SafeStringUpper2(response, "msgInfo", "mc")
 	if (status != nil) && (status == nil || *status != "SUCCESS") {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var error map[string]any = SafeMapTyped(response, "error")
 		var spotErrorCode *string = this.SafeString(response, "mc")
 		var errorCode *string = this.SafeString(error, "code", spotErrorCode)

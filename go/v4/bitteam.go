@@ -2828,7 +2828,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitteam) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bitteam) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -2845,7 +2845,7 @@ func (this *Bitteam) HandleErrors(code any, reason any, url any, method any, hea
 				panic(BadSymbol(Add(Add(this.Id+" symbolId ", symbolId), " not found")))
 			}
 		}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var message *string = this.SafeString(response, "message")
 		var responseCode *string = this.SafeString(response, "code")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

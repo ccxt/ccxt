@@ -1716,7 +1716,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coinone) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Coinone) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1726,7 +1726,7 @@ func (this *Coinone) HandleErrors(code any, reason any, url any, method any, hea
 	//
 	var errorCode *string = this.SafeString(response, "error_code")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

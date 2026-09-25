@@ -4948,7 +4948,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResult,
 	}
 }
-func (this *Delta) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Delta) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -4958,7 +4958,7 @@ func (this *Delta) HandleErrors(code any, reason any, url any, method any, heade
 	var error map[string]any = SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorCode, feedback)
 		panic(ExchangeError(feedback))

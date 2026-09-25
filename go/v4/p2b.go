@@ -1630,7 +1630,7 @@ func (this *P2b) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *P2b) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *P2b) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -1642,7 +1642,7 @@ func (this *P2b) HandleErrors(code any, reason any, url any, method any, headers
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
 		var errorCode *string = this.SafeString(response, "errorCode")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		var codeAsString string = ToString(code)
 		if (IsLessThan(code, 400)) || !(InOp(this.HttpExceptions, codeAsString)) {

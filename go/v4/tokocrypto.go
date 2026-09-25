@@ -3173,7 +3173,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (IsEqual(code, 418)) || (IsEqual(code, 429)) {
 		panic(DDoSProtection(Add(Add(Add(this.Id+" "+ToString(code)+" ", reason), " "), body)))
 	}
@@ -3181,14 +3181,14 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 	// following block contains legacy checks against message patterns in "msg" property
 	// will switch "code" checks eventually, when we know all of them
 	if IsGreaterThanOrEqual(code, 400) {
-		if GetIndexOf(body, "Price * QTY is zero or less") >= 0 {
-			panic(InvalidOrder(Add(this.Id+" order cost = amount * price is zero or less ", body)))
+		if strings.Index(body, "Price * QTY is zero or less") >= 0 {
+			panic(InvalidOrder(this.Id + " order cost = amount * price is zero or less " + body))
 		}
-		if GetIndexOf(body, "LOT_SIZE") >= 0 {
-			panic(InvalidOrder(Add(this.Id+" order amount should be evenly divisible by lot size ", body)))
+		if strings.Index(body, "LOT_SIZE") >= 0 {
+			panic(InvalidOrder(this.Id + " order amount should be evenly divisible by lot size " + body))
 		}
-		if GetIndexOf(body, "PRICE_FILTER") >= 0 {
-			panic(InvalidOrder(Add(this.Id+" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ", body)))
+		if strings.Index(body, "PRICE_FILTER") >= 0 {
+			panic(InvalidOrder(this.Id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) " + body))
 		}
 	}
 	if response == nil {
@@ -3248,9 +3248,9 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
 		if (error != nil && *error == "-2015") && (*this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
-			panic(DDoSProtection(Add(this.Id+" ", body)))
+			panic(DDoSProtection(this.Id + " " + body))
 		}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		if message != nil && *message == "No need to change margin type." {
 			panic(MarginModeAlreadySet(feedback))
 		}
@@ -3258,7 +3258,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		panic(ExchangeError(feedback))
 	}
 	if success == nil || *success != true {
-		panic(ExchangeError(Add(this.Id+" ", body)))
+		panic(ExchangeError(this.Id + " " + body))
 	}
 	return nil
 }

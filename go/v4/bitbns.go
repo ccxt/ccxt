@@ -1715,7 +1715,7 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1727,7 +1727,7 @@ func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, 
 	var message *string = this.SafeString(response, "msg")
 	var error bool = (code != nil) && (code == nil || *code != "200") && (code == nil || *code != "204")
 	if error || (message != nil) {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

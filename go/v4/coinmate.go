@@ -1726,7 +1726,7 @@ func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coinmate) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Coinmate) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1736,7 +1736,7 @@ func (this *Coinmate) HandleErrors(code any, reason any, url any, method any, he
 	//
 	var errorMessage *string = this.SafeString(response, "errorMessage")
 	if errorMessage != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		panic(ExchangeError(feedback))

@@ -5552,7 +5552,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (IsEqual(code, 418)) || (IsEqual(code, 429)) {
 		panic(DDoSProtection(Add(Add(Add(this.Id+" "+ToString(code)+" ", reason), " "), body)))
 	}
@@ -5571,7 +5571,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		var codeNew *int64 = this.SafeInteger(response, "code")
 		var hasErrorStatus bool = (status != nil) && (status == nil || *status != "200") && (errors != nil)
 		if hasErrorStatus || (codeNew != nil) {
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			var errorInfo any = message
 			if hasErrorStatus {
 				errorInfo = status
@@ -5623,7 +5623,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 					return body
 				}()
 			}
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			panic(ExchangeError(feedback))

@@ -2569,7 +2569,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResult,
 	}
 }
-func (this *Hollaex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Hollaex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// { "message": "Invalid token" }
 	if response == nil {
 		return nil
@@ -2584,7 +2584,7 @@ func (this *Hollaex) HandleErrors(code any, reason any, url any, method any, hea
 		//
 		//  { "message":"Error 1001 - POST ONLY order can not be of type market" }
 		//
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var message *string = this.SafeString(response, "message")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		var status string = ToString(code)

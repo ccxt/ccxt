@@ -11066,7 +11066,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	ch <- this.ParsePositions(responseList, symbols, paramsValue)
 	return nil
 }
-func (this *Gate) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Gate) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -11080,7 +11080,7 @@ func (this *Gate) HandleErrors(code any, reason any, url any, method any, header
 	//
 	var label *string = this.SafeString(response, "label")
 	if label != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], label, feedback)
 		panic(ExchangeError(feedback))
 	}

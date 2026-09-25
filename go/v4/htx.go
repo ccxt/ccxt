@@ -9541,7 +9541,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -9553,7 +9553,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "error" {
 			var code *string = this.SafeString2(response, "err-code", "err_code")
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			var message *string = this.SafeString2(response, "err-msg", "err_msg")
@@ -9563,7 +9563,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 	}
 	if InOp(response, "code") {
 		// {code: '1003', message: 'invalid signature'}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var code *string = this.SafeString(response, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 	}
@@ -9573,7 +9573,7 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 		var first map[string]any = SafeMapTyped(errorsList, 0)
 		var errcode *string = this.SafeString(first, "err_code")
 		var errmessage *string = this.SafeString(first, "err_msg")
-		var feedBack *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedBack string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errcode, feedBack)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errmessage, feedBack)
 	}

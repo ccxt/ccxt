@@ -4555,7 +4555,7 @@ func (this *Extended) GetExtendedTransferMsgHash(settlement any) string {
 	var transferHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{transferTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "senderPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "receiverPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "assetId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(settlement, "expirationTimestamp", "0")), this.ConvertToBigInt(this.SafeString(settlement, "nonce", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash})
 }
-func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

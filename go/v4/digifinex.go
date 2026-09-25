@@ -5707,7 +5707,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Digifinex) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
+func (this *Digifinex) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fall back to default error handler
 	}
@@ -5715,7 +5715,7 @@ func (this *Digifinex) HandleErrors(statusCode any, statusText any, url any, met
 	if (code != nil && *code == "0") || (code != nil && *code == "200") {
 		return nil // no error
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", responseBody))
+	var feedback string = this.Id + " " + responseBody
 	if code == nil {
 		panic(BadResponse(feedback))
 	}

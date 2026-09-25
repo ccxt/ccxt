@@ -5669,7 +5669,7 @@ func (this *BaseExchange) FindBroadlyMatchedKey(broad any, string any) any {
 	}
 	return nil
 }
-func (this *BaseExchange) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
+func (this *BaseExchange) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
 	// it is a stub method that must be overrided in the derived exchange classes
 	// throw new NotSupported (this.id + ' handleErrors() not implemented yet');
 	return nil

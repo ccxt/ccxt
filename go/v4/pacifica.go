@@ -4515,7 +4515,7 @@ func (this *Pacifica) HandleOriginAndSingleAddress(methodName string, params any
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params"))
 }
-func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -4540,7 +4540,7 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	}
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
 	if (error == true) || nonEmptyMessage {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorId, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback) // documented message prefixes are more specific than the http-status echo
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

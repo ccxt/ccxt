@@ -2298,7 +2298,7 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 		"headers": headersValue,
 	}
 }
-func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -2309,7 +2309,7 @@ func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any,
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "failed" {
 			var code *string = this.SafeString(response, "errorCode")
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			var message *string = this.SafeString(response, "message")

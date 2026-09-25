@@ -7174,7 +7174,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	var codeValue *string = this.SafeCurrencyCode(code)
 	var network *string = this.NetworkIdToCode(rawNetwork, codeValue)
 
-	responseRaw := (<-this.FetchDepositAddressesByNetworkAsync(StringArg(codeValue), paramsOmitted))
+	responseRaw := (<-this.FetchDepositAddressesByNetworkAsync(*codeValue, paramsOmitted))
 	PanicOnError(responseRaw)
 	var response any = responseRaw
 	if network != nil {
@@ -11677,7 +11677,7 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 	ch <- result
 	return nil
 }
-func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -11703,7 +11703,7 @@ func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, hea
 	//
 	var code *string = this.SafeString(response, "code")
 	if (code == nil || *code != "0") && (code == nil || *code != "2") {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var data []any = SafeListTyped(response, "data")
 		for i := 0; i < len(data); i++ {
 			var error map[string]any = SafeMapTyped(data, i)

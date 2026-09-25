@@ -3895,7 +3895,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -3940,7 +3940,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		if code != nil && *code == "API0005" {
 			panic(AuthenticationError(this.Id + " invalid signature, use the uid for the main account if you have subaccounts"))
 		}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		for i := 0; i < len(errors); i++ {
 			var value *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(errors) {

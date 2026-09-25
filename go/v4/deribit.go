@@ -5091,7 +5091,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5112,7 +5112,7 @@ func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any,
 	var error map[string]any = SafeMapTyped(response, "error")
 	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

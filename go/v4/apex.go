@@ -2590,7 +2590,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		"headers": headersValue,
 	}
 }
-func (this *Apex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Apex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
 	// {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
 	// {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
@@ -2600,7 +2600,7 @@ func (this *Apex) HandleErrors(code any, reason any, url any, method any, header
 	}
 	var errorCode *int64 = this.SafeInteger(response, "code")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != 0) {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		var message *string = this.SafeString2(response, "key", "msg")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		var status string = ToString(code)

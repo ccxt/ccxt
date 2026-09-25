@@ -14917,7 +14917,7 @@ func (this *Bitget) ParseLongShortRatio(info any, optionalArgs ...any) any {
 		"longShortRatio": this.SafeNumber2(info, "longShortRatio", "longShortAccountRatio"),
 	}
 }
-func (this *Bitget) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bitget) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -14948,7 +14948,7 @@ func (this *Bitget) HandleErrors(code any, reason any, url any, method any, head
 	//     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
 	//
 	var message *string = this.SafeString2(response, "err_msg", "msg")
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != "") && (message == nil || *message != "success"))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

@@ -6276,7 +6276,7 @@ func (this *Hyperliquid) CoinToMarketId(coin any) any {
 	}
 	return Add(this.SafeCurrencyCode(coinId), "/USDC:USDC")
 }
-func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -6296,7 +6296,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	if status != nil && *status == "err" {
 		message = DerefScalar(this.SafeString(response, "response"))
 	} else if status != nil && *status == "unknownOid" {
-		panic(OrderNotFound(Add(this.Id+" ", body)))
+		panic(OrderNotFound(this.Id + " " + body))
 	} else if error != nil {
 		message = error
 	} else {
@@ -6322,7 +6322,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 			}
 		}
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	var nonEmptyMessage bool = ((!IsEqual(message, nil)) && (!IsEqual(message, "")))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

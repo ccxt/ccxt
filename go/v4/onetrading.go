@@ -2349,7 +2349,7 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Onetrading) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Onetrading) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -2360,7 +2360,7 @@ func (this *Onetrading) HandleErrors(code any, reason any, url any, method any, 
 	//
 	var message *string = this.SafeString(response, "error")
 	if message != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

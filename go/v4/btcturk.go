@@ -1376,12 +1376,12 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Btcturk) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Btcturk) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code", "0")
 	var message *string = this.SafeString(response, "message")
-	var output any = message
+	var output *string = message
 	if message == nil {
-		output = body
+		output = SafeStringPtr(body)
 	}
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", output))
 	if (errorCode == nil || *errorCode != "0") && (errorCode == nil || *errorCode != "SUCCESS") {

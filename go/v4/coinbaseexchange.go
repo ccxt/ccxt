@@ -2902,7 +2902,7 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Coinbaseexchange) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Coinbaseexchange) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (IsEqual(code, 400)) || (IsEqual(code, 404)) {
 		if GetValue(body, 0) == "{" {
 			var message *string = this.SafeString(response, "message")
@@ -2911,7 +2911,7 @@ func (this *Coinbaseexchange) HandleErrors(code any, reason any, url any, method
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ExchangeError(feedback))
 		}
-		panic(ExchangeError(Add(this.Id+" ", body)))
+		panic(ExchangeError(this.Id + " " + body))
 	}
 	return nil
 }

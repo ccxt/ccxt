@@ -12704,7 +12704,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bybit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bybit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -12738,11 +12738,11 @@ func (this *Bybit) HandleErrors(httpCode any, reason any, url any, method any, h
 		}
 		var feedback any = nil
 		if (errorCode != nil && *errorCode == "10005") && (GetIndexOf(url, "order") < 0) {
-			feedback = Add(this.Id+" private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ", body)
+			feedback = this.Id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" " + body
 		} else {
-			feedback = Add(this.Id+" ", body)
+			feedback = this.Id + " " + body
 		}
-		if GetIndexOf(body, "Withdraw address chain or destination tag are not equal") > -1 {
+		if strings.Index(body, "Withdraw address chain or destination tag are not equal") > -1 {
 			feedback = Add(feedback, "; You might also need to ensure the address is whitelisted")
 		}
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)

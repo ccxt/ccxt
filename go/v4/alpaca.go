@@ -2922,7 +2922,7 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 		"headers": headersValue,
 	}
 }
-func (this *Alpaca) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Alpaca) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // default error handler
 	}
@@ -2930,7 +2930,7 @@ func (this *Alpaca) HandleErrors(code any, reason any, url any, method any, head
 	//     "code": 40110000,
 	//     "message": "request is not authorized"
 	// }
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	var errorCode *string = this.SafeString(response, "code")
 	if !IsEqual(code, nil) {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

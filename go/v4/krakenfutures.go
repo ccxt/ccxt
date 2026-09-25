@@ -4538,12 +4538,12 @@ func (this *Krakenfutures) ParseLeverage(leverage any, optionalArgs ...any) any 
 		"shortLeverage": leverageValue,
 	}
 }
-func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	if IsEqual(code, 429) {
-		panic(DDoSProtection(Add(this.Id+" ", body)))
+		panic(DDoSProtection(this.Id + " " + body))
 	}
 	var errors []any = SafeListTyped(response, "errors")
 	var firstError map[string]any = SafeMapTyped(errors, 0)
@@ -4552,7 +4552,7 @@ func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method an
 	if message == nil {
 		return nil
 	}
-	var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+	var feedback string = this.Id + " " + body
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 	if IsEqual(code, 400) {

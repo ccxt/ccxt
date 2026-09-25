@@ -4092,14 +4092,14 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
  * @name limitless#handleErrors
  * @description maps limitless error responses to ccxt exceptions
  */
-func (this *Limitless) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
+func (this *Limitless) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	if (ccxt.IsGreaterThanOrEqual(statusCode, 200)) && (ccxt.IsLessThan(statusCode, 300)) {
 		return nil
 	}
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", responseBody))
+	var feedback string = this.Id + " " + responseBody
 	// the API returns either a string message or an array of field-validation errors
 	var message *string = this.SafeString(response, "message")
 	if message != nil {

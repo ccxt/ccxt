@@ -3973,21 +3973,21 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// ["error", 11010, "ratelimit: error"]
 	if response != nil {
 		if !IsArray(response) {
 			var message *string = this.SafeString2(response, "message", "error")
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-			panic(ExchangeError(Add(this.Id+" ", body)))
+			panic(ExchangeError(this.Id + " " + body))
 		}
 	} else if IsEqual(response, "") {
 		panic(ExchangeError(this.Id + " returned empty response"))
 	}
 	if IsEqual(statusCode, 429) {
-		panic(RateLimitExceeded(Add(this.Id+" ", body)))
+		panic(RateLimitExceeded(this.Id + " " + body))
 	}
 	if IsEqual(statusCode, 500) {
 		// See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes

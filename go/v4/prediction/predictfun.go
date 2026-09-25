@@ -3163,7 +3163,7 @@ func (this *Predictfun) ParseOrderStatus(status *string) *string {
  * @param {object} requestBody the request body
  * @returns {undefined} nothing, it throws when the venue reported a failure
  */
-func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any {
+func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -3171,7 +3171,7 @@ func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, me
 	if success != nil && *success {
 		return nil
 	}
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", responseBody))
+	var feedback string = this.Id + " " + responseBody
 	// the message is matched first because it is the more specific of the two: several
 	// distinct failures share a generic slug, notably 'unauthorized', which the venue also
 	// returns for a hash belonging to another wallet, and 'not_found' for an unknown market

@@ -4526,7 +4526,7 @@ func (this *Btse) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
 	ch <- response
 	return nil
 }
-func (this *Btse) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+func (this *Btse) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -4545,7 +4545,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	if success == nil || *success != true {
 		var spotErrorCode *string = this.SafeString(response, "code")
 		var spotMessage *string = this.SafeString(response, "msg")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], spotErrorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], spotMessage, feedback)
 		panic(ExchangeError(feedback))
@@ -4553,7 +4553,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	var errorCode *string = this.SafeString(response, "errorCode")
 	if errorCode != nil {
 		var message *string = this.SafeString(response, "message")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
@@ -4574,7 +4574,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	var legacyEnumCode *string = this.SafeString(response, "code")
 	if (legacyErrorText != nil) && (legacyEnumCode != nil) {
 		var legacyMessage *string = this.SafeString(response, "message")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], legacyEnumCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], legacyMessage, feedback)
 		panic(ExchangeError(feedback))
@@ -4594,7 +4594,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 			if embedded != nil {
 				message = this.SafeString(embedded, "default_msg", message)
 			}
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
+			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], status, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		}
