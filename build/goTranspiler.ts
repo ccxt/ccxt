@@ -1776,8 +1776,9 @@ function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf
     }
     return writes.every ((init: string) => {
         // element 1 of a base handle*(..., params) tuple is that params map or a fresh copy
-        const tuple = /^(?:ccxt\.)?MapTyped\((?:ccxt\.)?GetValue\((\w+), 1\)\)$/.exec (init);
-        const holder = (tuple === null) ? undefined : declOf (tuple[1]);
+        const tuple = /^(?:ccxt\.)?MapTyped\((?:(?:ccxt\.)?GetValue\((\w+), 1\)|(\w+)\[1\])\)$/.exec (init);
+        const holderName = (tuple === null) ? undefined : (tuple[1] ?? tuple[2]);
+        const holder = (holderName === undefined) ? undefined : declOf (holderName);
         return GO_INOP_READ_INIT.test (init) || ((holder !== undefined) && (holder.index !== undefined)
             && /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.(?:HandleWithdrawTagAndParams|HandleParamString2?|HandleParamBool)\(/.test (holder.line));
     });
