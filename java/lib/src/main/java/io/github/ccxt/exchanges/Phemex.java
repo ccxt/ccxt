@@ -3302,7 +3302,7 @@ public class Phemex extends PhemexApi
                         String stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTrigger");
                         if (!java.util.Objects.equals(stopLossTriggerPriceType, null))
                         {
-                            request.put("slTrigger", this.safeString(((Map<String, Object>)this.options).get("triggerPriceTypesMap"), stopLossTriggerPriceType, stopLossTriggerPriceType));
+                            request.put("slTrigger", this.safeString(this.options.get("triggerPriceTypesMap"), stopLossTriggerPriceType, stopLossTriggerPriceType));
                         }
                         String slLimitPrice = this.safeString(stopLoss, "price");
                         if (!java.util.Objects.equals(slLimitPrice, null))
@@ -3327,7 +3327,7 @@ public class Phemex extends PhemexApi
                         String takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTrigger");
                         if (!java.util.Objects.equals(takeProfitTriggerPriceType, null))
                         {
-                            request.put("tpTrigger", this.safeString(((Map<String, Object>)this.options).get("triggerPriceTypesMap"), takeProfitTriggerPriceType, takeProfitTriggerPriceType));
+                            request.put("tpTrigger", this.safeString(this.options.get("triggerPriceTypesMap"), takeProfitTriggerPriceType, takeProfitTriggerPriceType));
                         }
                         String tpLimitPrice = this.safeString(takeProfit, "price");
                         if (!java.util.Objects.equals(tpLimitPrice, null))
@@ -5505,7 +5505,7 @@ public class Phemex extends PhemexApi
             String auth = (((requestPath + queryString) + expiryString) + payload);
             privateHeaders.put("x-phemex-request-signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -6606,8 +6606,8 @@ public class Phemex extends PhemexApi
         if ((!java.util.Objects.equals(errorCode, null)) && (!java.util.Objects.equals(errorCode, "0")))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

@@ -121,7 +121,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchOHLCVWs");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -174,7 +174,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("ohlcv:" + market.get("symbol")) + ":") + timeframeId);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "kbar" );
@@ -309,7 +309,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchTickerWs");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchTicker:" + market.get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "request" );
@@ -343,7 +343,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchTicker");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("ticker:" + market.get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -463,7 +463,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchTradesWs");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchTrades:" + market.get("symbol"));
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -501,7 +501,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchTrades");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("trades:" + market.get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -644,7 +644,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object key = (this.authenticate(parameters)).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = null;
             Object pair = "all";
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
@@ -827,7 +827,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object key = (this.authenticate(parameters)).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = "balance";
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -898,7 +898,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchOrderBookWs");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchOrderbook:" + market.get("symbol"));
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -935,7 +935,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }
             Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchOrderBook");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("orderbook:" + market.get("symbol"));
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "aggregation");
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
@@ -1111,7 +1111,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             // overwritten. the flight lives in client.futures of this exchange's own ws client under
             // a key that is not a messageHash, and settles via client.resolve / client.reject only
             this.checkRequiredCredentials(true);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             Long now = this.milliseconds();
             String messageHash = "authenticateFlight";

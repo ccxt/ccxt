@@ -86,7 +86,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 put( "topic", topic );
                 put( "event", "sub" );
             }};
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         });
 
@@ -106,7 +106,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public Object getPrivateUrl(String listenKey)
     {
-        String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+        String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
         if (java.util.Objects.equals(wsUrl, null))
         {
             throw new ExchangeError((this.id + " getPrivateUrl() has no private websocket url")) ;

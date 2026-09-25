@@ -2858,7 +2858,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2919,8 +2919,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String errMsg = this.safeString(response, "title");
         if (!java.util.Objects.equals(errMsg, null))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errMsg, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errMsg, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errMsg, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errMsg, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

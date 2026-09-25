@@ -3763,7 +3763,7 @@ public class Myriad extends MyriadApi
         {
             Helpers.addElementToObject(this.options, "requestId", this.createSafeDictionary());
         }
-        Object options = ((Map<String, Object>)this.options).get("requestId");
+        Object options = this.options.get("requestId");
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         if (!java.util.Objects.equals(url, null))
@@ -3846,7 +3846,7 @@ public class Myriad extends MyriadApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             // finish the connect handshake first so the subscribe frame is sent after the connect reply
             (this.connectCentrifugo((String) (url))).join();
             Long requestId = this.requestId((String) (url));
@@ -3954,7 +3954,7 @@ public class Myriad extends MyriadApi
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String channel = ((("orderbook:" + networkId) + ":") + marketId);
             String messageHash = ("orderbook::" + sym);
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             // finish the connect handshake first so the client exists and the subscribe follows the connect reply
             (this.connectCentrifugo((String) (url))).join();
             Client client = this.client(url);
@@ -4276,7 +4276,7 @@ public class Myriad extends MyriadApi
                 throw new ArgumentsRequired((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
             }
             Integer symbolsLength = ((List<?>)outcomes).size();
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             (this.connectCentrifugo((String) (url))).join();
             (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
             Client client = this.client(url);
@@ -4504,7 +4504,7 @@ public class Myriad extends MyriadApi
             String networkId = this.safeString(this.options, "defaultNetworkId", "56");
             String channel = ((("positions:" + networkId) + ":") + trader);
             String messageHash = "positions";
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             (this.connectCentrifugo((String) (url))).join();
             Client client = this.client(url);
             Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, channel), null);
@@ -4646,8 +4646,8 @@ public class Myriad extends MyriadApi
             return null;
         }
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
         throw new ExchangeError(feedback) ;
     }
 
@@ -4667,7 +4667,7 @@ public class Myriad extends MyriadApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
     {
         Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "myriad") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "myriad") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "myriad"), 0);
-        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
+        Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("myriad"));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));

@@ -113,7 +113,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = "balance";
             String subscribeHash = "ACCOUNT_HISTORY";
             Long bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
@@ -335,7 +335,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             (this.authenticate(parameters)).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String subscribeHash = "ACCOUNT_HISTORY";
             Long bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -529,7 +529,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             (this.authenticate(parameters)).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String subscribeHash = this.safeString(parameters, "channel", "ACCOUNT_HISTORY");
             Long bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -1181,7 +1181,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String marketId = (String) market.get("id");
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframeId = (Map<String, Object>) this.safeDict(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), (Object) null);
             if (java.util.Objects.equals(timeframeId, null))
@@ -1468,7 +1468,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 marketIds = this.marketIds(symbols);
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = (Client)this.safeValue(this.clients, url);
             String type = "SUBSCRIBE";
             Object subscription = new HashMap<String, Object>() {{}};
@@ -1509,7 +1509,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");

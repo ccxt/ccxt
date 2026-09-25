@@ -3737,7 +3737,7 @@ public class Limitless extends LimitlessApi
     {
         Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "limitless") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 0);
         Object access = (((java.util.Objects.requireNonNullElse(api, "limitless") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "limitless"), 1);
-        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
+        Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("limitless"));
         Object url = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
@@ -3813,9 +3813,9 @@ public class Limitless extends LimitlessApi
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
         }
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), responseBody, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), responseBody, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

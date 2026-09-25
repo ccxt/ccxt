@@ -271,9 +271,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 Helpers.addElementToObject(this.options, "numSubscriptionsByStream", this.createSafeDictionary());
             }
-            Long subscriptionsByStream = this.safeInteger(((Map<String, Object>)this.options).get("numSubscriptionsByStream"), stream, 0);
+            Long subscriptionsByStream = this.safeInteger(this.options.get("numSubscriptionsByStream"), stream, 0);
             Object newNumSubscriptions = Helpers.add(subscriptionsByStream, java.util.Objects.requireNonNullElse(numSubscriptions, 1L));
-            Long subscriptionLimitByStream = this.safeInteger(((Map<String, Object>)this.options).get("subscriptionLimitByStream"), type, 200);
+            Long subscriptionLimitByStream = this.safeInteger(this.options.get("subscriptionLimitByStream"), type, 200);
             if (Helpers.isGreaterThan(newNumSubscriptions, subscriptionLimitByStream))
             {
                 throw new BadRequest((this.id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
@@ -289,9 +289,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
+            return Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
         }
-        Object baseUrl = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
+        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
         if (java.util.Objects.equals(type, "future"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -336,7 +336,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             return ((this.getWsUrl(type, "private") + "?listenKey=") + listenKey);
         }
-        String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
+        String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
         if (java.util.Objects.equals(wsUrl, null))
         {
             throw new ExchangeError((this.id + " getPrivateWsUrl() has no websocket url for this market type")) ;
@@ -346,7 +346,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object getStockWsUrl(String streamType)
     {
-        String baseUrl = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "stock");
+        String baseUrl = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "stock");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(streamType, "market"), "combined"))
         {
             return Helpers.replace(baseUrl, (String)"/ws", (String)"/stream");
@@ -1073,7 +1073,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOrderBookWs only supports swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
@@ -2317,7 +2317,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchTickerWs only supports swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -2373,7 +2373,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
@@ -3281,7 +3281,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 eventVar = "bookTicker"; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
             }
-            channelName = this.safeString(((Map<String, Object>)this.options).get("tickerChannelsMap"), eventVar, eventVar);
+            channelName = this.safeString(this.options.get("tickerChannelsMap"), eventVar, eventVar);
             if (java.util.Objects.equals(channelName, null))
             {
                 continue;
@@ -3381,7 +3381,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), java.util.Objects.requireNonNullElse(marketType, "spot"));
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), java.util.Objects.requireNonNullElse(marketType, "spot"));
             Client client = this.client(url);
             Object subscriptions = client.subscriptions;
             List<String> subscriptionsKeys = new ArrayList<String>(((Map<String, Object>)subscriptions).keySet());
@@ -3471,7 +3471,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String)Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
+            String url = (String)Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, java.util.Objects.requireNonNullElse(marketType, "margin"), new HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
             Long listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
@@ -3964,7 +3964,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
@@ -4125,7 +4125,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchPositionsWs only supports swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
@@ -4231,7 +4231,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
                 // route to WebSocket API connection where the user data stream is subscribed
-                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
+                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -4494,7 +4494,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " createOrderWs only supports spot or swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
@@ -4678,7 +4678,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " editOrderWs only supports spot or swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), marketType);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             Boolean isSwap = (java.util.Objects.equals(marketType, "future") || java.util.Objects.equals(marketType, "delivery"));
@@ -4851,7 +4851,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("cancelOrderWs", market, parameters);
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
@@ -4929,7 +4929,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " cancelAllOrdersWs only supports spot markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
@@ -4983,7 +4983,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOrderWs only supports spot or swap markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
@@ -5048,7 +5048,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOrdersWs only supports spot markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
@@ -5129,7 +5129,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOpenOrdersWs only supports spot markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
@@ -5255,7 +5255,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
                 // route orders to ws-api user data stream
-                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
+                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -6237,7 +6237,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
@@ -6303,7 +6303,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
+            Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
             List<Object> returnRateLimitsparamsReturnRateLimitsVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
@@ -6439,7 +6439,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = "";
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
-                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
+                url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "ws-api"), "spot");
             } else
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))

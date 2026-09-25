@@ -2813,7 +2813,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String errorCode = this.safeString(message, "err-code");
                 try
                 {
-                    this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), errorCode, this.json(message));
+                    this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), errorCode, this.json(message));
                     throw new ExchangeError((String)this.json(message)) ;
                 } catch(Exception e)
                 {
@@ -2845,7 +2845,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), code, feedback);
+                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), code, feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {
@@ -3241,21 +3241,21 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
-                hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "spot"), "private");
+                hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "private");
             } else
             {
                 if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isFeed, false)))
                 {
-                    hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "spot"), "feed");
+                    hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "feed");
                 } else
                 {
-                    hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "spot"), "public");
+                    hostnameURL = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "spot"), "public");
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
         } else
         {
-            Object baseUrl = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), type);
+            Object baseUrl = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), type);
             Object subTypeUrl = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(isLinear, true)))) ? Helpers.GetValue(baseUrl, "linear") : Helpers.GetValue(baseUrl, "inverse");
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
@@ -3365,7 +3365,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean isLinear = java.util.Objects.equals(subtype, "linear");
             Boolean isV5 = (Boolean) this.safeBool(subscriptionParams, "isV5", false);
             Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
-            Object hostname = (((java.util.Objects.equals(type, "spot")))) ? Helpers.GetValue(((Map<String, Object>)this.urls).get("hostnames"), "spot") : Helpers.GetValue(((Map<String, Object>)this.urls).get("hostnames"), "contract");
+            Object hostname = (((java.util.Objects.equals(type, "spot")))) ? Helpers.GetValue(this.urls.get("hostnames"), "spot") : Helpers.GetValue(this.urls.get("hostnames"), "contract");
             Map<String, Object> authParams = Helpers.newMap(
                 "type", type,
                 "url", url,

@@ -126,7 +126,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long id = this.requestId();
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -156,7 +156,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String subHash = "private";
             Client client = this.client(url);
             Object privateSubscription = this.safeValue(client.subscriptions, subHash);
@@ -347,7 +347,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public Object getMessageHashesForTickersUnsubscription()
     {
-        Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+        Object url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
         Client client = this.client(url);
         Object subscriptions = client.subscriptions;
         List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1115,7 +1115,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             this.fetchBalanceSnapshot(client);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
@@ -1292,9 +1292,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String code = this.safeString(message, "code");
         String msg = this.safeString(message, "msg");
         String feedback = ((this.id + " ") + this.json(message));
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), msg, feedback);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), msg, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), msg, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
         throw new ExchangeError(feedback) ;
     }
 

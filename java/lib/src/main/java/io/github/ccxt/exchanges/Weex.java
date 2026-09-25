@@ -3928,10 +3928,10 @@ public class Weex extends WeexApi
             return;
         }
         String feedback = ((this.id + " ") + this.json(order));
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessageValue, feedback);
-        this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCodeValue, feedback);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessageValue, feedback);
-        this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorCodeValue, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessageValue, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCodeValue, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessageValue, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorCodeValue, feedback);
         throw new InvalidOrder(feedback) ;
     }
 
@@ -5304,7 +5304,7 @@ public class Weex extends WeexApi
                 put( "User-Agent", "ccxt" );
             }};
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -5332,9 +5332,9 @@ public class Weex extends WeexApi
         {
             String errorCode = this.safeString(response, "code");
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return null;

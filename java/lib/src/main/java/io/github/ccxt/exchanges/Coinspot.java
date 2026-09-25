@@ -1176,7 +1176,7 @@ public class Coinspot extends CoinspotApi
         {
             fullPath = (Helpers.add("/", version) + endpoint);
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), accessType);
+        String apiUrl = this.safeString(this.urls.get("api"), accessType);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

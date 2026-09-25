@@ -3131,7 +3131,7 @@ public class Aster extends AsterApi
             }
             if (java.util.Objects.equals(symbol, null))
             {
-                if (java.util.Objects.equals(this.safeBool(((Map<String, Object>)this.options).get("fetchOpenOrders"), "warnIfNoSymbol", (Object) null), true))
+                if (java.util.Objects.equals(this.safeBool(this.options.get("fetchOpenOrders"), "warnIfNoSymbol", (Object) null), true))
                 {
                     throw new ExchangeError((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
@@ -4886,7 +4886,7 @@ public class Aster extends AsterApi
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("leverageBrackets")), symbol, result);
                 }
             }
-            return ((Map<String, Object>)this.options).get("leverageBrackets");
+            return this.options.get("leverageBrackets");
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -5146,7 +5146,7 @@ public class Aster extends AsterApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -5422,9 +5422,9 @@ public class Aster extends AsterApi
         if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "200"))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

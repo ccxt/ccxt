@@ -629,7 +629,7 @@ public class Apex extends ApexApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object chains = ((Map<String, Object>)this.options).get("_temp_currencies_chains");
+        Object chains = this.options.get("_temp_currencies_chains");
         for (var j = 0; j < Helpers.getArrayLength(chains); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
@@ -1544,7 +1544,7 @@ public class Apex extends ApexApi
                 Object accountData = (this.fetchAccount(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "accountId", this.safeString(accountData, "id", "0"));
             }
-            return ((Map<String, Object>)this.options).get("accountId");
+            return this.options.get("accountId");
         });
 
     }
@@ -2338,7 +2338,7 @@ public class Apex extends ApexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2401,9 +2401,9 @@ public class Apex extends ApexApi
         {
             String feedback = ((this.id + " ") + body);
             String message = this.safeString2(response, "key", "msg");
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             String status = String.valueOf(code);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), status, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), status, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

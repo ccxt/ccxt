@@ -4368,10 +4368,10 @@ public class Poloniex extends PoloniexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("spot");
+        Object url = ((Map<String, Object>)this.urls.get("api")).get("spot");
         if (this.inArray(java.util.Objects.requireNonNullElse(api, "public"), new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
         {
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("swap");
+            url = ((Map<String, Object>)this.urls.get("api")).get("swap");
         }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && (((Map<?, ?>)parameters).containsKey("symbol")))
         {
@@ -4451,8 +4451,8 @@ public class Poloniex extends PoloniexApi
         {
             String message = this.safeString2(response, "message", "msg");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), responseCode, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), responseCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

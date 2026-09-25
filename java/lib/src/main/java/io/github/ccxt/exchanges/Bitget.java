@@ -3948,8 +3948,8 @@ public class Bitget extends BitgetApi
                     spot = true;
                     pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
                     amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
-                    boolean hasCrossMargin = this.inArray(marketId, ((Map<String, Object>)this.options).get("crossMarginPairsData"));
-                    boolean hasIsolatedMargin = this.inArray(marketId, ((Map<String, Object>)this.options).get("isolatedMarginPairsData"));
+                    boolean hasCrossMargin = this.inArray(marketId, this.options.get("crossMarginPairsData"));
+                    boolean hasIsolatedMargin = this.inArray(marketId, this.options.get("isolatedMarginPairsData"));
                     marginModes = Helpers.newMap(
                         "cross", hasCrossMargin,
                         "isolated", hasIsolatedMargin
@@ -6692,10 +6692,10 @@ public class Bitget extends BitgetApi
             {
                 key = "spot";
             }
-            Map<String, Object> ohlcOptions = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
+            Map<String, Object> ohlcOptions = (Map<String, Object>) this.safeDict(this.options.get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
             Map<String, Object> maxLimitPerTimeframe = (Map<String, Object>) this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new HashMap<String, Object>() {{}});
             Long maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, java.util.Objects.requireNonNullElse(timeframe, "1m"), limit);
-            Map<String, Object> recentEndpointDaysMap = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), "maxRecentDaysPerTimeframe", new HashMap<String, Object>() {{}});
+            Map<String, Object> recentEndpointDaysMap = (Map<String, Object>) this.safeDict(this.options.get("fetchOHLCV"), "maxRecentDaysPerTimeframe", new HashMap<String, Object>() {{}});
             Long recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object recentEndpointBoundaryTs = Helpers.subtract(now, Helpers.multiply((Helpers.subtract(recentEndpointAvailableDays, 1)), msInDay));
             Object limitResolved = defaultLimit;
@@ -14733,14 +14733,14 @@ public class Bitget extends BitgetApi
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")) && (!java.util.Objects.equals(message, "success")));
         if (Boolean.TRUE.equals(nonEmptyMessage))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
         }
         String errorCode = this.safeString2(response, "code", "err_code");
         Boolean nonZeroErrorCode = (!java.util.Objects.equals(errorCode, null)) && (!java.util.Objects.equals(errorCode, "00000"));
         if (Boolean.TRUE.equals(nonZeroErrorCode))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
         }
         if (Boolean.TRUE.equals(nonZeroErrorCode) || Boolean.TRUE.equals(nonEmptyMessage))
         {
@@ -14766,7 +14766,7 @@ public class Bitget extends BitgetApi
         Object pathPart = "/api";
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = (pathPart + request);
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), endpoint);
+        String apiUrl = this.safeString(this.urls.get("api"), endpoint);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

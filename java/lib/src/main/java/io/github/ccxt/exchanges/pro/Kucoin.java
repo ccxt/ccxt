@@ -184,9 +184,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return result;
             } catch(Exception e)
             {
-                Object future = this.safeValue(((Map<String, Object>)this.options).get("urls"), connectId);
+                Object future = this.safeValue(this.options.get("urls"), connectId);
                 ((io.github.ccxt.ws.Future)future).reject(e);
-                ((Map<String,Object>)((Map<String, Object>)this.options).get("urls")).remove((String)connectId);
+                ((Map<String,Object>)this.options.get("urls")).remove((String)connectId);
             }
             return null;
         }).thenApply(res -> (String) res);
@@ -253,7 +253,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 "symbol", market.get("id")
             );
             Map<String, Object> message = this.extend(request, parameters);
-            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), urlType);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType);
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
@@ -305,7 +305,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             String utaToken = (this.authenticateUta()).join();
-            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " getUtaUrl() has no private websocket url")) ;
@@ -328,7 +328,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long now = this.milliseconds();
             Boolean expired = Helpers.isGreaterThanOrEqual(((now - lastUpdate)), refreshInterval);
             String messageHash = "utaToken";
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             Client client = this.client(url);
             if ((java.util.Objects.equals(utaToken, null)) || Boolean.TRUE.equals(expired))
             {
@@ -651,7 +651,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 "symbols", this.marketIds(symbols)
             );
             Map<String, Object> message = this.extend(request, parameters);
-            String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), urlType);
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType);
             Client client = this.client(url);
             String messageHashWithSymbols = ((channel + ":") + String.join(",", (List<String>)symbols));
             if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHashWithSymbols)))

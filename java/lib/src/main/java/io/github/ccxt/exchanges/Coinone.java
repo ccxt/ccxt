@@ -1577,7 +1577,7 @@ public class Coinone extends CoinoneApi
     {
         String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1586,7 +1586,7 @@ public class Coinone extends CoinoneApi
         Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public"));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public"))
         {
-            String apiUrl2 = this.safeString(((Map<String, Object>)this.urls).get("api"), "v2Public");
+            String apiUrl2 = this.safeString(this.urls.get("api"), "v2Public");
             if (java.util.Objects.equals(apiUrl2, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1594,7 +1594,7 @@ public class Coinone extends CoinoneApi
             url = (apiUrl2 + "/");
         } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
         {
-            String apiUrl3 = this.safeString(((Map<String, Object>)this.urls).get("api"), "v2Private");
+            String apiUrl3 = this.safeString(this.urls.get("api"), "v2Private");
             if (java.util.Objects.equals(apiUrl3, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1602,7 +1602,7 @@ public class Coinone extends CoinoneApi
             url = (apiUrl3 + "/");
         } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2_1Private"))
         {
-            String apiUrl4 = this.safeString(((Map<String, Object>)this.urls).get("api"), "v2_1Private");
+            String apiUrl4 = this.safeString(this.urls.get("api"), "v2_1Private");
             if (java.util.Objects.equals(apiUrl4, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

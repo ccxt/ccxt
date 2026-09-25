@@ -5437,7 +5437,7 @@ public class Digifinex extends DigifinexApi
         }
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = (pathPart + request);
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -5532,7 +5532,7 @@ public class Digifinex extends DigifinexApi
             throw new BadResponse(feedback) ;
         }
         List<Object> unknownError = new ArrayList<Object>(Arrays.asList(ExchangeError.class, feedback));
-        var ExceptionClassmessageVariable = this.safeValue(((Map<String, Object>)this.exceptions).get("exact"), code, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue(this.exceptions.get("exact"), code, unknownError);
         var ExceptionClass = ((List<Object>) ExceptionClassmessageVariable).get(0);
         var message = ((List<Object>) ExceptionClassmessageVariable).get(1);
         Helpers.throwDynamicException(ExceptionClass, message);return null;

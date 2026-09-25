@@ -2949,11 +2949,11 @@ public class Tokocrypto extends TokocryptoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        if (!(Helpers.inOp(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"))))
+        if (!(Helpers.inOp(((Map<String, Object>)this.urls.get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"))))
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3102,8 +3102,8 @@ public class Tokocrypto extends TokocryptoApi
         String message = this.safeString(responseParsed, "msg");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, ((this.id + " ") + message));
         }
         // checks against error codes
         String error = this.safeString(responseParsed, "code");
@@ -3127,7 +3127,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 throw new MarginModeAlreadySet(feedback) ;
             }
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         if (!java.util.Objects.equals(success, true))

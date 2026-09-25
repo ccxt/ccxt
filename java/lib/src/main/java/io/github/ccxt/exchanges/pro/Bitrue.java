@@ -399,13 +399,13 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
                 channel = (("market_" + wsId) + "_depth_step0");
                 cbId = wsId;
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             } else
             {
                 String marketIdLowercase = this.safeStringLower(market, "id");
                 channel = (("market_" + marketIdLowercase) + "_simple_depth_step0");
                 cbId = marketIdLowercase;
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             }
             Map<String, Object> message = Helpers.newMap(
                 "event", "sub",
@@ -581,7 +581,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
             String channel = (("market_" + wsId) + "_trade_ticker");
             String messageHash = ("trades:" + symbolValue);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -718,7 +718,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
             String channel = ((("market_" + wsId) + "_kline_") + interval);
             String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -834,7 +834,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
             String channel = (("market_" + wsId) + "_ticker");
             String messageHash = ("ticker:" + symbolValue);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1052,7 +1052,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
                     Helpers.addElementToObject(this.options, "listenKey", key);
-                    String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+                    String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
                     if (java.util.Objects.equals(wsUrl, null))
                     {
                         throw new ExchangeError((this.id + " authenticate() has no private websocket url")) ;

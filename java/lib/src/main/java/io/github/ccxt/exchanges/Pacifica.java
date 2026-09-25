@@ -4231,9 +4231,9 @@ public class Pacifica extends PacificaApi
         if (Boolean.TRUE.equals(error) || Boolean.TRUE.equals(nonEmptyMessage))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorId, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback); // documented message prefixes are more specific than the http-status echo
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorId, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
             String codeAsString = String.valueOf(code);
             if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
@@ -4275,7 +4275,7 @@ public class Pacifica extends PacificaApi
         }
         if (!java.util.Objects.equals(this.handleOption("sign", "apiKey", (Object) null), null))
         {
-            headersValue.put("PF-API-KEY", ((Map<String, Object>)this.options).get("apiKey"));
+            headersValue.put("PF-API-KEY", this.options.get("apiKey"));
         }
         return Helpers.newMap(
             "url", url,
@@ -4370,7 +4370,7 @@ public class Pacifica extends PacificaApi
             }
             if (!java.util.Objects.equals(builderCode, null))
             {
-                Boolean isOperationSupportBuilder = (Boolean) this.safeBool(((Map<String, Object>)this.options).get("builderSupportOperations"), operationType, false);
+                Boolean isOperationSupportBuilder = (Boolean) this.safeBool(this.options.get("builderSupportOperations"), operationType, false);
                 if (java.util.Objects.equals(isOperationSupportBuilder, true))
                 {
                     sigPayload.put("builder_code", builderCode);

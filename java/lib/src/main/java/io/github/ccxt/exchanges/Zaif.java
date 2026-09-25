@@ -1017,7 +1017,7 @@ public class Zaif extends ZaifApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1081,8 +1081,8 @@ public class Zaif extends ZaifApi
         String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         Boolean success = (Boolean) this.safeBool(response, "success", true);

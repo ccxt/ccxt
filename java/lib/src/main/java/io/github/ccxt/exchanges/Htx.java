@@ -4498,13 +4498,13 @@ public class Htx extends HtxApi
     public String networkIdToCode(String networkId, String currencyCode)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        List<Object> keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkNamesByChainIds"));
+        List<Object> keys = Helpers.objectKeys(this.options.get("networkNamesByChainIds"));
         Integer keysLength = ((List<?>)keys).size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
-        String networkTitle = this.safeString(((Map<String, Object>)this.options).get("networkNamesByChainIds"), networkId, networkId);
+        String networkTitle = this.safeString(this.options.get("networkNamesByChainIds"), networkId, networkId);
         return (String) (super.networkIdToCode(networkTitle, currencyCode));
     }
 
@@ -4518,13 +4518,13 @@ public class Htx extends HtxApi
         {
             return super.networkCodeToId(networkCode, (String) null);
         }
-        List<Object> keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkChainIdsByNames"));
+        List<Object> keys = Helpers.objectKeys(this.options.get("networkChainIdsByNames"));
         Integer keysLength = ((List<?>)keys).size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
-        Map<String, Object> uniqueNetworkIds = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
+        Map<String, Object> uniqueNetworkIds = (Map<String, Object>) this.safeDict(this.options.get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
         if (uniqueNetworkIds.containsKey(networkCode))
         {
             return (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
@@ -9320,7 +9320,7 @@ public class Htx extends HtxApi
                     url = (url + ("?" + this.urlencode(query)));
                 }
             }
-            String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
             if (java.util.Objects.equals(baseApiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -9337,7 +9337,7 @@ public class Htx extends HtxApi
             String levelOneNestedPath = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
             String levelTwoNestedPath = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 3);
             Object hostname = null;
-            Object hostnames = this.safeValue(((Map<String, Object>)this.urls).get("hostnames"), type);
+            Object hostnames = this.safeValue(this.urls.get("hostnames"), type);
             if (!(hostnames instanceof String))
             {
                 hostnames = this.safeValue(hostnames, levelOneNestedPath);
@@ -9431,7 +9431,7 @@ public class Htx extends HtxApi
                 }
             }
             Object finalHostname = hostname; // java req
-            String baseApiUrl2 = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
+            String baseApiUrl2 = this.safeString(this.urls.get("api"), type);
             if (java.util.Objects.equals(baseApiUrl2, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -9467,10 +9467,10 @@ public class Htx extends HtxApi
             {
                 String code = this.safeString2(response, "err-code", "err_code");
                 String feedback = ((this.id + " ") + body);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
                 String message = this.safeString2(response, "err-msg", "err_msg");
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }
@@ -9479,7 +9479,7 @@ public class Htx extends HtxApi
             // {code: '1003', message: 'invalid signature'}
             String feedback = ((this.id + " ") + body);
             String code = this.safeString(response, "code");
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
         List<Object> errorsList = (List<Object>) this.safeList(data, "errors", (Object) null);
@@ -9489,8 +9489,8 @@ public class Htx extends HtxApi
             String errcode = this.safeString(first, "err_code");
             String errmessage = this.safeString(first, "err_msg");
             String feedBack = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errcode, feedBack);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errmessage, feedBack);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errcode, feedBack);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errmessage, feedBack);
         }
         return null;
     }

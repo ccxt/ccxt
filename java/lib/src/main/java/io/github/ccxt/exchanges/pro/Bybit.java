@@ -221,7 +221,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Boolean isSpot = null;
             String type = null;
             Map<String, Object> market = null;
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -318,7 +318,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, true);
-            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade"));
+            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), "trade"));
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             String requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -370,7 +370,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> orderRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade"));
+            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), "trade"));
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             String requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -414,7 +414,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 throw new ArgumentsRequired((this.id + " cancelOrderWs() requires a symbol argument")) ;
             }
             Object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
-            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade"));
+            Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), "trade"));
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             String requestId = String.valueOf(this.requestId());
             if (((Map<?, ?>)orderRequest).containsKey("orderFilter"))
@@ -2959,9 +2959,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0"))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
                 String msg = this.safeString2(message, "retMsg", "ret_msg");
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
             Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);

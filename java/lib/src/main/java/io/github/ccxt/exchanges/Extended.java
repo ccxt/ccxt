@@ -4113,7 +4113,7 @@ public class Extended extends ExtendedApi
     public Object getExtendedDomainHash()
     {
         Object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
-        Boolean isTestnet = Helpers.getIndexOf(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "sepolia") >= 0;
+        Boolean isTestnet = Helpers.getIndexOf(((Map<String, Object>)this.urls.get("api")).get("rest"), "sepolia") >= 0;
         String defaultChainId = "SN_MAIN";
         if (Boolean.TRUE.equals(isTestnet))
         {
@@ -4177,8 +4177,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;
@@ -4193,7 +4193,7 @@ public class Extended extends ExtendedApi
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean queryPost = (java.util.Objects.equals(path, "user/deadmanswitch"));
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

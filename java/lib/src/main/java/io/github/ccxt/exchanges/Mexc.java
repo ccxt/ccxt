@@ -4839,7 +4839,7 @@ public class Mexc extends MexcApi
                     Long end = this.safeInteger(paramsMarketType, "end_time");
                     if (java.util.Objects.equals(end, null))
                     {
-                        request.put("end_time", this.sum(since, ((Map<String, Object>)this.options).get("maxTimeTillEnd")));
+                        request.put("end_time", this.sum(since, this.options.get("maxTimeTillEnd")));
                     }
                 }
                 if (!java.util.Objects.equals(limit, null))
@@ -6790,7 +6790,7 @@ public class Mexc extends MexcApi
         {
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
             String networkId = this.safeString(networkEntry, "network");
-            String networkCode = this.safeString(((Map<String, Object>)this.options).get("networks"), networkId, networkId);
+            String networkCode = this.safeString(this.options.get("networks"), networkId, networkId);
             Double fee = this.safeNumber(networkEntry, "withdrawFee", (Object) null);
             result.put((String)networkCode, fee);
         }
@@ -7176,7 +7176,7 @@ public class Mexc extends MexcApi
         {
             if (java.util.Objects.equals(section, "broker"))
             {
-                String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access);
+                String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), section), access);
                 if (java.util.Objects.equals(apiUrl, null))
                 {
                     throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -7184,7 +7184,7 @@ public class Mexc extends MexcApi
                 url = ((apiUrl + "/") + pathValue);
             } else
             {
-                String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access);
+                String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), section), access);
                 if (java.util.Objects.equals(apiUrl, null))
                 {
                     throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -7230,7 +7230,7 @@ public class Mexc extends MexcApi
             }
         } else if (java.util.Objects.equals(section, "contract") || java.util.Objects.equals(section, "spot2"))
         {
-            String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access);
+            String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), section), access);
             if (java.util.Objects.equals(apiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -7305,8 +7305,8 @@ public class Mexc extends MexcApi
         if ((!java.util.Objects.equals(responseCode, null)) && (!java.util.Objects.equals(responseCode, "200")) && (!java.util.Objects.equals(responseCode, "0")))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), responseCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), responseCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

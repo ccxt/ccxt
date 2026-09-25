@@ -81,7 +81,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             Map<String, Object> market = this.market(symbol);
             String marketId = (String) market.get("id");
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Client client = this.client(url);
             String messageHash = ((channel + ":") + marketId);
             Map<String, Object> request = Helpers.newMap(
@@ -121,7 +121,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             Map<String, Object> market = this.market(symbol);
             String marketId = (String) market.get("id");
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Client client = this.client(url);
             String subMessageHash = ((channel + ":") + marketId);
             String messageHash = ((("unsubscribe:" + channel) + ":") + marketId);
@@ -155,7 +155,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             return (this.watch(url, messageHash, null, 1, null)).join();
         });
 
@@ -192,7 +192,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 "channel", channel,
                 "key", key
             );
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             // not using subscribe here because this message has a different format
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
             Long limitResolved = limit;
@@ -229,7 +229,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String channel = "candles";
             String subMessageHash = ((((channel + ":") + interval) + ":") + market.get("id"));
             String messageHash = ("unsubscribe:" + subMessageHash);
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Client client = this.client(url);
             String subId = ((("unsubscribe:trade:" + interval) + ":") + market.get("id")); // trade here because we use the key
             String channelId = this.safeString(client.subscriptions, subId);
@@ -1217,7 +1217,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);

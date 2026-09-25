@@ -7505,7 +7505,7 @@ public class Bingx extends BingxApi
         Object version = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 1);
         Object access = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 2);
         Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-        String url = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type));
+        String url = (String) this.implodeHostname(Helpers.GetValue(this.urls.get("api"), type));
         if ((java.util.Objects.equals(isSandbox, true)) && java.util.Objects.equals(url, null))
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + type) + " endpoints")) ;
@@ -7624,9 +7624,9 @@ public class Bingx extends BingxApi
                 message = transferErrorMsg;
             }
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

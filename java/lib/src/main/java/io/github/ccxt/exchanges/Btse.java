@@ -4342,8 +4342,8 @@ public class Btse extends BtseApi
             String spotErrorCode = this.safeString(response, "code");
             String spotMessage = this.safeString(response, "msg");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), spotErrorCode, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), spotMessage, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), spotErrorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), spotMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         String errorCode = this.safeString(response, "errorCode");
@@ -4351,8 +4351,8 @@ public class Btse extends BtseApi
         {
             String message = this.safeString(response, "message");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         //
@@ -4373,8 +4373,8 @@ public class Btse extends BtseApi
         {
             String legacyMessage = this.safeString(response, "message");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), legacyEnumCode, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), legacyMessage, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), legacyEnumCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), legacyMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         Object rows = new ArrayList<Object>(Arrays.asList());
@@ -4398,8 +4398,8 @@ public class Btse extends BtseApi
                     message = this.safeString(embedded, "default_msg", message);
                 }
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), status, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), status, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             }
         }
         return null;
@@ -4409,7 +4409,7 @@ public class Btse extends BtseApi
     {
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

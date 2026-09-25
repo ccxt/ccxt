@@ -85,7 +85,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -400,7 +400,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -559,7 +559,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
@@ -598,7 +598,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId(url);
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -846,7 +846,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (!java.util.Objects.equals(errorCode, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
                 throw new ExchangeError(feedback) ;
             }
             return false;

@@ -113,7 +113,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 id = this.accountId;
             }
-            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
@@ -733,7 +733,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " authenticate() has no private websocket url")) ;
@@ -777,7 +777,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPrivate() has no private websocket url")) ;
@@ -799,7 +799,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPrivateMultiple() has no private websocket url")) ;
@@ -1223,7 +1223,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 messageHashes.add("positions");
             }
-            String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPositions() has no private websocket url")) ;
@@ -1539,7 +1539,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             if (!java.util.Objects.equals(errorMessage, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessage, feedback);
             }
             return false;
         } catch(Exception error)

@@ -1963,7 +1963,7 @@ public class Ndax extends NdaxApi
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
-            Long orderType = this.safeInteger(((Map<String, Object>)this.options).get("orderTypes"), this.capitalize(type));
+            Long orderType = this.safeInteger(this.options.get("orderTypes"), this.capitalize(type));
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -2059,7 +2059,7 @@ public class Ndax extends NdaxApi
                 "TimeInForce", 1,
                 "Side", orderSide,
                 "Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString),
-                "OrderType", this.safeInteger(((Map<String, Object>)this.options).get("orderTypes"), this.capitalize(type))
+                "OrderType", this.safeInteger(this.options.get("orderTypes"), this.capitalize(type))
             );
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
@@ -3176,7 +3176,7 @@ public class Ndax extends NdaxApi
     {
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3268,8 +3268,8 @@ public class Ndax extends NdaxApi
         if ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

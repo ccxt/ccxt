@@ -335,9 +335,9 @@ public class Mudrex extends MudrexApi
             Map<String, Object> first = (Map<String, Object>) this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
             String text = this.safeString(first, "text", this.json(response));
             String errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), text, ((this.id + " ") + text));
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errCode, ((this.id + " ") + text));
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errCode, ((this.id + " ") + text));
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), text, ((this.id + " ") + text));
             String msg = ((this.id + " ") + text);
             String low = text.toLowerCase();
             if (Helpers.isEqual(code, 401) || ((String)low).indexOf("auth") >= 0)

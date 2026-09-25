@@ -2309,12 +2309,12 @@ public class Bybit extends BybitApi
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if (Helpers.isTrue(enable))
         {
-            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", ((Map<String, Object>)this.urls).get("api"));
-            Helpers.addElementToObject(this.urls, "api", ((Map<String, Object>)this.urls).get("demotrading"));
+            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("demotrading"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            Helpers.addElementToObject(this.urls, "api", ((Map<String, Object>)this.urls).get("apiBackupDemoTrading"));
-            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("apiBackupDemoTrading"));
+            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -2368,7 +2368,7 @@ public class Bybit extends BybitApi
                     Helpers.addElementToObject(this.options, "enableUnifiedMargin", false);
                     Helpers.addElementToObject(this.options, "enableUnifiedAccount", true);
                     Helpers.addElementToObject(this.options, "unifiedMarginStatus", 6);
-                    return new ArrayList<Object>(Arrays.asList(((Map<String, Object>)this.options).get("enableUnifiedMargin"), ((Map<String, Object>)this.options).get("enableUnifiedAccount")));
+                    return new ArrayList<Object>(Arrays.asList(this.options.get("enableUnifiedMargin"), this.options.get("enableUnifiedAccount")));
                 }
                 List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)));
                 Object promises = (Helpers.promiseAll(rawPromises)).join();
@@ -2435,7 +2435,7 @@ public class Bybit extends BybitApi
                 Helpers.addElementToObject(this.options, "enableUnifiedAccount", Helpers.isEqual(this.safeInteger(result, "uta"), 1));
                 Helpers.addElementToObject(this.options, "unifiedMarginStatus", this.safeInteger(accountResult, "unifiedMarginStatus", 6)); // default to uta 2.0 pro if not found
             }
-            return new ArrayList<Object>(Arrays.asList(((Map<String, Object>)this.options).get("enableUnifiedMargin"), ((Map<String, Object>)this.options).get("enableUnifiedAccount")));
+            return new ArrayList<Object>(Arrays.asList(this.options.get("enableUnifiedMargin"), this.options.get("enableUnifiedAccount")));
         });
 
     }
@@ -12130,7 +12130,7 @@ public class Bybit extends BybitApi
     {
         String requestBody = null;
         Object requestHeaders = null;
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -12175,7 +12175,7 @@ public class Bybit extends BybitApi
                     "Content-Type", "application/json",
                     "X-BAPI-API-KEY", this.apiKey,
                     "X-BAPI-TIMESTAMP", timestamp,
-                    "X-BAPI-RECV-WINDOW", String.valueOf(((Map<String, Object>)this.options).get("recvWindow"))
+                    "X-BAPI-RECV-WINDOW", String.valueOf(this.options.get("recvWindow"))
                 );
                 if (Boolean.TRUE.equals(isV3UnifiedMargin) || Boolean.TRUE.equals(isV3Contract))
                 {
@@ -12183,7 +12183,7 @@ public class Bybit extends BybitApi
                 }
                 Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
                 String queryEncoded = this.rawencode(query);
-                Object auth_base = Helpers.add(Helpers.add(String.valueOf(timestamp), this.apiKey), String.valueOf(((Map<String, Object>)this.options).get("recvWindow")));
+                Object auth_base = Helpers.add(Helpers.add(String.valueOf(timestamp), this.apiKey), String.valueOf(this.options.get("recvWindow")));
                 String authFull = null;
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
@@ -12207,7 +12207,7 @@ public class Bybit extends BybitApi
             {
                 Map<String, Object> query = this.extend(parameters, Helpers.newMap(
                     "api_key", this.apiKey,
-                    "recv_window", ((Map<String, Object>)this.options).get("recvWindow"),
+                    "recv_window", this.options.get("recvWindow"),
                     "timestamp", timestamp
                 ));
                 Map<String,Object> sortedQuery = this.keysort(query);
@@ -12311,8 +12311,8 @@ public class Bybit extends BybitApi
             {
                 feedback = (feedback + "; You might also need to ensure the address is whitelisted");
             }
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
             throw new ExchangeError((String)feedback) ;
         }
         return null;

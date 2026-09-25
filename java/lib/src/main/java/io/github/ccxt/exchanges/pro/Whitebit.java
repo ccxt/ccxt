@@ -343,7 +343,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String method = "market_subscribe";
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Object id = this.incrementingNonce();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
@@ -893,7 +893,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 method = "balanceMargin_subscribe";
                 messageHash = (messageHash + "margin");
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             this.setBalanceCache(client, type, messageHash);
             List<Object> fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = (List<Object>) this.handleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true);
@@ -1048,7 +1048,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1070,7 +1070,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Object id = this.incrementingNonce();
             Client client = (Client)this.safeValue(this.clients, url);
             Map<String, Object> request = null;
@@ -1147,7 +1147,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
             this.checkRequiredCredentials(true);
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Object id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -1166,7 +1166,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Client client = this.client(url);
             String subscribeHash = "authenticated";
             // handleAuthenticate () resolves the handshake future with 1, so 1 is
@@ -1282,7 +1282,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 String code = this.safeString(message, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), code, feedback);
+                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions.get("ws"), "exact"), code, feedback);
             }
         } catch(Exception e)
         {

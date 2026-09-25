@@ -1575,7 +1575,7 @@ public class Coinmate extends CoinmateApi
     {
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1628,8 +1628,8 @@ public class Coinmate extends CoinmateApi
         if (!java.util.Objects.equals(errorMessage, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorMessage, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

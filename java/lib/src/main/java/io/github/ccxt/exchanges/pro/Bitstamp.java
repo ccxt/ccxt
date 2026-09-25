@@ -97,7 +97,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("orderbook:" + symbolValue);
             String channel = ("diff_order_book_" + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new HashMap<String, Object>() {{
@@ -154,7 +154,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String unsubHash = ("unsubscribe:" + channel);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:unsubscribe" );
@@ -305,7 +305,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("trades:" + symbolValue);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String channel = ("live_trades_" + market.get("id"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
@@ -464,7 +464,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("fundingRate:" + symbolValue);
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String channel = ("funding_rate_" + market.get("id"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
@@ -1099,7 +1099,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String feedback = ((this.id + " ") + this.json(message));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             Double code = this.safeNumber(data, "code", (Object) null);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
         }
         return true;
     }
@@ -1228,7 +1228,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String userId = this.safeString(this.options, "userId");
             if (java.util.Objects.equals(userId, null))

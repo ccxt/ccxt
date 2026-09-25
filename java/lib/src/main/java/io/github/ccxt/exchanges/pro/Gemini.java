@@ -94,7 +94,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     )))
             );
             String subscribeHash = ("l2:" + market.get("symbol"));
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
@@ -358,7 +358,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     }})) );
             }};
             String messageHash = ((("ohlcv:" + market.get("symbol")) + ":") + timeframeId);
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchOHLCV() has no websocket url")) ;
@@ -473,7 +473,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     )))
             );
             String subscribeHash = ("l2:" + market.get("symbol"));
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
@@ -662,7 +662,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 ((List<Object>)marketIds).add(market.get("id"));
             }
             String queryStr = String.join(",", (List<String>)marketIds);
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " helperForWatchMultipleConstruct() has no websocket url")) ;
@@ -795,7 +795,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
         return BaseExchange.supplyAsync(() -> {
 
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchOrders() has no websocket url")) ;
@@ -1121,7 +1121,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 return null;
             }
             this.checkRequiredCredentials(true);
-            Integer startIndex = Helpers.getArrayLength(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"));
+            Integer startIndex = Helpers.getArrayLength(((Map<String, Object>)this.urls.get("api")).get("ws"));
             Object urlParamsIndex = ((String)url).indexOf("?");
             Object urlLength = url.length();
             Object endIndex = (((Helpers.isGreaterThanOrEqual(urlParamsIndex, 0)))) ? urlParamsIndex : urlLength;
@@ -1141,7 +1141,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }};
             // this.options = this.extend (defaultOptions, this.options);
             this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
-            Object originalHeaders = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options"), "headers");
+            Object originalHeaders = Helpers.GetValue(Helpers.GetValue(this.options.get("ws"), "options"), "headers");
             Map<String, Object> headers = new HashMap<String, Object>() {{
                 put( "X-GEMINI-APIKEY", Gemini.this.apiKey );
                 put( "X-GEMINI-PAYLOAD", b64 );

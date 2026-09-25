@@ -2108,7 +2108,7 @@ public class Hibachi extends HibachiApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2165,10 +2165,10 @@ public class Hibachi extends HibachiApi
             {
                 String code = this.safeString(response, "errorCode");
                 String feedback = ((this.id + " ") + body);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
                 String message = this.safeString(response, "message");
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

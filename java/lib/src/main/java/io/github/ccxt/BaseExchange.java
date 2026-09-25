@@ -4849,14 +4849,14 @@ public Object describe()
         {
             if (((Map<?, ?>)this.urls).containsKey("test"))
             {
-                if ((((Map<String, Object>)this.urls).get("api") instanceof String))
+                if ((this.urls.get("api") instanceof String))
                 {
-                    Helpers.addElementToObject(this.urls, "apiBackup", ((Map<String, Object>)this.urls).get("api"));
-                    Helpers.addElementToObject(this.urls, "api", ((Map<String, Object>)this.urls).get("test"));
+                    Helpers.addElementToObject(this.urls, "apiBackup", this.urls.get("api"));
+                    Helpers.addElementToObject(this.urls, "api", this.urls.get("test"));
                 } else
                 {
-                    Helpers.addElementToObject(this.urls, "apiBackup", this.clone(((Map<String, Object>)this.urls).get("api")));
-                    Helpers.addElementToObject(this.urls, "api", this.clone(((Map<String, Object>)this.urls).get("test")));
+                    Helpers.addElementToObject(this.urls, "apiBackup", this.clone(this.urls.get("api")));
+                    Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("test")));
                 }
             } else
             {
@@ -4866,14 +4866,14 @@ public Object describe()
             this.isSandboxModeEnabled = true;
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackup"))
         {
-            if ((((Map<String, Object>)this.urls).get("api") instanceof String))
+            if ((this.urls.get("api") instanceof String))
             {
-                Helpers.addElementToObject(this.urls, "api", ((Object)((Map<String, Object>)this.urls).get("apiBackup")));
+                Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackup")));
             } else
             {
-                Helpers.addElementToObject(this.urls, "api", this.clone(((Map<String, Object>)this.urls).get("apiBackup")));
+                Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("apiBackup")));
             }
-            Object newUrls = this.omit(this.urls, "apiBackup");
+            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
             // set flag
             this.isSandboxModeEnabled = false;
@@ -4894,12 +4894,12 @@ public Object describe()
         }
         if (Helpers.isTrue(enable))
         {
-            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", ((Map<String, Object>)this.urls).get("api"));
-            Helpers.addElementToObject(this.urls, "api", ((Map<String, Object>)this.urls).get("demo"));
+            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
+            Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            Helpers.addElementToObject(this.urls, "api", ((Object)((Map<String, Object>)this.urls).get("apiBackupDemoTrading")));
-            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackupDemoTrading")));
+            Map<String, Object> newUrls = (Map<String, Object>) this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -4930,7 +4930,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("watchLiquidationsForSymbols"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("watchLiquidationsForSymbols"), false))
+            if (!java.util.Objects.equals(this.has.get("watchLiquidationsForSymbols"), null) && !java.util.Objects.equals(this.has.get("watchLiquidationsForSymbols"), false))
             {
                 return (this.watchLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
             }
@@ -4954,7 +4954,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("watchMyLiquidationsForSymbols"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("watchMyLiquidationsForSymbols"), false))
+            if (!java.util.Objects.equals(this.has.get("watchMyLiquidationsForSymbols"), null) && !java.util.Objects.equals(this.has.get("watchMyLiquidationsForSymbols"), false))
             {
                 return this.watchMyLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters);
             }
@@ -5088,7 +5088,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarginModes"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarginModes"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchMarginModes"), null) && !java.util.Objects.equals(this.has.get("fetchMarginModes"), false))
             {
                 MarginModes marginModes = (this.fetchMarginModes(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
                 return this.safeDict(marginModes, symbol, (Object) null);
@@ -5406,7 +5406,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverages"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverages"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchLeverages"), null) && !java.util.Objects.equals(this.has.get("fetchLeverages"), false))
             {
                 Leverages leverages = (this.fetchLeverages(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
                 return this.safeDict(leverages, symbol, (Object) null);
@@ -7386,7 +7386,7 @@ public Object describe()
         return BaseExchange.supplyAsync(() -> {
 
             String message = "";
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTrades"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTrades"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchTrades"), null) && !java.util.Objects.equals(this.has.get("fetchTrades"), false))
             {
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
@@ -7421,7 +7421,7 @@ public Object describe()
         return BaseExchange.supplyAsync(() -> {
 
             String message = "";
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradesWs"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradesWs"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchTradesWs"), null) && !java.util.Objects.equals(this.has.get("fetchTradesWs"), false))
             {
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
@@ -8100,7 +8100,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradingLimits"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTradingLimits"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchTradingLimits"), null) && !java.util.Objects.equals(this.has.get("fetchTradingLimits"), false))
             {
                 if (Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)) || !(((Map<?, ?>)this.options).containsKey("limitsLoaded")))
                 {
@@ -9014,7 +9014,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTransactionFees"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchTransactionFees"), false))
+            if (java.util.Objects.equals(this.has.get("fetchTransactionFees"), null) || java.util.Objects.equals(this.has.get("fetchTransactionFees"), false))
             {
                 throw new NotSupported((this.id + " fetchTransactionFee() is not supported yet")) ;
             }
@@ -9048,7 +9048,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositWithdrawFees"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositWithdrawFees"), false))
+            if (java.util.Objects.equals(this.has.get("fetchDepositWithdrawFees"), null) || java.util.Objects.equals(this.has.get("fetchDepositWithdrawFees"), false))
             {
                 throw new NotSupported((this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
             }
@@ -9080,7 +9080,7 @@ public Object describe()
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchBorrowRates"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchBorrowRates"), false))
+            if (java.util.Objects.equals(this.has.get("fetchBorrowRates"), null) || java.util.Objects.equals(this.has.get("fetchBorrowRates"), false))
             {
                 throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
             }
@@ -9101,7 +9101,7 @@ public Object describe()
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchBorrowRates"), null) || java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchBorrowRates"), false))
+            if (java.util.Objects.equals(this.has.get("fetchBorrowRates"), null) || java.util.Objects.equals(this.has.get("fetchBorrowRates"), false))
             {
                 throw new NotSupported((this.id + " fetchIsolatedBorrowRate() is not supported yet")) ;
             }
@@ -9524,7 +9524,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsADLRank"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPositionsADLRank"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchPositionsADLRank"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsADLRank"), false))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
@@ -9838,7 +9838,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositAddresses"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositAddresses"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchDepositAddresses"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddresses"), false))
             {
                 List<DepositAddress> depositAddresses = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
                 Object depositAddress = this.safeValue(depositAddresses, code);
@@ -9849,7 +9849,7 @@ public Object describe()
                 {
                     return depositAddress;
                 }
-            } else if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositAddressesByNetwork"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositAddressesByNetwork"), false))
+            } else if (!java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), false))
             {
                 String network = this.safeString(parameters, "network");
                 Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
@@ -10245,7 +10245,7 @@ public Object describe()
                 throw new ExchangeError((this.id + " loadTimeDifference() missing serverTime")) ;
             }
             Helpers.addElementToObject(this.options, "timeDifference", (after - serverTime));
-            return ((Map<String, Object>)this.options).get("timeDifference");
+            return this.options.get("timeDifference");
         });
 
     }
@@ -10262,7 +10262,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverageTiers"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchLeverageTiers"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchLeverageTiers"), null) && !java.util.Objects.equals(this.has.get("fetchLeverageTiers"), false))
             {
                 Map<String, Object> market = this.market(symbol);
                 if (!java.util.Objects.equals(market.get("contract"), true))
@@ -10773,7 +10773,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingRates"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingRates"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchFundingRates"), null) && !java.util.Objects.equals(this.has.get("fetchFundingRates"), false))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
@@ -10804,7 +10804,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingIntervals"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchFundingIntervals"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchFundingIntervals"), null) && !java.util.Objects.equals(this.has.get("fetchFundingIntervals"), false))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
@@ -10846,7 +10846,7 @@ public Object describe()
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
              */
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarkOHLCV"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchMarkOHLCV"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchMarkOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchMarkOHLCV"), false))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "mark" );
@@ -10876,7 +10876,7 @@ public Object describe()
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
              */
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchIndexOHLCV"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchIndexOHLCV"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchIndexOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchIndexOHLCV"), false))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "index" );
@@ -10906,7 +10906,7 @@ public Object describe()
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
              */
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPremiumIndexOHLCV"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchPremiumIndexOHLCV"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchPremiumIndexOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchPremiumIndexOHLCV"), false))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "premiumIndex" );
@@ -10931,7 +10931,7 @@ public Object describe()
         String timeInForce = this.safeStringUpper(parameters, "timeInForce"); // supported values GTC, IOC, PO
         if (!java.util.Objects.equals(timeInForce, null))
         {
-            String exchangeValue = this.safeString(((Map<String, Object>)this.options).get("timeInForce"), timeInForce);
+            String exchangeValue = this.safeString(this.options.get("timeInForce"), timeInForce);
             if (java.util.Objects.equals(exchangeValue, null))
             {
                 throw new ExchangeError((((this.id + " does not support timeInForce \"") + timeInForce) + "\"")) ;
@@ -11175,7 +11175,7 @@ public Object describe()
              * @param {object} [params] extra parameters specific to the exchange API endpoint
              * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
              */
-            if (!java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositsWithdrawals"), null) && !java.util.Objects.equals(((Map<String, Object>)this.has).get("fetchDepositsWithdrawals"), false))
+            if (!java.util.Objects.equals(this.has.get("fetchDepositsWithdrawals"), null) && !java.util.Objects.equals(this.has.get("fetchDepositsWithdrawals"), false))
             {
                 return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
             } else

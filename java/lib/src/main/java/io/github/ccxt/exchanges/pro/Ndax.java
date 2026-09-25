@@ -81,7 +81,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Map<String, Object> market = this.market(symbol);
             String name = "SubscribeLevel1";
             String messageHash = ((name + ":") + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
@@ -164,7 +164,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String symbolValue = (String) market.get("symbol");
             String name = "SubscribeTrades";
             String messageHash = ((name + ":") + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
@@ -270,7 +270,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String symbolValue = (String) market.get("symbol");
             String name = "SubscribeTicker";
             String messageHash = ((((name + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
@@ -437,7 +437,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String symbolValue = (String) market.get("symbol");
             String name = "SubscribeLevel2";
             String messageHash = ((name + ":") + market.get("id"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Long requestId = this.requestId();
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> payload = new HashMap<String, Object>() {{

@@ -134,7 +134,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 messageHash = ((name + "::") + market.get("symbol"));
                 productIds = new ArrayList<String>(Arrays.asList(((String)market.get("id"))));
             }
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(url, null))
             {
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
@@ -200,7 +200,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 productIds.add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
             }
-            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String url = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(url, null))
             {
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
@@ -943,8 +943,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         try
         {
             String feedback = Helpers.add(((this.id + " ") + errMsg), reason);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), reason, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), reason, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), reason, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), reason, feedback);
             throw new ExchangeError((String)feedback) ;
         } catch(Exception e)
         {

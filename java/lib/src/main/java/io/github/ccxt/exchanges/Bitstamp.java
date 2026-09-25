@@ -1392,7 +1392,7 @@ public class Bitstamp extends BitstampApi
         "timestamp", now
     )));
             }
-            return this.safeValue(((Map<String, Object>)this.options).get("fetchMarkets"), "response");
+            return this.safeValue(this.options.get("fetchMarkets"), "response");
         });
 
     }
@@ -3663,7 +3663,7 @@ public class Bitstamp extends BitstampApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3788,8 +3788,8 @@ public class Bitstamp extends BitstampApi
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
                 Object value = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), value, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), value, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), value, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), value, feedback);
             }
             throw new ExchangeError(feedback) ;
         }

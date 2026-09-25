@@ -99,7 +99,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
             }};
-            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "public"), hostname);
             String requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -181,7 +181,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
             }};
-            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "public"), hostname);
             String requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -281,7 +281,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
             }};
-            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "public"), hostname);
             String requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -379,7 +379,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Map<String, Object> hostname = new HashMap<String, Object>() {{
                 put( "hostname", Bittrade.this.hostname );
             }};
-            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "public"), hostname);
             String requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -457,7 +457,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 Map<String, Object> hostname = new HashMap<String, Object>() {{
                     put( "hostname", Bittrade.this.hostname );
                 }};
-                String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), api), "public"), hostname);
+                String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), api), "public"), hostname);
                 String requestId = this.requestId();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "req", messageHash );
@@ -737,7 +737,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 String errorCode = this.safeString(message, "err-code");
                 try
                 {
-                    this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, this.json(message));
+                    this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, this.json(message));
                 } catch(Exception e)
                 {
                     String messageHash = this.safeString(subscription, "messageHash");

@@ -3583,7 +3583,7 @@ public class Nado extends NadoApi
         {
             endpoint = api;
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), endpoint);
+        String baseApiUrl = this.safeString(this.urls.get("api"), endpoint);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3640,8 +3640,8 @@ public class Nado extends NadoApi
         if ((java.util.Objects.equals(status, "failure")) || (!java.util.Objects.equals(errorCode, null)) || (!java.util.Objects.equals(error, null)))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

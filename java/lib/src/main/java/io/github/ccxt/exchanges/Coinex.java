@@ -3405,8 +3405,8 @@ public class Coinex extends CoinexApi
                 if ((!java.util.Objects.equals(code, "0")) || ((!java.util.Objects.equals(message, "Success")) && (!java.util.Objects.equals(message, "Succeeded")) && (!java.util.Objects.equals(message.toLowerCase(), "ok")) && (java.util.Objects.equals(data, null))))
                 {
                     String feedback = ((this.id + " ") + message);
-                    this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-                    this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+                    this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
                     throw new ExchangeError(feedback) ;
                 }
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
@@ -6311,7 +6311,7 @@ public class Coinex extends CoinexApi
         String pathValue = (String) this.implodeParams(path, parameters);
         Object version = Helpers.GetValue(api, 0);
         Object requestUrl = Helpers.GetValue(api, 1);
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), requestUrl);
+        String apiUrl = this.safeString(this.urls.get("api"), requestUrl);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -6455,8 +6455,8 @@ public class Coinex extends CoinexApi
         if ((!java.util.Objects.equals(code, "0")) || ((!java.util.Objects.equals(message, "Success")) && (!java.util.Objects.equals(message, "Succeeded")) && (!java.util.Objects.equals(message.toLowerCase(), "ok")) && (java.util.Objects.equals(data, null))))
         {
             String feedback = ((this.id + " ") + message);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

@@ -2172,7 +2172,7 @@ public class Kraken extends KrakenApi
         {
             return id;
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("delistedMarketsById"), id, (Object) null);
+        Map<String, Object> market = (Map<String, Object>) this.safeDict(this.options.get("delistedMarketsById"), id, (Object) null);
         if (!java.util.Objects.equals(market, null))
         {
             return market;
@@ -4333,7 +4333,7 @@ public class Kraken extends KrakenApi
             {
                 headersSigned.put("Content-Type", "application/x-www-form-urlencoded");
             }
-            String baseApiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
             if (java.util.Objects.equals(baseApiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4349,7 +4349,7 @@ public class Kraken extends KrakenApi
         {
             url = ("/" + path);
         }
-        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4391,8 +4391,8 @@ public class Kraken extends KrakenApi
                         for (var i = 0; i < Helpers.getArrayLength(Helpers.GetValue(response, "error")); i++)
                         {
                             Object error = Helpers.GetValue(Helpers.GetValue(response, "error"), i);
-                            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, message);
-                            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, message);
+                            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, message);
+                            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, message);
                         }
                         throw new ExchangeError(message) ;
                     }
@@ -4410,8 +4410,8 @@ public class Kraken extends KrakenApi
                             String error = this.safeString(order, "error");
                             if (!java.util.Objects.equals(error, null))
                             {
-                                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, message);
-                                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, message);
+                                this.throwExactlyMatchedException(this.exceptions.get("exact"), error, message);
+                                this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, message);
                                 throw new ExchangeError(message) ;
                             }
                         }

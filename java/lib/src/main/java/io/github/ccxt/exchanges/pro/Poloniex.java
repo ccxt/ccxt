@@ -114,7 +114,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.milliseconds());
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             String messageHash = "authenticated";
             Client client = this.client(url);
             Object future = this.safeValue(client.subscriptions, messageHash);
@@ -184,7 +184,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 publicOrPrivate = "private";
             }
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), publicOrPrivate);
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), publicOrPrivate);
             Map<String, Object> subscribe = Helpers.newMap(
                 "event", "subscribe",
                 "channel", new ArrayList<Object>(Arrays.asList(name))
@@ -234,7 +234,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
             String messageHash = String.valueOf(this.nonce());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", messageHash );
@@ -583,7 +583,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             String name = "trades";
-            String url = (String) Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             List<String> marketIds = this.marketIds(symbolsNormalized);
             Map<String, Object> subscribe = Helpers.newMap(
                 "event", "subscribe",
@@ -1563,8 +1563,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String error = this.safeString(first, "message");
                 String code = this.safeString(first, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {

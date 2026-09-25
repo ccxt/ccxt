@@ -713,8 +713,8 @@ public class Kalshi extends KalshiApi
         {
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorCode, feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
@@ -3289,7 +3289,7 @@ public class Kalshi extends KalshiApi
     {
         Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "kalshi") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "kalshi") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "kalshi"), 0);
         Object access = (((java.util.Objects.requireNonNullElse(api, "kalshi") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "kalshi"), 1);
-        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
+        Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("kalshi"));
         String implodedPath = (String) this.implodeParams(path, parameters);
         String url = ((baseUrl + "/") + implodedPath);

@@ -140,7 +140,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 type = "contract";
             }
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type) + "/public");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type) + "/public");
             return (this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscriptionExtended)).join();
         });
 
@@ -156,7 +156,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 type = "contract";
             }
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type) + "/private");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type) + "/private");
             this.authenticate(url);
             String method = "SUBSCRIBE";
             Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
@@ -188,7 +188,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Long timestamp = this.nonce();
         String payload = (String.valueOf(timestamp) + "/v3/ws/private");
         String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
-        Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options"), "headers", (Object) null);
+        Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(Helpers.GetValue(this.options.get("ws"), "options"), "headers", (Object) null);
         String userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Map<String, Object> extendedOptions = new HashMap<String, Object>() {{
             put( "ws", new HashMap<String, Object>() {{
@@ -1947,7 +1947,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 urlType = "contract";
             }
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), urlType) + "/private");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType) + "/private");
             this.authenticate(url);
             Client client = this.client(url);
             this.setBalanceCache(client, type);
@@ -2122,7 +2122,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "contract") + "/private");
+            String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "contract") + "/private");
             this.authenticate(url);
             Client client = this.client(url);
             List<String> symbolsNormalized = this.marketSymbols(symbols, "swap", true, false, false);
@@ -2378,8 +2378,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), msg, feedback);
-                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), msg, feedback);
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), msg, feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception error)
             {

@@ -119,7 +119,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 messageHash = ((name + "::") + symbol);
                 productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = Helpers.newMap(
                 "type", "subscribe",
                 "product_ids", productIds,
@@ -183,7 +183,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 unWatchMessageHash = ((unWatchMessageHash + "::") + symbol);
                 productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
             Map<String, Object> message = Helpers.newMap(
                 "type", "unsubscribe",
@@ -241,7 +241,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> subscribe = Helpers.newMap(
                 "type", "subscribe",
                 "product_ids", productIds,
@@ -295,7 +295,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 ((List<Object>)watchMessageHashes).add(((name + "::") + symbol));
                 unWatchMessageHashes.add(((("unsubscribe:" + name) + "::") + symbol));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> message = Helpers.newMap(
                 "type", "unsubscribe",
                 "product_ids", productIds,
@@ -1084,7 +1084,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         {
             Map<String, Object> trade = (Map<String, Object>) this.safeDict(updates, i, (Object) null);
             String sideId = this.safeString(trade, "side");
-            String side = this.safeString(((Map<String, Object>)this.options).get("sides"), sideId);
+            String side = this.safeString(this.options.get("sides"), sideId);
             Double price = this.safeNumber(trade, "price_level", (Object) null);
             Double amount = this.safeNumber(trade, "new_quantity", (Object) null);
             Object orderbookSide = this.safeValue(orderbook, side);

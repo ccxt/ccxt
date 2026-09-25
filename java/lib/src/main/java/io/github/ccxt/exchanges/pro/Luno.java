@@ -82,7 +82,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", symbolValue );
             }};
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
@@ -213,7 +213,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", symbolValue );
             }};
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;

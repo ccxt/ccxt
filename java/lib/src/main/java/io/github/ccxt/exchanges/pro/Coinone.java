@@ -91,7 +91,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + market.get("symbol"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "ORDERBOOK" );
@@ -190,7 +190,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + market.get("symbol"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TICKER" );
@@ -332,7 +332,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + market.get("symbol"));
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TRADE" );

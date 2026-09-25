@@ -75,7 +75,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -112,7 +112,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -221,7 +221,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -253,7 +253,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -346,7 +346,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ohlcv:" + market.get("symbol"));
             String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -386,7 +386,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ohlcv:" + market.get("symbol"));
             String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
