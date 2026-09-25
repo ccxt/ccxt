@@ -1501,7 +1501,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

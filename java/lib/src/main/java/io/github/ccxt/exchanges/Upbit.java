@@ -2315,10 +2315,10 @@ public class Upbit extends UpbitApi
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, Helpers.toMapArg(Helpers.newMap(
+        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, Helpers.newMap(
             "order", id,
             "type", type
-        )));
+        ));
         Integer numTrades = ((List<?>)trades).size();
         if ((numTrades != null && numTrades > 0))
         {

@@ -912,9 +912,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.toMapArg(new HashMap<String, Object>() {{
+            Balances response = (this.fetchBalance(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}))).join();
+            }})).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))

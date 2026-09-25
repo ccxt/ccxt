@@ -1251,7 +1251,7 @@ public class Myriad extends MyriadApi
                 Double amount = this.safeNumber(o, "amount", (Object) null);
                 Double price = this.safeNumber(o, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(o, "params", new HashMap<String, Object>() {{}});
-                Object placed = (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, Helpers.toMapArg(this.extend(orderParams, parameters)))).join();
+                Object placed = (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, this.extend(orderParams, parameters))).join();
                 ((List<Object>)result).add(placed);
             }
             return result;
@@ -2281,7 +2281,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2305,7 +2305,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "filled" );
             }};
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2329,7 +2329,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "cancelled" );
             }};
-            return (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2355,7 +2355,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "filled" );
             }};
-            List<PredictionOrder> orders = (this.fetchOrders(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<PredictionOrder> orders = (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             Integer ordersLength = ((List<?>)orders).size();
             for (var i = 0; (ordersLength != null && i < ordersLength); i++)
@@ -4536,9 +4536,9 @@ public class Myriad extends MyriadApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<PredictionPosition> positions = (this.fetchPositions((Object) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+            List<PredictionPosition> positions = (this.fetchPositions((Object) null, new HashMap<String, Object>() {{
                 put( "address", trader );
-            }}))).join();
+            }})).join();
             Map<String, Object> balances = new HashMap<String, Object>() {{}};
             Integer positionsLength = ((List<?>)positions).size();
             for (var i = 0; (positionsLength != null && i < positionsLength); i++)

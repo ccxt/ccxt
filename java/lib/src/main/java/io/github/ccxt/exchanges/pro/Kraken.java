@@ -962,7 +962,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", Helpers.toStringListArg(symbols), Helpers.newMap(
                 "limit", limit
-            ), Helpers.toMapArg(this.extend(requiredParams, parameters)))).join();
+            ), this.extend(requiredParams, parameters))).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1568,9 +1568,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchPrivate("orders", symbol, since, limit, Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            return (this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "snap_orders", true );
-            }})))).join();
+            }}))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

@@ -1147,7 +1147,7 @@ public class Pacifica extends PacificaApi
                 Map<String, Object> request = Helpers.newMap(
                     "account", userAccount
                 );
-                settings = (this.fetchAccountSettings(Helpers.toMapArg(this.extend(request, paramsOriginAndSingleAddress)))).join();
+                settings = (this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
             }
             Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol, (Object) null);
             if (java.util.Objects.equals(setting, null))
@@ -1307,7 +1307,7 @@ public class Pacifica extends PacificaApi
                 Map<String, Object> request = Helpers.newMap(
                     "account", userAccount
                 );
-                settings = (this.fetchAccountSettings(Helpers.toMapArg(this.extend(request, paramsOriginAndSingleAddress)))).join();
+                settings = (this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
             }
             // {
             //   "WLFI/USDC:USDC": {
@@ -2309,7 +2309,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> cloidParams = new HashMap<String, Object>() {{
                 put( "clientOrderId", cloid );
             }};
-            Object request = this.cancelOrderRequest(cloid, symbol, Helpers.toMapArg(this.extend(cloidParams, paramsOmitted)));
+            Object request = this.cancelOrderRequest(cloid, symbol, this.extend(cloidParams, paramsOmitted));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "Cancel" );
                 put( "data", request );

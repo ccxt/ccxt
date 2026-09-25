@@ -1969,7 +1969,7 @@ public class Bullish extends BullishApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "OPEN" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1995,7 +1995,7 @@ public class Bullish extends BullishApi
                 put( "status", "CANCELLED" );
                 put( "method", "privateGetV2Orders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2021,7 +2021,7 @@ public class Bullish extends BullishApi
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2Orders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2047,7 +2047,7 @@ public class Bullish extends BullishApi
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2HistoryOrders" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

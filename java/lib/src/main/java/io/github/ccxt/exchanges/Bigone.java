@@ -2213,7 +2213,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "state", "PENDING" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2237,7 +2237,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "state", "FILLED" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

@@ -476,9 +476,9 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "price", "mark" );
-            }})))).join();
+            }}))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

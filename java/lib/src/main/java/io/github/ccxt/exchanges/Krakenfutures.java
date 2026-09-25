@@ -2098,7 +2098,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderIds", new ArrayList<Object>(Arrays.asList(id)) );
             }};
-            List<Order> orders = (this.fetchOrders((String) null, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> orders = (this.fetchOrders((String) null, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             if (java.util.Objects.equals(order, null))
             {

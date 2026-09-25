@@ -806,7 +806,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 request.put("len", limit); // string, number of price points, '25', '100', default = '25'
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe("book", symbol, Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe("book", symbol, this.deepExtend(request, parameters))).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

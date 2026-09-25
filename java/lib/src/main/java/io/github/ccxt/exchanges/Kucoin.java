@@ -4336,9 +4336,9 @@ public class Kucoin extends KucoinApi
                 return (this.fetchContractDepositAddress(code, paramsRequest)).join();
             } else if (Helpers.isTrue(uta) || (java.util.Objects.equals(accountType, "uta")) || (java.util.Objects.equals(accountType, "unified")))
             {
-                return (super.fetchDepositAddress(code, Helpers.toMapArg(this.extend(paramsRequest, new HashMap<String, Object>() {{
+                return (super.fetchDepositAddress(code, this.extend(paramsRequest, new HashMap<String, Object>() {{
                     put( "uta", true );
-                }})))).join();
+                }}))).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4537,9 +4537,9 @@ public class Kucoin extends KucoinApi
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", version);
             }
             List<Object> chains = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object parsed = this.parseDepositAddresses(chains, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object parsed = this.parseDepositAddresses(chains, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{
                 put( "currency", currency.get("code") );
-            }}));
+            }});
             return this.indexBy(parsed, "network");
         });
 
@@ -5550,7 +5550,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -6508,9 +6508,9 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, (Long) null, (Long) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{
                 put( "status", "canceled" );
-            }}));
+            }});
         });
 
     }
@@ -8020,7 +8020,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -9364,9 +9364,9 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(items, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(items, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -9435,9 +9435,9 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> responseData = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(responseData, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(responseData, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
-            }}));
+            }});
         });
 
     }
@@ -9555,9 +9555,9 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(items, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(items, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -9626,9 +9626,9 @@ public class Kucoin extends KucoinApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> responseData = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(responseData, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(responseData, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
-            }}));
+            }});
         });
 
     }

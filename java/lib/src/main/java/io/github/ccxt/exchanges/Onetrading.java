@@ -1967,7 +1967,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "with_cancelled_and_rejected", true );
             }};
-            return (this.fetchOpenOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

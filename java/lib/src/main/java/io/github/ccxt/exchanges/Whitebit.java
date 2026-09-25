@@ -2494,7 +2494,7 @@ public class Whitebit extends WhitebitApi
                 put( "cost", cost );
             }};
             // only buy side is supported
-            return (this.createOrder(symbol, "market", (String) (side), 0, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), 0, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3117,9 +3117,9 @@ public class Whitebit extends WhitebitApi
             //         },
             //     ]
             //
-            return this.parseOrders(response, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

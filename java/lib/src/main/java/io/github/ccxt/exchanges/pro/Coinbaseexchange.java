@@ -327,7 +327,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String name = "user";
             String messageHash = "myTrades";
             Object authentication = this.authenticate();
-            List<Object> trades = (List<Object>) (this.subscribe(name, symbolValue, messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
+            List<Object> trades = (List<Object>) (this.subscribe(name, symbolValue, messageHash, this.extend(parameters, authentication))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -361,7 +361,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String name = "user";
             String messageHash = "myTrades";
             Object authentication = this.authenticate();
-            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, this.extend(parameters, authentication))).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -397,7 +397,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String name = "user";
             String messageHash = "orders";
             Object authentication = this.authenticate();
-            List<Object> orders = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
+            List<Object> orders = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, this.extend(parameters, authentication))).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -437,7 +437,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String name = "user";
             String messageHash = "orders";
             Object authentication = this.authenticate();
-            List<Object> orders = (List<Object>) (this.subscribe(name, symbolValue, messageHash, Helpers.toMapArg(this.extend(parameters, authentication)))).join();
+            List<Object> orders = (List<Object>) (this.subscribe(name, symbolValue, messageHash, this.extend(parameters, authentication))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

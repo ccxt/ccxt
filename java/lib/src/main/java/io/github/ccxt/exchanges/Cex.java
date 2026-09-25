@@ -1372,7 +1372,7 @@ public class Cex extends CexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
-            List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
         });
 
@@ -1400,7 +1400,7 @@ public class Cex extends CexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
-            List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
         });
 

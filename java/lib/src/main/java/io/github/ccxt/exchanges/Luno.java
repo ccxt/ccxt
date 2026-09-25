@@ -1632,7 +1632,7 @@ public class Luno extends LunoApi
                 put( "min_row", entryValue );
                 put( "max_row", Luno.this.sum(entryValue, limitValue) );
             }};
-            return (this.fetchLedger(code, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limitValue), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchLedger(code, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limitValue), this.extend(request, parameters))).join();
         });
 
     }

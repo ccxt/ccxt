@@ -9645,7 +9645,7 @@ public class Binance extends BinanceApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -9677,7 +9677,7 @@ public class Binance extends BinanceApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -11288,7 +11288,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, paramsOmitted)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, paramsOmitted))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -16469,7 +16469,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", symbol );
             }};
-            IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(Helpers.toMapArg(this.extend(request, parameters)))).join();
+            IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(this.extend(request, parameters))).join();
             return this.safeDict(borrowRates, symbol, (Object) null);
         }).thenApply(IsolatedBorrowRate::new);
 

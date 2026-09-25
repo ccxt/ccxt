@@ -6450,7 +6450,7 @@ public class Coinbase extends CoinbaseApi
             Object request = this.prepareAccountRequest((Long) null, parameters);
             Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseDepositAddresses(data, codes, false, Helpers.toMapArg(new HashMap<String, Object>() {{}}));
+            return this.parseDepositAddresses(data, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }

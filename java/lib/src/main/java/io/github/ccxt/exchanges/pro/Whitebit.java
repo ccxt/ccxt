@@ -936,9 +936,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.toMapArg(new HashMap<String, Object>() {{
+            Balances response = (this.fetchBalance(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}))).join();
+            }})).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
             if (Helpers.inOp(client.futures, messageHash))

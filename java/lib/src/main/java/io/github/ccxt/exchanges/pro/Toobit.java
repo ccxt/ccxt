@@ -954,9 +954,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.toMapArg(Helpers.newMap(
+            Balances response = (this.fetchBalance(Helpers.newMap(
                 "type", marketType
-            )))).join();
+            ))).join();
             String type = "contract";
             if (java.util.Objects.equals(marketType, "spot"))
             {

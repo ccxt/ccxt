@@ -189,9 +189,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchTicker" );
-            }})))).join();
+            }}))).join();
             return Helpers.GetValue(tickers, symbolValue);
         }).thenApply(Ticker::new);
 

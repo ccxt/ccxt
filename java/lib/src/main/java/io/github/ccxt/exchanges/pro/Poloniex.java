@@ -337,7 +337,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     request.put("price", this.priceToPrecision(symbol, price));
                 }
             }
-            Object orders = (this.tradeRequest("createOrder", Helpers.toMapArg(this.extend(request, paramsOmitted)))).join();
+            Object orders = (this.tradeRequest("createOrder", this.extend(request, paramsOmitted))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             return order;
         }).thenApply(Order::new);
@@ -397,7 +397,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderIds", ids );
             }};
-            return (this.tradeRequest("cancelOrders", Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.tradeRequest("cancelOrders", this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

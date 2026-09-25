@@ -10873,7 +10873,7 @@ public Object describe()
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "mark" );
                 }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchMarkOHLCV () is not supported yet")) ;
@@ -10903,7 +10903,7 @@ public Object describe()
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "index" );
                 }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchIndexOHLCV () is not supported yet")) ;
@@ -10933,7 +10933,7 @@ public Object describe()
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "premiumIndex" );
                 }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchPremiumIndexOHLCV () is not supported yet")) ;

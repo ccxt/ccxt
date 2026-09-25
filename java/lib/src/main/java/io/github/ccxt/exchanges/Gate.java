@@ -5003,9 +5003,9 @@ public class Gate extends GateApi
             //          }
             //      ]
             //
-            List<Trade> response = (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            List<Trade> response = (this.fetchMyTrades(symbol, since, limit, new HashMap<String, Object>() {{
                 put( "order_id", id );
-            }}))).join();
+            }})).join();
             return response;
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

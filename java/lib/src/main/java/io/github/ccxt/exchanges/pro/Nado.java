@@ -382,7 +382,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "granularity", Nado.this.safeInteger(Nado.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), Nado.this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
             }};
-            Object result = (this.watchPublic("latest_candlestick", market, messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            Object result = (this.watchPublic("latest_candlestick", market, messageHash, this.extend(request, parameters))).join();
             Object stored = Helpers.GetValue(result, 2);
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -727,7 +727,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "orders";
             Long productId = null;
@@ -776,7 +776,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "orders";
             Long productId = null;
@@ -822,7 +822,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "myTrades";
             Long productId = null;
@@ -871,7 +871,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "myTrades";
             Long productId = null;
@@ -917,7 +917,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             String messageHash = "positions";
             Long productId = null;
@@ -967,7 +967,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             String messageHash = "positions";
             Long productId = null;

@@ -1961,7 +1961,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3826,7 +3826,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "new", "true" );
             }};
-            return (this.fetchDepositAddress(code, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
         }).thenApply(DepositAddress::new);
 
     }

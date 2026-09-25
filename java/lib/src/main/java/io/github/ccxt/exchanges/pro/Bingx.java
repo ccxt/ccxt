@@ -1450,10 +1450,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.toMapArg(Helpers.newMap(
+            Balances response = (this.fetchBalance(Helpers.newMap(
                 "type", type,
                 "subType", subType
-            )))).join();
+            ))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
@@ -1571,10 +1571,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions((List<String>) null, Helpers.toMapArg(new HashMap<String, Object>() {{
+            List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
                 put( "type", type );
                 put( "subType", "linear" );
-            }}))).join();
+            }})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)

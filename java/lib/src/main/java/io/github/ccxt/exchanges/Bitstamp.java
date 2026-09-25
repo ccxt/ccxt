@@ -3446,10 +3446,10 @@ public class Bitstamp extends BitstampApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
                 put( "type", "limit" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

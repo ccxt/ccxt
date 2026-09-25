@@ -4327,7 +4327,7 @@ public class Okx extends OkxApi
                 put( "createMarketBuyOrderRequiresPrice", false );
                 put( "tgtCcy", "quote_ccy" );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -4360,7 +4360,7 @@ public class Okx extends OkxApi
                 put( "createMarketBuyOrderRequiresPrice", false );
                 put( "tgtCcy", "quote_ccy" );
             }};
-            return (this.createOrder(symbol, "market", "sell", cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "sell", cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -6599,7 +6599,7 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ordId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

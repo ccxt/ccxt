@@ -3584,9 +3584,9 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(Helpers.newMap(
+            return this.parseTransactions(data, currency, since, limit, Helpers.newMap(
                 "type", type
-            )));
+            ));
         });
 
     }
