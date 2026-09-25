@@ -442,7 +442,7 @@ public class Bitso extends BitsoApi
             //     }
             //
             List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
             return this.parseLedger(payload, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -524,7 +524,7 @@ public class Bitso extends BitsoApi
         String amount = this.safeString(firstBalance, "amount");
         String currencyId = this.safeString(firstBalance, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Map<String, Object> details = (Map<String, Object>) this.safeDict(item, "details", new HashMap<String, Object>() {{}});
         String referenceId = this.safeString2(details, "fid", "wid");
         if (java.util.Objects.equals(referenceId, null))
@@ -817,7 +817,7 @@ public class Bitso extends BitsoApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "locked"));
             account.put("total", this.safeString(balance, "total"));
@@ -896,7 +896,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "book", ((Map<String, Object>)market).get("id") );
             }};
@@ -972,7 +972,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "book", ((Map<String, Object>)market).get("id") );
             }};
@@ -1020,7 +1020,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "book", ((Map<String, Object>)market).get("id") );
                 put( "time_bucket", Bitso.this.safeString(Bitso.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -1220,7 +1220,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "book", ((Map<String, Object>)market).get("id") );
             }};
@@ -1334,7 +1334,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             // the don't support fetching trades starting from a date yet
             // use the `marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1386,7 +1386,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "book", ((Map<String, Object>)market).get("id"),
                 "side", side,
@@ -1469,7 +1469,7 @@ public class Bitso extends BitsoApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             String oids = String.join(",", (List<String>)ids);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1612,7 +1612,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             // the don't support fetching trades starting from a date yet
             // use the `marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1700,7 +1700,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "oid", id );
             }};
@@ -1787,7 +1787,7 @@ public class Bitso extends BitsoApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             Map<String, Object> response = (this.privateGetFundings(parameters)).join();
             //
@@ -1836,7 +1836,7 @@ public class Bitso extends BitsoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "fund_currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2165,7 +2165,7 @@ public class Bitso extends BitsoApi
                 put( "BCH", "Bcash" );
                 put( "LTC", "Litecoin" );
             }};
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Object method = (((methods.containsKey(code)))) ? (methods == null || code == null ? null : methods.get(code)) : null;
             if (java.util.Objects.equals(method, null))
             {
@@ -2243,7 +2243,7 @@ public class Bitso extends BitsoApi
         //     }
         //
         String currencyId = this.safeString2(transaction, "currency", "asset");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Map<String, Object> details = (Map<String, Object>) this.safeDict(transaction, "details", new HashMap<String, Object>() {{}});
         String datetime = this.safeString(transaction, "created_at");
         String withdrawalAddress = this.safeString(details, "withdrawal_address");

@@ -241,12 +241,12 @@ public class Paymium extends PaymiumApi
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) ((Map<String, Object>)currency).get("id");
             String free = ("balance_" + currencyId);
             if (Helpers.inOp(response, free))
             {
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 String used = ("locked_" + currencyId);
                 account.put("free", this.safeString(response, free));
                 account.put("used", this.safeString(response, used));
@@ -298,7 +298,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
@@ -376,7 +376,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
@@ -408,7 +408,7 @@ public class Paymium extends PaymiumApi
     {
         Long timestamp = this.safeTimestamp(trade, "created_at_int");
         String id = this.safeString(trade, "uuid");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String side = this.safeString(trade, "side");
         String price = this.safeString(trade, "price");
         String amountField = ("traded_" + ((String)((Map<String, Object>)marketResolved).get("base")).toLowerCase());
@@ -450,7 +450,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};
@@ -604,7 +604,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "type", (this.capitalize(type) + "Order"),
                 "currency", ((Map<String, Object>)market).get("id"),
@@ -671,7 +671,7 @@ public class Paymium extends PaymiumApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             if (((String)toAccount).indexOf("@") < 0)
             {
                 throw new ExchangeError((this.id + " transfer() only allows transfers to an email address")) ;

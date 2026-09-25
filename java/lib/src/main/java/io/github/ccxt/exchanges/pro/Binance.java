@@ -356,7 +356,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object getStockTickerFromSymbol(String symbol)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         String base = this.safeString2(market, "base", "id");
         return (((java.util.Objects.equals(base, null)))) ? null : ((String)base).toLowerCase();
     }
@@ -466,7 +466,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(i)));
+                    Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(i)));
                     ((List<Object>)subscriptionHashes).add((((Map<String, Object>)market).get("lowercaseId") + "@forceOrder"));
                     messageHashes.add(("liquidations::" + (symbolsNormalized == null || i < 0 || i >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(i))));
                 }
@@ -556,7 +556,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         Map<String, Object> rawLiquidation = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawLiquidation, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "", "contract");
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "", "contract");
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Object liquidation = this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), market);
         if (java.util.Objects.equals(this.liquidations, null))
@@ -647,7 +647,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String marketId = this.safeString(liquidation, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "swap");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
         Long timestamp = this.safeInteger(liquidation, "T");
         return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
@@ -794,7 +794,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             return;
         }
         String marketId = this.safeString(message, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "swap");
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "swap");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Object liquidation = this.parseWsLiquidation((Map<String, Object>) (message), market);
         Object cache = this.myLiquidations;
@@ -867,7 +867,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+            Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) ((Map<String, Object>)firstMarket).get("type");
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
             {
@@ -904,7 +904,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHashes.add(("orderbook::" + symbol));
                 String subscriptionHash = ((((Map<String, Object>)market).get("lowercaseId") + "@") + name);
                 if (java.util.Objects.equals(watchOrderBookRate, null))
@@ -961,7 +961,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+            Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) ((Map<String, Object>)firstMarket).get("type");
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
             {
@@ -983,7 +983,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 subMessageHashes.add(("orderbook::" + symbol));
                 messageHashes.add(("unsubscribe:orderbook:" + symbol));
                 String streamId = (String) ((Map<String, Object>)market).get("lowercaseId");
@@ -1060,7 +1060,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1266,7 +1266,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             marketType = "spot";
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook::" + symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -1475,7 +1475,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String name = (String) ((List<Object>) nameparamsNameVariable).get(0);
             var paramsName = ((List<Object>) nameparamsNameVariable).get(1);
             Object paramsOmitted = this.omit(paramsName, "callerMethodName");
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+            Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) ((Map<String, Object>)firstMarket).get("type");
             Boolean isOption = (Boolean) ((Map<String, Object>)firstMarket).get("option");
             if (java.util.Objects.equals(isOption, true))
@@ -1495,7 +1495,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    Map<String, Object> market = this.market(symbol);
                     messageHashes.add(("trade::" + symbol));
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
                     String quoteIdLower = this.safeStringLower(market, "quoteId", "");
@@ -1511,7 +1511,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    Map<String, Object> market = this.market(symbol);
                     messageHashes.add(("trade::" + symbol));
                     String rawHash = ((((Map<String, Object>)market).get("lowercaseId") + "@") + name);
                     ((List<Object>)subParams).add(rawHash);
@@ -1579,7 +1579,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String name = (String) ((List<Object>) nameparamsNameVariable).get(0);
             var paramsName = ((List<Object>) nameparamsNameVariable).get(1);
             Object paramsOmitted = this.omit(paramsName, "callerMethodName");
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+            Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String type = (String) ((Map<String, Object>)firstMarket).get("type");
             Boolean isOption = (Boolean) ((Map<String, Object>)firstMarket).get("option");
             if (java.util.Objects.equals(isOption, true))
@@ -1600,7 +1600,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    Map<String, Object> market = this.market(symbol);
                     subMessageHashes.add(("trade::" + symbol));
                     messageHashes.add(("unsubscribe:trade:" + symbol));
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
@@ -1617,7 +1617,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    Map<String, Object> market = this.market(symbol);
                     subMessageHashes.add(("trade::" + symbol));
                     messageHashes.add(("unsubscribe:trade:" + symbol));
                     String rawHash = ((((Map<String, Object>)market).get("lowercaseId") + "@") + name);
@@ -1892,7 +1892,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             marketType = "spot";
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trade::" + symbol);
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), market);
@@ -1933,7 +1933,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "stock", (Object) null);
             var stock = ((List<Object>) stockparamsStockVariable).get(0);
@@ -1989,7 +1989,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     Object stockSymAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                     String stockSymbolString = this.symbol((stockSymAndTf == null || 0 >= ((List<?>)stockSymAndTf).size() ? null : ((List<?>)stockSymAndTf).get(0)));
-                    Map<String, Object> stockMarket = (Map<String, Object>) this.market(stockSymbolString);
+                    Map<String, Object> stockMarket = this.market(stockSymbolString);
                     String stockTicker = this.safeString2(stockMarket, "base", "id");
                     String stockTickerString = (((java.util.Objects.equals(stockTicker, null)))) ? "" : ((String)stockTicker).toLowerCase();
                     Object stockTimeframeString = (stockSymAndTf == null || 1 >= ((List<?>)stockSymAndTf).size() ? null : ((List<?>)stockSymAndTf).get(1));
@@ -2019,7 +2019,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) klineTypeparamsChannelVariable).get(1);
             List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
+            Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = (String) ((Map<String, Object>)firstMarket).get("type");
             String wsUrlType = type;
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
@@ -2044,7 +2044,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object symbolString = (symAndTf == null || 0 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(0));
                 Object timeframeString = (symAndTf == null || 1 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
+                Map<String, Object> market = this.market(symbolString);
                 Object marketId = ((Map<String, Object>)market).get("lowercaseId");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -2118,7 +2118,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> paramsChannel = (Map<String, Object>) ((List<Object>) klineTypeparamsChannelVariable).get(1);
             List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
+            Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = (String) ((Map<String, Object>)firstMarket).get("type");
             String wsUrlType = type;
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
@@ -2144,7 +2144,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object symbolString = (symAndTf == null || 0 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(0));
                 Object timeframeString = (symAndTf == null || 1 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
+                Map<String, Object> market = this.market(symbolString);
                 Object marketId = ((Map<String, Object>)market).get("lowercaseId");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -2210,7 +2210,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
             return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), parameters)).join();
@@ -2308,7 +2308,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2367,7 +2367,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object marketType = this.getMarketType("fetchOHLCVWs", market, parameters);
             if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "future"))
             {
@@ -2804,7 +2804,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean symbolsDefined = (!java.util.Objects.equals(symbolsNormalized, null));
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                firstMarket = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             }
             String userDefaultType = this.safeString(this.options, "defaultType");
             String defaultMarket = null;
@@ -2871,7 +2871,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    Map<String, Object> market = this.market(symbol);
                     ((List<Object>)messageHashes).add(((((unifiedPrefix + ":") + channelName) + "@") + symbol));
                     if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isUnsubscribe, false)))
                     {
@@ -3112,7 +3112,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // take the timestamp of the closing price for candlestick streams
             timestamp = this.safeIntegerN(message, new ArrayList<Object>(Arrays.asList("C", "E", "time")));
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, Helpers.toStringArg(marketType));
         String last = this.safeString2(message, "c", "price");
         // A coin-margined stream counts `v` in contracts and puts the
         // base asset in `q`, one field over from a linear stream, and
@@ -4110,7 +4110,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Integer symbolsLength = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                    market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
                     payload.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -4350,7 +4350,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             String currencyId = this.safeString(message, "a");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             String delta = this.safeString(message, "d");
             if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)) && (Helpers.inOp((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code)))
             {
@@ -4380,7 +4380,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
                 String currencyId = this.safeString(entry, "a");
                 String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("free", this.safeString(entry, "f"));
                 account.put("used", this.safeString(entry, "l"));
                 account.put("total", this.safeString(entry, wallet));
@@ -4488,7 +4488,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object marketType = this.getMarketType("createOrderWs", market, parameters);
             if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "future") && !java.util.Objects.equals(marketType, "delivery"))
             {
@@ -4672,7 +4672,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object marketType = this.getMarketType("editOrderWs", market, parameters);
             if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "future") && !java.util.Objects.equals(marketType, "delivery"))
             {
@@ -4849,7 +4849,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " cancelOrderWs requires a symbol")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("cancelOrderWs", market, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), type);
             Long requestId = this.requestId(url);
@@ -4923,7 +4923,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("cancelAllOrdersWs", market, parameters);
             if (!java.util.Objects.equals(type, "spot"))
             {
@@ -4977,7 +4977,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " cancelOrderWs requires a symbol")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchOrderWs", market, parameters);
             if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "delivery"))
             {
@@ -5042,7 +5042,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchOrdersWs requires a symbol")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchOrdersWs", market, parameters);
             if (!java.util.Objects.equals(type, "spot"))
             {
@@ -5123,7 +5123,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchOpenOrdersWs", market, parameters);
             if (!java.util.Objects.equals(type, "spot"))
             {
@@ -5229,7 +5229,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             var typesubTypeparamsValueVariable = this.resolveAuthType("watchOrders", market, paramsStock);
@@ -6231,7 +6231,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " fetchMyTradesWs requires a symbol")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchMyTradesWs", market, parameters);
             if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "future"))
             {
@@ -6297,7 +6297,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchTradesWs", market, parameters);
             if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "future"))
             {
@@ -6407,7 +6407,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             var typesubTypeparamsAuthVariable = this.resolveAuthType("watchMyTrades", market, parameters);
@@ -6654,7 +6654,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             if (!java.util.Objects.equals(code, null))
             {
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("total", this.safeString(entry, "b"));
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
             }

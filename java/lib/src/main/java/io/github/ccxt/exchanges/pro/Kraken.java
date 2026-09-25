@@ -375,7 +375,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Long requestId = this.requestId();
             String messageHash = this.numberToString(requestId);
@@ -710,7 +710,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         List<Object> parsed = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
@@ -987,7 +987,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             String name = "ohlc";
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String)Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicV2");
             Long requestId = this.requestId();
@@ -1029,7 +1029,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
                         String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                        Map<String, Object> market = this.market(symbol);
                         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                         String wsName = this.safeString(info, "wsname");
                         marketsByWsName.put((String)wsName, market);
@@ -1831,7 +1831,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             String currencyId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "asset");
             Object code = ((String)this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null));
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             String eq = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "balance");
             account.put("total", eq);
             result.put((String)code, account);

@@ -76,7 +76,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
@@ -113,7 +113,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
@@ -150,7 +150,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         String marketId = this.safeString(message, "id");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
         List<Object> rawTrades = (List<Object>) this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
@@ -222,7 +222,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
@@ -254,7 +254,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
@@ -292,7 +292,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         // }
         //
         String marketId = this.safeString(message, "id");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
@@ -347,7 +347,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("ohlcv:" + ((Map<String, Object>)market).get("symbol"));
             String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -387,7 +387,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("ohlcv:" + ((Map<String, Object>)market).get("symbol"));
             String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -458,7 +458,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String interval = this.safeString(part, 1);
         Object timeframe = this.findTimeframe(interval, (Object) null);
         String marketId = this.safeString(part, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
         List<Object> candles = (List<Object>) this.safeList(content, "candles", (Object) null);

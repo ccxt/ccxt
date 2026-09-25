@@ -1102,7 +1102,7 @@ public class Coinsph extends CoinsphApi
                 List<Object> ids = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
+                    Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
                     String id = (String) ((Map<String, Object>)market).get("id");
                     ((List<Object>)ids).add(id);
                 }
@@ -1147,7 +1147,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1211,7 +1211,7 @@ public class Coinsph extends CoinsphApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(ticker, "closeTime");
         String bid = this.safeString(ticker, "bidPrice");
         String ask = this.safeString(ticker, "askPrice");
@@ -1269,7 +1269,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1320,7 +1320,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1400,7 +1400,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1458,7 +1458,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1546,7 +1546,7 @@ public class Coinsph extends CoinsphApi
         //     }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String id = this.safeString2(trade, "id", "tradeId");
         String orderId = this.safeString(trade, "orderId");
@@ -1655,7 +1655,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "free"));
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
@@ -1691,7 +1691,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "test");
             String orderType = this.safeString(paramsOmitted, "type", type);
@@ -1867,7 +1867,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
@@ -1900,7 +1900,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1980,7 +1980,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
@@ -2061,7 +2061,7 @@ public class Coinsph extends CoinsphApi
         //
         String id = this.safeString(order, "orderId");
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(order, "time", "transactTime");
         List<Object> trades = (List<Object>) this.safeList(order, "fills", (Object) null);
         String triggerPrice = this.safeString(order, "stopPrice");
@@ -2205,7 +2205,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2283,7 +2283,7 @@ public class Coinsph extends CoinsphApi
         //     }
         //
         String marketId = this.safeString(fee, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         return new HashMap<String, Object>() {{
             put( "info", fee );
@@ -2328,7 +2328,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
                 "coin", ((Map<String, Object>)currency).get("id"),
                 "amount", this.numberToString(amount),
@@ -2371,7 +2371,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2441,7 +2441,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2633,7 +2633,7 @@ public class Coinsph extends CoinsphApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
                 "coin", ((Map<String, Object>)currency).get("id"),
                 "network", networkId

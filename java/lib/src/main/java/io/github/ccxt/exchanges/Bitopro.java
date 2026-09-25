@@ -590,7 +590,7 @@ public class Bitopro extends BitoproApi
         //     }
         //
         String marketId = this.safeString(ticker, "pair");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -634,7 +634,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -717,7 +717,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -788,7 +788,7 @@ public class Bitopro extends BitoproApi
             timestamp = this.safeInteger(trade, "timestamp");
         }
         String marketId = this.safeString(trade, "pair");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(trade, "price");
         String type = this.safeStringLower(trade, "type");
@@ -869,7 +869,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1020,7 +1020,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1242,7 +1242,7 @@ public class Bitopro extends BitoproApi
         String amount = this.safeString2(order, "amount", "originalAmount");
         String price = this.safeString(order, "price");
         String marketId = this.safeString(order, "pair");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "_", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
         String orderStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus(orderStatus);
@@ -1314,7 +1314,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", type );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1392,7 +1392,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1455,7 +1455,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String id = (String) ((Map<String, Object>)market).get("uppercaseId");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(id, null))
@@ -1501,7 +1501,7 @@ public class Bitopro extends BitoproApi
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 request.put("pair", ((Map<String, Object>)market).get("id"));
                 response = (this.privateDeleteOrdersPair(this.extend(request, parameters))).join();
             } else
@@ -1547,7 +1547,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "pair", ((Map<String, Object>)market).get("id") );
@@ -1605,7 +1605,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1678,7 +1678,7 @@ public class Bitopro extends BitoproApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
@@ -1736,7 +1736,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1891,7 +1891,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1955,7 +1955,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2017,7 +2017,7 @@ public class Bitopro extends BitoproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "serial", id );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -2070,7 +2070,7 @@ public class Bitopro extends BitoproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Bitopro.this.numberToString(amount) );

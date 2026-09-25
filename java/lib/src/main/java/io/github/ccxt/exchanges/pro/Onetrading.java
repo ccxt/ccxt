@@ -183,7 +183,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = "MARKET_TICKER";
             String messageHash = ("ticker." + symbolValue);
@@ -330,7 +330,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
@@ -382,7 +382,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("book:" + symbolValue);
             String subscriptionHash = "ORDER_BOOK";
@@ -524,7 +524,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
@@ -1147,7 +1147,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         String currencyId = this.safeString(balance, "currency_code");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-        Map<String, Object> account = (Map<String, Object>) this.account();
+        Map<String, Object> account = this.account();
         account.put("free", this.safeString(balance, "new_available"));
         account.put("used", this.safeString(balance, "new_locked"));
         if (!java.util.Objects.equals(code, null))
@@ -1178,7 +1178,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String marketId = (String) ((Map<String, Object>)market).get("id");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");

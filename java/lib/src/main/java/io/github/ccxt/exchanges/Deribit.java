@@ -920,13 +920,13 @@ public class Deribit extends DeribitApi
         );
     }
 
-    public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
+    public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
         Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((((String)marketId).endsWith("-C")) || (((String)marketId).endsWith("-P")));
         if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
-            return this.createExpiredOptionMarket(marketId);
+            return (Map<String, Object>) (this.createExpiredOptionMarket(marketId));
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
@@ -1462,7 +1462,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(summaries, i, (Object) null);
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(data, "available_funds"));
             account.put("used", this.safeString(data, "maintenance_margin"));
             account.put("total", this.safeString(data, "equity"));
@@ -1574,7 +1574,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1623,7 +1623,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1756,7 +1756,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
             }};
@@ -1822,7 +1822,7 @@ public class Deribit extends DeribitApi
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
+                    Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, ((Map<String, Object>)market).get("base")))
                     {
                         throw new BadRequest((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
@@ -1838,7 +1838,7 @@ public class Deribit extends DeribitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1937,7 +1937,7 @@ public class Deribit extends DeribitApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), Helpers.toMapArg(paramsPaginate), 5000L)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
                 put( "resolution", Deribit.this.safeString(Deribit.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -2046,7 +2046,7 @@ public class Deribit extends DeribitApi
         Long timestamp = this.safeInteger(trade, "timestamp");
         String side = this.safeString(trade, "direction");
         String priceString = this.safeString(trade, "price");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         String amount = this.safeString(trade, "amount");
@@ -2112,7 +2112,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
                 put( "include_old", true );
@@ -2189,7 +2189,7 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String code = this.codeFromOptions("fetchTradingFees", parameters);
-            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Map<String, Object> currency = this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "extended", true );
@@ -2281,7 +2281,7 @@ public class Deribit extends DeribitApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 Map<String, Object> fee = new HashMap<String, Object>() {{
                     put( "info", market );
                     put( "symbol", symbol );
@@ -2326,7 +2326,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
             }};
@@ -2447,7 +2447,7 @@ public class Deribit extends DeribitApi
         //     }
         //
         String marketId = this.safeString(order, "instrument_name");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(order, "creation_timestamp");
         Long lastUpdate = this.safeInteger(order, "last_update_timestamp");
         String id = this.safeString(order, "order_id");
@@ -2546,7 +2546,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> response = (this.privateGetGetOrderState(this.extend(request, parameters))).join();
             //
@@ -2608,7 +2608,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "instrument_name", ((Map<String, Object>)market).get("id"),
                 "amount", this.amountToPrecision(symbol, amount),
@@ -2886,7 +2886,7 @@ public class Deribit extends DeribitApi
                 response = (this.privateGetCancelAll(this.extend(request, parameters))).join();
             } else
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
                 response = (this.privateGetCancelAllByInstrument(this.extend(request, parameters))).join();
             }
@@ -2934,12 +2934,12 @@ public class Deribit extends DeribitApi
             if (java.util.Objects.equals(symbol, null))
             {
                 String code = this.codeFromOptions("fetchOpenOrders", parameters);
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = this.currency(code);
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
                 response = (this.privateGetGetOpenOrdersByCurrency(this.extend(request, parameters))).join();
             } else
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
                 response = (this.privateGetGetOpenOrdersByInstrument(this.extend(request, parameters))).join();
             }
@@ -2983,12 +2983,12 @@ public class Deribit extends DeribitApi
             if (java.util.Objects.equals(symbol, null))
             {
                 String code = this.codeFromOptions("fetchClosedOrders", parameters);
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = this.currency(code);
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
                 response = (this.privateGetGetOrderHistoryByCurrency(this.extend(request, parameters))).join();
             } else
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
                 response = (this.privateGetGetOrderHistoryByInstrument(this.extend(request, parameters))).join();
             }
@@ -3097,7 +3097,7 @@ public class Deribit extends DeribitApi
             if (java.util.Objects.equals(symbol, null))
             {
                 String code = this.codeFromOptions("fetchMyTrades", parameters);
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = this.currency(code);
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
                 if (java.util.Objects.equals(since, null))
                 {
@@ -3109,7 +3109,7 @@ public class Deribit extends DeribitApi
                 }
             } else
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
                 if (java.util.Objects.equals(since, null))
                 {
@@ -3184,7 +3184,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -3244,7 +3244,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -3394,7 +3394,7 @@ public class Deribit extends DeribitApi
         //     }
         //
         String contract = this.safeString(position, "instrument_name");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
         String side = this.safeString(position, "direction");
         side = (((java.util.Objects.equals(side, "buy")))) ? "long" : "short";
         String unrealizedPnl = this.safeString(position, "floating_profit_loss");
@@ -3452,7 +3452,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
             }};
@@ -3515,7 +3515,7 @@ public class Deribit extends DeribitApi
             Object paramsOmitted = (((!java.util.Objects.equals(code, null)))) ? this.omit(parameters, "currency") : parameters;
             if (!java.util.Objects.equals(code, null))
             {
-                Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+                Map<String, Object> currency = this.currency(code);
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetGetPositions(this.extend(request, paramsOmitted))).join();
@@ -3572,7 +3572,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -3652,7 +3652,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -3723,7 +3723,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -3835,7 +3835,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
@@ -3946,7 +3946,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Long time = this.milliseconds();
             Map<String, Object> request = Helpers.newMap(
                 "instrument_name", ((Map<String, Object>)market).get("id"),
@@ -3991,7 +3991,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -4140,7 +4140,7 @@ public class Deribit extends DeribitApi
             {
                 return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, paramsPaginate, "continuation", "continuation", (Long) null, (Long) null)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
@@ -4233,7 +4233,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
@@ -4328,7 +4328,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
             }};
@@ -4471,7 +4471,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
             }};
@@ -4533,7 +4533,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "kind", "option" );
@@ -4603,7 +4603,7 @@ public class Deribit extends DeribitApi
         //     }
         //
         String marketId = this.safeString(chain, "instrument_name");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String currencyId = this.safeString(chain, "base_currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(chain, "timestamp");
@@ -4646,7 +4646,7 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
@@ -4721,7 +4721,7 @@ public class Deribit extends DeribitApi
         //
         Long timestamp = this.safeInteger(interest, "creation_timestamp");
         String marketId = this.safeString(interest, "instrument_name");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Double openInterest = this.safeNumber(interest, "open_interest", (Object) null);
         Double openInterestAmount = null;
         Double openInterestValue = null;

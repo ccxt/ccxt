@@ -278,7 +278,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             if (java.util.Objects.equals(side, null))
             {
@@ -784,7 +784,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         String channel = this.safeString(message, "channel");
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(channel, timeframes);
         String messageHash = Helpers.add((channel + "::"), symbol);
@@ -900,7 +900,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //     }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(trade, "createTime");
         String takerMaker = this.safeStringLower2(trade, "matchRole", "taker");
         return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
@@ -1124,7 +1124,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.market(marketId);
+            Map<String, Object> market = this.market(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orders::" + symbol);
             client.resolve(orders, messageHash);
@@ -1324,7 +1324,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String marketId = this.safeString(item, "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String name = "book_lv2";
             String messageHash = ((name + "::") + symbol);
@@ -1431,7 +1431,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> newAccount = (Map<String, Object>) this.account();
+            Map<String, Object> newAccount = this.account();
             newAccount.put("free", this.safeString(balance, "available"));
             newAccount.put("used", this.safeString(balance, "hold"));
             if (!java.util.Objects.equals(code, null))

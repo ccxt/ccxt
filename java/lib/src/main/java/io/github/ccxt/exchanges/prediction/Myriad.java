@@ -2443,7 +2443,7 @@ public class Myriad extends MyriadApi
                     "networkId", networkId
                 )
             );
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", balanceString);
             account.put("total", balanceString);
             result.put((String)currency, account);
@@ -4129,7 +4129,7 @@ public class Myriad extends MyriadApi
         {
             return;
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Object) null);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
@@ -4186,7 +4186,7 @@ public class Myriad extends MyriadApi
                 if (java.util.Objects.equals(makerTrader, myWallet))
                 {
                     String makerSym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), this.safeString(maker, "outcome"));
-                    Map<String, Object> makerMarket = (Map<String, Object>) this.safeMarket(makerSym, (Map<String, Object>) null, (String) null, (String) null);
+                    Map<String, Object> makerMarket = this.safeMarket(makerSym, (Map<String, Object>) null, (String) null, (String) null);
                     Map<String, Object> makerOutcomeObj = this.safeOutcome((String) (makerSym), (Object) null);
                     Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(maker, "fees", new HashMap<String, Object>() {{}});
                     Object makerTrade = this.safePredictionTrade(new HashMap<String, Object>() {{
@@ -4361,7 +4361,7 @@ public class Myriad extends MyriadApi
             {
                 continue;
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Object) null);
             Object last = this.fromWei(this.safeString(oc, "last"));
             Object ticker = this.safePredictionTicker(Helpers.newMap(

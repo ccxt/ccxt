@@ -99,7 +99,7 @@ public class Kucoinfutures extends KucoinfuturesApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Object amountToPrecision = this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Kucoinfutures.this.safeString(currency, "id") );

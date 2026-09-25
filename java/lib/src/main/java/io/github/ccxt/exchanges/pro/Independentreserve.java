@@ -77,7 +77,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
@@ -180,7 +180,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             String limitString = this.numberToString(limitResolved);

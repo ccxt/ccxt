@@ -130,7 +130,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 }
             } else if (java.util.Objects.equals(symbolsLength, 1))
             {
-                market = (Map<String, Object>) this.market((symbolsResolved == null || 0 >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(0)));
+                market = this.market((symbolsResolved == null || 0 >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(0)));
                 messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
                 productIds = new ArrayList<String>(Arrays.asList(((String)((Map<String, Object>)market).get("id"))));
             }
@@ -310,7 +310,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("active"), true))
             {
                 ((List<Object>)output).add(symbol);
@@ -561,7 +561,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(options, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -598,7 +598,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //
         String messageHash = this.safeString(message, "channel");
         String marketId = this.safeString(message, "product_id");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Object timeframe = this.findTimeframe(messageHash, (Object) null);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));

@@ -146,7 +146,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Object messageHash = "trades.";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("id"));
             } else
             {
@@ -226,7 +226,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = (("order_book." + ((Map<String, Object>)market).get("id")) + ".snapshot@15@100ms");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -276,7 +276,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(data, "last_updated_at");
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -422,7 +422,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 channel = Helpers.add(channel, ((Map<String, Object>)market).get("id"));
                 messageHash = (messageHash + (":" + symbolResolved));
             } else
@@ -525,7 +525,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String channel = this.safeString(parameters, "channel");
         String messageHash = ((channel + ".") + symbol);

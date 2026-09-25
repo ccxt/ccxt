@@ -1144,7 +1144,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
             }};
@@ -1328,7 +1328,7 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             Object limitResolved = limit;
@@ -1488,7 +1488,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", ((Map<String, Object>)market).get("id") );
             }};
@@ -1677,7 +1677,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(price, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
@@ -1882,7 +1882,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", (Map<String, Object>) (parameters));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
             var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
@@ -2053,7 +2053,7 @@ public class Derive extends DeriveApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", (Map<String, Object>) (parameters));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
@@ -2162,7 +2162,7 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", (Map<String, Object>) (parameters));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
@@ -2240,7 +2240,7 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2594,7 +2594,7 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2687,7 +2687,7 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2857,7 +2857,7 @@ public class Derive extends DeriveApi
         // }
         //
         String contract = this.safeString(position, "instrument_name");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
         String size = this.safeString(position, "amount");
         String side = null;
         if (Precise.stringGt(size, "0"))
@@ -2941,7 +2941,7 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_name", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3122,7 +3122,7 @@ public class Derive extends DeriveApi
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                 if (java.util.Objects.equals(account, null))
                 {
-                    account = (Map<String, Object>) this.account();
+                    account = this.account();
                     Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
                 } else
                 {
@@ -3188,7 +3188,7 @@ public class Derive extends DeriveApi
             //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
             // }
             //
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));
@@ -3246,7 +3246,7 @@ public class Derive extends DeriveApi
             //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
             // }
             //
-            Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (code), (Map<String, Object>) null);
+            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, Helpers.toMapArg(paramsDeriveSubaccountId));

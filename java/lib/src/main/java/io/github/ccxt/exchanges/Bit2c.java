@@ -375,8 +375,8 @@ public class Bit2c extends Bit2cApi
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Map<String, Object> account = (Map<String, Object>) this.account();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> account = this.account();
+            Map<String, Object> currency = this.currency((String) (code));
             String uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
             if (Helpers.inOp(response, uppercase))
             {
@@ -472,7 +472,7 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -563,7 +563,7 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -594,7 +594,7 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
             Object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -720,7 +720,7 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "Amount", amount );
                 put( "Pair", ((Map<String, Object>)market).get("id") );
@@ -797,7 +797,7 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -829,7 +829,7 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -1016,7 +1016,7 @@ public class Bit2c extends Bit2cApi
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("pair", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
@@ -1135,8 +1135,8 @@ public class Bit2c extends Bit2cApi
             amount = this.safeString(trade, "firstAmount");
             List<Object> reference_parts = new ArrayList<Object>(Arrays.asList(((String)reference).split(java.util.regex.Pattern.quote("|")))); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             String marketId = this.safeString(trade, "pair");
-            Map<String, Object> marketByPair = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
-            tradeMarket = (Map<String, Object>) this.safeMarket(Helpers.toStringArg((reference_parts == null || 0 >= reference_parts.size() ? null : reference_parts.get(0))), marketByPair, (String) null, (String) null);
+            Map<String, Object> marketByPair = this.safeMarket(marketId, market, (String) null, (String) null);
+            tradeMarket = this.safeMarket(Helpers.toStringArg((reference_parts == null || 0 >= reference_parts.size() ? null : reference_parts.get(0))), marketByPair, (String) null, (String) null);
             Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
             makerOrTaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
             orderId = (((java.util.Objects.equals(isMaker, true)))) ? (reference_parts == null || 2 >= reference_parts.size() ? null : reference_parts.get(2)) : (reference_parts == null || 1 >= reference_parts.size() ? null : reference_parts.get(1));
@@ -1162,7 +1162,7 @@ public class Bit2c extends Bit2cApi
             id = this.safeString(trade, "tid");
             price = this.safeString(trade, "price");
             amount = this.safeString(trade, "amount");
-            tradeMarket = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+            tradeMarket = this.safeMarket((String) null, market, (String) null, (String) null);
             side = this.safeValue(trade, "isBid");
             if (!java.util.Objects.equals(side, null))
             {
@@ -1175,7 +1175,7 @@ public class Bit2c extends Bit2cApi
                 }
             }
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, tradeMarket, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((String) null, tradeMarket, (String) null, (String) null);
         return this.safeTrade(Helpers.newMap(
             "info", trade,
             "id", id,
@@ -1216,7 +1216,7 @@ public class Bit2c extends Bit2cApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             if (this.isFiat((String) (code)))
             {
                 throw new NotSupported((this.id + " fetchDepositAddress() does not support fiat currencies")) ;

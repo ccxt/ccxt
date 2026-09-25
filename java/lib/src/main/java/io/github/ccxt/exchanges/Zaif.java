@@ -440,7 +440,7 @@ public class Zaif extends ZaifApi
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String balance = this.safeString(funds, currencyId);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", balance);
             account.put("total", balance);
             if (!java.util.Objects.equals(deposit, null))
@@ -500,7 +500,7 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -570,7 +570,7 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -650,7 +650,7 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -708,7 +708,7 @@ public class Zaif extends ZaifApi
             {
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "currency_pair", ((Map<String, Object>)market).get("id"),
                 "action", (((java.util.Objects.equals(side, "buy")))) ? "bid" : "ask",
@@ -845,7 +845,7 @@ public class Zaif extends ZaifApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("currency_pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
@@ -879,7 +879,7 @@ public class Zaif extends ZaifApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("currency_pair", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -922,7 +922,7 @@ public class Zaif extends ZaifApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             if (java.util.Objects.equals(code, "JPY"))
             {
                 throw new ExchangeError((((this.id + " withdraw() does not allow ") + code) + " withdrawals")) ;
@@ -974,7 +974,7 @@ public class Zaif extends ZaifApi
         //         }
         //     }
         //
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency((String) (null), currency);
+        Map<String, Object> currencyResolved = this.safeCurrency((String) (null), currency);
         Map<String, Object> fee = null;
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))

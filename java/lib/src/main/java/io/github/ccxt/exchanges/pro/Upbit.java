@@ -465,7 +465,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             if (!java.util.Objects.equals(symbol, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolResolved));
                 List<String> marketIds = this.marketIds(symbols);
@@ -638,7 +638,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Long timestamp = this.parse8601(this.safeString(order, "order_timestamp"));
         String status = this.parseWsOrderStatus(this.safeString(order, "state"));
         String marketId = this.safeString(order, "code");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(order, "paid_fee");
         if (!java.util.Objects.equals(feeCost, null))
@@ -687,7 +687,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         Long timestamp = this.parse8601(this.safeString(trade, "trade_timestamp"));
         String marketId = this.safeString(trade, "code");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "paid_fee");
         if (!java.util.Objects.equals(feeCost, null))
@@ -831,7 +831,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             String available = this.safeString(balance, "balance");
             String frozen = this.safeString(balance, "locked");
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", available);
             account.put("used", frozen);
             if (!java.util.Objects.equals(code, null))

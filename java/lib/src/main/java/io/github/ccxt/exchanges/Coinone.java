@@ -656,7 +656,7 @@ public class Coinone extends CoinoneApi
             Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, (Object) null);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "avail"));
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
@@ -709,7 +709,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quote") );
                 put( "target_currency", ((Map<String, Object>)market).get("base") );
@@ -776,7 +776,7 @@ public class Coinone extends CoinoneApi
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 String first = this.safeString(symbolsNormalized, 0);
-                market = (Map<String, Object>) this.market(first);
+                market = this.market(first);
                 request.put("quote_currency", ((Map<String, Object>)market).get("quote"));
                 request.put("target_currency", ((Map<String, Object>)market).get("base"));
                 response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
@@ -841,7 +841,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quote") );
                 put( "target_currency", ((Map<String, Object>)market).get("base") );
@@ -978,7 +978,7 @@ public class Coinone extends CoinoneApi
         //     }
         //
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
@@ -1046,7 +1046,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quote") );
                 put( "target_currency", ((Map<String, Object>)market).get("base") );
@@ -1112,7 +1112,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             // the v1 order/limit_buy and order/limit_sell endpoints were retired by
             // the exchange and return 404, the v2.1 order endpoint replaces them,
             // see https://github.com/ccxt/ccxt/issues/23174
@@ -1159,7 +1159,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "currency", ((Map<String, Object>)market).get("id") );
@@ -1365,7 +1365,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "quote_currency", ((Map<String, Object>)market).get("quoteId") );
                 put( "target_currency", ((Map<String, Object>)market).get("baseId") );
@@ -1417,7 +1417,7 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)market).get("id") );
             }};

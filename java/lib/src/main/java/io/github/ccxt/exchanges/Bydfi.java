@@ -742,7 +742,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -825,7 +825,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -900,7 +900,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object paramsSinceUntil = this.handleSinceAndUntil("fetchMyTrades", since, paramsContractType);
@@ -974,7 +974,7 @@ public class Bydfi extends BydfiApi
         //     }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(trade, "time");
         Map<String, Object> fee = null;
         String rawType = this.safeString(trade, "type");
@@ -1050,7 +1050,7 @@ public class Bydfi extends BydfiApi
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit));
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -1198,7 +1198,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1225,7 +1225,7 @@ public class Bydfi extends BydfiApi
         //     }
         //
         String marketId = this.safeString2(ticker, "symbol", "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(ticker, "time", "E");
         String last = this.safeString2(ticker, "last", "c");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -1272,7 +1272,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1357,7 +1357,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1453,7 +1453,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String wallet = "W001";
             String walletOption = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "createOrder", "wallet", wallet)).get(0);
@@ -1507,7 +1507,7 @@ public class Bydfi extends BydfiApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         if (java.util.Objects.equals(side, null))
         {
             throw new ArgumentsRequired((this.id + " createOrderRequest() requires a side argument")) ;
@@ -1793,7 +1793,7 @@ public class Bydfi extends BydfiApi
         {
             request.put("orderId", id);
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         request.put("symbol", ((Map<String, Object>)market).get("id"));
         if (!java.util.Objects.equals(side, null))
         {
@@ -1833,7 +1833,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
             List<Object> walletOptionparamsWalletVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "cancelAllOrders", "wallet", wallet);
             String walletOption = (String) ((List<Object>) walletOptionparamsWalletVariable).get(0);
@@ -1908,7 +1908,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
             List<Object> walletOptionparamsWalletVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
             String walletOption = (String) ((List<Object>) walletOptionparamsWalletVariable).get(0);
@@ -1994,7 +1994,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2073,7 +2073,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object paramsSinceUntil = this.handleSinceAndUntil("fetchCanceledAndClosedOrders", since, paramsContractType);
@@ -2241,7 +2241,7 @@ public class Bydfi extends BydfiApi
         //     }
         //
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(order, "createTime", "ctime");
         String rawType = this.safeString(order, "orderType");
         String stopPrice = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("stopPrice", "activatePrice", "triggerPrice")));
@@ -2356,7 +2356,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
             List<Object> walletOptionparamsWalletVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setLeverage", "wallet", wallet);
             String walletOption = (String) ((List<Object>) walletOptionparamsWalletVariable).get(0);
@@ -2396,7 +2396,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String wallet = "W001";
             List<Object> walletOptionparamsWalletVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchLeverage", "wallet", wallet);
             String walletOption = (String) ((List<Object>) walletOptionparamsWalletVariable).get(0);
@@ -2512,7 +2512,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
             List<Object> contractTypeOptionparamsContractTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositions", "contractType", contractType);
             String contractTypeOption = (String) ((List<Object>) contractTypeOptionparamsContractTypeVariable).get(0);
@@ -2582,7 +2582,7 @@ public class Bydfi extends BydfiApi
         //     }
         //
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String buyOrSell = this.safeString(position, "side");
         String rawPositionSide = this.safeStringLower(position, "positionSide");
         Object positionSide = this.parsePositionSide(buyOrSell);
@@ -2670,7 +2670,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
             List<Object> contractTypeOptionparamsContractTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
             String contractTypeOption = (String) ((List<Object>) contractTypeOptionparamsContractTypeVariable).get(0);
@@ -2799,7 +2799,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
             List<Object> contractTypeOptionparamsContractTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "fetchMarginMode", "contractType", contractType);
             String contractTypeOption = (String) ((List<Object>) contractTypeOptionparamsContractTypeVariable).get(0);
@@ -2872,7 +2872,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String contractType = "FUTURE";
             List<Object> contractTypeOptionparamsContractTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "setMarginMode", "contractType", contractType);
             String contractTypeOption = (String) ((List<Object>) contractTypeOptionparamsContractTypeVariable).get(0);
@@ -2989,7 +2989,7 @@ public class Bydfi extends BydfiApi
                 query = ((List<Object>) settleCoinqueryVariable).get(1);
             } else
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 settleCoin = ((Map<String, Object>)market).get("settleId");
             }
             Map<String, Object> request = Helpers.newMap(
@@ -3127,7 +3127,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String symbol = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("total", this.safeString2(balance, "total", "balance"));
             account.put("free", this.safeString2(balance, "available", "availableBalance"));
             if (!java.util.Objects.equals(code, null))
@@ -3159,7 +3159,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3217,7 +3217,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
@@ -3381,7 +3381,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {

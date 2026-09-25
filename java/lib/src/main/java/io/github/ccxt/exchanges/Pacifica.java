@@ -1086,7 +1086,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};
-            Map<String, Object> usdcAccount = (Map<String, Object>) this.account();
+            Map<String, Object> usdcAccount = this.account();
             usdcAccount.put("total", this.safeString(data, "balance"));
             usdcAccount.put("used", this.safeString(data, "total_margin_used"));
             result.put("USDC", usdcAccount);
@@ -1096,7 +1096,7 @@ public class Pacifica extends PacificaApi
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
                 String currencyId = this.safeString(balance, "symbol");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balance, "amount"));
                 account.put("free", this.safeString(balance, "available_to_withdraw"));
                 // skip a spot USDC entry so it can't clobber the perp-collateral account above
@@ -1133,7 +1133,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> userAccountparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchLeverage", (Map<String, Object>) (parameters));
             String userAccount = (String) ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(0);
             var paramsOriginAndSingleAddress = ((List<Object>) userAccountparamsOriginAndSingleAddressVariable).get(1);
@@ -1271,7 +1271,7 @@ public class Pacifica extends PacificaApi
         for (var i = 0; i < ((List<?>)settings).size(); i++)
         {
             Object marketId = ((Map<String, Object>)(settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i))).get("symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             settingsBySymbol.put((String)symbol, (settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)));
         }
@@ -1378,7 +1378,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> aggLevelparamsAggLevelVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "aggLevel", 1L);
             Long aggLevel = (Long) ((List<Object>) aggLevelparamsAggLevelVariable).get(0);
             Map<String, Object> paramsAggLevel = (Map<String, Object>) ((List<Object>) aggLevelparamsAggLevelVariable).get(1);
@@ -1493,7 +1493,7 @@ public class Pacifica extends PacificaApi
         //       }
         //
         String marketId = this.safeString(info, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Double funding = this.safeNumber(info, "funding", (Object) null);
         Double markPx = this.safeNumber(info, "mark", (Object) null);
@@ -1555,7 +1555,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -1657,7 +1657,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1713,7 +1713,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
@@ -1809,7 +1809,7 @@ public class Pacifica extends PacificaApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String id = this.safeString(trade, "history_id");
         String side = this.safeString(trade, "side");
@@ -1975,7 +1975,7 @@ public class Pacifica extends PacificaApi
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
          */
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         Map<String, Object> sigPayload = Helpers.newMap(
             "symbol", ((Map<String, Object>)market).get("id"),
             "side", this.mapSide((String) (side))
@@ -2368,7 +2368,7 @@ public class Pacifica extends PacificaApi
         sigPayload.put("exclude_reduce_only", excludeReduceOnly);
         if (!java.util.Objects.equals(symbol, null))
         {
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             sigPayload.put("all_symbols", false);
             sigPayload.put("symbol", ((Map<String, Object>)market).get("id"));
         } else
@@ -2443,7 +2443,7 @@ public class Pacifica extends PacificaApi
 
     public Object cancelOrderRequest(Object id, String symbol, Map<String, Object> parameters)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
         String operationType = null;
         if (java.util.Objects.equals(isStopOrder, true))
@@ -2494,7 +2494,7 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.initializeClient()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), type, (String) (side), amount, price, (Map<String, Object>) (market), parameters);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "clientOrderId")));
             Map<String, Object> response = (this.privatePostOrdersEdit(this.extend(request, paramsOmitted))).join();
@@ -2580,7 +2580,7 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -2710,7 +2710,7 @@ public class Pacifica extends PacificaApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -2840,7 +2840,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> response = (this.publicGetOrders(this.extend(request, paramsOriginAndSingleAddress))).join();
             //
@@ -2912,7 +2912,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
@@ -2998,7 +2998,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -3205,7 +3205,7 @@ public class Pacifica extends PacificaApi
         //     }
         //
         String marketId = this.safeString2(order, "symbol", "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = (Long) this.safeInteger2(order, "created_at", "ct");
         String status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
@@ -3345,7 +3345,7 @@ public class Pacifica extends PacificaApi
         //     }
         //
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String margin = this.safeString(position, "margin");
         String marginMode = (((!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0")))) ? "isolated" : "cross";
@@ -3408,7 +3408,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -3449,7 +3449,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "leverage", leverage );
@@ -3523,7 +3523,7 @@ public class Pacifica extends PacificaApi
             List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("fetchTradingFee", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
             var paramsOriginAndSingleAddress = ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "account", userAddress );
             }};
@@ -3831,7 +3831,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
@@ -3891,7 +3891,7 @@ public class Pacifica extends PacificaApi
         String id = this.safeString(income, "history_id");
         Long timestamp = this.safeInteger(income, "created_at");
         String marketId = this.safeString(income, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String amount = this.safeString(income, "amount");
         String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
@@ -3930,7 +3930,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             String operationType = "transfer_funds";
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "to_account", toAccount );

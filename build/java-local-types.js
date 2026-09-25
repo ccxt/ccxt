@@ -551,6 +551,11 @@ const STRUCTURE_THIS_RETURN_TYPES = {
     'getMarketFromSymbols': JAVA_STRUCTURE_TYPE,
 };
 
+// Structure accessors whose Java return is declared Map<String, Object> on every declaration
+// (base + overrides): each return is a literal/null, a markets/currencies row, super./this. call
+// of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
+const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket' ]);
+
 // ===== safeDict locals (JAVA-01) =====
 //
 // `const x = this.safeDict (container, key [, {}])` — the TS annotation is `Dict | undefined`,
@@ -2066,6 +2071,9 @@ function javaMethodReturnType (printer, node, own) {
     if (JAVA_STRING_LIST_RETURN_METHODS.has (name)) {
         return JAVA_STRING_LIST_TYPE;
     }
+    if (JAVA_MAP_RETURN_METHODS.has (name)) {
+        return JAVA_STRUCTURE_TYPE;
+    }
     return venueReturnJavaType (printer, node);
 }
 
@@ -2762,7 +2770,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (structure !== undefined && resolvesToMethodNamed (printer, assertedCall, name)) {
         // hx3 B-15: Map/List locals tolerate the `as Dict` / `as any` / `as any[]` assertions
         // (no cast or an upcast is printed — see assertedPrintsNoUnsatisfiableCast)
-        return { type: structure, cast: '(' + structure + ')', noCastAssertions: true };
+        return { type: structure, cast: JAVA_MAP_RETURN_METHODS.has (name) ? undefined : '(' + structure + ')', noCastAssertions: true };
     }
     const dict = safeDictLocalType (printer, assertedCall, name);
     if (dict !== undefined) {
@@ -5627,6 +5635,20 @@ export function installJavaLocalTypes (transpiler) {
             const open = venueType === 'Long' ? 'Helpers.toLongOrNull(' : venueCast + ' (';
             return printed.slice (0, at + 'return '.length) + open + tail.slice (0, end) + ')' + tail.slice (end);
         }
+        if (JAVA_MAP_RETURN_METHODS.has (methodName) && !printer.isAsyncFunction?.(method)) {
+            const expression = unwrapNoCastAssertion (unwrapParens (node.expression));
+            const at = printed.lastIndexOf ('return ');
+            if (expression === undefined || at === -1 || enclosingFunction (node) !== method
+                || ts.isObjectLiteralExpression (expression) || expression.kind === ts.SyntaxKind.NullKeyword
+                || (ts.isIdentifier (expression) && expression.text === 'undefined')
+                || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))) {
+                return printed;
+            }
+            const tail = printed.slice (at + 'return '.length);
+            const end = tail.lastIndexOf (';');
+            return end === -1 ? printed : printed.slice (0, at + 'return '.length)
+                + '(' + JAVA_STRUCTURE_TYPE + ') (' + tail.slice (0, end) + ')' + tail.slice (end);
+        }
         if (!JAVA_LIST_RETURN_METHODS.has (methodName) && !JAVA_STRING_LIST_RETURN_METHODS.has (methodName)
             && !JAVA_STRING_RETURN_METHODS_CAST.has (methodName)) {
             return printed;
@@ -5761,8 +5783,8 @@ export function installJavaLocalTypes (transpiler) {
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType
                 && !JAVA_STRING_RETURN_METHODS_CAST.has (call))
-            || (javaType === JAVA_STRUCTURE_TYPE && (STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
-                || SAFE_DICT_ACCESSORS.has (call)))
+            || (javaType === JAVA_STRUCTURE_TYPE && ((STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
+                && !JAVA_MAP_RETURN_METHODS.has (call)) || SAFE_DICT_ACCESSORS.has (call)))
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
         // SS-01: the safeStringUpper/Lower family dropped out of this list — those calls
         // are declared `String` in the hand-written base now, so a write to a String local
@@ -10683,7 +10705,8 @@ function ternaryArmType (printer, node, depth = 0) {
             return undefined;
         }
         if (STRUCTURE_THIS_RETURN_TYPES[name] !== undefined) {
-            return resolvesToMethodNamed (printer, arm, name) ? { type: LITERAL_MAP_TYPE, cast: true } : undefined;
+            return resolvesToMethodNamed (printer, arm, name)
+                ? { type: LITERAL_MAP_TYPE, cast: !JAVA_MAP_RETURN_METHODS.has (name) } : undefined;
         }
         if (safeDictLocalType (printer, arm, name) !== undefined) {
             return { type: LITERAL_MAP_TYPE, cast: true };

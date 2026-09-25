@@ -274,7 +274,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -345,7 +345,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
@@ -514,7 +514,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -586,7 +586,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
@@ -756,7 +756,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(firstSymbol);
+            Map<String, Object> firstMarket = this.market(firstSymbol);
             Object isContract = ((Map<String, Object>)firstMarket).get("contract");
             String priceType = "LAST_PRICE";
             Object paramsPriceType = paramsOmitted;
@@ -770,7 +770,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String symbolString = this.safeString(data, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
+                Map<String, Object> market = this.market(symbolString);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), ((Map<String, Object>)firstMarket).get("type")))
                 {
                     throw new BadRequest((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
@@ -846,7 +846,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(firstSymbol);
+            Map<String, Object> firstMarket = this.market(firstSymbol);
             Object isContract = ((Map<String, Object>)firstMarket).get("contract");
             String priceType = "LAST_PRICE";
             Object paramsPriceType = paramsOmitted;
@@ -860,7 +860,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String symbolString = this.safeString(data, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
+                Map<String, Object> market = this.market(symbolString);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), ((Map<String, Object>)firstMarket).get("type")))
                 {
                     throw new BadRequest((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
@@ -1029,7 +1029,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
                 String channel = ((((Map<String, Object>)market).get("id") + "@depth") + depthOption);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1101,7 +1101,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String messageHash = ("orderbook::" + symbol);
                 String channel = ((((Map<String, Object>)market).get("id") + "@depth") + depthOption);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
@@ -1212,7 +1212,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1260,7 +1260,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String channelName = ((((Map<String, Object>)market).get("id") + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
@@ -1357,7 +1357,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             String symbolResolved = this.safeString(market, "symbol");
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (Object) null);
@@ -1539,7 +1539,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             marketType = "swap";
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String side = this.safeStringLower(trade, "orderSide");
         Map<String, Object> fee = null;
         String commission = this.safeString(trade, "fillFee");
@@ -1604,7 +1604,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             String symbolResolved = this.safeString(market, "symbol");
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
@@ -1854,7 +1854,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             marketType = "swap";
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         Map<String, Object> marketValue = marketResolved;
         String side = this.safeStringLower(order, "orderSide");
         Map<String, Object> fee = null;
@@ -2085,7 +2085,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(balanceUpdates, i, (Object) null);
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString2(entry, "available", "amount"));
             account.put("used", this.safeString(entry, "frozen"));
             account.put("total", this.safeString2(entry, "equity", "legacyAmount"));
@@ -2308,7 +2308,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             marketType = "swap";
         }
         String marketId = this.safeString(message, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         return market;
     }
 

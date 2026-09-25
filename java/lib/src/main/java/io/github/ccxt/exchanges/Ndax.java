@@ -1014,7 +1014,7 @@ public class Ndax extends NdaxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -1103,7 +1103,7 @@ public class Ndax extends NdaxApi
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "_", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
         String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String last = this.safeString2(ticker, "LastTradedPx", "last_price");
         String percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
@@ -1195,7 +1195,7 @@ public class Ndax extends NdaxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", ((Map<String, Object>)market).get("id") );
@@ -1276,7 +1276,7 @@ public class Ndax extends NdaxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", ((Map<String, Object>)market).get("id") );
@@ -1518,7 +1518,7 @@ public class Ndax extends NdaxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", ((Map<String, Object>)market).get("id") );
@@ -1598,7 +1598,7 @@ public class Ndax extends NdaxApi
             if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)))
             {
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balance, "Amount"));
                 account.put("used", this.safeString(balance, "Hold"));
                 if (!java.util.Objects.equals(code, null))
@@ -1716,7 +1716,7 @@ public class Ndax extends NdaxApi
         //     }
         //
         String currencyId = this.safeString(item, "ProductId");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String credit = this.safeString(item, "CR");
         String debit = this.safeString(item, "DR");
         String amount = null;
@@ -1814,7 +1814,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
@@ -1976,7 +1976,7 @@ public class Ndax extends NdaxApi
                 }
             }
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice")));
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = Helpers.newMap(
@@ -2048,7 +2048,7 @@ public class Ndax extends NdaxApi
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = Helpers.newMap(
@@ -2121,7 +2121,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("InstrumentId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2210,7 +2210,7 @@ public class Ndax extends NdaxApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 request.put("IntrumentId", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostCancelAllOrders(this.extend(request, paramsOmitted))).join();
@@ -2257,7 +2257,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2309,7 +2309,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2403,7 +2403,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("InstrumentId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2497,7 +2497,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2587,7 +2587,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OMSId", Ndax.this.parseToInt(omsId) );
@@ -2673,7 +2673,7 @@ public class Ndax extends NdaxApi
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
@@ -2785,7 +2785,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -2857,7 +2857,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -3093,7 +3093,7 @@ public class Ndax extends NdaxApi
             Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(paramsWithdrawTag, "accountId", "AccountId", defaultAccountId);
             Object paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> withdrawTemplateTypesRequest = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );

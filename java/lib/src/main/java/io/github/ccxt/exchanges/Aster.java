@@ -1566,7 +1566,7 @@ public class Aster extends AsterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
@@ -1667,7 +1667,7 @@ public class Aster extends AsterApi
         {
             marketType = "swap";
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String amountString = this.safeString2(trade, "qty", "q");
@@ -1737,7 +1737,7 @@ public class Aster extends AsterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1804,7 +1804,7 @@ public class Aster extends AsterApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
@@ -1877,7 +1877,7 @@ public class Aster extends AsterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1982,7 +1982,7 @@ public class Aster extends AsterApi
             marketType = (((((Map<?, ?>)ticker).containsKey("lastUpdateId")))) ? "swap" : "spot";
         }
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
             put( "timestamp", timestamp );
@@ -2028,7 +2028,7 @@ public class Aster extends AsterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2194,7 +2194,7 @@ public class Aster extends AsterApi
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 String marketId = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
-                Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+                Map<String, Object> safeMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
                 Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), safeMarket), paramsMarketType);
                 ((List<Object>)results).add(priceData);
             }
@@ -2358,7 +2358,7 @@ public class Aster extends AsterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2481,7 +2481,7 @@ public class Aster extends AsterApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2574,7 +2574,7 @@ public class Aster extends AsterApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString2(balance, "free", "availableBalance"));
             account.put("used", this.safeString(balance, "locked"));
             account.put("total", this.safeString(balance, "balance"));
@@ -2612,7 +2612,7 @@ public class Aster extends AsterApi
                 throw new BadRequest((this.id + " marginMode must be either isolated or cross")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "symbol", ((Map<String, Object>)market).get("id"),
                 "marginType", marginModeValue
@@ -2691,7 +2691,7 @@ public class Aster extends AsterApi
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
         String marketId = this.safeString(fee, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", fee );
@@ -2719,7 +2719,7 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2834,7 +2834,7 @@ public class Aster extends AsterApi
             defaultType = "swap";
         }
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, defaultType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, defaultType);
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "time");
         String statusId = this.safeStringUpper(order, "status");
@@ -2890,7 +2890,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2966,7 +2966,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3044,7 +3044,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3126,7 +3126,7 @@ public class Aster extends AsterApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (java.util.Objects.equals(symbol, null))
@@ -3137,7 +3137,7 @@ public class Aster extends AsterApi
                 }
             } else
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (Object) null);
@@ -3218,7 +3218,7 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -3288,7 +3288,7 @@ public class Aster extends AsterApi
             {
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String marketId = this.safeString(rawOrder, "symbol");
-                Map<String, Object> currentMarket = (Map<String, Object>) this.market(marketId);
+                Map<String, Object> currentMarket = this.market(marketId);
                 ((List<Object>)orderSymbols).add(((Map<String, Object>)currentMarket).get("symbol"));
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -3299,7 +3299,7 @@ public class Aster extends AsterApi
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<String> orderSymbolsResolved = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbolsResolved == null || 0 >= ((List<?>)orderSymbolsResolved).size() ? null : ((List<?>)orderSymbolsResolved).get(0)));
+            Map<String, Object> market = this.market((orderSymbolsResolved == null || 0 >= ((List<?>)orderSymbolsResolved).size() ? null : ((List<?>)orderSymbolsResolved).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((((this.id + " createOrders() does not support ") + ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -3366,7 +3366,7 @@ public class Aster extends AsterApi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
@@ -3574,7 +3574,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3622,7 +3622,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3673,7 +3673,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3722,7 +3722,7 @@ public class Aster extends AsterApi
                 throw new BadRequest((this.id + " leverage should be between 1 and 125")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "symbol", ((Map<String, Object>)market).get("id"),
                 "leverage", leverage
@@ -3895,7 +3895,7 @@ public class Aster extends AsterApi
         //     }
         //
         String marketId = this.safeString(marginMode, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "swap");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
         return new HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", Aster.this.safeString(marketResolved, "symbol") );
@@ -3926,7 +3926,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3990,7 +3990,7 @@ public class Aster extends AsterApi
         String errorCode = this.safeString(data, "code");
         String marketId = this.safeString(data, "symbol");
         Long timestamp = this.safeInteger(data, "time");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "swap");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
         Boolean noErrorCode = java.util.Objects.equals(errorCode, null);
         Boolean success = java.util.Objects.equals(errorCode, "200");
         return Helpers.newMap(
@@ -4013,7 +4013,7 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String amountValue = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", addOrReduce );
@@ -4131,7 +4131,7 @@ public class Aster extends AsterApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
@@ -4177,7 +4177,7 @@ public class Aster extends AsterApi
         }
         String currencyId = this.safeString(item, "asset");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "time");
         String type = this.safeString(item, "incomeType");
         return this.safeLedgerEntry(Helpers.newMap(
@@ -4234,7 +4234,7 @@ public class Aster extends AsterApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
@@ -4291,7 +4291,7 @@ public class Aster extends AsterApi
         //     }
         //
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "contract");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
         String symbol = this.safeString(marketResolved, "symbol");
         String isolatedMarginString = this.safeString(position, "isolatedMargin");
         Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
@@ -4588,7 +4588,7 @@ public class Aster extends AsterApi
         {
             Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(position, "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
             Object code = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
@@ -4612,7 +4612,7 @@ public class Aster extends AsterApi
     public Map<String, Object> parseAccountPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "contract");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
         String symbol = this.safeString(marketResolved, "symbol");
         String leverageString = this.safeString(position, "leverage");
         Object leverage = (((!java.util.Objects.equals(leverageString, null)))) ? Helpers.parseInt(leverageString) : null;
@@ -4975,7 +4975,7 @@ public class Aster extends AsterApi
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) (tagAndParams == null || 1 >= tagAndParams.size() ? null : tagAndParams.get(1));
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Long nonce = (this.milliseconds() * 1000L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
@@ -5063,7 +5063,7 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Aster.this.currencyToPrecision((String) (code), amount, (String) null) );

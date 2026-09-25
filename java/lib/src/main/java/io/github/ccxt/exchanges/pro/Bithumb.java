@@ -121,7 +121,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             var paramsGeneration = ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
             String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
             Object paramsOmitted = this.omit(paramsGeneration, "tickTypes");
@@ -185,7 +185,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             for (var i = 0; (symbolsLengthDefined != null && i < symbolsLengthDefined); i++)
             {
                 String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 Object streamMarketId = null;
                 if (Boolean.TRUE.equals(isGenerationTwo))
                 {
@@ -452,7 +452,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("orderbook" + ":") + symbolValue);
             Object request = new HashMap<String, Object>() {{
@@ -664,7 +664,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Boolean.TRUE.equals(isGenerationTwo))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "publicGen2") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trade:" + symbolValue);
             Object request = new HashMap<String, Object>() {{
@@ -952,7 +952,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i, (Object) null);
             String currencyId = this.safeString(asset, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(asset, "balance"));
             account.put("used", this.safeString(asset, "locked"));
             if (!java.util.Objects.equals(code, null))
@@ -1067,7 +1067,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbolResolved);
             }
@@ -1195,7 +1195,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Map<String, Object> marketForFee = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+            Map<String, Object> marketForFee = this.safeMarket(marketId, market, (String) null, (String) null);
             String feeCurrency = this.safeString(marketForFee, "quote");
             fee = Helpers.newMap(
                 "cost", feeCost,

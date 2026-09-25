@@ -167,7 +167,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbolValue);
             List<Object> utaparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTicker", "uta", false);
@@ -243,7 +243,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> market = (Map<String, Object>) this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
+            Map<String, Object> market = this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
             List<Object> utaparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTickers", "uta", false);
             var uta = ((List<Object>) utaparamsUtaVariable).get(0);
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
@@ -255,7 +255,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> marketInner = this.market(symbol);
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", instType );
                 }};
@@ -462,7 +462,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String utaMarketId = this.safeString(arg, "symbol");
         String marketId = this.safeString(ticker, "instId", utaMarketId);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String close = this.safeString2(ticker, "lastPr", "lastPrice");
         String changeCoefficient = this.safeString2(ticker, "price24hPcnt", "change24h");
         String changePercentage = Precise.stringMul(changeCoefficient, "100");
@@ -513,7 +513,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> symbolsList = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
-            Map<String, Object> market = (Map<String, Object>) this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
+            Map<String, Object> market = this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
             List<Object> utaparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "uta", false);
             var uta = ((List<Object>) utaparamsUtaVariable).get(0);
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
@@ -525,7 +525,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> marketInner = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> marketInner = this.market(symbol);
                 Map<String, Object> args = new HashMap<String, Object>() {{
                     put( "instType", instType );
                 }};
@@ -583,7 +583,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String utaMarketId = this.safeString(arg, "symbol");
         String marketId = this.safeString(ticker, "instId", utaMarketId);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
             put( "timestamp", timestamp );
@@ -620,7 +620,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", (Object) null);
             String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -689,7 +689,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", (Object) null);
             String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object channel = null;
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object messageHash = null;
             List<Object> values = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
             Boolean uta = (Boolean) ((List<Object>)values).get(0);
@@ -793,7 +793,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             marketType = "spot";
         }
         String marketId = this.safeString2(arg, "instId", "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         String channel = this.safeString2(arg, "channel", "topic", "");
@@ -942,7 +942,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ((("unsubscribe:" + messageHashTopic) + ":") + ((Map<String, Object>)market).get("symbol"));
             List<Object> utaparamsUtaVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, (String) (methodName), "uta", false);
             var uta = ((List<Object>) utaparamsUtaVariable).get(0);
@@ -1014,7 +1014,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 var instTypeparamsInstTypeVariable = this.getInstType("watchOrderBookForSymbols", (Map<String, Object>) (market), uta, Helpers.toMapArg(paramsCursor));
                 String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
                 var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
@@ -1110,7 +1110,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             marketType = "spot";
         }
         String marketId = this.safeString2(arg, "instId", "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook:" + symbol);
         List<Object> data = (List<Object>) this.safeList(message, "data", (Object) null);
@@ -1286,7 +1286,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 var instTypeparamsInstTypeVariable = this.getInstType("watchTradesForSymbols", (Map<String, Object>) (market), uta, Helpers.toMapArg(paramsCursor));
                 String instType = (String) ((List<Object>) instTypeparamsInstTypeVariable).get(0);
                 var paramsInstType = ((List<Object>) instTypeparamsInstTypeVariable).get(1);
@@ -1409,7 +1409,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             marketType = "spot";
         }
         String marketId = this.safeString2(arg, "instId", "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -1749,7 +1749,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString2(rawPosition, "instId", "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1918,7 +1918,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
                 marketId = this.safeString(market, "id");
                 messageHash = ((messageHash + ":") + symbolResolved);
@@ -2166,7 +2166,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString2(order, "instId", "symbol", argInstId);
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
             stored.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
@@ -2372,7 +2372,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             isMargin = true;
         }
         String marketId = this.safeString2(order, "instId", "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(order, "cTime", "createdTime");
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String rawStatus = this.safeString2(order, "status", "orderStatus");
@@ -2517,7 +2517,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
                 messageHash = ((messageHash + ":") + symbolResolved);
             }
@@ -2710,7 +2710,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     marketType = "spot";
                 }
                 String marketId = this.safeString2(trade, "instId", "symbol");
-                market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+                market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
             }
             Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
             stored.append(parsed);
@@ -3361,7 +3361,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             type = "spot";
         }
         String instId = this.safeString2(arg, "instId", "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
+        Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("unsubscribe:orderbook:" + ((Map<String, Object>)market).get("symbol"));
         String subMessageHash = ("orderbook:" + symbol);
@@ -3398,7 +3398,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             type = "spot";
         }
         String instId = this.safeString2(arg, "instId", "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
+        Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("unsubscribe:trade:" + ((Map<String, Object>)market).get("symbol"));
         String subMessageHash = ("trade:" + symbol);
@@ -3435,7 +3435,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             type = "spot";
         }
         String instId = this.safeString2(arg, "instId", "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
+        Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol"));
         String subMessageHash = ("ticker:" + symbol);
@@ -3489,7 +3489,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", (Object) null);
         String timeframe = this.findTimeframe(interval, timeframes);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
+        Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = null;
         String subMessageHash = null;

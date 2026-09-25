@@ -1135,7 +1135,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1197,7 +1197,7 @@ public class Bullish extends BullishApi
                 Object paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1255,7 +1255,7 @@ public class Bullish extends BullishApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -1392,7 +1392,7 @@ public class Bullish extends BullishApi
         //     ]
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(trade, "createdAtTimestamp");
         String price = this.safeString(trade, "price");
@@ -1454,7 +1454,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1543,7 +1543,7 @@ public class Bullish extends BullishApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(ticker, "createdAtTimestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
@@ -1641,7 +1641,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Integer maxLimit = 100;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
@@ -1735,7 +1735,7 @@ public class Bullish extends BullishApi
                 Object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPagination), Helpers.toLongOrNull(maxLimit), true)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap markets only")) ;
@@ -1818,7 +1818,7 @@ public class Bullish extends BullishApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object paramsSinceAndUntil = this.handleSinceAndUntil(since, parameters, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
@@ -2073,7 +2073,7 @@ public class Bullish extends BullishApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
@@ -2138,7 +2138,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "commandType", "V3CreateOrder" );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2213,7 +2213,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "commandType", "V1AmendOrder" );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2271,7 +2271,7 @@ public class Bullish extends BullishApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "tradingAccountId", tradingAccountId );
@@ -2315,7 +2315,7 @@ public class Bullish extends BullishApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
                 request.put("commandType", "V1CancelAllOrdersByMarket");
             } else
@@ -2532,7 +2532,7 @@ public class Bullish extends BullishApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2561,7 +2561,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             // todo check this method properly
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "command", new HashMap<String, Object>() {{
                     put( "commandType", "V1Withdraw" );
@@ -2853,7 +2853,7 @@ public class Bullish extends BullishApi
         return BaseExchange.supplyAsync(() -> {
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2978,7 +2978,7 @@ public class Bullish extends BullishApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Map<String, Object> account = (Map<String, Object>) this.account();
+        Map<String, Object> account = this.account();
         account.put("free", this.safeString(response, "availableQuantity"));
         account.put("used", this.safeString(response, "lockedQuantity"));
         result.put((String)((String)code), account);
@@ -2995,7 +2995,7 @@ public class Bullish extends BullishApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String symbol = this.safeString(balance, "assetSymbol");
             String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "availableQuantity"));
             account.put("used", this.safeString(balance, "lockedQuantity"));
             if (!java.util.Objects.equals(code, null))
@@ -3077,7 +3077,7 @@ public class Bullish extends BullishApi
         //         }
         //     ]
         //
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(this.safeString(position, "symbol"), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(this.safeString(position, "symbol"), market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(position, "createdAtTimestamp");
         String side = this.safeString(position, "side");
@@ -3156,7 +3156,7 @@ public class Bullish extends BullishApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("assetSymbol", ((Map<String, Object>)currency).get("id"));
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -3215,7 +3215,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             // todo check this method properly
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "commandType", "V2TransferAsset" );
                 put( "assetSymbol", ((Map<String, Object>)currency).get("id") );
@@ -3319,7 +3319,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assetSymbol", ((Map<String, Object>)currency).get("id") );
                 put( "tradingAccountId", tradingAccountId );
@@ -3406,7 +3406,7 @@ public class Bullish extends BullishApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};

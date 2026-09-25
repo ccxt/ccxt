@@ -1556,7 +1556,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1730,7 +1730,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Long userLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -1869,7 +1869,7 @@ public class Phemex extends PhemexApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         Object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), marketResolved);
@@ -1922,7 +1922,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2014,7 +2014,7 @@ public class Phemex extends PhemexApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 String first = this.safeString(symbols, 0);
-                market = (Map<String, Object>) this.market(first);
+                market = this.market(first);
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -2060,7 +2060,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2291,7 +2291,7 @@ public class Phemex extends PhemexApi
         Object feeRateString = null;
         String feeCurrencyCode = null;
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String orderId = null;
         String takerOrMaker = null;
@@ -2455,7 +2455,7 @@ public class Phemex extends PhemexApi
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             String balanceEv = this.safeString(balance, "balanceEv");
             String lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
             String lockedWithdrawEv = this.safeString(balance, "lockedWithdrawEv");
@@ -2513,9 +2513,9 @@ public class Phemex extends PhemexApi
         Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, "account", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(balance, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+        Map<String, Object> currency = this.currency(code);
         Long valueScale = this.safeInteger(currency, "valueScale", 8);
-        Map<String, Object> account = (Map<String, Object>) this.account();
+        Map<String, Object> account = this.account();
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         String totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
         Boolean needsConversion = (!java.util.Objects.equals(code, "USDT"));
@@ -2572,7 +2572,7 @@ public class Phemex extends PhemexApi
                     {
                         coin = settle;
                     }
-                    Map<String, Object> currency = (Map<String, Object>) this.currency(coin);
+                    Map<String, Object> currency = this.currency(coin);
                     request.put("currency", ((Map<String, Object>)currency).get("id"));
                     if (java.util.Objects.equals(((Map<String, Object>)currency).get("id"), "USDT"))
                     {
@@ -2840,7 +2840,7 @@ public class Phemex extends PhemexApi
             clientOrderId = null;
         }
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Object price = this.fromEp(this.safeString(order, "priceEp"), marketResolved);
         Object amount = this.fromEv(this.safeString(order, "baseQtyEv"), marketResolved);
@@ -3009,7 +3009,7 @@ public class Phemex extends PhemexApi
         }
         String marketId = this.safeString(order, "symbol");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = this.parseOrderSide(this.safeStringLower(order, "side"));
         String type = this.parseOrderType(this.safeString(order, "orderType"));
@@ -3128,7 +3128,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String requestSide = this.capitalize(side);
             String typeValue = this.capitalize(type);
             Map<String, Object> request = Helpers.newMap(
@@ -3489,7 +3489,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3587,7 +3587,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3644,7 +3644,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3695,7 +3695,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3780,7 +3780,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3841,7 +3841,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3906,7 +3906,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
@@ -4007,7 +4007,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
@@ -4183,7 +4183,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -4253,7 +4253,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             Map<String, Object> response = (this.privateGetExchangeWalletsDepositList(parameters)).join();
             //
@@ -4304,7 +4304,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             Map<String, Object> response = (this.privateGetExchangeWalletsWithdrawList(parameters)).join();
             //
@@ -4429,7 +4429,7 @@ public class Phemex extends PhemexApi
         List<String> tag = null;
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "currency");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String code = (String) ((Map<String, Object>)currencyResolved).get("code");
         String networkId = this.safeString(transaction, "chainName");
         Long timestamp = this.safeIntegerN(transaction, new ArrayList<Object>(Arrays.asList("createdAt", "submitedAt", "submittedAt")));
@@ -4509,7 +4509,7 @@ public class Phemex extends PhemexApi
             String firstSymbol = this.safeString(symbolsNormalized, 0);
             if (!java.util.Objects.equals(firstSymbol, null))
             {
-                market = (Map<String, Object>) this.market(firstSymbol);
+                market = this.market(firstSymbol);
                 settle = this.safeString(market, "settle");
                 code = ((Map<String, Object>)market).get("settle");
             } else
@@ -4532,7 +4532,7 @@ public class Phemex extends PhemexApi
             {
                 code = (((java.util.Objects.equals(subType, "linear")))) ? "USD" : "BTC";
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -4663,7 +4663,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -4804,7 +4804,7 @@ public class Phemex extends PhemexApi
         //            },
         //
         String marketId = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String collateral = this.safeString2(position, "positionMargin", "positionMarginRv");
         String notionalString = this.safeString2(position, "value", "valueRv");
@@ -4915,7 +4915,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4994,7 +4994,7 @@ public class Phemex extends PhemexApi
         {
             return value;
         }
-        Map<String, Object> currency = (Map<String, Object>) this.safeCurrency((String) (currencyCode), (Map<String, Object>) null);
+        Map<String, Object> currency = this.safeCurrency((String) (currencyCode), (Map<String, Object>) null);
         String scale = this.safeString(((Map<String, Object>)currency).get("info"), "valueScale");
         Object tickPrecision = this.parsePrecision(scale);
         return Precise.stringMul(value, tickPrecision);
@@ -5017,7 +5017,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
@@ -5149,7 +5149,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "posBalanceEv", Phemex.this.toEv(amount, market) );
@@ -5186,7 +5186,7 @@ public class Phemex extends PhemexApi
         //         "data": "OK"
         //     }
         //
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         Boolean inverse = (Boolean) this.safeBool(marketResolved, "inverse", (Object) null);
         String codeCurrency = (((java.util.Objects.equals(inverse, true)))) ? "base" : "quote";
         return new HashMap<String, Object>() {{
@@ -5226,7 +5226,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadSymbol((this.id + " setMarginMode() supports swap contracts only")) ;
@@ -5285,7 +5285,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"))
             {
                 throw new BadSymbol((this.id + " setPositionMode() supports USDT settled markets only")) ;
@@ -5325,7 +5325,7 @@ public class Phemex extends PhemexApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 String first = this.safeString(symbols, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(first);
+                Map<String, Object> market = this.market(first);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USD"))
                 {
                     throw new BadSymbol((this.id + " fetchLeverageTiers() supports USD settled markets only")) ;
@@ -5435,7 +5435,7 @@ public class Phemex extends PhemexApi
         //     },
         //
         String marketId = this.safeString(info, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Object riskLimits = (Helpers.GetValue(((Map<String, Object>)marketResolved).get("info"), "riskLimits"));
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object minNotional = 0;
@@ -5561,7 +5561,7 @@ public class Phemex extends PhemexApi
             Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
             Long longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
             Long shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -5612,7 +5612,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -5719,7 +5719,7 @@ public class Phemex extends PhemexApi
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a code argument")) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -5855,7 +5855,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean isUsdtSettled = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC");
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -5961,7 +5961,7 @@ public class Phemex extends PhemexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsWithdrawTag);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             var paramsNetworkCode = ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
@@ -6043,7 +6043,7 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest is only supported for contract markets.")) ;
@@ -6132,8 +6132,8 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
+            Map<String, Object> fromCurrency = this.currency((String) (fromCode));
+            Map<String, Object> toCurrency = this.currency((String) (toCode));
             Long valueScale = this.safeInteger(fromCurrency, "valueScale");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "fromCurrency", fromCode );
@@ -6186,8 +6186,8 @@ public class Phemex extends PhemexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency((String) (fromCode));
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency((String) (toCode));
+            Map<String, Object> fromCurrency = this.currency((String) (fromCode));
+            Map<String, Object> toCurrency = this.currency((String) (toCode));
             Long valueScale = this.safeInteger(fromCurrency, "valueScale");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "code", id );
@@ -6216,9 +6216,9 @@ public class Phemex extends PhemexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCurrency");
-            Map<String, Object> fromResult = (Map<String, Object>) this.safeCurrency(fromCurrencyId, fromCurrency);
+            Map<String, Object> fromResult = this.safeCurrency(fromCurrencyId, fromCurrency);
             String toCurrencyId = this.safeString(data, "toCurrency");
-            Map<String, Object> to = (Map<String, Object>) this.safeCurrency(toCurrencyId, toCurrency);
+            Map<String, Object> to = this.safeCurrency(toCurrencyId, toCurrency);
             return this.parseConversion((Map<String, Object>) (data), fromResult, to);
         }).thenApply(Conversion::new);
 
@@ -6401,7 +6401,7 @@ public class Phemex extends PhemexApi
             String firstSymbol = this.safeString(symbolsNormalized, 0);
             if (!java.util.Objects.equals(firstSymbol, null))
             {
-                market = (Map<String, Object>) this.market(firstSymbol);
+                market = this.market(firstSymbol);
                 settle = this.safeString(market, "settle");
                 code = ((Map<String, Object>)market).get("settle");
             } else
@@ -6424,7 +6424,7 @@ public class Phemex extends PhemexApi
             {
                 code = (((java.util.Objects.equals(subType, "linear")))) ? "USD" : "BTC";
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};

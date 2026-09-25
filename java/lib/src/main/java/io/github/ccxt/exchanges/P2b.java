@@ -544,7 +544,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -665,7 +665,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -732,7 +732,7 @@ public class P2b extends P2bApi
             {
                 throw new ArgumentsRequired((this.id + " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "market", ((Map<String, Object>)market).get("id"),
                 "lastId", lastId
@@ -860,7 +860,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "interval", java.util.Objects.requireNonNullElse(timeframe, "1m") );
@@ -1016,7 +1016,7 @@ public class P2b extends P2bApi
             {
                 throw new BadRequest((this.id + " createOrder () can only accept orders with type \"limit\"")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "side", side );
@@ -1075,7 +1075,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "orderId", id );
@@ -1136,7 +1136,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -1200,7 +1200,7 @@ public class P2b extends P2bApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -1284,7 +1284,7 @@ public class P2b extends P2bApi
             {
                 throw new BadRequest((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Long sinceSec = this.parseToInt(Helpers.divide(sinceResolved, 1000));
             Long untilSec = this.parseToInt(Helpers.divide(until, 1000));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1359,7 +1359,7 @@ public class P2b extends P2bApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             if (java.util.Objects.equals(until, null))
             {
@@ -1473,7 +1473,7 @@ public class P2b extends P2bApi
         //
         Object timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", P2b.this.safeString2(order, "id", "orderId") );

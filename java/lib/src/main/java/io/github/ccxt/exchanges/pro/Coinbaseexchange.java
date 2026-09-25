@@ -99,7 +99,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("id")));
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
             }
@@ -144,7 +144,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
                 ((List<Object>)messageHashes).add(((messageHashStart + ":") + ((Map<String, Object>)market).get("symbol")));
             }
@@ -519,7 +519,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -683,7 +683,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             idKey = "maker_order_id";
         }
         Helpers.addElementToObject(parsed, "order", this.safeString(trade, idKey));
-        Map<String, Object> marketResolved = (Map<String, Object>) this.market(((Map<String, Object>)parsed).get("symbol"));
+        Map<String, Object> marketResolved = this.market(((Map<String, Object>)parsed).get("symbol"));
         String feeCurrency = (String) ((Map<String, Object>)marketResolved).get("quote");
         String feeCost = null;
         if ((!java.util.Objects.equals(((Map<String, Object>)parsed).get("cost"), null)) && (!java.util.Objects.equals(feeRate, null)))
@@ -1099,7 +1099,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         //
         String type = this.safeString(message, "type");
         String marketId = this.safeString(message, "product_id");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String name = "level2";
         String messageHash = ((name + ":") + marketId);

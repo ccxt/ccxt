@@ -380,7 +380,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(data, market);
         String messageHash = (("ticker" + "::") + symbol);
@@ -538,7 +538,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -738,7 +738,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String interval = this.safeString(data, "P");
         Object timeframe = this.findTimeframe(interval, (Object) null);
@@ -896,7 +896,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -929,7 +929,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(entries, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> orderedEntries = new HashMap<String, Object>() {{
@@ -1087,7 +1087,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String messageHash = "myTrades";
         String symbolMessageHash = ((messageHash + "::") + symbol);
@@ -1179,7 +1179,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String messageHash = "orders";
         String symbolMessageHash = ((messageHash + "::") + symbol);
@@ -1339,7 +1339,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(first, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "I");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String messageHash = "positions";
         String symbolMessageHash = ((messageHash + "::") + symbol);

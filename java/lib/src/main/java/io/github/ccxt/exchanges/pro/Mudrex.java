@@ -98,7 +98,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("ticker:" + symbolValue);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -134,7 +134,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
+                    Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
                     Object baseIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), null)))) ? ((Map<String, Object>)market).get("baseId") : "";
                     Object quoteIdString = (((!java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), null)))) ? ((Map<String, Object>)market).get("quoteId") : "";
@@ -171,7 +171,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String priceType = this.safeString(parameters, "price");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "price");
@@ -262,7 +262,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(s.toUpperCase()), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(Helpers.toStringArg(s.toUpperCase()), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -292,7 +292,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 continue;
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(s.toUpperCase()), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(Helpers.toStringArg(s.toUpperCase()), (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             Long timestamp = this.milliseconds();
             Double last = this.safeNumber(t, "p", (Object) null);

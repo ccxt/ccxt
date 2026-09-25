@@ -1714,7 +1714,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Integer maxLimit = (((java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))) ? 1000 : 1440;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
@@ -1885,7 +1885,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 throw new NotSupported((this.id + " fetchTrades() is not supported for inverse swap markets")) ;
@@ -2159,7 +2159,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2293,7 +2293,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2445,7 +2445,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 throw new NotSupported((this.id + " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
@@ -2536,7 +2536,7 @@ public class Bingx extends BingxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
@@ -2643,7 +2643,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2756,7 +2756,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2841,7 +2841,7 @@ public class Bingx extends BingxApi
                 String firstSymbol = this.safeString(symbolsNormalized, 0);
                 if (!java.util.Objects.equals(firstSymbol, null))
                 {
-                    market = (Map<String, Object>) this.market(firstSymbol);
+                    market = this.market(firstSymbol);
                 }
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters, (Object) null);
@@ -2918,7 +2918,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = (Map<String, Object>) ((List<Object>) subTypeparamsSubTypeVariable).get(1);
@@ -2968,7 +2968,7 @@ public class Bingx extends BingxApi
                 String firstSymbol = this.safeString(symbolsNormalized, 0);
                 if (!java.util.Objects.equals(firstSymbol, null))
                 {
-                    market = (Map<String, Object>) this.market(firstSymbol);
+                    market = this.market(firstSymbol);
                 }
             }
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
@@ -3077,7 +3077,7 @@ public class Bingx extends BingxApi
         {
             type = "spot";
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, type);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, type);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String open = this.safeString(ticker, "openPrice");
         String high = this.safeString(ticker, "highPrice");
@@ -3282,7 +3282,7 @@ public class Bingx extends BingxApi
                     break;
                 }
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("free", this.safeString2(balance, "availableMargin", "availableBalance"));
                 account.put("used", this.safeString(balance, "usedMargin"));
                 account.put("total", this.safeString(balance, "maxWithdrawAmount"));
@@ -3298,7 +3298,7 @@ public class Bingx extends BingxApi
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("free", this.safeString(balance, "free"));
                 account.put("used", this.safeString(balance, "locked"));
                 if (!java.util.Objects.equals(code, null))
@@ -3331,7 +3331,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -3427,7 +3427,7 @@ public class Bingx extends BingxApi
                     String firstSymbol = this.safeString(symbolsNormalized, 0);
                     if (!java.util.Objects.equals(firstSymbol, null))
                     {
-                        market = (Map<String, Object>) this.market(firstSymbol);
+                        market = this.market(firstSymbol);
                     }
                 }
                 List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositions", market, paramsStandard, (Object) null);
@@ -3466,7 +3466,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchPosition() supports swap markets only")) ;
@@ -3698,7 +3698,7 @@ public class Bingx extends BingxApi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         String cost = this.safeString2(parameters, "cost", "quoteOrderQty");
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (!java.util.Objects.equals(cost, null)))
         {
@@ -4032,7 +4032,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             if (Boolean.TRUE.equals(test) && ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))))
             {
@@ -4204,7 +4204,7 @@ public class Bingx extends BingxApi
             }
             List<String> symbols = this.marketSymbols(marketIds, (Object) null, false, true, true);
             Integer symbolsLength = ((List<?>)symbols).size();
-            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+            Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 throw new NotSupported((this.id + " createOrders() is not supported for inverse swap markets")) ;
@@ -4765,7 +4765,7 @@ public class Bingx extends BingxApi
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 Map<String, Object> request = Helpers.newMap(
                     "symbol", ((Map<String, Object>)market).get("id")
                 );
@@ -4929,7 +4929,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, (Object) null);
@@ -4987,7 +4987,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 throw new NotSupported((this.id + " cancelOrders() is not supported for inverse swap markets")) ;
@@ -5140,7 +5140,7 @@ public class Bingx extends BingxApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                 }
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 Map<String, Object> request = Helpers.newMap(
                     "symbol", ((Map<String, Object>)market).get("id"),
                     "orderId", id
@@ -5199,7 +5199,7 @@ public class Bingx extends BingxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters, (Object) null);
@@ -5308,7 +5308,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = null;
@@ -5575,7 +5575,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = null;
@@ -5647,7 +5647,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
@@ -5737,7 +5737,7 @@ public class Bingx extends BingxApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromAccount = this.safeString(parameters, "fromAccount");
@@ -5851,7 +5851,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Long recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5938,7 +5938,7 @@ public class Bingx extends BingxApi
         //
         String tag = this.safeString(depositAddress, "tag");
         String currencyId = this.safeString(depositAddress, "coin");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String code = (String) ((Map<String, Object>)currencyResolved).get("code");
         String address = this.safeString2(depositAddress, "addressWithPrefix", "address");
         String networkId = this.safeString(depositAddress, "network");
@@ -5989,7 +5989,7 @@ public class Bingx extends BingxApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -6051,7 +6051,7 @@ public class Bingx extends BingxApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -6240,7 +6240,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap"))
             {
                 throw new BadSymbol((this.id + " setMarginMode() supports swap contracts only")) ;
@@ -6323,7 +6323,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "symbol", ((Map<String, Object>)market).get("id"),
                 "amount", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount),
@@ -6387,7 +6387,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -6473,7 +6473,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "side", side );
@@ -6519,7 +6519,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object fills = null;
             Map<String, Object> response = null;
@@ -6699,7 +6699,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Integer defaultWalletType = 15; // spot
             List<Object> walletTypeOptionparamsWalletTypeVariable = (List<Object>) this.handleOptionAndParams2(paramsWithdrawTag, "withdraw", "type", "walletType", defaultWalletType);
             var walletTypeOption = ((List<Object>) walletTypeOptionparamsWalletTypeVariable).get(0);
@@ -6802,7 +6802,7 @@ public class Bingx extends BingxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 Helpers.addElementToObject(requestUntil, "symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -6954,7 +6954,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String positionId = this.safeString(parameters, "positionId");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
@@ -7057,7 +7057,7 @@ public class Bingx extends BingxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("fetchPositionMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
@@ -7106,7 +7106,7 @@ public class Bingx extends BingxApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> subTypeparamsSubTypeVariable = (List<Object>) this.handleSubTypeAndParams("setPositionMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
@@ -7179,7 +7179,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 throw new NotSupported((this.id + " editOrder() is not supported for inverse swap markets")) ;
@@ -7220,7 +7220,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -7276,7 +7276,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -7427,7 +7427,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchMarketLeverageTiers() supports swap markets only")) ;
@@ -7484,7 +7484,7 @@ public class Bingx extends BingxApi
             String tierString = this.safeString(tier, "tier");
             List<Object> tierParts = new ArrayList<Object>(Arrays.asList(((String)tierString).split(java.util.regex.Pattern.quote(" "))));
             String marketId = this.safeString(tier, "symbol");
-            Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, "swap");
+            Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
             ((List<Object>)tiers).add(new HashMap<String, Object>() {{
                 put( "tier", Bingx.this.safeNumber(tierParts, 1, (Object) null) );
                 put( "symbol", Bingx.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );

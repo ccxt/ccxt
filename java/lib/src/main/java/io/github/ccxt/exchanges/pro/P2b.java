@@ -137,7 +137,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + java.util.Objects.requireNonNullElse(timeframe, "15m"))) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> request = new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), channel));
             String messageHash = ("kline::" + ((Map<String, Object>)market).get("symbol"));
             Object ohlcv = (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
@@ -176,7 +176,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             List<Object> nameOptionparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
             var paramsName = ((List<Object>) nameOptionparamsNameVariable).get(1);
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("tickerSubs")), ((String)((Map<String, Object>)market).get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
             Object tickerSubs = ((Map<String, Object>)this.options).get("tickerSubs");
             Object request = Helpers.objectKeys(tickerSubs);
@@ -216,7 +216,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
+                Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
                 ((List<Object>)messageHashes).add(((nameOption + "::") + ((Map<String, Object>)market).get("symbol")));
                 ((List<Object>)args).add(((Map<String, Object>)market).get("id"));
             }
@@ -323,7 +323,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String name = "depth.subscribe";
             String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
             String interval = this.safeString(parameters, "interval", "0.001");
@@ -361,7 +361,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         List<Object> splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("."))));
         String channel = this.safeString(splitMethod, 0);
         String marketId = this.safeString(data, 7);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
@@ -407,7 +407,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = (List<Object>) this.safeList(data, 1, (Object) null);
         String marketId = this.safeString(data, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol");
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
@@ -463,7 +463,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //
         List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(data, 0);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String method = this.safeString(message, "method");
         List<Object> splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("."))));
         String messageHashStart = this.safeString(splitMethod, 0);
@@ -514,7 +514,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         List<Object> asks = (List<Object>) this.safeList(data, "asks", (Object) null);
         List<Object> bids = (List<Object>) this.safeList(data, "bids", (Object) null);
         String marketId = this.safeString(parameters, 2);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});

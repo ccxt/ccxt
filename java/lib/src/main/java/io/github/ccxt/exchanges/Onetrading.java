@@ -794,7 +794,7 @@ public class Onetrading extends OnetradingApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 Map<String, Object> tierObject = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
                 result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
@@ -870,7 +870,7 @@ public class Onetrading extends OnetradingApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String makerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
                 String takerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
                 result.put((String)symbol, new HashMap<String, Object>() {{
@@ -981,7 +981,7 @@ public class Onetrading extends OnetradingApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -1084,7 +1084,7 @@ public class Onetrading extends OnetradingApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", ((Map<String, Object>)market).get("id") );
             }};
@@ -1220,7 +1220,7 @@ public class Onetrading extends OnetradingApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String periodUnit = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(periodUnit, null))
             {
@@ -1357,7 +1357,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
@@ -1567,7 +1567,7 @@ public class Onetrading extends OnetradingApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> request = Helpers.newMap(
@@ -1698,7 +1698,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 request.put("instrument_code", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateDeleteAccountOrders(this.extend(request, parameters))).join();
@@ -1844,7 +1844,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_code", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2035,7 +2035,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             return this.parseTrades(tradeHistory, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -2067,7 +2067,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instrument_code", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))

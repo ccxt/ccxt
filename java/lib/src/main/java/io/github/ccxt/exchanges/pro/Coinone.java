@@ -89,7 +89,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -188,7 +188,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -330,7 +330,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -408,7 +408,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             symbol = ((base + "/") + quote);
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(symbol, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(symbol, market, (String) null, (String) null);
         Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))

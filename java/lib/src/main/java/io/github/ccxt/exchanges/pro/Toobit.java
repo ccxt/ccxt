@@ -241,7 +241,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHashes.add(("trade::" + symbol));
                 String rawHash = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
@@ -292,7 +292,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -372,7 +372,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String symbolStr = this.safeString(data, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolStr);
+                Map<String, Object> market = this.market(symbolStr);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
                 String unfiedTimeframe = this.safeString(data, 1, "1m");
                 String rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -434,7 +434,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.market(marketId);
+        Map<String, Object> market = this.market(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String timeframeId = this.safeString(parameters, "klineType");
@@ -534,7 +534,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHashes.add(("ticker::" + symbol));
                 String rawHash = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
@@ -679,7 +679,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHashes.add(((("orderBook::" + symbol) + "::") + channel));
                 String rawHash = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)subParams).add(rawHash);
@@ -727,7 +727,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             return;
         }
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -936,7 +936,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("info", balance);
             account.put("used", this.safeString(balance, "l"));
             account.put("free", this.safeString(balance, "f"));

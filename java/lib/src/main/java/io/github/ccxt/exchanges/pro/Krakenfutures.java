@@ -177,7 +177,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Integer length = ((List<?>)symbolsValue).size();
             if (java.util.Objects.equals(length, 1))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market((marketIds == null || 0 >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(0)));
+                Map<String, Object> market = this.market((marketIds == null || 0 >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(0)));
                 messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));
             }
             subscribe.put("product_ids", marketIds);
@@ -582,7 +582,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
             }
             Object orders = (this.subscribePrivate(name, messageHash, Helpers.toMapArg(paramsVerbose))).join();
@@ -620,7 +620,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
             }
             Object trades = (this.subscribePrivate(name, messageHash, parameters)).join();
@@ -712,7 +712,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Map<String, Object> market = (Map<String, Object>) this.market(marketId);
+            Map<String, Object> market = this.market(marketId);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = this.getMessageHash("trade", (String) null, symbol);
             if (java.util.Objects.equals(this.safeList(this.trades, symbol, (Object) null), null))
@@ -772,7 +772,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //     }
         //
         String marketId = this.safeString(trade, "product_id");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(trade, "time");
         return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1338,7 +1338,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         String marketId = this.safeString(ticker, "product_id");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         String last = this.safeString(ticker, "last");
@@ -1400,7 +1400,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         String marketId = this.safeString(message, "product_id");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = this.getMessageHash("orderbook", (String) null, symbol);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
@@ -1454,7 +1454,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         String marketId = this.safeString(message, "product_id");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = this.getMessageHash("orderbook", (String) null, symbol);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
@@ -1640,7 +1640,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 String key = (holdingKeys == null || i < 0 || i >= holdingKeys.size() ? null : holdingKeys.get(i));
                 String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
-                Map<String, Object> newAccount = (Map<String, Object>) this.account();
+                Map<String, Object> newAccount = this.account();
                 newAccount.put("total", this.safeString(holding, key));
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -1663,7 +1663,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 String key = (futuresKeys == null || i < 0 || i >= futuresKeys.size() ? null : futuresKeys.get(i));
                 String symbol = this.safeSymbol(key, (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> newAccount = (Map<String, Object>) this.account();
+                Map<String, Object> newAccount = this.account();
                 Map<String, Object> future = (Map<String, Object>) this.safeDict(futures, key, (Object) null);
                 String currencyId = this.safeString(future, "unit");
                 String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
@@ -1694,7 +1694,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 String key = (flexFuturesKeys == null || i < 0 || i >= flexFuturesKeys.size() ? null : flexFuturesKeys.get(i));
                 Map<String, Object> flexFuture = (Map<String, Object>) this.safeDict(flexFutureCurrencies, key, (Object) null);
                 String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
-                Map<String, Object> newAccount = (Map<String, Object>) this.account();
+                Map<String, Object> newAccount = this.account();
                 newAccount.put("free", this.safeString(flexFuture, "available"));
                 newAccount.put("used", this.safeString(flexFuture, "collateral_value"));
                 newAccount.put("total", this.safeString(flexFuture, "quantity"));
@@ -1788,7 +1788,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //
         Long timestamp = this.safeInteger(trade, "time");
         String marketId = this.safeString(trade, "instrument");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Boolean isBuy = (Boolean) this.safeBool(trade, "buy", (Object) null);
         String feeCurrencyId = this.safeString(trade, "fee_currency");
         return this.safeTrade(Helpers.newMap(
@@ -1830,7 +1830,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             {
                 String messageHash = this.getMessageHash(unifiedName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 ((List<Object>)messageHashes).add(messageHash);
-                Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
+                Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 if (!this.subscriptionExistsForHash(url, messageHash))
                 {
                     ((List<Object>)rawSubs).add(((Map<String, Object>)market).get("id"));

@@ -405,7 +405,7 @@ public class Btcmarkets extends BtcmarketsApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             List<Object> response = null;
             if (java.util.Objects.equals(method, "privateGetTransfers"))
@@ -758,7 +758,7 @@ public class Btcmarkets extends BtcmarketsApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "assetName");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("used", this.safeString(balance, "locked"));
             account.put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
@@ -828,7 +828,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
                 put( "timeWindow", Btcmarkets.this.safeString(Btcmarkets.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -873,7 +873,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
             }};
@@ -922,7 +922,7 @@ public class Btcmarkets extends BtcmarketsApi
         //     }
         //
         String marketId = this.safeString(ticker, "marketId");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "lastPrice");
@@ -972,7 +972,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
             }};
@@ -1006,7 +1006,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};
@@ -1046,7 +1046,7 @@ public class Btcmarkets extends BtcmarketsApi
         //
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String marketId = this.safeString(trade, "marketId");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         Object feeCurrencyCode = null;
         if (java.util.Objects.equals(((Map<String, Object>)marketResolved).get("quote"), "AUD"))
         {
@@ -1114,7 +1114,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
             }};
@@ -1154,7 +1154,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "marketId", ((Map<String, Object>)market).get("id"),
                 "amount", this.amountToPrecision(symbol, amount),
@@ -1345,7 +1345,7 @@ public class Btcmarkets extends BtcmarketsApi
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         String currency = null;
         String cost = null;
         if (java.util.Objects.equals(((Map<String, Object>)market).get("quote"), "AUD"))
@@ -1414,7 +1414,7 @@ public class Btcmarkets extends BtcmarketsApi
         //
         Long timestamp = this.parse8601(this.safeString(order, "creationTime"));
         String marketId = this.safeString(order, "marketId");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String side = this.safeString(order, "side");
         if (java.util.Objects.equals(side, "Bid"))
         {
@@ -1511,7 +1511,7 @@ public class Btcmarkets extends BtcmarketsApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("marketId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1598,7 +1598,7 @@ public class Btcmarkets extends BtcmarketsApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("marketId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1666,7 +1666,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
                 "assetName", ((Map<String, Object>)currency).get("id"),
                 "amount", this.currencyToPrecision((String) (code), amount, (String) null)

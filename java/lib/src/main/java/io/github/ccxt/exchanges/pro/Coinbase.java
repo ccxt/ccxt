@@ -115,7 +115,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 messageHash = ((messageHash + "::") + String.join(",", (List<String>)symbols));
             } else if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 messageHash = ((name + "::") + symbol);
                 productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
             }
@@ -178,7 +178,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 unWatchMessageHash = ((unWatchMessageHash + "::") + String.join(",", (List<String>)symbols));
             } else if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 watchMessageHash = ((name + "::") + symbol);
                 unWatchMessageHash = ((unWatchMessageHash + "::") + symbol);
                 productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
@@ -236,7 +236,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
@@ -289,7 +289,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String marketId = (String) ((Map<String, Object>)market).get("id");
                 ((List<Object>)productIds).add(marketId);
                 ((List<Object>)watchMessageHashes).add(((name + "::") + symbol));
@@ -828,7 +828,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "level2";
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object symbolValue = ((Map<String, Object>)market).get("symbol");
             Object orderbook = (this.subscribe(name, false, symbolValue, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -1047,7 +1047,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String clientOrderId = this.safeString(order, "client_order_id");
         String marketId = this.safeString(order, "product_id");
         String datetime = this.safeString2(order, "time", "creation_time");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
@@ -1134,7 +1134,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> updates = (List<Object>) this.safeList(eventVar, "updates", new ArrayList<Object>(Arrays.asList()));
             String marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("level2::" + symbol);
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});

@@ -1133,7 +1133,7 @@ public class Binance extends BinanceApi
                 if (java.util.Objects.equals(accountType, type))
                 {
                     String free = this.safeString(balance, "availableBalanceDisplay");
-                    Map<String, Object> account = (Map<String, Object>) this.account();
+                    Map<String, Object> account = this.account();
                     account.put("free", free);
                     result.put("USDT", account);
                 }
@@ -1187,7 +1187,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(order, "marketId");
             String outcome = this.safeStringUpper(order, "outcome");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String outcomeName = this.safeString(market, "market");
             if (java.util.Objects.equals(outcomeName, null))
             {
@@ -1292,7 +1292,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)outcomeObj).get("market"));
+                Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
                 request.put("marketId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1572,7 +1572,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)outcomeObj).get("market"));
+                Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
                 request.put("marketTopicId", Helpers.GetValue(((Map<String, Object>)market).get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
@@ -1604,7 +1604,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(position, "marketId");
             String outcome = this.safeStringUpper(position, "outcomeName");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String outcomeName = this.safeString(market, "market");
             if (java.util.Objects.equals(outcomeName, null))
             {
@@ -1797,7 +1797,7 @@ public class Binance extends BinanceApi
         {
             String marketId = this.safeString(trade, "marketId");
             String outcome = this.safeStringUpper(trade, "outcome");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String outcomeName = this.safeString(market, "market");
             if (java.util.Objects.equals(outcomeName, null))
             {
@@ -1958,7 +1958,7 @@ public class Binance extends BinanceApi
 
     public String priceToPrecision(Object outcome, Object price)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(outcome);
+        Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
@@ -1970,7 +1970,7 @@ public class Binance extends BinanceApi
 
     public String amountToPrecision(Object outcome, Object amount)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(outcome);
+        Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "amount", 0.01);
         Object decimals = 2;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
@@ -2011,7 +2011,7 @@ public class Binance extends BinanceApi
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             String marketSymbol = this.safeString(outcomeObj, "market");
-            Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
+            Map<String, Object> market = this.market(marketSymbol);
             String typeUpper = ((String)type).toUpperCase();
             String sideUpper = ((String)side).toUpperCase();
             Object wallet = (this.fetchWallet("createOrder", parameters)).join();

@@ -861,7 +861,7 @@ public class Bitteam extends BitteamApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pairName", ((Map<String, Object>)market).get("id") );
@@ -936,7 +936,7 @@ public class Bitteam extends BitteamApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -1003,7 +1003,7 @@ public class Bitteam extends BitteamApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("pair", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1125,7 +1125,7 @@ public class Bitteam extends BitteamApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> response = (this.privateGetTradeApiCcxtOrderId(this.extend(request, parameters))).join();
             //
@@ -1277,7 +1277,7 @@ public class Bitteam extends BitteamApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "pairId", this.safeString(market, "numericId"),
                 "type", type,
@@ -1383,7 +1383,7 @@ public class Bitteam extends BitteamApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("pairId", this.safeString(market, "numericId"));
             } else
             {
@@ -1494,7 +1494,7 @@ public class Bitteam extends BitteamApi
         //
         String id = this.safeString(order, "id");
         String marketId = this.safeString(order, "pair");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String clientOrderId = this.safeString(order, "orderCid");
         Long timestamp = null;
         String createdAt = this.safeString(order, "createdAt");
@@ -1672,7 +1672,7 @@ public class Bitteam extends BitteamApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "name", ((Map<String, Object>)market).get("id") );
             }};
@@ -1949,7 +1949,7 @@ public class Bitteam extends BitteamApi
         //         "lowest_price_24h": 37574.894999
         //     }
         String marketId = this.safeStringLower(ticker, "trading_pairs");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String bestBidPrice = null;
         String bestAskPrice = null;
         String bestBidVolume = null;
@@ -2018,7 +2018,7 @@ public class Bitteam extends BitteamApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -2073,7 +2073,7 @@ public class Bitteam extends BitteamApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("pairId", ((Map<String, Object>)market).get("numericId"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2278,7 +2278,7 @@ public class Bitteam extends BitteamApi
         //     }
         //
         String marketId = this.safeString(trade, "pair");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String id = this.safeString2(trade, "id", "trade_id");
         String price = this.safeString(trade, "price");
@@ -2452,7 +2452,7 @@ public class Bitteam extends BitteamApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("numericId"));
             }
             if (!java.util.Objects.equals(limit, null))

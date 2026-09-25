@@ -782,7 +782,7 @@ public class Cex extends CexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -839,7 +839,7 @@ public class Cex extends CexApi
         //
         String dateStr = this.safeString(trade, "dateISO");
         Long timestamp = this.parse8601(dateStr);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -876,7 +876,7 @@ public class Cex extends CexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
@@ -935,7 +935,7 @@ public class Cex extends CexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "pair", ((Map<String, Object>)market).get("id"),
                 "resolution", Helpers.GetValue(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")),
@@ -1055,7 +1055,7 @@ public class Cex extends CexApi
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             if (!(result.containsKey(symbol)))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), market));
             }
         }
@@ -1239,7 +1239,7 @@ public class Cex extends CexApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("pair", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1462,7 +1462,7 @@ public class Cex extends CexApi
         {
             marketId = ((currency1 + "-") + currency2);
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
@@ -1536,7 +1536,7 @@ public class Cex extends CexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> request = Helpers.newMap(
                 "clientOrderId", this.uuid(),
@@ -1722,7 +1722,7 @@ public class Cex extends CexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1775,7 +1775,7 @@ public class Cex extends CexApi
             direction = "in";
         }
         String currencyId = this.safeString(item, "currency");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String code = this.safeCurrencyCode(currencyId, currencyResolved);
         String timestampString = this.safeString(item, "timestamp");
         Long timestamp = this.parse8601(timestampString);
@@ -1833,7 +1833,7 @@ public class Cex extends CexApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -1969,7 +1969,7 @@ public class Cex extends CexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Boolean fromMain = (java.util.Objects.equals(fromAccount, ""));
             Object targetAccount = fromAccount;
             if (Boolean.TRUE.equals(fromMain))
@@ -2019,7 +2019,7 @@ public class Cex extends CexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Cex.this.currencyToPrecision((String) (code), amount, (String) null) );
@@ -2109,7 +2109,7 @@ public class Cex extends CexApi
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(paramsAccountId);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
                 "accountId", accountId,
                 "currency", ((Map<String, Object>)currency).get("id"),
@@ -2137,7 +2137,7 @@ public class Cex extends CexApi
     {
         String address = this.safeString(depositAddress, "address");
         String currencyId = this.safeString(depositAddress, "currency");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         this.checkAddress(address);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );

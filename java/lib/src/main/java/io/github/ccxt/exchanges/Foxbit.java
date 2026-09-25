@@ -662,7 +662,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -783,7 +783,7 @@ public class Foxbit extends FoxbitApi
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "market_symbol");
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = (String) ((Map<String, Object>)market).get("symbol");
                 result.put((String)symbol, this.parseTradingFee((Map<String, Object>) (entry), market));
             }
@@ -811,7 +811,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object defaultLimit = 20;
             Map<String, Object> request = Helpers.newMap(
                 "market", ((Map<String, Object>)market).get("id"),
@@ -868,7 +868,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -917,7 +917,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1078,7 +1078,7 @@ public class Foxbit extends FoxbitApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("market_symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1126,7 +1126,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String typeValue = ((String)type).toUpperCase();
             if (!java.util.Objects.equals(typeValue, "LIMIT") && !java.util.Objects.equals(typeValue, "MARKET") && !java.util.Objects.equals(typeValue, "STOP_MARKET") && !java.util.Objects.equals(typeValue, "STOP_LIMIT") && !java.util.Objects.equals(typeValue, "INSTANT"))
             {
@@ -1217,7 +1217,7 @@ public class Foxbit extends FoxbitApi
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String symbol = this.safeString(order, "symbol");
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String type = this.safeStringUpper(order, "type");
                 Object orderParams = this.safeDict(order, "params", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(type, "LIMIT") && !java.util.Objects.equals(type, "MARKET") && !java.util.Objects.equals(type, "STOP_MARKET") && !java.util.Objects.equals(type, "STOP_LIMIT") && !java.util.Objects.equals(type, "INSTANT"))
@@ -1360,7 +1360,7 @@ public class Foxbit extends FoxbitApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 request.put("type", "MARKET");
                 request.put("market_symbol", ((Map<String, Object>)market).get("id"));
             }
@@ -1453,7 +1453,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("market_symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1522,7 +1522,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1578,7 +1578,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_symbol", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1629,7 +1629,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1690,7 +1690,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1843,7 +1843,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkRequiredArgument("editOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> request = Helpers.newMap(
                 "mode", "ALLOW_FAILURE",
@@ -1914,7 +1914,7 @@ public class Foxbit extends FoxbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_symbol", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Foxbit.this.numberToString(amount) );
@@ -1981,7 +1981,7 @@ public class Foxbit extends FoxbitApi
             {
                 request.put("start_time", this.iso8601(since));
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             request.put("symbol", ((Map<String, Object>)currency).get("id"));
             Map<String, Object> response = (this.v3PrivateGetAccountsSymbolTransactions(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2160,7 +2160,7 @@ public class Foxbit extends FoxbitApi
         Map<String, Object> marketResolved = market;
         if ((java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(symbol, null)))
         {
-            marketResolved = (Map<String, Object>) this.market(symbol);
+            marketResolved = this.market(symbol);
         }
         if (!java.util.Objects.equals(marketResolved, null))
         {

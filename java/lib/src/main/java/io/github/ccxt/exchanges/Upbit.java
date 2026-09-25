@@ -440,7 +440,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             return (this.fetchCurrencyById(((Map<String, Object>)currency).get("id"), parameters)).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -559,7 +559,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             return (this.fetchMarketById((String) (((Map<String, Object>)market).get("id")), parameters)).join();
         });
 
@@ -789,7 +789,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "balance"));
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
@@ -981,7 +981,7 @@ public class Upbit extends UpbitApi
         //
         Long timestamp = this.safeInteger(ticker, "trade_timestamp");
         String marketId = this.safeString2(ticker, "market", "code");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String last = this.safeString(ticker, "trade_price");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
@@ -1038,7 +1038,7 @@ public class Upbit extends UpbitApi
                 List<String> marketSymbols = Helpers.toStringListArg(this.symbols);
                 for (var i = 0; i < ((List<?>)marketSymbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
+                    Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
                     String quoteId = (String) ((Map<String, Object>)market).get("quoteId");
                     if (!this.inArray(quoteId, quoteIds))
                     {
@@ -1207,7 +1207,7 @@ public class Upbit extends UpbitApi
         String price = this.safeString2(trade, "trade_price", "price");
         String amount = this.safeString2(trade, "trade_volume", "volume");
         String marketId = this.safeString2(trade, "market", "code");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, (askOrBid + "_fee"));
         if (!java.util.Objects.equals(feeCost, null))
@@ -1255,7 +1255,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
@@ -1308,7 +1308,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
@@ -1445,7 +1445,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             int timeframePeriod = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
@@ -1568,7 +1568,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             String customType = this.safeString2(parameters, "ordType", "ord_type");
             Boolean postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
@@ -1928,7 +1928,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1984,7 +1984,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetDeposit(this.extend(request, parameters))).join();
@@ -2033,7 +2033,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2090,7 +2090,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetWithdraw(this.extend(request, parameters))).join();
@@ -2313,7 +2313,7 @@ public class Upbit extends UpbitApi
         Map<String, Object> fee = null;
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, Helpers.toMapArg(Helpers.newMap(
             "order", id,
@@ -2405,7 +2405,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2468,7 +2468,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2539,7 +2539,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2743,7 +2743,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
@@ -2787,7 +2787,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2843,7 +2843,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
             }};

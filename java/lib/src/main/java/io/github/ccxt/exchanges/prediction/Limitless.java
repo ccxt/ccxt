@@ -2596,7 +2596,7 @@ public class Limitless extends LimitlessApi
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
+        Map<String, Object> market = this.market(marketSymbol);
         Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", (Object) null);
         Map<String, Object> venue = (Map<String, Object>) this.safeDict(info, "venue", (Object) null);
         String exchange = this.safeString(venue, "exchange");
@@ -3193,7 +3193,7 @@ public class Limitless extends LimitlessApi
 
     public Object getOutcomeBySlugAndLabel(String slug, String label, Map<String, Object> market)
     {
-        Map<String, Object> mkt = (Map<String, Object>) this.safeMarket(slug, market, (String) null, (String) null);
+        Map<String, Object> mkt = this.safeMarket(slug, market, (String) null, (String) null);
         List<Object> outcomes = (List<Object>) this.safeList(mkt, "outcomes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)outcomes).size(); i++)
         {

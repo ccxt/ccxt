@@ -857,14 +857,14 @@ public class Bitfinex extends BitfinexApi
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.market(symbolValue);
+        Map<String, Object> market = this.market(symbolValue);
         return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount"), DECIMAL_PLACES);
     }
 
     public String priceToPrecision(Object symbol, Object price)
     {
         String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.market(symbolValue);
+        Map<String, Object> market = this.market(symbolValue);
         String priceValue = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -1308,7 +1308,7 @@ public class Bitfinex extends BitfinexApi
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 List<Object> balance = (List<Object>) this.safeList(balances, i, (Object) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 String interest = this.safeString(balance, 3);
                 if (!java.util.Objects.equals(interest, "0"))
                 {
@@ -1372,7 +1372,7 @@ public class Bitfinex extends BitfinexApi
                 Object keys = new ArrayList<Object>(accountsByType.keySet());
                 throw new ArgumentsRequired(((this.id + " transfer() toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Object fromCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), fromAccount);
             Object toCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), toAccount);
             Object requestedAmount = this.currencyToPrecision((String) (code), amount, (String) null);
@@ -1526,7 +1526,7 @@ public class Bitfinex extends BitfinexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object precision = this.handleOption("fetchOrderBook", "precision", "R0");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "precision", precision );
@@ -1631,7 +1631,7 @@ public class Bitfinex extends BitfinexApi
             marketResolved = market;
         } else
         {
-            marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+            marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         }
         Boolean isFundingCurrency = ((length != null && length >= 17));
         symbol = this.safeSymbol(null, marketResolved, (String) null, (String) null);
@@ -1784,7 +1784,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1911,7 +1911,7 @@ public class Bitfinex extends BitfinexApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate, 10000L, true)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String sort = "-1";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -1984,7 +1984,7 @@ public class Bitfinex extends BitfinexApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, 10000L)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object limitResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(limit, 100L), null)))) ? 10000 : Helpers.mathMin(java.util.Objects.requireNonNullElse(limit, 100L), 10000);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -2182,7 +2182,7 @@ public class Bitfinex extends BitfinexApi
          * @param {string} [params.price_oco_stop] OCO stop price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         Object amountString = this.amountToPrecision(symbol, amount);
         amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : ((String)Precise.stringNeg(amountString));
         Map<String, Object> request = Helpers.newMap(
@@ -2297,7 +2297,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             List<Object> response = (this.privatePostAuthWOrderSubmit(request)).join();
             //
@@ -2498,7 +2498,7 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             if (!java.util.Objects.equals(cid, null))
             {
@@ -2559,7 +2559,7 @@ public class Bitfinex extends BitfinexApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
             //
@@ -2714,7 +2714,7 @@ public class Bitfinex extends BitfinexApi
                 response = (this.privatePostAuthROrders(this.extend(request, parameters))).join();
             } else
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.privatePostAuthROrdersSymbol(this.extend(request, parameters))).join();
             }
@@ -2818,7 +2818,7 @@ public class Bitfinex extends BitfinexApi
                 response = (this.privatePostAuthROrdersHist(this.extend(requestUntil, paramsUntil))).join();
             } else
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 Helpers.addElementToObject(requestUntil, "symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.privatePostAuthROrdersSymbolHist(this.extend(requestUntil, paramsUntil))).join();
             }
@@ -2897,7 +2897,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Object orderId = Helpers.parseInt(id);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", orderId );
@@ -2954,7 +2954,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> response = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.privatePostAuthRTradesSymbolHist(this.extend(request, parameters))).join();
             } else
@@ -3017,7 +3017,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             // if not provided explicitly we will try to match using the currency name
             String network = this.safeString(parameters, "network", code);
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
@@ -3338,7 +3338,7 @@ public class Bitfinex extends BitfinexApi
             for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
             {
                 Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 Map<String, Object> fee = new HashMap<String, Object>() {{
                     put( "info", response );
                     put( "symbol", symbol );
@@ -3399,7 +3399,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> response = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
                 List<Object> currencyMovements = (this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters))).join();
                 response = this.toArray(currencyMovements);
@@ -3463,7 +3463,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             // if not provided explicitly we will try to match using the currency name
             String network = this.safeString(parameters, "network", code);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "network");
@@ -3824,7 +3824,7 @@ public class Bitfinex extends BitfinexApi
         String id = this.safeString(itemList, 0);
         String currencyId = this.safeString(itemList, 1);
         String code = this.safeCurrencyCode(currencyId, currency);
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(itemList, 3);
         Double amount = this.safeNumber(itemList, 5, (Object) null);
         Double after = this.safeNumber(itemList, 6, (Object) null);
@@ -3899,7 +3899,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> response = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 ((Map<String, Object>)requestUntil).put("currency", ((Map<String, Object>)currency).get("id"));
                 response = (this.privatePostAuthRLedgersCurrencyHist(this.extend(requestUntil, paramsUntil))).join();
             } else
@@ -4029,7 +4029,7 @@ public class Bitfinex extends BitfinexApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 5000L)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4281,7 +4281,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "keys", ((Map<String, Object>)market).get("id") );
             }};
@@ -4352,7 +4352,7 @@ public class Bitfinex extends BitfinexApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", paramsPaginate, 5000L)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4505,7 +4505,7 @@ public class Bitfinex extends BitfinexApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", paramsPaginate, 500L)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(since, null))
             {
@@ -4610,7 +4610,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new NotSupported((this.id + " setMargin() only support swap markets")) ;
@@ -4694,7 +4694,7 @@ public class Bitfinex extends BitfinexApi
                 response = (this.privatePostAuthROrders(this.extend(request, parameters))).join();
             } else
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.privatePostAuthROrdersSymbol(this.extend(request, parameters))).join();
             }
@@ -4775,7 +4775,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Bitfinex.this.parseToNumeric(id) );
             }};

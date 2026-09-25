@@ -181,7 +181,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
@@ -353,7 +353,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -546,7 +546,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String marketId = this.safeString(order, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(order, "O");
         Object side = this.safeStringLower(order, "S");
         Object reduceOnly = null;
@@ -697,7 +697,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(trade, "t");
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         Boolean isPublicTrade = java.util.Objects.equals(this.safeString(trade, "e"), null);
@@ -817,7 +817,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
     public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(position, "E");
         return this.safePosition(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
@@ -964,7 +964,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", message);
         String currencyId = this.safeString(balanceUpdate, "a");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-        Map<String, Object> account = (Map<String, Object>) this.account();
+        Map<String, Object> account = this.account();
         account.put("free", this.safeString(balanceUpdate, "f"));
         account.put("used", this.safeString(balanceUpdate, "l"));
         if (!java.util.Objects.equals(code, null))

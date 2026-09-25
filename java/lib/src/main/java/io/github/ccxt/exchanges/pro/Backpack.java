@@ -259,7 +259,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String topic = (("ticker" + ".") + ((Map<String, Object>)market).get("id"));
             String messageHash = (("ticker" + ":") + symbolValue);
@@ -379,7 +379,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(ticker, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(ticker, market);
         String messageHash = (("ticker" + ":") + symbol);
@@ -406,7 +406,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long microseconds = this.safeInteger(ticker, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String marketId = this.safeString(ticker, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String last = this.safeString(ticker, "c");
         String open = this.safeString(ticker, "o");
@@ -519,7 +519,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //     }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Object parsedBidAsk = this.parseWsBidAsk((Map<String, Object>) (data), market);
         String messageHash = (("bidask" + ":") + symbol);
@@ -543,7 +543,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         String marketId = this.safeString(ticker, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long microseconds = this.safeInteger(ticker, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
@@ -641,7 +641,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(marketId);
+                Map<String, Object> market = this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
                 topics.add(((("kline." + interval) + ".") + ((Map<String, Object>)market).get("id")));
@@ -691,7 +691,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String marketId = this.safeString(symbolAndTimeframe, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(marketId);
+                Map<String, Object> market = this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
                 topics.add(((("kline." + interval) + ".") + ((Map<String, Object>)market).get("id")));
@@ -725,7 +725,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.market(marketId);
+        Map<String, Object> market = this.market(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String stream = this.safeString(message, "stream", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("."))));
@@ -920,7 +920,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.market(marketId);
+        Map<String, Object> market = this.market(marketId);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -956,7 +956,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String id = this.safeString(trade, "t");
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         String side = null;
         String takerOrMaker = null;
@@ -1249,7 +1249,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
             String topic = "account.orderUpdate";
@@ -1291,7 +1291,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
             String topic = "account.orderUpdate";
@@ -1335,7 +1335,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String messageHash = "orders";
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), market);
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
@@ -1385,7 +1385,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         String marketId = this.safeString(order, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String type = this.safeStringLower(order, "o");
         String timeInForce = this.safeString(order, "f");
@@ -1604,7 +1604,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         String id = this.safeString(position, "i");
         String marketId = this.safeString(position, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String notional = this.safeString(position, "n");
         String liquidationPrice = this.safeString(position, "l");

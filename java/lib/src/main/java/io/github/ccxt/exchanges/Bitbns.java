@@ -498,7 +498,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -664,7 +664,7 @@ public class Bitbns extends BitbnsApi
             {
                 String currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("free", this.safeString(data, key));
                 account.put("used", this.safeString(data, ("inorder" + currencyId)));
                 if (java.util.Objects.equals(currencyId, "Money"))
@@ -842,7 +842,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "t_rate")));
             String targetRate = this.safeString(parameters, "target_rate");
             String trailRate = this.safeString(parameters, "trail_rate");
@@ -920,7 +920,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -962,7 +962,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "entry_id", id );
@@ -1031,7 +1031,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
             String quoteSide = "listOpen";
@@ -1104,7 +1104,7 @@ public class Bitbns extends BitbnsApi
         //         "type":"buy"
         //     }
         //
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket((String) null, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String orderId = this.safeString2(trade, "id", "tradeId");
         Long timestamp = this.parse8601(this.safeString(trade, "date"));
         timestamp = (Long) this.safeInteger(trade, "timestamp", timestamp);
@@ -1182,7 +1182,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "page", 0 );
@@ -1262,7 +1262,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)market).get("baseId") );
                 put( "market", ((Map<String, Object>)market).get("quoteId") );
@@ -1303,7 +1303,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)currency).get("id") );
                 put( "page", 0 );
@@ -1361,7 +1361,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)currency).get("id") );
                 put( "page", 0 );
@@ -1490,7 +1490,7 @@ public class Bitbns extends BitbnsApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)currency).get("id") );
             }};

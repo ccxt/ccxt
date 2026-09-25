@@ -146,7 +146,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(entry, "available"));
             account.put("total", this.safeString(entry, "balance"));
             if (!java.util.Objects.equals(code, null))
@@ -180,7 +180,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ("ohlcv:" + symbolValue);
@@ -272,7 +272,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("ticker:" + symbolValue);
@@ -319,7 +319,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         //
         String eventVar = this.safeString(message, "event");
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Object ticker = null;
         if (java.util.Objects.equals(eventVar, "subscribed"))
@@ -396,7 +396,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("trades:" + symbolValue);
@@ -442,7 +442,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         }
         String marketId = this.safeString(message, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -515,7 +515,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
@@ -680,7 +680,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String datetime = this.safeString(order, "transactTime");
         String status = this.safeString(order, "ordStatus");
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String tradeId = this.safeString(order, "tradeId");
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(tradeId, "0"))
@@ -752,7 +752,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String type = this.safeString(parameters, "type", "l2");
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, "type");

@@ -131,7 +131,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String topic = ("recentlyTrade.H." + this.safeString(market, "id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("trade:" + symbol);
@@ -177,7 +177,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Object trades = data;
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 2);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -214,7 +214,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "id", "v")));
         String marketId = this.safeString2(trade, "s", "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("t", "T", "createdAt")));
         String side = this.safeStringLower2(trade, "S", "side");
@@ -289,7 +289,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String topic = ((("orderBook" + String.valueOf(limitValue)) + ".H.") + this.safeString(market, "id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("orderbook:" + symbol);
@@ -403,7 +403,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Boolean isSnapshot = (java.util.Objects.equals(type, "snapshot"));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -461,7 +461,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             Object url = this.getWsPublicUrl();
             String messageHash = ("ticker:" + symbolValue);
@@ -497,7 +497,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
                 Object symbol = Helpers.GetValue((List<String>)(symbolsNormalized), i);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String topic = (("instrumentInfo" + ".H.") + this.safeString(market, "id2"));
                 ((List<Object>)topics).add(topic);
                 String messageHash = ("ticker:" + symbol);
@@ -552,7 +552,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             Integer topicLength = ((List<?>)topicParts).size();
             String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             symbol = this.safeString(market, "symbol");
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
@@ -618,7 +618,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 Object symbolString = this.safeString(data, 0);
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
+                Map<String, Object> market = this.market(symbolString);
                 symbolString = ((Map<String, Object>)market).get("id2");
                 String unfiedTimeframe = this.safeString(data, 1, "1");
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -677,7 +677,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             marketType = "spot";
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {

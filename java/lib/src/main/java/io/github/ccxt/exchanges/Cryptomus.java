@@ -623,7 +623,7 @@ public class Cryptomus extends CryptomusApi
         //     }
         //
         String marketId = this.safeString(ticker, "currency_pair");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String last = this.safeString(ticker, "last_price");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -670,7 +670,7 @@ public class Cryptomus extends CryptomusApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currencyPair", ((Map<String, Object>)market).get("id") );
             }};
@@ -726,7 +726,7 @@ public class Cryptomus extends CryptomusApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currencyPair", ((Map<String, Object>)market).get("id") );
             }};
@@ -842,7 +842,7 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> balanceEntry = (Map<String, Object>) this.safeDict(balance, i, (Object) null);
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balanceEntry, "available"));
             account.put("used", this.safeString(balanceEntry, "held"));
             if (!java.util.Objects.equals(code, null))
@@ -878,7 +878,7 @@ public class Cryptomus extends CryptomusApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "market", ((Map<String, Object>)market).get("id"),
                 "direction", side,
@@ -1014,7 +1014,7 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("market", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1101,7 +1101,7 @@ public class Cryptomus extends CryptomusApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
@@ -1194,7 +1194,7 @@ public class Cryptomus extends CryptomusApi
         //
         String id = this.safeString2(order, "order_id", "id");
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String dateTime = this.safeString(order, "createdAt");
         Long timestamp = this.parse8601(dateTime);
         Map<String, Object> deal = (Map<String, Object>) this.safeDict(order, "deal", new HashMap<String, Object>() {{}});

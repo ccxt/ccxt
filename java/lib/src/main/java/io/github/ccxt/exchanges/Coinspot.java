@@ -624,7 +624,7 @@ public class Coinspot extends CoinspotApi
                     Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId, (Object) null);
                     String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                    Map<String, Object> account = (Map<String, Object>) this.account();
+                    Map<String, Object> account = this.account();
                     account.put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
@@ -639,7 +639,7 @@ public class Coinspot extends CoinspotApi
             {
                 Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
                 String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -716,7 +716,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cointype", ((Map<String, Object>)market).get("id") );
             }};
@@ -781,7 +781,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             String id = this.safeString(market, "id", "");
             id = id.toLowerCase();
@@ -846,7 +846,7 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
+                Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     String symbol = (String) ((Map<String, Object>)market).get("symbol");
@@ -879,7 +879,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cointype", ((Map<String, Object>)market).get("id") );
             }};
@@ -922,7 +922,7 @@ public class Coinspot extends CoinspotApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -1072,7 +1072,7 @@ public class Coinspot extends CoinspotApi
             {
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "cointype", ((Map<String, Object>)market).get("id") );
                 put( "amount", amount );

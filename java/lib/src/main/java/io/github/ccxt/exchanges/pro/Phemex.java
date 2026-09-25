@@ -137,7 +137,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> marketValue = marketResolved;
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
@@ -201,7 +201,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         String marketId = this.safeString(ticker, 0);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> marketValue = marketResolved;
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Object lastString = this.fromEp(this.safeString(ticker, 4), marketValue);
@@ -433,7 +433,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             String used = this.safeString(balance, "totalUsedBalanceRv");
             if (java.util.Objects.equals(used, null))
             {
@@ -494,7 +494,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         String name = "trade";
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ((name + ":") + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -547,7 +547,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //     }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         List<Object> candles = (List<Object>) this.safeList2(message, "kline", "kline_p", new ArrayList<Object>(Arrays.asList()));
         List<Object> first = (List<Object>) this.safeList(candles, 0, new ArrayList<Object>(Arrays.asList()));
@@ -594,7 +594,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
@@ -641,7 +641,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             Object first = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
-            Map<String, Object> market = (Map<String, Object>) this.market(first);
+            Map<String, Object> market = this.market(first);
             Boolean isSwap = (Boolean) ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
             String name = "spot_market24h";
@@ -697,7 +697,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
@@ -750,7 +750,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
@@ -799,7 +799,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Long requestId = this.requestId();
@@ -890,7 +890,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //    }
         //
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String type = this.safeString(message, "type");
         Long depth = this.safeInteger(message, "depth");
@@ -949,7 +949,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
             }
             Boolean isUsdtMarket = (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"));
@@ -1092,7 +1092,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             Object rawTrade = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
             String marketId = this.safeString(rawTrade, "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade, (Map<String, Object>) null);
             cachedTrades.append(parsed);
             String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
@@ -1141,7 +1141,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
             }
             Boolean isUsdtMarket = (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"));
@@ -1384,7 +1384,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             stored.append(parsed);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(type, null))
             {
                 Boolean isUsdt = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
@@ -1534,7 +1534,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             clientOrderId = null;
         }
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Map<String, Object> marketValue = marketResolved;
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));

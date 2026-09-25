@@ -180,7 +180,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String messageHash = ("trades::" + ((Map<String, Object>)market).get("symbol"));
             String url = "/trading-api/v1/market-data/trades";
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -227,7 +227,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
@@ -264,7 +264,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String wsUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             if (java.util.Objects.equals(wsUrl, null))
@@ -327,7 +327,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         String updateType = this.safeString(message, "type", "");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Object parsed = this.parseTicker(data, market);
         if (java.util.Objects.equals(updateType, "update"))
@@ -361,7 +361,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String url = "/trading-api/v1/market-data/orderbook";
             String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -816,7 +816,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String assetId = this.safeString(data, "assetSymbol");
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("total", this.safeString(data, "availableQuantity"));
             account.put("used", this.safeString(data, "lockedQuantity"));
             String code = this.safeCurrencyCode((String) (assetId), (Map<String, Object>) null);

@@ -714,7 +714,7 @@ public class Hollaex extends HollaexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -763,7 +763,7 @@ public class Hollaex extends HollaexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -833,7 +833,7 @@ public class Hollaex extends HollaexApi
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object ticker = Helpers.GetValue(tickers, key);
             String marketId = this.safeString(ticker, "symbol", key);
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             result.put((String)symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
@@ -869,7 +869,7 @@ public class Hollaex extends HollaexApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         String close = this.safeString(ticker, "close");
@@ -917,7 +917,7 @@ public class Hollaex extends HollaexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -966,7 +966,7 @@ public class Hollaex extends HollaexApi
         //  }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String datetime = this.safeString(trade, "timestamp");
         Long timestamp = this.parse8601(datetime);
@@ -1055,7 +1055,7 @@ public class Hollaex extends HollaexApi
             for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
             {
                 Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String makerString = this.safeString(makerFees, ((Map<String, Object>)market).get("id"));
                 String takerString = this.safeString(takerFees, ((Map<String, Object>)market).get("id"));
                 result.put((String)symbol, new HashMap<String, Object>() {{
@@ -1094,7 +1094,7 @@ public class Hollaex extends HollaexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -1176,7 +1176,7 @@ public class Hollaex extends HollaexApi
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(response, (currencyId + "_available")));
             account.put("total", this.safeString(response, (currencyId + "_balance")));
             if (!java.util.Objects.equals(code, null))
@@ -1401,7 +1401,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1550,7 +1550,7 @@ public class Hollaex extends HollaexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "symbol", ((Map<String, Object>)market).get("id"),
                 "side", side,
@@ -1671,7 +1671,7 @@ public class Hollaex extends HollaexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = null;
-            market = (Map<String, Object>) this.market(symbol);
+            market = this.market(symbol);
             request.put("symbol", ((Map<String, Object>)market).get("id"));
             List<Object> response = (this.privateDeleteOrderAll(this.extend(request, parameters))).join();
             //
@@ -1718,7 +1718,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1773,7 +1773,7 @@ public class Hollaex extends HollaexApi
         }
         this.checkAddress(address);
         String currencyId = this.safeString(depositAddress, "currency");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String network = this.safeString(depositAddress, "network");
         return Helpers.newMap(
             "info", depositAddress,
@@ -1888,7 +1888,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1954,7 +1954,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
@@ -2012,7 +2012,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2107,7 +2107,7 @@ public class Hollaex extends HollaexApi
             tagTo = tag;
         }
         String currencyId = this.safeString(transaction, "currency");
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Object status = this.safeValue(transaction, "status");
         Boolean dismissed = (Boolean) this.safeBool(transaction, "dismissed", (Object) null);
         Boolean rejected = (Boolean) this.safeBool(transaction, "rejected", (Object) null);
@@ -2184,7 +2184,7 @@ public class Hollaex extends HollaexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             String addressWithTag = address;
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {

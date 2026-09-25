@@ -221,7 +221,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@ticker"));
                 messageHashes.add(("ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -281,7 +281,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@ticker"));
                 messageHashes.add(("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -384,7 +384,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String suffix = "";
                 if (java.util.Objects.equals(use1sFreq, true))
                 {
@@ -449,7 +449,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String suffix = "";
                 if (java.util.Objects.equals(use1sFreq, true))
                 {
@@ -514,7 +514,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String eventVar = this.safeString(message, "e");
         String marketId = this.safeString(message, "s");
         Long timestamp = this.safeInteger(message, "E");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String last = this.safeString(message, "c");
         if (java.util.Objects.equals(eventVar, "markPriceUpdate"))
         {
@@ -591,7 +591,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@bookTicker"));
                 messageHashes.add(("bidask:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -647,7 +647,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String symbol = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@bookTicker"));
                 messageHashes.add(("unsubscribe:bidask:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -674,7 +674,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketType = this.getAccountTypeFromUrl(client.url);
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), market);
         String symbol = (String) ((Map<String, Object>)ticker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
@@ -796,7 +796,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 String marketId = this.safeStringLower(market, "id");
                 ((List<Object>)subscriptionArgs).add((marketId + "@aggTrade"));
                 messageHashes.add(("trade::" + ((Map<String, Object>)market).get("symbol")));
@@ -855,7 +855,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id") + "@aggTrade"));
                 messageHashes.add(("unsubscribe:trade:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -883,7 +883,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketType = this.getAccountTypeFromUrl(client.url);
         Map<String, Object> trade = message;
         String marketId = this.safeString(trade, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -1161,7 +1161,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), String.valueOf(limitResolved)));
                 messageHashes.add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -1221,7 +1221,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), limit));
                 messageHashes.add(("unsubscribe:orderbook:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -1259,7 +1259,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
         Long timestamp = this.safeInteger(data, "T");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -1357,7 +1357,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
+            Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = this.safeString(firstMarket, "type", "swap");
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
@@ -1374,7 +1374,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 {
                     continue;
                 }
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
+                Map<String, Object> market = this.market(symbolString);
                 symbolString = this.safeString(market, "symbol");
                 String unfiedTimeframe = this.safeString(data, 1);
                 String timeframeId = null;
@@ -1433,7 +1433,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
+            Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             String type = this.safeString(firstMarket, "type", "swap");
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), type);
             List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
@@ -1450,7 +1450,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 {
                     continue;
                 }
-                Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
+                Map<String, Object> market = this.market(symbolString);
                 symbolString = this.safeString(market, "symbol");
                 String unfiedTimeframe = this.safeString(data, 1);
                 String timeframeId = null;
@@ -1500,7 +1500,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketType = this.getAccountTypeFromUrl(client.url);
         Map<String, Object> data = message;
         String marketId = this.safeString(data, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> kline = (Map<String, Object>) this.safeDict(data, "k", (Object) null);
         String timeframeId = this.safeString(kline, "i");
@@ -1815,7 +1815,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
             String currencyId = this.safeString(entry, "a");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(entry, "f"));
             account.put("used", this.safeString(entry, "l"));
             account.put("total", this.safeString(entry, wallet));
@@ -2090,7 +2090,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
             }
             String messageHash = "orders";
@@ -2147,7 +2147,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 symbolResolved = ((Map<String, Object>)market).get("symbol");
             }
             String messageHash = "myTrades";
@@ -2382,7 +2382,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
         String executionType = this.safeString(order, "x");
         String marketId = this.safeString(order, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(order, "O");
         Long T = this.safeInteger(order, "T");
         Long lastTradeTimestamp = null;

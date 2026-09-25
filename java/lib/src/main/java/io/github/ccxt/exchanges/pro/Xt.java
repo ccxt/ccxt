@@ -1299,7 +1299,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "spot";
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -1361,7 +1361,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "spot";
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             String eventVar = this.safeString(message, "event");
             io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -1451,7 +1451,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "contract";
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
             String symbol = (String) ((Map<String, Object>)market).get("symbol");
             List<Object> obAsks = (List<Object>) this.safeList(data, "a", (Object) null);
             List<Object> obBids = (List<Object>) this.safeList(data, "b", (Object) null);
@@ -1546,7 +1546,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             tradeType = "contract";
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, tradeType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, tradeType);
         String timestamp = this.safeString(trade, "t");
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
@@ -1619,7 +1619,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             tradeType = "contract";
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, tradeType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, tradeType);
         Long timestamp = (Long) this.safeInteger2(order, "ct", "createTime");
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
@@ -1711,7 +1711,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "contract";
             }
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), market);
             orders.append(parsed);
             client.resolve(orders, ("order::" + tradeType));
@@ -1758,7 +1758,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString2(data, "c", "coin");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-        Map<String, Object> account = (Map<String, Object>) this.account();
+        Map<String, Object> account = this.account();
         account.put("free", this.safeString(data, "availableBalance"));
         account.put("used", this.safeString(data, "f"));
         account.put("total", this.safeString2(data, "b", "walletBalance"));
@@ -1825,7 +1825,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             return;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(tradeSymbol);
+        Map<String, Object> market = this.market(tradeSymbol);
         stored.append(parsedTrade);
         String tradeType = "spot";
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))

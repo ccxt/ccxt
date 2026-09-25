@@ -514,7 +514,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -537,7 +537,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -608,7 +608,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -735,7 +735,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String orderType = this.safeString(parameters, "ordType", type);
             String uppercaseOrderType = orderType.toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
@@ -982,7 +982,7 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
@@ -1014,7 +1014,7 @@ public class Blockchaincom extends BlockchaincomApi
         String amountString = this.safeString(trade, "qty");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String datetime = this.iso8601(timestamp);
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
@@ -1072,7 +1072,7 @@ public class Blockchaincom extends BlockchaincomApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 request.put("symbol", this.marketId((String) (symbol)));
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             List<Object> trades = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(trades, market, since, limit, parameters);  // need to define
@@ -1098,7 +1098,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
@@ -1235,7 +1235,7 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -1287,7 +1287,7 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             List<Object> response = (this.privateGetWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
@@ -1351,7 +1351,7 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             List<Object> response = (this.privateGetDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
@@ -1439,7 +1439,7 @@ public class Blockchaincom extends BlockchaincomApi
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("free", this.safeString(entry, "available"));
                 account.put("total", this.safeString(entry, "balance"));
                 result.put((String)code, account);

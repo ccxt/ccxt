@@ -144,7 +144,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "orderbook";
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String topic = ((((Map<String, Object>)market).get("id") + "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -182,7 +182,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String topic = this.safeString(message, "topic");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -215,7 +215,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "ticker";
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String topic = ((((Map<String, Object>)market).get("id") + "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
@@ -286,7 +286,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(data, "date", timestamp);
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
@@ -356,7 +356,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
@@ -436,7 +436,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
     public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -476,7 +476,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 throw new NotSupported((this.id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String name = "kline";
             String topic = ((((((Map<String, Object>)market).get("id") + "@") + name) + "_") + interval);
@@ -519,7 +519,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(data, "type");
         String timeframe = this.findTimeframe(interval, (Object) null);
@@ -559,7 +559,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String topic = (((Map<String, Object>)market).get("id") + "@trade");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -596,7 +596,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
@@ -652,7 +652,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String price = this.safeString2(trade, "executedPrice", "price");
         String amount = this.safeString2(trade, "executedQuantity", "size");
@@ -825,7 +825,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
@@ -881,7 +881,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
@@ -973,7 +973,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         String orderId = this.safeString(order, "orderId");
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.market(marketId);
+        Map<String, Object> marketResolved = this.market(marketId);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         Map<String, Object> fee = new HashMap<String, Object>() {{
@@ -1155,7 +1155,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         String messageHash = "myTrades";
         String marketId = this.safeString(message, "symbol");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), market);
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
@@ -1328,7 +1328,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString(rawPosition, "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
@@ -1365,7 +1365,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         String contract = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
         String size = this.safeString(position, "positionQty");
         String side = null;
         if (Precise.stringGt(size, "0"))

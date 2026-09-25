@@ -941,7 +941,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
@@ -1003,7 +1003,7 @@ public class Blofin extends BlofinApi
         //
         Long timestamp = this.safeInteger(ticker, "ts");
         String marketId = this.safeString(ticker, "instId");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
@@ -1056,7 +1056,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
@@ -1087,7 +1087,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1171,7 +1171,7 @@ public class Blofin extends BlofinApi
         //
         String id = this.safeString(trade, "tradeId");
         String marketId = this.safeString(trade, "instId");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, "-", (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.safeInteger(trade, "ts");
         String price = this.safeString2(trade, "price", "fillPrice");
@@ -1270,7 +1270,7 @@ public class Blofin extends BlofinApi
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", (Long) null, 100L)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
@@ -1333,7 +1333,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean paginate = false;
             Object query = null;
             List<Object> paginatequeryVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
@@ -1397,7 +1397,7 @@ public class Blofin extends BlofinApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", Helpers.toMapArg(query), 100L)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
@@ -1489,7 +1489,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new ExchangeError((this.id + " fetchFundingRate() is only valid for swap markets")) ;
@@ -1573,7 +1573,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "equity");
             String availEq = this.safeString(balance, "available");
@@ -1619,7 +1619,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", this.safeString(balance, "available"));
@@ -1690,7 +1690,7 @@ public class Blofin extends BlofinApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = Helpers.newMap(
             "instId", ((Map<String, Object>)market).get("id"),
             "side", side,
@@ -1849,7 +1849,7 @@ public class Blofin extends BlofinApi
             type = "trigger";
         }
         String marketId = this.safeString(order, "instId");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, marketResolved, "-", (String) null);
         String filled = this.safeString(order, "filledSize");
         String price = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("px", "price", "orderPrice")));
@@ -1956,7 +1956,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Boolean isStopLossPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
             Boolean isTriggerOrder = !java.util.Objects.equals(this.safeString(parameters, "triggerPrice"), null);
@@ -2001,7 +2001,7 @@ public class Blofin extends BlofinApi
 
     public Object createTpslOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         String positionSide = "net";
         if (java.util.Objects.equals(hedged, true))
@@ -2098,7 +2098,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
@@ -2215,7 +2215,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2281,7 +2281,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
@@ -2364,7 +2364,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2418,7 +2418,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2527,7 +2527,7 @@ public class Blofin extends BlofinApi
             tagValue = ((List<Object>) tagValuequeryVariable).get(0);
             query = ((List<Object>) tagValuequeryVariable).get(1);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
@@ -2626,7 +2626,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> requestUntilparamsUntilVariable = (List<Object>) this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
@@ -2786,7 +2786,7 @@ public class Blofin extends BlofinApi
     {
         String currencyId = this.safeString(item, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "ts");
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
@@ -2850,7 +2850,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> request = new ArrayList<Object>(Arrays.asList());
             Object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
             Object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
@@ -2934,7 +2934,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -2986,7 +2986,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
@@ -3060,7 +3060,7 @@ public class Blofin extends BlofinApi
                 Integer symbolsLength = ((List<?>)symbols).size();
                 if (java.util.Objects.equals(symbolsLength, 0))
                 {
-                    market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     request.put("instId", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -3162,7 +3162,7 @@ public class Blofin extends BlofinApi
         //            },
         //
         String marketId = this.safeString(position, "instId");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String pos = this.safeString(position, "positions");
         String contractsAbs = Precise.stringAbs(pos);
@@ -3303,7 +3303,7 @@ public class Blofin extends BlofinApi
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
                 String entry = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> entryMarket = (Map<String, Object>) this.market(entry);
+                Map<String, Object> entryMarket = this.market(entry);
                 if (i > 0)
                 {
                     instIds = ((instIds + ",") + ((Map<String, Object>)entryMarket).get("id"));
@@ -3368,7 +3368,7 @@ public class Blofin extends BlofinApi
             {
                 throw new BadRequest((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = Helpers.newMap(
                 "instId", ((Map<String, Object>)market).get("id"),
                 "marginMode", marginMode
@@ -3435,7 +3435,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
             Map<String, Object> paramsMarginMode = (Map<String, Object>) ((List<Object>) marginModeparamsMarginModeVariable).get(1);
@@ -3480,7 +3480,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
             String marginMode = (String) ((List<Object>) marginModeparamsMarginModeVariable).get(0);
@@ -3533,7 +3533,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("instId", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -3581,7 +3581,7 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = (this.privateGetAccountMarginMode(parameters)).join();
             //
             //     {
@@ -3630,7 +3630,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marginMode", marginMode );

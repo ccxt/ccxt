@@ -1184,7 +1184,7 @@ public class Grvt extends GrvtApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument", Grvt.this.marketId((String) (symbol)) );
             }};
@@ -1360,7 +1360,7 @@ public class Grvt extends GrvtApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument", ((Map<String, Object>)market).get("id") );
             }};
@@ -1449,7 +1449,7 @@ public class Grvt extends GrvtApi
         //            }
         //
         String marketId = this.safeString(trade, "instrument");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         String takerOrMaker = null;
         Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", (Object) null);
@@ -1522,7 +1522,7 @@ public class Grvt extends GrvtApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit))).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument", ((Map<String, Object>)market).get("id") );
                 put( "interval", Grvt.this.safeString(Grvt.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -1623,7 +1623,7 @@ public class Grvt extends GrvtApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument", ((Map<String, Object>)market).get("id") );
             }};
@@ -1790,7 +1790,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", availableBalance); // todo: revise after API team clarification
             if (!java.util.Objects.equals(code, null))
@@ -1823,7 +1823,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1894,7 +1894,7 @@ public class Grvt extends GrvtApi
                 request.put("currency", null);
             } else
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("currency", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -2133,7 +2133,7 @@ public class Grvt extends GrvtApi
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Integer maxLimit = 1000;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
@@ -2233,7 +2233,7 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
             Boolean isInternal = this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))) && this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding")));
             Object fromSubAccount = fromAccount;
@@ -2435,7 +2435,7 @@ public class Grvt extends GrvtApi
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Object request = new HashMap<String, Object>() {{
                 put( "to_eth_address", address );
                 put( "from_account_id", defaultFromAccountId );
@@ -2493,7 +2493,7 @@ public class Grvt extends GrvtApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> orderLeg = new HashMap<String, Object>() {{
                 put( "instrument", ((Map<String, Object>)market).get("id") );
                 put( "size", Grvt.this.amountToPrecision(symbol, amount) );
@@ -2723,7 +2723,7 @@ public class Grvt extends GrvtApi
         for (var i = 0; i < ((List<?>)orderLegs).size(); i++)
         {
             Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)leg).get("instrument"));
+            Map<String, Object> market = this.market(((Map<String, Object>)leg).get("instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "base"));
             String precisionValueStr = String.valueOf(precisionValue);
@@ -2806,7 +2806,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));
@@ -2887,7 +2887,7 @@ public class Grvt extends GrvtApi
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                    Map<String, Object> market = this.market(symbol);
                     if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                     {
                         throw new BadRequest((this.id + " fetchPositions() supports contract markets only")) ;
@@ -3047,7 +3047,7 @@ public class Grvt extends GrvtApi
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
                 put( "instrument", ((Map<String, Object>)market).get("id") );
@@ -3184,7 +3184,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));
@@ -3275,7 +3275,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));
@@ -3738,7 +3738,7 @@ public class Grvt extends GrvtApi
             }};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 request.put("base", new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)((Map<String, Object>)request).get("base")).add(((Map<String, Object>)market).get("baseId"));
                 request.put("quote", new ArrayList<Object>(Arrays.asList()));

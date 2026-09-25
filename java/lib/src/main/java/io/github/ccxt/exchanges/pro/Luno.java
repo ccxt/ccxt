@@ -76,7 +76,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -129,7 +129,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             return;
         }
         Object symbol = ((Map<String, Object>)subscription).get("symbol");
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> market = this.market(symbol);
         String messageHash = ("trades:" + symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -207,7 +207,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{

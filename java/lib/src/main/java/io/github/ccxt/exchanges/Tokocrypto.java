@@ -1029,7 +1029,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Tokocrypto.this.getMarketIdByType((Map<String, Object>) (market)) );
             }};
@@ -1258,7 +1258,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             // the venue routes market data by the symbol type reported by fetchMarkets,
             // not by the quote currency: type 1 markets are served by the binance host
@@ -1535,7 +1535,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (this.isNativeMarket((Map<String, Object>) (market)))
             {
                 throw new NotSupported((((this.id + " fetchTicker() does not support ") + symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
@@ -1640,7 +1640,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
             Integer defaultLimit = 500;
@@ -1801,7 +1801,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "free"));
             account.put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
@@ -2025,7 +2025,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
@@ -2301,7 +2301,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2478,7 +2478,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2547,7 +2547,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
@@ -2622,7 +2622,7 @@ public class Tokocrypto extends TokocryptoApi
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2695,7 +2695,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2913,7 +2913,7 @@ public class Tokocrypto extends TokocryptoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );

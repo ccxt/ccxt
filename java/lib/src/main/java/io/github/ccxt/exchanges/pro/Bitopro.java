@@ -110,7 +110,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("ORDER_BOOK" + ":") + symbolValue);
             Object endPart = null;
@@ -151,7 +151,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
         String messageHash = ((eventVar + ":") + symbol);
@@ -186,7 +186,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("TRADE" + ":") + symbolValue);
             Object trades = (this.watchPublic("trades", messageHash, (String) (((Map<String, Object>)market).get("id")))).join();
@@ -222,7 +222,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String marketId = this.safeString(message, "pair");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
         String messageHash = ((eventVar + ":") + symbol);
@@ -266,7 +266,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             String messageHash = "USER_TRADE";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));
             }
             String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("ws"), "private");
@@ -367,7 +367,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         {
             symbol = this.symbol(((base + "/") + quote));
         }
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(symbol, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(symbol, market, (String) null, (String) null);
         String price = this.safeString(trade, "price");
         String type = this.safeStringLower(trade, "orderType");
         String side = this.safeString(trade, "side");
@@ -440,7 +440,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = (("TICKER" + ":") + symbolValue);
             return (this.watchPublic("tickers", messageHash, (String) (((Map<String, Object>)market).get("id")))).join();
@@ -474,7 +474,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             return;  // some TICKER frames arrive without a pair - nothing to resolve them against
         }
         // market-ids are lowercase in REST API and uppercase in WS API
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String eventVar = this.safeString(message, "event");
         String messageHash = ((eventVar + ":") + symbol);
@@ -588,7 +588,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("total", this.safeString(balance, "amount"));
             if (!java.util.Objects.equals(code, null))

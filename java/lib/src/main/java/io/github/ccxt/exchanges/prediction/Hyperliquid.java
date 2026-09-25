@@ -895,7 +895,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> parentMarket = null;
         if (!java.util.Objects.equals(parentSymbol, null))
         {
-            parentMarket = (Map<String, Object>) this.safeMarket(parentSymbol, (Map<String, Object>) null, (String) null, (String) null);
+            parentMarket = this.safeMarket(parentSymbol, (Map<String, Object>) null, (String) null, (String) null);
         }
         Map<String, Object> ctx = (Map<String, Object>) ((((!java.util.Objects.equals(parentMarket, null)))) ? this.safeDict(this.safeDict(parentMarket, "info", new HashMap<String, Object>() {{}}), "ctx", new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
         Double dayVolume = this.safeNumber(ctx, "dayNtlVlm", (Object) null);
@@ -1005,7 +1005,7 @@ public class Hyperliquid extends HyperliquidApi
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
-            Map<String, Object> market = (Map<String, Object>) this.market(this.safeString(outcomeObj, "market"));
+            Map<String, Object> market = this.market(this.safeString(outcomeObj, "market"));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Object startTime = since;
@@ -1130,7 +1130,7 @@ public class Hyperliquid extends HyperliquidApi
                 String coin = this.safeString(balance, "coin");
                 String total = this.safeString(balance, "total");
                 String used = this.safeString(balance, "hold");
-                Map<String, Object> account = (Map<String, Object>) this.account();
+                Map<String, Object> account = this.account();
                 account.put("total", total);
                 account.put("used", used);
                 if (!java.util.Objects.equals(coin, null))
@@ -1406,7 +1406,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         if (((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(outcomeInput))) || ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(outcomeInput))))
         {
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(outcomeInput), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(Helpers.toStringArg(outcomeInput), (Map<String, Object>) null, (String) null, (String) null);
             Object sideHintOrDefault = "YES";
             if (!java.util.Objects.equals(sideHint, null))
             {
@@ -1451,7 +1451,7 @@ public class Hyperliquid extends HyperliquidApi
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             String marketSymbol = this.safeString(outcomeObj, "market");
-            Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
+            Map<String, Object> market = this.market(marketSymbol);
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Object nonce = this.incrementingNonce();
             Boolean isBuy = (java.util.Objects.equals(((String)side).toUpperCase(), "BUY"));
@@ -1955,7 +1955,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
         {
-            resolvedMarket = (Map<String, Object>) this.safeMarket(marketSymbol, market, (String) null, (String) null);
+            resolvedMarket = this.safeMarket(marketSymbol, market, (String) null, (String) null);
         }
         String sideRaw = this.safeString(entry, "side");
         String side = "sell";
@@ -2195,7 +2195,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
         {
-            resolvedMarket = (Map<String, Object>) this.safeMarket(marketSymbol, market, (String) null, (String) null);
+            resolvedMarket = this.safeMarket(marketSymbol, market, (String) null, (String) null);
         }
         String rawSide = this.safeString(trade, "side");
         String side = "sell";
@@ -2446,7 +2446,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public String amountToPrecision(Object outcome, Object amount)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(outcome);
+        Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "amount", 0.0001);
         // Convert precision to decimal places
         Object decimals = 4;
@@ -2463,7 +2463,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public String priceToPrecision(Object outcome, Object price)
     {
-        Map<String, Object> market = (Map<String, Object>) this.market(outcome);
+        Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if (java.util.Objects.equals(prec, null))

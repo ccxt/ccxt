@@ -119,7 +119,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchOHLCVWs");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
@@ -168,7 +168,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchOHLCV");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
@@ -307,7 +307,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchTickerWs");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchTicker:" + ((Map<String, Object>)market).get("symbol"));
@@ -341,7 +341,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchTicker");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
@@ -381,7 +381,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(message, market);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         String messageHash = ("ticker:" + symbol);
@@ -461,7 +461,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchTradesWs");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchTrades:" + ((Map<String, Object>)market).get("symbol"));
@@ -499,7 +499,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchTrades");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("trades:" + ((Map<String, Object>)market).get("symbol"));
@@ -546,7 +546,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -653,7 +653,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 messageHash = "orders:all";
             } else
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 messageHash = ("orders:" + ((Map<String, Object>)market).get("symbol"));
                 pair = ((String)((Map<String, Object>)market).get("id"));
             }
@@ -865,7 +865,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         Helpers.addElementToObject(this.balance, "datetime", datetime);
         String currencyId = this.safeString(data, "assetCode");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-        Map<String, Object> account = (Map<String, Object>) this.account();
+        Map<String, Object> account = this.account();
         account.put("free", this.safeString(data, "free"));
         account.put("used", this.safeString(data, "freeze"));
         account.put("total", this.safeString(data, "asset"));
@@ -896,7 +896,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "fetchOrderBookWs");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchOrderbook:" + ((Map<String, Object>)market).get("symbol"));
@@ -933,7 +933,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             this.checkContractMarket((Map<String, Object>) (market), "watchOrderBook");
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));

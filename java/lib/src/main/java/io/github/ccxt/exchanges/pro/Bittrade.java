@@ -91,7 +91,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".detail");
@@ -143,7 +143,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
@@ -173,7 +173,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             String messageHash = (("market." + ((Map<String, Object>)market).get("id")) + ".trade.detail");
@@ -235,7 +235,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
@@ -273,7 +273,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("market." + ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
@@ -330,7 +330,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval, (Object) null);
@@ -370,7 +370,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             // only supports a limit of 150 at this time
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 150 : limit;

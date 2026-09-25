@@ -195,7 +195,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String url = null;
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchTicker", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
@@ -326,7 +326,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             marketType = "swap";
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
@@ -367,7 +367,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //
         Long timestamp = this.safeInteger(message, "C");
         String marketId = this.safeString(message, "s");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String close = this.safeString(message, "c");
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
@@ -460,7 +460,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             String url = null;
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchTrades", market, parameters, (Object) null);
@@ -633,7 +633,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             marketType = "swap";
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(Helpers.toStringArg(marketId), (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trade::" + symbol);
         List<Object> trades = null;
@@ -679,7 +679,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String url = null;
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrderBook", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
@@ -851,7 +851,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             marketType = "swap";
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) ((Map<String, Object>)market).get("symbol");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -994,7 +994,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             marketType = "swap";
         }
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         List<Object> candles = null;
         if (Boolean.TRUE.equals(isSwap))
         {
@@ -1067,7 +1067,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String url = null;
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOHLCV", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
@@ -1180,7 +1180,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
@@ -1272,7 +1272,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : symbol;
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (Object) null);
@@ -2094,7 +2094,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             type = "spot";
         }
         String marketId = this.safeString(result, "s");
-        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, (Map<String, Object>) null, "-", type);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", type);
         Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(result, market);
         String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
         String spotHash = "spot:mytrades";
@@ -2169,7 +2169,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("info", balance);
             account.put("used", this.safeString(balance, "lk"));
             account.put("free", this.safeString(balance, "wb"));

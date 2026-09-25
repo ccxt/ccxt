@@ -1199,7 +1199,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1278,7 +1278,7 @@ public class Woo extends WooApi
             }
         }
         String marketId = this.safeString(trade, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String price = this.safeString2(trade, "executed_price", "executedPrice");
         String amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
@@ -1365,7 +1365,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -1666,7 +1666,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -1695,7 +1695,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
@@ -1813,7 +1813,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String orderSide = ((String)((String)side)).toUpperCase();
             Map<String, Object> request = Helpers.newMap(
                 "symbol", ((Map<String, Object>)market).get("id"),
@@ -2029,7 +2029,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(price, null))
             {
@@ -2146,7 +2146,7 @@ public class Woo extends WooApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
@@ -2224,7 +2224,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+                Map<String, Object> market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = null;
@@ -2313,7 +2313,7 @@ public class Woo extends WooApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             Map<String, Object> paramsOmitted = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
@@ -2385,7 +2385,7 @@ public class Woo extends WooApi
             Object paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -2597,7 +2597,7 @@ public class Woo extends WooApi
         String orderId = this.safeString2(order, "orderId", "algoOrderId");
         String clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "quantity"); // This is base amount
@@ -2700,7 +2700,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -2757,7 +2757,7 @@ public class Woo extends WooApi
         //     }
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
@@ -2803,7 +2803,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 throw new NotSupported((this.id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
@@ -2880,7 +2880,7 @@ public class Woo extends WooApi
                     // BadRequest, so callers (and the live test harness) can tell "wrong market
                     // type" apart from a malformed request, marketSymbols still enforces that the
                     // rest of the list matches
-                    Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+                    Map<String, Object> firstMarket = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     if (!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("swap"), true))
                     {
                         throw new NotSupported((this.id + " fetchTickers() supports swap markets only")) ;
@@ -2952,7 +2952,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "type", Woo.this.safeString(Woo.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
@@ -3030,7 +3030,7 @@ public class Woo extends WooApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "oid", id );
@@ -3092,7 +3092,7 @@ public class Woo extends WooApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -3318,7 +3318,7 @@ public class Woo extends WooApi
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"), (Map<String, Object>) null);
-            Map<String, Object> account = (Map<String, Object>) this.account();
+            Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "holding"));
             account.put("free", this.safeString(balance, "availableBalance"));
             if (!java.util.Objects.equals(code, null))
@@ -3348,7 +3348,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
@@ -3418,7 +3418,7 @@ public class Woo extends WooApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
                 request.put("token", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -3534,7 +3534,7 @@ public class Woo extends WooApi
         //
         String networkizedCode = this.safeString(item, "token");
         String code = this.safeCurrencyCode(networkizedCode, currency);
-        Map<String, Object> currencyResolved = (Map<String, Object>) this.safeCurrency(code, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(code, currency);
         Double amount = this.safeNumber(item, "amount", (Object) null);
         String side = this.safeString(item, "tokenSide");
         String direction = "out";
@@ -3759,7 +3759,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Woo.this.parseToNumeric(amount) );
@@ -3816,7 +3816,7 @@ public class Woo extends WooApi
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = (Map<String, Object>) this.currency((String) (code));
+                currency = this.currency((String) (code));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3958,7 +3958,7 @@ public class Woo extends WooApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             this.checkAddress(address);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "address", address );
@@ -4020,7 +4020,7 @@ public class Woo extends WooApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? ((Map<String, Object>)this.market(symbol)).get("symbol") : null;
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Woo.this.currencyToPrecision((String) (code), amount, (String) null) );
@@ -4255,7 +4255,7 @@ public class Woo extends WooApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
                 request.put("symbol", ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -4330,7 +4330,7 @@ public class Woo extends WooApi
         //     }
         //
         String symbol = this.safeString(fundingRate, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.market(symbol);
+        Map<String, Object> marketResolved = this.market(symbol);
         Long nextFundingTimestamp = (Long) this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
         Long estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         Long lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
@@ -4399,7 +4399,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4512,7 +4512,7 @@ public class Woo extends WooApi
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -4628,7 +4628,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
@@ -4656,7 +4656,7 @@ public class Woo extends WooApi
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String marginMode = this.safeStringLower(leverage, "marginMode");
         Long spotLeverage = this.safeInteger(leverage, "leverage");
         if ((spotLeverage != null && spotLeverage == 0))
@@ -4720,7 +4720,7 @@ public class Woo extends WooApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = (Map<String, Object>) this.market(symbol);
+                market = this.market(symbol);
             }
             if ((java.util.Objects.equals(symbol, null)) || (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true)))
             {
@@ -4792,7 +4792,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "adjust_token", "USDT" );
@@ -4822,7 +4822,7 @@ public class Woo extends WooApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
@@ -4891,7 +4891,7 @@ public class Woo extends WooApi
                 Integer symbolsLength = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                    Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
                     request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -4985,7 +4985,7 @@ public class Woo extends WooApi
         //     }
         //
         String contract = this.safeString(position, "symbol");
-        Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(contract, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket(contract, market, (String) null, (String) null);
         String size = this.safeString(position, "holding");
         String side = null;
         if (Precise.stringGt(size, "0"))
@@ -5090,9 +5090,9 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "sellToken", fromCode);
-            Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
+            Map<String, Object> fromCurrency = this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "buyToken", toCode);
-            Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
+            Map<String, Object> toCurrency = this.currency(toCurrencyId);
             return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
@@ -5183,11 +5183,11 @@ public class Woo extends WooApi
             Map<String, Object> toCurrency = null;
             if (!java.util.Objects.equals(fromCurrencyId, null))
             {
-                fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
+                fromCurrency = this.currency(fromCurrencyId);
             }
             if (!java.util.Objects.equals(toCurrencyId, null))
             {
-                toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
+                toCurrency = this.currency(toCurrencyId);
             }
             return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
@@ -5411,7 +5411,7 @@ public class Woo extends WooApi
                 Integer symbolsLength = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                    Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
                     request.put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -5496,7 +5496,7 @@ public class Woo extends WooApi
 
     public Object defaultNetworkCodeForCurrency(Object code)
     {
-        Map<String, Object> currencyItem = (Map<String, Object>) this.currency((String) (code));
+        Map<String, Object> currencyItem = this.currency((String) (code));
         Object networks = ((Map<String, Object>)currencyItem).get("networks");
         List<String> networkKeys = new ArrayList<String>(((Map<String, Object>)networks).keySet());
         for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
